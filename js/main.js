@@ -23,6 +23,8 @@ import { DGTBoard } from './dgt.js';
 import { SoundManager } from './sound.js';
 import { MultiplayerManager } from './multiplayer.js';
 import { PuzzleManager } from './puzzle.js';
+import { PlayerProfile } from './profile.js';
+import { RatingGraph } from './rating-graph.js';
 
 class ChessApp {
   constructor() {
@@ -63,6 +65,8 @@ class ChessApp {
     this.multiplayer = null;
     this.puzzleManager = new PuzzleManager();
     this.puzzleActive = false;
+    this.profile = new PlayerProfile();
+    this.ratingGraph = null;
 
     this.init();
   }
@@ -2860,50 +2864,78 @@ class ChessApp {
 
     document.getElementById('close-stats').addEventListener('click', () => {
       hide(document.getElementById('stats-dialog'));
+      hide(document.getElementById('avatar-picker'));
+    });
+
+    // Avatar edit button
+    document.getElementById('btn-edit-avatar').addEventListener('click', () => {
+      const picker = document.getElementById('avatar-picker');
+      if (picker.classList.contains('hidden')) {
+        this._showAvatarPicker();
+        show(picker);
+      } else {
+        hide(picker);
+      }
+    });
+
+    // Initialize rating graph
+    this.ratingGraph = new RatingGraph(document.getElementById('rating-graph-container'));
+  }
+
+  _showAvatarPicker() {
+    const picker = document.getElementById('avatar-picker');
+    const avatars = PlayerProfile.getAvatarList();
+    picker.innerHTML = avatars.map(path => `
+      <div class="avatar-option ${path === this.profile.getAvatar() ? 'selected' : ''}" data-avatar="${path}">
+        <img src="${path}" alt="">
+      </div>
+    `).join('');
+
+    picker.querySelectorAll('.avatar-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const path = opt.dataset.avatar;
+        this.profile.setAvatar(path);
+        document.getElementById('profile-avatar').src = path;
+        picker.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        hide(picker);
+      });
     });
   }
 
   _renderStats() {
-    const el = document.getElementById('stats-content');
     const record = this.stats.getRecord();
 
+    // Profile header
+    document.getElementById('profile-avatar').src = this.profile.getAvatar();
+    const displayName = (this.auth && this.auth.user) ? this.auth.user.displayName : this.profile.getDisplayName();
+    document.getElementById('profile-name').textContent = displayName;
+
+    const currentRating = this.profile.getCurrentRating(this.stats.games);
+    document.getElementById('profile-rating').textContent = record.total > 0 ? `Rating: ${currentRating}` : '';
+    document.getElementById('profile-record').textContent = record.total > 0
+      ? `${record.wins}W / ${record.losses}L / ${record.draws}D — ${record.total} games`
+      : 'No games played yet';
+
+    // Rating graph
+    const graphSection = document.getElementById('rating-graph-section');
+    if (record.total >= 3) {
+      const history = this.profile.getRatingHistory(this.stats.games);
+      show(graphSection);
+      this.ratingGraph.render(history);
+    } else {
+      show(graphSection);
+      this.ratingGraph.render([]);
+    }
+
+    // Stats content
+    const el = document.getElementById('stats-content');
     if (record.total === 0) {
-      el.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">No games played yet. Play against the computer to start tracking your stats.</p>';
+      el.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Play against the computer to start tracking your stats.</p>';
       return;
     }
 
     let html = '';
-
-    // W/L/D record
-    html += `
-      <div class="stats-record">
-        <div class="stats-record-item wins">
-          <div class="stats-record-value">${record.wins}</div>
-          <div class="stats-record-label">Wins</div>
-        </div>
-        <div class="stats-record-item losses">
-          <div class="stats-record-value">${record.losses}</div>
-          <div class="stats-record-label">Losses</div>
-        </div>
-        <div class="stats-record-item draws">
-          <div class="stats-record-value">${record.draws}</div>
-          <div class="stats-record-label">Draws</div>
-        </div>
-        <div class="stats-record-item">
-          <div class="stats-record-value">${record.total}</div>
-          <div class="stats-record-label">Total</div>
-        </div>
-      </div>`;
-
-    // Rating (10+ games)
-    const rating = this.stats.estimateRating();
-    if (rating) {
-      html += `
-        <div class="stats-rating">
-          <div class="stats-record-label">Estimated Rating</div>
-          <div class="stats-rating-value">${rating}</div>
-        </div>`;
-    }
 
     // Playing style (10+ games)
     const style = this.stats.getPlayingStyle();
@@ -2929,16 +2961,22 @@ class ChessApp {
       html += '</div>';
     }
 
-    // Recent games
-    const recent = this.stats.getRecentGames(10);
+    // Recent games (up to 50)
+    const recent = this.stats.getRecentGames(50);
     if (recent.length > 0) {
       html += '<div class="stats-recent"><h4>Recent Games</h4>';
       for (const g of recent) {
-        const date = new Date(g.date).toLocaleDateString();
+        const date = g.date ? new Date(g.date).toLocaleDateString() : '';
         html += `
           <div class="stats-game-item">
-            <span>vs ${g.opponent} (${g.opponentElo})</span>
-            <span class="stats-game-result ${g.result}">${g.result}</span>
+            <div>
+              <span>vs ${g.opponent} (${g.opponentElo})</span>
+              <span class="stats-game-date">${date}</span>
+            </div>
+            <div>
+              <span class="stats-game-opening">${g.opening || ''}</span>
+              <span class="stats-game-result-badge ${g.result}">${g.result}</span>
+            </div>
           </div>`;
       }
       html += '</div>';

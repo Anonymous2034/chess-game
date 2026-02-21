@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v1';
+const CACHE_NAME = 'grandmasters-v2';
 
 const PRECACHE_URLS = [
   './',
@@ -30,7 +30,9 @@ const PRECACHE_URLS = [
   './js/multiplayer.js',
   './js/notation.js',
   './js/openings.js',
+  './js/profile.js',
   './js/puzzle.js',
+  './js/rating-graph.js',
   './js/sound.js',
   './js/stats.js',
   './js/supabase-config.js',
@@ -116,6 +118,12 @@ const PRECACHE_URLS = [
   './img/personalities/casual-carl.svg', './img/personalities/club-charlie.svg',
   './img/personalities/positional-pat.svg', './img/personalities/speed-demon.svg',
   './img/personalities/tactician-tanya.svg', './img/personalities/the-wall.svg',
+
+  // Player avatars
+  './img/avatars/king.svg', './img/avatars/queen.svg', './img/avatars/rook.svg',
+  './img/avatars/bishop.svg', './img/avatars/knight.svg', './img/avatars/pawn.svg',
+  './img/avatars/crown.svg', './img/avatars/shield.svg', './img/avatars/sword.svg',
+  './img/avatars/star.svg', './img/avatars/flame.svg', './img/avatars/lightning.svg',
 
   // App icons
   './icons/icon.svg',

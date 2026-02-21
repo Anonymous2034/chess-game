@@ -153,11 +153,36 @@
       </div>
     </div>
 
-    <!-- Stats Dialog -->
+    <!-- Stats / Profile Dialog -->
     <div id="stats-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-wide">
-        <h2>Player Statistics</h2>
+        <h2>Player Profile</h2>
+
+        <!-- Profile Header -->
+        <div class="profile-header" id="profile-header">
+          <div class="profile-avatar-container">
+            <img class="profile-avatar" id="profile-avatar" src="img/avatars/knight.svg" alt="Avatar">
+            <button class="btn btn-sm profile-avatar-edit" id="btn-edit-avatar">Edit</button>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="profile-name">Player</div>
+            <div class="profile-rating" id="profile-rating"></div>
+            <div class="profile-record" id="profile-record"></div>
+          </div>
+        </div>
+
+        <!-- Avatar Picker -->
+        <div class="avatar-picker hidden" id="avatar-picker"></div>
+
+        <!-- Rating Graph -->
+        <div class="profile-section" id="rating-graph-section">
+          <h3>Rating History</h3>
+          <div id="rating-graph-container"></div>
+        </div>
+
+        <!-- Stats Content -->
         <div id="stats-content" class="stats-content"></div>
+
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="close-stats">Close</button>
         </div>
