@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess Game</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- New Game Dialog -->
+    <div id="new-game-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>New Game</h2>
+        <div class="dialog-section">
+          <label>Mode</label>
+          <div class="btn-group" data-setting="mode">
+            <button class="btn active" data-value="local">Two Player</button>
+            <button class="btn" data-value="engine">vs Stockfish</button>
+          </div>
+        </div>
+        <div class="dialog-section engine-only">
+          <label>Play as</label>
+          <div class="btn-group" data-setting="color">
+            <button class="btn active" data-value="w">White</button>
+            <button class="btn" data-value="b">Black</button>
+            <button class="btn" data-value="random">Random</button>
+          </div>
+        </div>
+        <div class="dialog-section engine-only">
+          <label>Difficulty</label>
+          <div class="btn-group" data-setting="difficulty">
+            <button class="btn" data-value="1">Beginner</button>
+            <button class="btn" data-value="5">Easy</button>
+            <button class="btn active" data-value="10">Medium</button>
+            <button class="btn" data-value="15">Hard</button>
+            <button class="btn" data-value="20">Max</button>
+          </div>
+        </div>
+        <div class="dialog-section">
+          <label>Time Control</label>
+          <div class="btn-group" data-setting="time">
+            <button class="btn active" data-value="0">No Timer</button>
+            <button class="btn" data-value="180">3 min</button>
+            <button class="btn" data-value="300">5 min</button>
+            <button class="btn" data-value="600">10 min</button>
+            <button class="btn" data-value="900">15 min</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-new-game">Cancel</button>
+          <button class="btn btn-primary" id="start-new-game">Start Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotion Dialog -->
+    <div id="promotion-dialog" class="dialog-overlay hidden">
+      <div class="dialog promotion-dialog">
+        <h3>Promote pawn to:</h3>
+        <div class="promotion-pieces">
+          <button class="promotion-piece" data-piece="q"><img alt="Queen"></button>
+          <button class="promotion-piece" data-piece="r"><img alt="Rook"></button>
+          <button class="promotion-piece" data-piece="b"><img alt="Bishop"></button>
+          <button class="promotion-piece" data-piece="n"><img alt="Knight"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PGN Import Dialog -->
+    <div id="pgn-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Import PGN</h2>
+        <textarea id="pgn-input" placeholder="Paste PGN here..." rows="10"></textarea>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-pgn">Cancel</button>
+          <button class="btn btn-primary" id="load-pgn">Load</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Database Browser Dialog -->
+    <div id="database-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Classic Games Database</h2>
+        <div class="db-controls">
+          <input type="text" id="db-search" placeholder="Search by player, event, year...">
+          <select id="db-collection">
+            <option value="all">All Collections</option>
+          </select>
+        </div>
+        <div id="db-games-list" class="db-games-list"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-database">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+      <h1>Chess</h1>
+      <nav>
+        <button class="btn" id="btn-new-game">New Game</button>
+        <button class="btn" id="btn-flip">Flip Board</button>
+        <button class="btn" id="btn-database">Database</button>
+        <div class="dropdown">
+          <button class="btn" id="btn-pgn-menu">PGN</button>
+          <div class="dropdown-content">
+            <button id="btn-import-pgn">Import PGN</button>
+            <button id="btn-export-pgn">Export PGN</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Left: Board Area -->
+      <div class="board-area">
+        <!-- Top Player Info -->
+        <div class="player-info top" id="player-top">
+          <span class="player-name">Black</span>
+          <span class="timer" id="timer-top">--:--</span>
+        </div>
+
+        <!-- Chess Board -->
+        <div id="board-container">
+          <div id="board" class="board"></div>
+          <!-- Coordinate labels -->
+          <div class="coords coords-files" id="coords-files"></div>
+          <div class="coords coords-ranks" id="coords-ranks"></div>
+        </div>
+
+        <!-- Bottom Player Info -->
+        <div class="player-info bottom" id="player-bottom">
+          <span class="player-name">White</span>
+          <span class="timer" id="timer-bottom">--:--</span>
+        </div>
+      </div>
+
+      <!-- Right: Side Panel -->
+      <div class="side-panel">
+        <!-- Game Status -->
+        <div class="status-bar" id="status-bar">
+          <span id="game-status">White to move</span>
+          <span id="engine-status" class="hidden">Stockfish: Ready</span>
+        </div>
+
+        <!-- Move History -->
+        <div class="move-history-container">
+          <h3>Moves</h3>
+          <div id="move-history" class="move-history"></div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="nav-controls">
+          <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
+          <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
+          <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
+          <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="game-controls">
+          <button class="btn btn-sm" id="btn-undo" title="Undo">Undo</button>
+          <button class="btn btn-sm" id="btn-redo" title="Redo">Redo</button>
+        </div>
+
+        <!-- Opening Explorer -->
+        <div class="opening-explorer">
+          <h3>Opening Explorer</h3>
+          <div id="opening-name" class="opening-name"></div>
+          <div id="explorer-moves" class="explorer-moves"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="lib/chess.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
