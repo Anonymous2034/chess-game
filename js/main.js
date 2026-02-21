@@ -36,6 +36,9 @@ class ChessApp {
     // Themes
     this.themes = new ThemeManager();
 
+    // Force move
+    this.engineMoveTimeout = null;
+
     // New features
     this.captured = new CapturedPieces();
     this.analyzer = null;
@@ -99,6 +102,8 @@ class ChessApp {
     this.setupPanelTabs();
     this.setupStatsDialog();
     this.setupTournament();
+    this.setupForceMove();
+    this.setupMultiAnalysis();
     this.setupThemes();
     this.setupBotMatch();
     this.setupAuth();
@@ -207,13 +212,15 @@ class ChessApp {
     if (!this.engine || !this.engine.ready) return;
 
     this.board.setInteractive(false);
+    this._startEngineMoveTimer();
 
     // Check opening book first
     if (this.activeBot) {
       const engineColor = this.game.playerColor === 'w' ? 'b' : 'w';
       const bookMove = this.openingBook.getBookMove(this.activeBot, this.game.moveHistory, engineColor);
       if (bookMove) {
-        // Simulate thinking delay (300-800ms)
+        // Simulate thinking delay (300-800ms) — book moves are instant
+        this._clearEngineMoveTimer();
         const delay = 300 + Math.random() * 500;
         setTimeout(() => {
           // Find the UCI-style from/to for this SAN move
@@ -246,6 +253,7 @@ class ChessApp {
   }
 
   handleEngineMove(uciMove) {
+    this._clearEngineMoveTimer();
     const parsed = Engine.parseUCIMove(uciMove);
     const move = this.game.makeEngineMove(parsed.from, parsed.to, parsed.promotion);
 
@@ -452,6 +460,7 @@ class ChessApp {
     document.getElementById('btn-undo').addEventListener('click', () => {
       if (this.game.replayMode) return;
       // Stop engine if thinking
+      this._clearEngineMoveTimer();
       if (this.engine && this.engine.thinking) {
         this.engine.stop();
       }
@@ -483,6 +492,244 @@ class ChessApp {
         this.captured.update(this.game.moveHistory, idx, this.board.flipped);
       }
     });
+  }
+
+  // === Force Move ===
+
+  setupForceMove() {
+    document.getElementById('btn-force-move').addEventListener('click', () => {
+      this._forceEngineMove();
+    });
+  }
+
+  _startEngineMoveTimer() {
+    this._clearEngineMoveTimer();
+    // Show Force Move button after 8 seconds if engine hasn't moved
+    this.engineMoveTimeout = setTimeout(() => {
+      if (this.engine && this.engine.thinking) {
+        show(document.getElementById('btn-force-move'));
+      }
+    }, 8000);
+  }
+
+  _clearEngineMoveTimer() {
+    if (this.engineMoveTimeout) {
+      clearTimeout(this.engineMoveTimeout);
+      this.engineMoveTimeout = null;
+    }
+    hide(document.getElementById('btn-force-move'));
+  }
+
+  _forceEngineMove() {
+    if (!this.engine) return;
+
+    if (this.engine.thinking) {
+      // Send 'stop' — Stockfish will immediately return bestmove
+      this.engine.stop();
+
+      // Safety fallback: if no bestmove arrives within 3 seconds, play random legal move
+      setTimeout(() => {
+        if (!this.board.interactive && !this.game.gameOver && this.game.mode === 'engine') {
+          this._playRandomFallbackMove();
+        }
+      }, 3000);
+    } else {
+      // Engine not thinking — it might be stuck in a weird state
+      // Re-request the move
+      this.engine.thinking = false;
+      this.engine.requestMove(this.chess.fen());
+
+      // If still no response after 5 seconds, play random move
+      setTimeout(() => {
+        if (!this.board.interactive && !this.game.gameOver && this.game.mode === 'engine') {
+          this._playRandomFallbackMove();
+        }
+      }, 5000);
+    }
+
+    hide(document.getElementById('btn-force-move'));
+  }
+
+  _playRandomFallbackMove() {
+    const moves = this.chess.moves({ verbose: true });
+    if (moves.length === 0) return;
+
+    const randomMove = moves[Math.floor(Math.random() * moves.length)];
+    const move = this.game.makeEngineMove(randomMove.from, randomMove.to, randomMove.promotion);
+    if (move) {
+      this.notation.addMove(move);
+      this.board.setLastMove(move);
+      this.board.update();
+      this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+      this.fetchOpeningExplorer();
+    }
+    if (!this.game.gameOver) {
+      this.board.setInteractive(true);
+    } else {
+      this._onGameEnd();
+    }
+    this.showToast('Engine unresponsive — random move played');
+  }
+
+  // === Multi-Bot Analysis ===
+
+  setupMultiAnalysis() {
+    document.getElementById('btn-multi-analysis').addEventListener('click', () => {
+      this._renderMultiAnalysisBots();
+      show(document.getElementById('multi-analysis-dialog'));
+    });
+
+    document.getElementById('close-multi-analysis').addEventListener('click', () => {
+      hide(document.getElementById('multi-analysis-dialog'));
+    });
+
+    document.getElementById('run-multi-analysis').addEventListener('click', () => {
+      this._runMultiAnalysis();
+    });
+  }
+
+  _renderMultiAnalysisBots() {
+    const el = document.getElementById('multi-analysis-bots');
+    el.innerHTML = '';
+
+    for (const tier of BOT_TIERS) {
+      const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
+      if (tierBots.length === 0) continue;
+
+      for (const bot of tierBots) {
+        const label = document.createElement('label');
+        label.innerHTML = `
+          <input type="checkbox" value="${bot.id}">
+          <img src="${bot.portrait}" alt="${bot.name}" style="width:24px;height:24px;border-radius:50%;">
+          <span class="multi-analysis-bot-name">${bot.name}</span>
+          <span class="multi-analysis-bot-elo">${bot.peakElo}</span>
+        `;
+        el.appendChild(label);
+      }
+    }
+
+    // Hide results from previous run
+    hide(document.getElementById('multi-analysis-results'));
+  }
+
+  async _runMultiAnalysis() {
+    const checkboxes = document.querySelectorAll('#multi-analysis-bots input[type="checkbox"]:checked');
+    if (checkboxes.length === 0) {
+      this.showToast('Select at least one bot');
+      return;
+    }
+    if (checkboxes.length > 6) {
+      this.showToast('Select up to 6 bots');
+      return;
+    }
+
+    // Ensure engine is ready
+    await this.initEngine();
+    if (!this.engine || !this.engine.ready) {
+      this.showToast('Engine failed to load');
+      return;
+    }
+
+    const selectedBots = Array.from(checkboxes).map(cb => {
+      return BOT_PERSONALITIES.find(b => b.id === cb.value);
+    }).filter(Boolean);
+
+    const fen = this.chess.fen();
+    const resultsEl = document.getElementById('multi-analysis-results');
+    resultsEl.innerHTML = '<div class="multi-analysis-thinking">Analyzing position with each bot...</div>';
+    show(resultsEl);
+
+    // Temporarily remove the onBestMove handler
+    const origHandler = this.engine.onBestMove;
+    this.engine.onBestMove = null;
+
+    const results = [];
+
+    for (const bot of selectedBots) {
+      // Apply bot personality
+      this.engine.applyPersonality(bot);
+
+      // Analyze with higher depth for better quality
+      const analysis = await this.engine.analyzePosition(fen, bot.searchDepth || 16);
+
+      // Convert UCI best move to SAN
+      let san = analysis.bestMove || '?';
+      if (analysis.bestMove) {
+        const from = analysis.bestMove.substring(0, 2);
+        const to = analysis.bestMove.substring(2, 4);
+        const promo = analysis.bestMove.length > 4 ? analysis.bestMove[4] : undefined;
+        const legalMoves = this.chess.moves({ verbose: true });
+        const match = legalMoves.find(m => m.from === from && m.to === to && (!promo || m.promotion === promo));
+        if (match) san = match.san;
+      }
+
+      // Format eval
+      let evalStr;
+      if (analysis.mate !== null) {
+        evalStr = `M${analysis.mate}`;
+      } else {
+        const cp = analysis.score / 100;
+        evalStr = `${cp > 0 ? '+' : ''}${cp.toFixed(1)}`;
+      }
+
+      // Format PV line as SAN
+      let pvSan = '';
+      if (analysis.pv) {
+        const pvMoves = analysis.pv.split(' ').slice(0, 5);
+        // Convert UCI PV to SAN by playing moves on a temp board
+        try {
+          const tempChess = new Chess(fen);
+          const sanMoves = [];
+          for (const uci of pvMoves) {
+            const f = uci.substring(0, 2);
+            const t = uci.substring(2, 4);
+            const p = uci.length > 4 ? uci[4] : undefined;
+            const m = tempChess.move({ from: f, to: t, promotion: p });
+            if (m) sanMoves.push(m.san);
+            else break;
+          }
+          pvSan = sanMoves.join(' ');
+        } catch {
+          pvSan = analysis.pv.split(' ').slice(0, 5).join(' ');
+        }
+      }
+
+      results.push({ bot, san, evalStr, pvSan });
+
+      // Update results live
+      this._renderMultiAnalysisResults(results);
+    }
+
+    // Restore active bot personality if one was active
+    if (this.activeBot) {
+      this.engine.applyPersonality(this.activeBot);
+    } else {
+      this.engine.resetOptions();
+    }
+
+    // Restore handler
+    this.engine.onBestMove = origHandler;
+  }
+
+  _renderMultiAnalysisResults(results) {
+    const el = document.getElementById('multi-analysis-results');
+    let html = '';
+
+    for (const r of results) {
+      html += `
+        <div class="multi-analysis-line">
+          <img class="multi-analysis-portrait" src="${r.bot.portrait}" alt="${r.bot.name}">
+          <div class="multi-analysis-bot-info">
+            <div class="bot-name">${r.bot.name}</div>
+            <div class="bot-elo">${r.bot.peakElo}</div>
+          </div>
+          <div class="multi-analysis-move">${r.san}</div>
+          <div class="multi-analysis-eval">${r.evalStr}</div>
+          <div class="multi-analysis-pv">${r.pvSan}</div>
+        </div>`;
+    }
+
+    el.innerHTML = html;
   }
 
   // === New Game Dialog ===
@@ -577,6 +824,7 @@ class ChessApp {
     }
 
     // Stop any current engine computation
+    this._clearEngineMoveTimer();
     if (this.engine && this.engine.thinking) {
       this.engine.stop();
     }

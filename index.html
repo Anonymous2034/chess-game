@@ -319,6 +319,20 @@
       </div>
     </div>
 
+    <!-- Multi-Bot Analysis Dialog -->
+    <div id="multi-analysis-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Analysis Lines</h2>
+        <p class="multi-analysis-desc">See how different grandmasters and bots would play this position.</p>
+        <div class="multi-analysis-bots" id="multi-analysis-bots"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-multi-analysis">Close</button>
+          <button class="btn btn-primary" id="run-multi-analysis">Analyze Position</button>
+        </div>
+        <div class="multi-analysis-results hidden" id="multi-analysis-results"></div>
+      </div>
+    </div>
+
     <!-- Coach Settings Dialog -->
     <div id="coach-settings-dialog" class="dialog-overlay hidden">
       <div class="dialog">
@@ -381,6 +395,7 @@
         <button class="btn" id="btn-tournament">Tournament</button>
         <button class="btn" id="btn-bot-match">Bot Match</button>
         <button class="btn" id="btn-themes">Themes</button>
+        <button class="btn" id="btn-multi-analysis">Analysis Lines</button>
         <div class="dropdown">
           <button class="btn" id="btn-pgn-menu">PGN</button>
           <div class="dropdown-content">
@@ -448,6 +463,7 @@
         <div class="status-bar" id="status-bar">
           <span id="game-status">White to move</span>
           <span id="engine-status" class="hidden">Stockfish: Ready</span>
+          <button class="btn btn-sm btn-force hidden" id="btn-force-move">Force Move</button>
           <button class="btn btn-sm btn-primary hidden" id="btn-analyze">Analyze Game</button>
           <div class="analysis-progress hidden" id="analysis-progress">
             <div class="progress-bar"><div class="progress-fill" id="analysis-progress-fill"></div></div>
