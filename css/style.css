@@ -331,6 +331,23 @@ main {
   background: var(--panel-bg);
   border-radius: 4px;
   font-size: 0.9rem;
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.player-info.active-turn {
+  border-left-color: var(--accent);
+  background: rgba(129, 182, 76, 0.08);
+}
+
+.player-info.engine-thinking {
+  border-left-color: var(--accent);
+  animation: pulse-thinking 1.5s infinite;
+}
+
+@keyframes pulse-thinking {
+  0%, 100% { background: rgba(129, 182, 76, 0.08); }
+  50% { background: rgba(129, 182, 76, 0.15); }
 }
 
 .player-name {
@@ -357,6 +374,20 @@ main {
 .timer.low {
   background: #c33;
   color: #fff;
+}
+
+.turn-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 1.2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* === Side Panel === */

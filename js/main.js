@@ -154,7 +154,11 @@ class ChessApp {
       this.engine = new Engine();
       this.engine.onStatus = (status) => {
         const prefix = this.activeBot ? this.activeBot.name : 'Engine';
-        engineStatusEl.textContent = `${prefix}: ${status}`;
+        if (status.startsWith('Thinking')) {
+          engineStatusEl.innerHTML = `<span class="thinking">${prefix}: ${status} <span class="thinking-dots"><span></span><span></span><span></span></span></span>`;
+        } else {
+          engineStatusEl.textContent = `${prefix}: ${status}`;
+        }
       };
       this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
 
@@ -240,6 +244,7 @@ class ChessApp {
     if (!this.engine || !this.engine.ready) return;
 
     this.board.setInteractive(false);
+    this._setEngineThinking(true);
     this._startEngineMoveTimer();
 
     // Check opening book first
@@ -251,6 +256,7 @@ class ChessApp {
         this._clearEngineMoveTimer();
         const delay = 300 + Math.random() * 500;
         setTimeout(() => {
+          this._setEngineThinking(false);
           // Find the UCI-style from/to for this SAN move
           const legalMoves = this.chess.moves({ verbose: true });
           const match = legalMoves.find(m => m.san === bookMove);
@@ -261,6 +267,7 @@ class ChessApp {
               this.notation.addMove(move);
               this.board.setLastMove(move);
               this.board.update();
+              this.updateTimers(this.game.timers);
               this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
               this.fetchOpeningExplorer();
             }
@@ -283,6 +290,7 @@ class ChessApp {
 
   handleEngineMove(uciMove) {
     this._clearEngineMoveTimer();
+    this._setEngineThinking(false);
     const parsed = Engine.parseUCIMove(uciMove);
     const move = this.game.makeEngineMove(parsed.from, parsed.to, parsed.promotion);
 
@@ -291,6 +299,7 @@ class ChessApp {
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
+      this.updateTimers(this.game.timers);
       this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
       this.fetchOpeningExplorer();
 
@@ -408,21 +417,32 @@ class ChessApp {
   updateTimers(timers) {
     const topTimer = document.getElementById('timer-top');
     const bottomTimer = document.getElementById('timer-bottom');
+    const topPlayerInfo = document.getElementById('player-top');
+    const bottomPlayerInfo = document.getElementById('player-bottom');
     const topColor = this.board.flipped ? 'w' : 'b';
     const bottomColor = this.board.flipped ? 'b' : 'w';
+    const turn = this.chess.turn();
+    const isOver = this.game.gameOver;
 
-    topTimer.textContent = this.game.getTimerDisplay(topColor);
-    bottomTimer.textContent = this.game.getTimerDisplay(bottomColor);
-
-    // Active timer styling
-    topTimer.classList.toggle('active', this.chess.turn() === topColor && this.game.timeControl > 0 && !this.game.gameOver);
-    bottomTimer.classList.toggle('active', this.chess.turn() === bottomColor && this.game.timeControl > 0 && !this.game.gameOver);
-
-    // Low time warning
     if (this.game.timeControl > 0) {
+      // Timed game — show clock
+      topTimer.textContent = this.game.getTimerDisplay(topColor);
+      bottomTimer.textContent = this.game.getTimerDisplay(bottomColor);
+      topTimer.classList.toggle('active', turn === topColor && !isOver);
+      bottomTimer.classList.toggle('active', turn === bottomColor && !isOver);
       topTimer.classList.toggle('low', timers[topColor] <= 30 && timers[topColor] > 0);
       bottomTimer.classList.toggle('low', timers[bottomColor] <= 30 && timers[bottomColor] > 0);
+    } else {
+      // No timer — show turn dot instead of "--:--"
+      topTimer.classList.remove('active', 'low');
+      bottomTimer.classList.remove('active', 'low');
+      topTimer.innerHTML = (turn === topColor && !isOver) ? '<span class="turn-dot"></span>' : '';
+      bottomTimer.innerHTML = (turn === bottomColor && !isOver) ? '<span class="turn-dot"></span>' : '';
     }
+
+    // Active turn indicator on player info bars (works with/without timer)
+    topPlayerInfo.classList.toggle('active-turn', turn === topColor && !isOver);
+    bottomPlayerInfo.classList.toggle('active-turn', turn === bottomColor && !isOver);
 
     // Player names
     const topName = document.querySelector('#player-top .player-name');
@@ -578,6 +598,18 @@ class ChessApp {
       this.engineMoveTimeout = null;
     }
     hide(document.getElementById('btn-force-move'));
+  }
+
+  _setEngineThinking(thinking) {
+    if (this.game.mode !== 'engine') return;
+    const engineColor = this.game.playerColor === 'w' ? 'b' : 'w';
+    const topColor = this.board.flipped ? 'w' : 'b';
+    const barId = engineColor === topColor ? 'player-top' : 'player-bottom';
+    const bar = document.getElementById(barId);
+    if (bar) {
+      bar.classList.toggle('engine-thinking', thinking);
+      if (thinking) bar.classList.remove('active-turn');
+    }
   }
 
   _forceEngineMove() {
