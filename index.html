@@ -379,6 +379,35 @@
       </div>
     </div>
 
+    <!-- DGT Board Dialog -->
+    <div id="dgt-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>DGT Board</h2>
+        <div class="dgt-status-indicator" id="dgt-status-indicator">
+          <span class="dgt-status-dot" id="dgt-status-dot"></span>
+          <span id="dgt-status-text">Not connected</span>
+        </div>
+        <div class="dgt-connect-options" id="dgt-connect-options">
+          <button class="dgt-connect-btn" id="dgt-connect-usb">
+            <div class="dgt-connect-title">USB (Web Serial)</div>
+            <div class="dgt-connect-desc">Direct USB connection. Chrome/Edge only.</div>
+          </button>
+          <button class="dgt-connect-btn" id="dgt-connect-livechess">
+            <div class="dgt-connect-title">DGT LiveChess</div>
+            <div class="dgt-connect-desc">Connect via LiveChess 2 software (WebSocket).</div>
+          </button>
+        </div>
+        <div class="dgt-engine-move hidden" id="dgt-engine-move">
+          <div class="dgt-engine-move-label">Play this move on your board:</div>
+          <div class="dgt-engine-move-san" id="dgt-engine-move-san"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary hidden" id="dgt-disconnect">Disconnect</button>
+          <button class="btn btn-secondary" id="close-dgt">Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Move Analysis Tooltip -->
     <div id="move-tooltip" class="move-tooltip hidden"></div>
 
@@ -394,6 +423,7 @@
         <button class="btn" id="btn-bot-match">Bot Match</button>
         <button class="btn" id="btn-themes">Themes</button>
         <button class="btn" id="btn-multi-analysis">Analysis Lines</button>
+        <button class="btn" id="btn-dgt">DGT Board</button>
         <div class="dropdown">
           <button class="btn" id="btn-pgn-menu">PGN</button>
           <div class="dropdown-content">
@@ -461,6 +491,7 @@
         <div class="status-bar" id="status-bar">
           <span id="game-status">White to move</span>
           <span id="engine-status" class="hidden">Stockfish: Ready</span>
+          <span id="dgt-board-status" class="dgt-board-status hidden">DGT: Connected</span>
           <button class="btn btn-sm btn-force hidden" id="btn-force-move">Force Move</button>
           <button class="btn btn-sm btn-primary hidden" id="btn-analyze">Analyze Game</button>
           <div class="analysis-progress hidden" id="analysis-progress">

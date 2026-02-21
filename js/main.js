@@ -19,6 +19,7 @@ import { initSupabase, isSupabaseConfigured } from './supabase-config.js';
 import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';
+import { DGTBoard } from './dgt.js';
 
 class ChessApp {
   constructor() {
@@ -53,6 +54,7 @@ class ChessApp {
     this.dataService = null;
     this.adminPanel = null;
     this.firebaseReady = false;
+    this.dgtBoard = null;
 
     this.init();
   }
@@ -108,6 +110,7 @@ class ChessApp {
     this.setupBotMatch();
     this.setupAuth();
     this.setupAdmin();
+    this.setupDGT();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -263,6 +266,18 @@ class ChessApp {
       this.board.update();
       this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
       this.fetchOpeningExplorer();
+
+      // DGT: show engine move guidance
+      if (this.dgtBoard?.isConnected()) {
+        this.dgtBoard.setEngineMoveToPlay({ from: move.from, to: move.to, san: move.san });
+        const engineMoveEl = document.getElementById('dgt-engine-move');
+        const engineMoveSan = document.getElementById('dgt-engine-move-san');
+        if (engineMoveEl && engineMoveSan) {
+          engineMoveSan.textContent = move.san;
+          show(engineMoveEl);
+        }
+        this.showToast(`Play ${move.san} on your DGT board`);
+      }
     }
 
     if (!this.game.gameOver) {
@@ -897,6 +912,12 @@ class ChessApp {
       }
     } else {
       hide(engineStatusEl);
+    }
+
+    // Sync DGT board to new game position
+    if (this.dgtBoard?.isConnected()) {
+      this.dgtBoard.syncToPosition(this.chess);
+      hide(document.getElementById('dgt-engine-move'));
     }
 
     // If engine goes first (player is black)
@@ -1643,6 +1664,99 @@ class ChessApp {
           });
         }
       });
+    });
+  }
+
+  // === DGT Board ===
+
+  setupDGT() {
+    this.dgtBoard = new DGTBoard();
+
+    const dgtDialog = document.getElementById('dgt-dialog');
+    const statusDot = document.getElementById('dgt-status-dot');
+    const statusText = document.getElementById('dgt-status-text');
+    const connectOptions = document.getElementById('dgt-connect-options');
+    const disconnectBtn = document.getElementById('dgt-disconnect');
+    const boardStatusEl = document.getElementById('dgt-board-status');
+    const dgtBtn = document.getElementById('btn-dgt');
+    const engineMoveEl = document.getElementById('dgt-engine-move');
+    const engineMoveSan = document.getElementById('dgt-engine-move-san');
+
+    // Status callback
+    this.dgtBoard.onStatusChange = (msg) => {
+      if (statusText) statusText.textContent = msg;
+    };
+
+    // Connection change callback
+    this.dgtBoard.onConnectionChange = (connected) => {
+      statusDot.classList.toggle('connected', connected);
+      dgtBtn.classList.toggle('dgt-active', connected);
+
+      if (connected) {
+        hide(connectOptions);
+        show(disconnectBtn);
+        show(boardStatusEl);
+        boardStatusEl.textContent = 'DGT: Connected';
+        // Sync board to current game position
+        this.dgtBoard.syncToPosition(this.chess);
+      } else {
+        show(connectOptions);
+        hide(disconnectBtn);
+        hide(boardStatusEl);
+        hide(engineMoveEl);
+      }
+    };
+
+    // Physical board change callback — detect moves
+    this.dgtBoard._onPhysicalBoardChanged = () => {
+      // If there's a pending engine move, check if user replayed it on the board
+      if (this.dgtBoard.pendingEngineMove) {
+        const gameBoard = this.dgtBoard._chessJsToArray(this.chess);
+        if (this.dgtBoard._boardsMatch(gameBoard, this.dgtBoard.dgtBoard)) {
+          // Physical board now matches game — engine move was replayed
+          this.dgtBoard.lastStableBoard = [...this.dgtBoard.dgtBoard];
+          this.dgtBoard.pendingEngineMove = null;
+          hide(engineMoveEl);
+          return;
+        }
+      }
+
+      // Try to detect a player move
+      const detected = this.dgtBoard.detectMove(this.chess);
+      if (!detected) return;
+
+      // In engine mode, only accept moves from the player's color
+      if (this.game.mode === 'engine') {
+        const turn = this.chess.turn();
+        if (turn !== this.game.playerColor) return;
+      }
+
+      // Don't accept moves if game is over or in replay
+      if (this.game.gameOver || this.game.replayMode) return;
+
+      // Execute the move via the board (handles promotion, validation, etc.)
+      this.board.tryMove(detected.from, detected.to);
+    };
+
+    // Button handlers
+    dgtBtn.addEventListener('click', () => {
+      show(dgtDialog);
+    });
+
+    document.getElementById('close-dgt').addEventListener('click', () => {
+      hide(dgtDialog);
+    });
+
+    document.getElementById('dgt-connect-usb').addEventListener('click', () => {
+      this.dgtBoard.connectSerial();
+    });
+
+    document.getElementById('dgt-connect-livechess').addEventListener('click', () => {
+      this.dgtBoard.connectLiveChess();
+    });
+
+    disconnectBtn.addEventListener('click', () => {
+      this.dgtBoard.disconnect();
     });
   }
 

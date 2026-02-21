@@ -2023,6 +2023,98 @@ main {
   font-size: 0.82rem;
 }
 
+/* === DGT Board === */
+.dgt-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.dgt-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #666;
+  flex-shrink: 0;
+}
+
+.dgt-status-dot.connected {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.dgt-connect-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.dgt-connect-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--btn-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dgt-connect-btn:hover {
+  border-color: var(--accent);
+  background: var(--btn-hover);
+}
+
+.dgt-connect-title {
+  color: var(--text-light);
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.dgt-connect-desc {
+  color: #888;
+  font-size: 0.72rem;
+}
+
+.dgt-engine-move {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  background: rgba(129, 182, 76, 0.08);
+  text-align: center;
+}
+
+.dgt-engine-move-label {
+  font-size: 0.78rem;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.dgt-engine-move-san {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: 'Courier New', monospace;
+}
+
+.dgt-board-status {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+#btn-dgt.dgt-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* === Scrollbar === */
 ::-webkit-scrollbar {
   width: 6px;
