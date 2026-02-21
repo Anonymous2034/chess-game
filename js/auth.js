@@ -1,18 +1,10 @@
-// Authentication manager — wraps Firebase Auth
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { getFirebaseAuth, getFirebaseDb } from './firebase-config.js';
+// Authentication manager — wraps Supabase Auth
+import { getSupabase } from './supabase-config.js';
 
 export class AuthManager {
   constructor() {
     this.user = null;
-    this.profile = null; // Firestore profile data
+    this.profile = null;
     this.onAuthChange = null; // callback(user)
     this._initialized = false;
   }
@@ -21,18 +13,18 @@ export class AuthManager {
    * Start listening for auth state changes
    */
   init() {
-    const auth = getFirebaseAuth();
-    if (!auth) return;
+    const sb = getSupabase();
+    if (!sb) return;
 
-    onAuthStateChanged(auth, async (user) => {
-      this.user = user;
-      if (user) {
-        await this._loadProfile(user.uid);
+    sb.auth.onAuthStateChange(async (event, session) => {
+      this.user = session?.user || null;
+      if (this.user) {
+        await this._loadProfile(this.user.id);
       } else {
         this.profile = null;
       }
       this._initialized = true;
-      if (this.onAuthChange) this.onAuthChange(user);
+      if (this.onAuthChange) this.onAuthChange(this.user);
     });
   }
 
@@ -40,44 +32,40 @@ export class AuthManager {
    * Register a new user
    */
   async register(email, password, displayName) {
-    const auth = getFirebaseAuth();
-    if (!auth) throw new Error('Firebase not configured');
+    const sb = getSupabase();
+    if (!sb) throw new Error('Supabase not configured');
 
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(credential.user, { displayName });
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { display_name: displayName }
+      }
+    });
 
-    // Create Firestore profile
-    const db = getFirebaseDb();
-    if (db) {
-      await setDoc(doc(db, 'users', credential.user.uid), {
-        displayName,
-        email,
-        createdAt: new Date().toISOString(),
-        isAdmin: false
-      });
-    }
-
-    return credential.user;
+    if (error) throw error;
+    return data.user;
   }
 
   /**
    * Login with email and password
    */
   async login(email, password) {
-    const auth = getFirebaseAuth();
-    if (!auth) throw new Error('Firebase not configured');
+    const sb = getSupabase();
+    if (!sb) throw new Error('Supabase not configured');
 
-    const credential = await signInWithEmailAndPassword(auth, email, password);
-    return credential.user;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data.user;
   }
 
   /**
    * Logout
    */
   async logout() {
-    const auth = getFirebaseAuth();
-    if (!auth) return;
-    await signOut(auth);
+    const sb = getSupabase();
+    if (!sb) return;
+    await sb.auth.signOut();
   }
 
   /**
@@ -86,9 +74,9 @@ export class AuthManager {
   getCurrentUser() {
     if (!this.user) return null;
     return {
-      uid: this.user.uid,
+      uid: this.user.id,
       email: this.user.email,
-      displayName: this.user.displayName || this.user.email
+      displayName: this.profile?.display_name || this.user.user_metadata?.display_name || this.user.email
     };
   }
 
@@ -103,28 +91,35 @@ export class AuthManager {
    * Check if current user is admin
    */
   isAdmin() {
-    return this.profile?.isAdmin === true;
+    return this.profile?.is_admin === true;
   }
 
   /**
-   * Load Firestore profile
+   * Load profile from profiles table
    */
   async _loadProfile(uid) {
     try {
-      const db = getFirebaseDb();
-      if (!db) return;
-      const snap = await getDoc(doc(db, 'users', uid));
-      if (snap.exists()) {
-        this.profile = snap.data();
-      } else {
-        // Create profile if it doesn't exist
+      const sb = getSupabase();
+      if (!sb) return;
+
+      const { data, error } = await sb
+        .from('profiles')
+        .select('*')
+        .eq('id', uid)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist — create it
+        // (normally the trigger handles this, but fallback just in case)
         this.profile = {
-          displayName: this.user.displayName || this.user.email,
+          id: uid,
+          display_name: this.user.user_metadata?.display_name || this.user.email,
           email: this.user.email,
-          createdAt: new Date().toISOString(),
-          isAdmin: false
+          is_admin: false
         };
-        await setDoc(doc(db, 'users', uid), this.profile);
+        await sb.from('profiles').insert(this.profile);
+      } else if (data) {
+        this.profile = data;
       }
     } catch (err) {
       console.warn('Failed to load profile:', err);
@@ -135,13 +130,12 @@ export class AuthManager {
    * Update display name
    */
   async updateDisplayName(name) {
-    const auth = getFirebaseAuth();
-    if (!auth || !this.user) return;
-    await updateProfile(this.user, { displayName: name });
-    const db = getFirebaseDb();
-    if (db) {
-      await setDoc(doc(db, 'users', this.user.uid), { displayName: name }, { merge: true });
-    }
-    if (this.profile) this.profile.displayName = name;
+    const sb = getSupabase();
+    if (!sb || !this.user) return;
+
+    await sb.auth.updateUser({ data: { display_name: name } });
+    await sb.from('profiles').update({ display_name: name }).eq('id', this.user.id);
+
+    if (this.profile) this.profile.display_name = name;
   }
 }

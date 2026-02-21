@@ -1,9 +1,5 @@
-// Data service — abstracts Firestore + localStorage fallback
-import {
-  collection, doc, setDoc, getDoc, getDocs, addDoc,
-  query, where, orderBy, limit, updateDoc, serverTimestamp
-} from 'firebase/firestore';
-import { getFirebaseDb } from './firebase-config.js';
+// Data service — abstracts Supabase + localStorage fallback
+import { getSupabase } from './supabase-config.js';
 
 export class DataService {
   constructor(auth) {
@@ -11,11 +7,11 @@ export class DataService {
   }
 
   _isOnline() {
-    return this.auth && this.auth.isLoggedIn() && getFirebaseDb();
+    return this.auth && this.auth.isLoggedIn() && getSupabase();
   }
 
   _uid() {
-    return this.auth?.user?.uid;
+    return this.auth?.user?.id;
   }
 
   // === Stats ===
@@ -26,13 +22,13 @@ export class DataService {
       localStorage.setItem('chess_game_stats', JSON.stringify(statsData));
     } catch {}
 
-    // Also save to Firestore if online
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        await setDoc(doc(db, 'users', this._uid(), 'data', 'stats'), {
-          ...statsData,
-          updatedAt: new Date().toISOString()
+        const sb = getSupabase();
+        await sb.from('user_stats').upsert({
+          user_id: this._uid(),
+          data: statsData,
+          updated_at: new Date().toISOString()
         });
       } catch (err) {
         console.warn('Failed to save stats to cloud:', err);
@@ -41,25 +37,26 @@ export class DataService {
   }
 
   async loadStats() {
-    // Try cloud first
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        const snap = await getDoc(doc(db, 'users', this._uid(), 'data', 'stats'));
-        if (snap.exists()) {
-          const cloudData = snap.data();
-          // Update localStorage as cache
+        const sb = getSupabase();
+        const { data, error } = await sb
+          .from('user_stats')
+          .select('data')
+          .eq('user_id', this._uid())
+          .single();
+
+        if (data?.data) {
           try {
-            localStorage.setItem('chess_game_stats', JSON.stringify(cloudData));
+            localStorage.setItem('chess_game_stats', JSON.stringify(data.data));
           } catch {}
-          return cloudData;
+          return data.data;
         }
       } catch (err) {
         console.warn('Failed to load stats from cloud:', err);
       }
     }
 
-    // Fall back to localStorage
     try {
       const stored = localStorage.getItem('chess_game_stats');
       return stored ? JSON.parse(stored) : null;
@@ -73,11 +70,17 @@ export class DataService {
   async saveGame(gameData) {
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        await addDoc(collection(db, 'games'), {
-          ...gameData,
-          userId: this._uid(),
-          date: new Date().toISOString()
+        const sb = getSupabase();
+        await sb.from('games').insert({
+          user_id: this._uid(),
+          opponent: gameData.opponent,
+          opponent_elo: gameData.opponentElo,
+          result: gameData.result,
+          pgn: gameData.pgn,
+          opening: gameData.opening,
+          player_color: gameData.playerColor,
+          move_count: gameData.moveCount,
+          time_control: gameData.timeControl
         });
       } catch (err) {
         console.warn('Failed to save game to cloud:', err);
@@ -88,15 +91,28 @@ export class DataService {
   async getGames(limitCount = 50) {
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        const q = query(
-          collection(db, 'games'),
-          where('userId', '==', this._uid()),
-          orderBy('date', 'desc'),
-          limit(limitCount)
-        );
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const sb = getSupabase();
+        const { data, error } = await sb
+          .from('games')
+          .select('*')
+          .eq('user_id', this._uid())
+          .order('created_at', { ascending: false })
+          .limit(limitCount);
+
+        if (data) {
+          return data.map(g => ({
+            id: g.id,
+            opponent: g.opponent,
+            opponentElo: g.opponent_elo,
+            result: g.result,
+            pgn: g.pgn,
+            opening: g.opening,
+            playerColor: g.player_color,
+            moveCount: g.move_count,
+            timeControl: g.time_control,
+            date: g.created_at
+          }));
+        }
       } catch (err) {
         console.warn('Failed to load games from cloud:', err);
       }
@@ -113,8 +129,12 @@ export class DataService {
 
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        await setDoc(doc(db, 'users', this._uid(), 'data', 'settings'), settings);
+        const sb = getSupabase();
+        await sb.from('user_settings').upsert({
+          user_id: this._uid(),
+          data: settings,
+          updated_at: new Date().toISOString()
+        });
       } catch (err) {
         console.warn('Failed to save settings to cloud:', err);
       }
@@ -124,12 +144,16 @@ export class DataService {
   async loadSettings() {
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        const snap = await getDoc(doc(db, 'users', this._uid(), 'data', 'settings'));
-        if (snap.exists()) {
-          const data = snap.data();
-          try { localStorage.setItem('chess_app_settings', JSON.stringify(data)); } catch {}
-          return data;
+        const sb = getSupabase();
+        const { data } = await sb
+          .from('user_settings')
+          .select('data')
+          .eq('user_id', this._uid())
+          .single();
+
+        if (data?.data) {
+          try { localStorage.setItem('chess_app_settings', JSON.stringify(data.data)); } catch {}
+          return data.data;
         }
       } catch (err) {
         console.warn('Failed to load settings from cloud:', err);
@@ -149,12 +173,11 @@ export class DataService {
   async saveCoachChat(messages, gameContext) {
     if (this._isOnline() && messages.length > 0) {
       try {
-        const db = getFirebaseDb();
-        await addDoc(collection(db, 'coachChats'), {
-          userId: this._uid(),
-          messages: messages.slice(-50), // Keep last 50
-          gameContext,
-          date: new Date().toISOString()
+        const sb = getSupabase();
+        await sb.from('coach_chats').insert({
+          user_id: this._uid(),
+          messages: messages.slice(-50),
+          game_context: gameContext
         });
       } catch (err) {
         console.warn('Failed to save coach chat:', err);
@@ -165,15 +188,22 @@ export class DataService {
   async getCoachChats(limitCount = 20) {
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        const q = query(
-          collection(db, 'coachChats'),
-          where('userId', '==', this._uid()),
-          orderBy('date', 'desc'),
-          limit(limitCount)
-        );
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const sb = getSupabase();
+        const { data } = await sb
+          .from('coach_chats')
+          .select('*')
+          .eq('user_id', this._uid())
+          .order('created_at', { ascending: false })
+          .limit(limitCount);
+
+        if (data) {
+          return data.map(c => ({
+            id: c.id,
+            messages: c.messages,
+            gameContext: c.game_context,
+            date: c.created_at
+          }));
+        }
       } catch (err) {
         console.warn('Failed to load coach chats:', err);
       }
@@ -190,8 +220,12 @@ export class DataService {
 
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        await setDoc(doc(db, 'users', this._uid(), 'data', 'tournament'), tournamentData);
+        const sb = getSupabase();
+        await sb.from('tournaments').upsert({
+          user_id: this._uid(),
+          data: tournamentData,
+          updated_at: new Date().toISOString()
+        });
       } catch (err) {
         console.warn('Failed to save tournament to cloud:', err);
       }
@@ -201,12 +235,16 @@ export class DataService {
   async loadTournament() {
     if (this._isOnline()) {
       try {
-        const db = getFirebaseDb();
-        const snap = await getDoc(doc(db, 'users', this._uid(), 'data', 'tournament'));
-        if (snap.exists()) {
-          const data = snap.data();
-          try { localStorage.setItem('chess_tournament', JSON.stringify(data)); } catch {}
-          return data;
+        const sb = getSupabase();
+        const { data } = await sb
+          .from('tournaments')
+          .select('data')
+          .eq('user_id', this._uid())
+          .single();
+
+        if (data?.data) {
+          try { localStorage.setItem('chess_tournament', JSON.stringify(data.data)); } catch {}
+          return data.data;
         }
       } catch (err) {
         console.warn('Failed to load tournament from cloud:', err);
@@ -221,17 +259,21 @@ export class DataService {
     }
   }
 
-  // === Migration: move localStorage data to Firestore on first login ===
+  // === Migration: move localStorage data to Supabase on first login ===
 
   async migrateLocalData() {
     if (!this._isOnline()) return;
 
-    const db = getFirebaseDb();
+    const sb = getSupabase();
 
     // Check if migration already done
     try {
-      const snap = await getDoc(doc(db, 'users', this._uid(), 'data', 'migrated'));
-      if (snap.exists()) return; // Already migrated
+      const { data } = await sb
+        .from('migrations')
+        .select('user_id')
+        .eq('user_id', this._uid())
+        .single();
+      if (data) return; // Already migrated
     } catch {}
 
     // Migrate stats
@@ -239,9 +281,10 @@ export class DataService {
       const statsStr = localStorage.getItem('chess_game_stats');
       if (statsStr) {
         const stats = JSON.parse(statsStr);
-        await setDoc(doc(db, 'users', this._uid(), 'data', 'stats'), {
-          ...stats,
-          migratedAt: new Date().toISOString()
+        await sb.from('user_stats').upsert({
+          user_id: this._uid(),
+          data: stats,
+          updated_at: new Date().toISOString()
         });
       }
     } catch {}
@@ -251,14 +294,18 @@ export class DataService {
       const tournStr = localStorage.getItem('chess_tournament');
       if (tournStr) {
         const tourn = JSON.parse(tournStr);
-        await setDoc(doc(db, 'users', this._uid(), 'data', 'tournament'), tourn);
+        await sb.from('tournaments').upsert({
+          user_id: this._uid(),
+          data: tourn,
+          updated_at: new Date().toISOString()
+        });
       }
     } catch {}
 
     // Mark as migrated
     try {
-      await setDoc(doc(db, 'users', this._uid(), 'data', 'migrated'), {
-        migratedAt: new Date().toISOString()
+      await sb.from('migrations').insert({
+        user_id: this._uid()
       });
     } catch {}
   }
@@ -268,21 +315,35 @@ export class DataService {
   async getAllUsers() {
     if (!this._isOnline()) return [];
     try {
-      const db = getFirebaseDb();
-      const snap = await getDocs(collection(db, 'users'));
-      return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+      const sb = getSupabase();
+      const { data, error } = await sb
+        .from('profiles')
+        .select('*');
+      if (data) {
+        return data.map(p => ({
+          uid: p.id,
+          displayName: p.display_name,
+          email: p.email,
+          isAdmin: p.is_admin,
+          createdAt: p.created_at
+        }));
+      }
     } catch (err) {
       console.warn('Failed to fetch all users:', err);
-      return [];
     }
+    return [];
   }
 
   async getUserStats(uid) {
     if (!this._isOnline()) return null;
     try {
-      const db = getFirebaseDb();
-      const snap = await getDoc(doc(db, 'users', uid, 'data', 'stats'));
-      return snap.exists() ? snap.data() : null;
+      const sb = getSupabase();
+      const { data } = await sb
+        .from('user_stats')
+        .select('data')
+        .eq('user_id', uid)
+        .single();
+      return data?.data || null;
     } catch {
       return null;
     }
@@ -291,17 +352,26 @@ export class DataService {
   async getUserGames(uid, limitCount = 50) {
     if (!this._isOnline()) return [];
     try {
-      const db = getFirebaseDb();
-      const q = query(
-        collection(db, 'games'),
-        where('userId', '==', uid),
-        orderBy('date', 'desc'),
-        limit(limitCount)
-      );
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const sb = getSupabase();
+      const { data } = await sb
+        .from('games')
+        .select('*')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(limitCount);
+
+      if (data) {
+        return data.map(g => ({
+          id: g.id,
+          opponent: g.opponent,
+          opponentElo: g.opponent_elo,
+          result: g.result,
+          date: g.created_at
+        }));
+      }
     } catch {
       return [];
     }
+    return [];
   }
 }

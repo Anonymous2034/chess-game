@@ -15,7 +15,7 @@ import { Tournament } from './tournament.js';
 import { show, hide, debounce, setPieceBasePath } from './utils.js';
 import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
 import { BotMatch } from './bot-match.js';
-import { initFirebase, isFirebaseConfigured } from './firebase-config.js';
+import { initSupabase, isSupabaseConfigured } from './supabase-config.js';
 import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';
@@ -1649,9 +1649,9 @@ class ChessApp {
   // === Auth ===
 
   setupAuth() {
-    // Init Firebase if configured
-    if (isFirebaseConfigured()) {
-      this.firebaseReady = initFirebase();
+    // Init Supabase if configured
+    if (isSupabaseConfigured()) {
+      this.firebaseReady = initSupabase();
     }
 
     if (this.firebaseReady) {
@@ -1703,7 +1703,7 @@ class ChessApp {
     // Login
     document.getElementById('btn-login').addEventListener('click', async () => {
       if (!this.auth) {
-        this._showAuthError('login', 'Firebase not configured. Update firebase-config.js with your project settings.');
+        this._showAuthError('login', 'Supabase not configured. Update supabase-config.js with your project URL and anon key.');
         return;
       }
       const email = document.getElementById('login-email').value.trim();
@@ -1721,7 +1721,7 @@ class ChessApp {
     // Register
     document.getElementById('btn-register').addEventListener('click', async () => {
       if (!this.auth) {
-        this._showAuthError('register', 'Firebase not configured. Update firebase-config.js with your project settings.');
+        this._showAuthError('register', 'Supabase not configured. Update supabase-config.js with your project URL and anon key.');
         return;
       }
       const name = document.getElementById('register-name').value.trim();
