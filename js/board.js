@@ -300,8 +300,10 @@ export class Board {
       document.body.appendChild(dragImg);
 
       const rect = pieceImg.getBoundingClientRect();
+      const isTouch = e.pointerType === 'touch';
+      const offsetY = isTouch ? rect.height * 0.6 : rect.height / 2;
       dragImg.style.left = (e.clientX - rect.width / 2) + 'px';
-      dragImg.style.top = (e.clientY - rect.height / 2) + 'px';
+      dragImg.style.top = (e.clientY - offsetY) + 'px';
 
       // Hide original piece
       pieceImg.style.opacity = '0';
@@ -314,8 +316,10 @@ export class Board {
     const onPointerMove = (e) => {
       if (!dragImg) return;
       const size = parseFloat(getComputedStyle(dragImg).width);
+      const isTouch = e.pointerType === 'touch';
+      const offsetY = isTouch ? size * 0.6 : size / 2;
       dragImg.style.left = (e.clientX - size / 2) + 'px';
-      dragImg.style.top = (e.clientY - size / 2) + 'px';
+      dragImg.style.top = (e.clientY - offsetY) + 'px';
     };
 
     const onPointerUp = (e) => {

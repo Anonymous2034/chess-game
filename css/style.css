@@ -5,6 +5,12 @@
   padding: 0;
 }
 
+/* Suppress tap highlight on interactive elements */
+a, button, .square, .piece, .move-cell, .bot-list-card,
+.db-game-item, .explorer-move, .promotion-piece {
+  -webkit-tap-highlight-color: transparent;
+}
+
 :root {
   --light-square: #f0d9b5;
   --dark-square: #b58863;
@@ -36,6 +42,10 @@ html, body {
   background: var(--bg-color);
   color: var(--text-color);
   overflow-x: hidden;
+}
+
+html {
+  overscroll-behavior: none;
 }
 
 /* === Header === */
@@ -151,6 +161,7 @@ main {
   gap: 20px;
   padding: 16px;
   min-height: calc(100vh - 50px);
+  min-height: calc(100dvh - 50px);
 }
 
 /* === Board Area === */
@@ -165,6 +176,7 @@ main {
   position: relative;
   width: var(--board-size);
   height: var(--board-size);
+  touch-action: none;
 }
 
 .board {
@@ -518,6 +530,7 @@ main {
   align-items: center;
   justify-content: center;
   z-index: 500;
+  overscroll-behavior: contain;
 }
 
 .dialog {
@@ -2023,6 +2036,66 @@ main {
   font-size: 0.82rem;
 }
 
+/* === Hamburger Menu === */
+.nav-menu-toggle {
+  display: none;
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-icon {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text-color);
+  position: relative;
+  transition: background 0.2s;
+}
+
+.menu-icon::before,
+.menu-icon::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  background: var(--text-color);
+  left: 0;
+  transition: transform 0.2s;
+}
+
+.menu-icon::before { top: -6px; }
+.menu-icon::after { top: 6px; }
+
+.nav-menu-toggle.open .menu-icon {
+  background: transparent;
+}
+
+.nav-menu-toggle.open .menu-icon::before {
+  transform: rotate(45deg);
+  top: 0;
+}
+
+.nav-menu-toggle.open .menu-icon::after {
+  transform: rotate(-45deg);
+  top: 0;
+}
+
+.nav-menu {
+  display: contents;
+}
+
+/* Desktop: section wrappers are invisible */
+.nav-menu-section {
+  display: contents;
+}
+
+.nav-menu-label {
+  display: none;
+}
+
 /* === Sound Toggle === */
 #btn-sound {
   min-width: 72px;
@@ -2194,25 +2267,24 @@ main {
 
 /* === Responsive === */
 @media (max-width: 768px) {
+  :root {
+    --board-size: min(95vw, calc(100dvh - 180px), 480px);
+  }
+
   main {
     flex-direction: column;
     align-items: center;
-    padding: 8px;
-    gap: 10px;
+    padding: 6px;
+    gap: 6px;
+    min-height: auto;
   }
 
-  :root {
-    --board-size: min(95vw, 95vh - 100px, 480px);
-  }
-
-  .side-panel {
-    width: var(--board-size);
-    max-height: none;
-    overflow: visible;
-  }
-
+  /* --- Hamburger dropdown --- */
   header {
     padding: 6px 10px;
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    position: relative;
   }
 
   header h1 {
@@ -2223,9 +2295,146 @@ main {
     gap: 4px;
   }
 
+  .nav-menu-toggle {
+    display: flex;
+  }
+
+  .nav-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--panel-bg);
+    border-bottom: 2px solid var(--accent);
+    padding: 10px;
+    z-index: 200;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-menu.open {
+    display: flex;
+  }
+
+  .nav-menu-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .nav-menu-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .nav-menu-label {
+    display: block;
+    width: 100%;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+
+  .nav-menu-section .btn {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+    text-align: center;
+  }
+
+  .nav-menu-section .dropdown {
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  /* --- Touch-friendly sizing --- */
   .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+  }
+
+  .btn-sm {
+    min-height: 40px;
+    padding: 6px 10px;
+  }
+
+  .dialog-actions .btn {
+    min-height: 48px;
+    padding: 10px 16px;
+  }
+
+  .nav-controls .btn {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .panel-tab {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .game-controls .btn {
+    min-height: 44px;
+  }
+
+  .tc-btn {
+    min-height: 40px;
+  }
+
+  /* Prevent iOS auto-zoom on input focus */
+  .dialog-section input,
+  .dialog-section select,
+  .dialog-section textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  /* --- Compact mobile layout --- */
+  .side-panel {
+    width: var(--board-size);
+    max-height: 280px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .move-history {
+    max-height: 120px;
+  }
+
+  .status-bar {
     padding: 4px 8px;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
+  }
+
+  .player-info {
+    padding: 3px 8px;
+    font-size: 0.82rem;
+  }
+
+  .opening-explorer {
+    display: none;
+  }
+
+  .opening-label {
+    font-size: 0.72rem;
+  }
+
+  /* --- Dialog improvements --- */
+  .dialog {
+    min-width: unset;
+    width: 95vw;
+    max-height: 85dvh;
+    padding: 14px;
+  }
+
+  .dialog h2 {
+    font-size: 1.05rem;
   }
 
   .dialog-wide {
@@ -2236,8 +2445,44 @@ main {
   .dialog-new-game {
     min-width: unset;
     width: 95vw;
+    max-height: 90dvh;
+    overflow-y: auto;
   }
 
+  .btn-group .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .db-games-list {
+    max-height: 50vh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tournament-opponents {
+    max-height: 150px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .promotion-piece {
+    width: 64px;
+    height: 64px;
+  }
+
+  .promotion-piece img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .multi-analysis-pv {
+    display: none;
+  }
+
+  .db-controls {
+    flex-direction: column;
+  }
+
+  /* --- Bot picker --- */
   .bot-picker-layout {
     flex-direction: column;
     height: auto;
@@ -2287,6 +2532,7 @@ main {
     grid-template-columns: 1fr;
   }
 
+  /* --- Other mobile adjustments --- */
   .nav-controls {
     width: var(--board-size);
   }
@@ -2335,14 +2581,86 @@ main {
   .bracket-round {
     min-width: 120px;
   }
+
+  /* --- Safe area insets --- */
+  main {
+    padding-left: max(6px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right));
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* === Landscape mobile === */
+@media (max-width: 768px) and (orientation: landscape) {
+  :root {
+    --board-size: min(55vw, calc(100dvh - 80px));
+  }
+
+  main {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .side-panel {
+    width: 200px;
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+  }
+
+  .opening-label {
+    display: none;
+  }
+
+  header {
+    padding: 2px 8px;
+  }
+
+  header h1 {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
   :root {
-    --board-size: calc(100vw - 16px);
+    --board-size: calc(100vw - 12px);
+  }
+
+  header {
+    padding: 4px 8px;
+  }
+
+  header h1 {
+    font-size: 1rem;
+  }
+
+  .side-panel {
+    max-height: 240px;
   }
 
   .coords-ranks {
     display: none;
+  }
+}
+
+/* === Touch device enhancements === */
+@media (pointer: coarse) {
+  .piece.dragging {
+    width: calc(var(--square-size) * 1.3);
+    height: calc(var(--square-size) * 1.3);
+    filter: drop-shadow(2px 6px 8px rgba(0, 0, 0, 0.5));
+  }
+
+  .square .legal-dot {
+    width: 30%;
+    height: 30%;
+  }
+
+  .square .legal-capture {
+    border-width: 6px;
   }
 }

@@ -118,6 +118,7 @@ class ChessApp {
     this.setupDGT();
     this.setupSoundToggle();
     this.setupMultiplayer();
+    this.setupHamburgerMenu();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -1733,6 +1734,36 @@ class ChessApp {
   _updateSoundButton(btn) {
     btn.textContent = this.sound.muted ? 'Sound Off' : 'Sound On';
     btn.classList.toggle('muted', this.sound.muted);
+  }
+
+  // === Hamburger Menu ===
+
+  setupHamburgerMenu() {
+    const toggle = document.getElementById('btn-menu-toggle');
+    const menu = document.getElementById('nav-menu');
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggle.classList.toggle('open');
+      menu.classList.toggle('open');
+    });
+
+    // Auto-close when a button inside the menu is clicked
+    menu.addEventListener('click', (e) => {
+      if (e.target.closest('.btn') || e.target.closest('button')) {
+        toggle.classList.remove('open');
+        menu.classList.remove('open');
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+        toggle.classList.remove('open');
+        menu.classList.remove('open');
+      }
+    });
   }
 
   // === Multiplayer ===

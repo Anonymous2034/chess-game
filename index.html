@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Grandmasters</title>
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
@@ -481,26 +481,41 @@
       <nav>
         <button class="btn" id="btn-new-game">New Game</button>
         <button class="btn" id="btn-flip">Flip Board</button>
-        <button class="btn" id="btn-database">Database</button>
-        <button class="btn" id="btn-stats">Stats</button>
-        <button class="btn" id="btn-tournament">Tournament</button>
-        <button class="btn" id="btn-bot-match">Bot Match</button>
-        <button class="btn" id="btn-themes">Themes</button>
-        <button class="btn" id="btn-multi-analysis">Analysis Lines</button>
-        <button class="btn" id="btn-play-online">Play Online</button>
-        <button class="btn" id="btn-dgt">DGT Board</button>
-        <div class="dropdown">
-          <button class="btn" id="btn-pgn-menu">PGN</button>
-          <div class="dropdown-content">
-            <button id="btn-import-pgn">Import PGN</button>
-            <button id="btn-export-pgn">Export PGN</button>
+        <button class="btn nav-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
+          <span class="menu-icon"></span>
+        </button>
+        <div class="nav-menu" id="nav-menu">
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">Play</span>
+            <button class="btn" id="btn-play-online">Play Online</button>
+            <button class="btn" id="btn-tournament">Tournament</button>
+            <button class="btn" id="btn-bot-match">Bot Match</button>
+          </div>
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">Tools</span>
+            <button class="btn" id="btn-database">Database</button>
+            <button class="btn" id="btn-stats">Stats</button>
+            <button class="btn" id="btn-multi-analysis">Analysis Lines</button>
+            <div class="dropdown">
+              <button class="btn" id="btn-pgn-menu">PGN</button>
+              <div class="dropdown-content">
+                <button id="btn-import-pgn">Import PGN</button>
+                <button id="btn-export-pgn">Export PGN</button>
+              </div>
+            </div>
+          </div>
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">Settings</span>
+            <button class="btn" id="btn-themes">Themes</button>
+            <button class="btn" id="btn-sound" title="Toggle Sound">Sound On</button>
+            <button class="btn" id="btn-dgt">DGT Board</button>
+          </div>
+          <div class="nav-menu-section">
+            <button class="btn hidden" id="btn-admin">Admin</button>
+            <span class="auth-status hidden" id="auth-status"></span>
+            <button class="btn" id="btn-auth">Login</button>
           </div>
         </div>
-        <button class="btn hidden" id="btn-admin">Admin</button>
-        <button class="btn" id="btn-sound" title="Toggle Sound">Sound On</button>
-        <span class="nav-separator"></span>
-        <span class="auth-status hidden" id="auth-status"></span>
-        <button class="btn" id="btn-auth">Login</button>
       </nav>
     </header>
 
