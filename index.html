@@ -10,14 +10,18 @@
   <div id="app">
     <!-- New Game Dialog -->
     <div id="new-game-dialog" class="dialog-overlay hidden">
-      <div class="dialog">
+      <div class="dialog dialog-new-game">
         <h2>New Game</h2>
         <div class="dialog-section">
           <label>Mode</label>
           <div class="btn-group" data-setting="mode">
             <button class="btn active" data-value="local">Two Player</button>
-            <button class="btn" data-value="engine">vs Stockfish</button>
+            <button class="btn" data-value="engine">vs Computer</button>
           </div>
+        </div>
+        <div class="dialog-section engine-only">
+          <label>Choose your opponent</label>
+          <div class="bot-picker" id="bot-picker"></div>
         </div>
         <div class="dialog-section engine-only">
           <label>Play as</label>
@@ -25,16 +29,6 @@
             <button class="btn active" data-value="w">White</button>
             <button class="btn" data-value="b">Black</button>
             <button class="btn" data-value="random">Random</button>
-          </div>
-        </div>
-        <div class="dialog-section engine-only">
-          <label>Difficulty</label>
-          <div class="btn-group" data-setting="difficulty">
-            <button class="btn" data-value="1">Beginner</button>
-            <button class="btn" data-value="5">Easy</button>
-            <button class="btn active" data-value="10">Medium</button>
-            <button class="btn" data-value="15">Hard</button>
-            <button class="btn" data-value="20">Max</button>
           </div>
         </div>
         <div class="dialog-section">
@@ -82,9 +76,12 @@
     <!-- Database Browser Dialog -->
     <div id="database-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-wide">
-        <h2>Classic Games Database</h2>
+        <h2>Game Database</h2>
+        <div class="db-category-tabs" id="db-category-tabs">
+          <button class="db-tab active" data-category="all">All</button>
+        </div>
         <div class="db-controls">
-          <input type="text" id="db-search" placeholder="Search by player, event, year...">
+          <input type="text" id="db-search" placeholder="Search by player, event, ECO...">
           <select id="db-collection">
             <option value="all">All Collections</option>
           </select>

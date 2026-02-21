@@ -2,38 +2,51 @@
 
 export class Database {
   constructor() {
+    this.categories = [];
     this.collections = [];
     this.games = [];
     this.onGameSelect = null;
   }
 
   /**
-   * Load bundled PGN collections
+   * Load collections from manifest file
    */
   async loadCollections() {
-    const collections = [
-      { name: 'World Championships', file: 'data/classic-games/world-championships.pgn' },
-      { name: 'Immortal Games', file: 'data/classic-games/immortal-games.pgn' },
-      { name: 'Bobby Fischer', file: 'data/classic-games/fischer.pgn' },
-      { name: 'Garry Kasparov', file: 'data/classic-games/kasparov.pgn' },
-      { name: 'Magnus Carlsen', file: 'data/classic-games/carlsen.pgn' },
-    ];
+    try {
+      const resp = await fetch('data/collections.json');
+      if (!resp.ok) return this.categories;
+      const manifest = await resp.json();
+      this.categories = manifest.categories;
+    } catch {
+      // Fallback: no collections
+      return this.categories;
+    }
 
-    for (const col of collections) {
-      try {
-        const resp = await fetch(col.file);
-        if (!resp.ok) continue;
-        const text = await resp.text();
-        const games = this.parsePGNFile(text);
-        games.forEach(g => g.collection = col.name);
-        this.collections.push({ name: col.name, count: games.length });
-        this.games.push(...games);
-      } catch {
-        // File not available, skip
+    for (const category of this.categories) {
+      for (const col of category.collections) {
+        try {
+          const resp = await fetch(col.file);
+          if (!resp.ok) continue;
+          const text = await resp.text();
+          const games = this.parsePGNFile(text);
+          games.forEach(g => {
+            g.collection = col.name;
+            g.category = category.id;
+            g.categoryName = category.name;
+          });
+          this.collections.push({
+            name: col.name,
+            count: games.length,
+            category: category.id
+          });
+          this.games.push(...games);
+        } catch {
+          // File not available, skip
+        }
       }
     }
 
-    return this.collections;
+    return this.categories;
   }
 
   /**
@@ -98,15 +111,21 @@ export class Database {
       eco: headers.ECO || '',
       moves: moveTokens,
       pgn: text,
-      collection: ''
+      collection: '',
+      category: '',
+      categoryName: ''
     };
   }
 
   /**
-   * Search games by query string
+   * Search games by query string, collection, and category
    */
-  search(query, collection = 'all') {
+  search(query, collection = 'all', category = 'all') {
     let results = this.games;
+
+    if (category !== 'all') {
+      results = results.filter(g => g.category === category);
+    }
 
     if (collection !== 'all') {
       results = results.filter(g => g.collection === collection);
@@ -124,6 +143,14 @@ export class Database {
     }
 
     return results;
+  }
+
+  /**
+   * Get collections for a specific category
+   */
+  getCollectionsForCategory(categoryId) {
+    if (categoryId === 'all') return this.collections;
+    return this.collections.filter(c => c.category === categoryId);
   }
 
   /**

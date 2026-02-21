@@ -4,6 +4,7 @@ import { Game } from './game.js';
 import { Engine } from './engine.js';
 import { Notation } from './notation.js';
 import { Database } from './database.js';
+import { BOT_PERSONALITIES, BOT_TIERS, BOT_AVATARS } from './bots.js';
 import { show, hide, debounce } from './utils.js';
 
 class ChessApp {
@@ -14,6 +15,8 @@ class ChessApp {
     this.notation = null;
     this.database = new Database();
     this.engineInitialized = false;
+    this.activeBot = null;
+    this.activeCategory = 'all';
 
     this.init();
   }
@@ -44,8 +47,9 @@ class ChessApp {
     this.setupBoardFlip();
 
     // Load database in background
-    this.database.loadCollections().then(cols => {
-      if (cols.length > 0) {
+    this.database.loadCollections().then(categories => {
+      if (categories.length > 0) {
+        this.populateCategoryTabs();
         this.populateCollectionFilter();
       }
     });
@@ -61,21 +65,23 @@ class ChessApp {
 
     const engineStatusEl = document.getElementById('engine-status');
     show(engineStatusEl);
-    engineStatusEl.textContent = 'Stockfish: Loading...';
+    engineStatusEl.textContent = 'Engine: Loading...';
 
     try {
       this.engine = new Engine();
       this.engine.onStatus = (status) => {
-        engineStatusEl.textContent = `Stockfish: ${status}`;
+        const prefix = this.activeBot ? this.activeBot.name : 'Engine';
+        engineStatusEl.textContent = `${prefix}: ${status}`;
       };
       this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
 
       await this.engine.init();
       this.engineInitialized = true;
-      engineStatusEl.textContent = 'Stockfish: Ready';
+      const prefix = this.activeBot ? this.activeBot.name : 'Engine';
+      engineStatusEl.textContent = `${prefix}: Ready`;
     } catch (err) {
       console.error('Engine init failed:', err);
-      engineStatusEl.textContent = 'Stockfish: Failed to load';
+      engineStatusEl.textContent = 'Engine: Failed to load';
     }
   }
 
@@ -156,8 +162,15 @@ class ChessApp {
     // Player names
     const topName = document.querySelector('#player-top .player-name');
     const bottomName = document.querySelector('#player-bottom .player-name');
-    if (topName) topName.textContent = topColor === 'w' ? 'White' : 'Black';
-    if (bottomName) bottomName.textContent = bottomColor === 'w' ? 'White' : 'Black';
+    if (this.activeBot && this.game.mode === 'engine') {
+      const botColor = this.game.playerColor === 'w' ? 'b' : 'w';
+      const playerColor = this.game.playerColor;
+      if (topName) topName.textContent = topColor === botColor ? this.activeBot.name : (playerColor === 'w' ? 'White' : 'Black');
+      if (bottomName) bottomName.textContent = bottomColor === botColor ? this.activeBot.name : (playerColor === 'w' ? 'White' : 'Black');
+    } else {
+      if (topName) topName.textContent = topColor === 'w' ? 'White' : 'Black';
+      if (bottomName) bottomName.textContent = bottomColor === 'w' ? 'White' : 'Black';
+    }
   }
 
   // === Navigation ===
@@ -269,7 +282,10 @@ class ChessApp {
 
   setupNewGameDialog() {
     const dialog = document.getElementById('new-game-dialog');
-    const settings = { mode: 'local', color: 'w', difficulty: 10, time: 0 };
+    const settings = { mode: 'local', color: 'w', botId: 'club-player-charlie', time: 0 };
+
+    // Render bot picker
+    this.renderBotPicker(settings);
 
     document.getElementById('btn-new-game').addEventListener('click', () => {
       show(dialog);
@@ -280,7 +296,7 @@ class ChessApp {
       hide(dialog);
     });
 
-    // Button group selections
+    // Button group selections (mode, color, time)
     dialog.querySelectorAll('.btn-group').forEach(group => {
       const setting = group.dataset.setting;
       group.querySelectorAll('.btn').forEach(btn => {
@@ -310,19 +326,25 @@ class ChessApp {
         this.engine.stop();
       }
 
+      // Find selected bot
+      const bot = BOT_PERSONALITIES.find(b => b.id === settings.botId);
+
       // Init engine if needed
       if (settings.mode === 'engine') {
         await this.initEngine();
-        if (this.engine) {
-          this.engine.setDifficulty(settings.difficulty);
+        if (this.engine && bot) {
+          this.activeBot = bot;
+          this.engine.applyPersonality(bot);
           this.engine.newGame();
         }
+      } else {
+        this.activeBot = null;
       }
 
       this.game.newGame({
         mode: settings.mode,
         color,
-        difficulty: settings.difficulty,
+        botId: settings.botId,
         time: settings.time
       });
 
@@ -344,6 +366,9 @@ class ChessApp {
       const engineStatusEl = document.getElementById('engine-status');
       if (settings.mode === 'engine') {
         show(engineStatusEl);
+        if (this.activeBot) {
+          engineStatusEl.textContent = `${this.activeBot.name}: Ready`;
+        }
       } else {
         hide(engineStatusEl);
       }
@@ -356,6 +381,47 @@ class ChessApp {
       // Fetch opening explorer for starting position
       this.fetchOpeningExplorer();
     });
+  }
+
+  renderBotPicker(settings) {
+    const picker = document.getElementById('bot-picker');
+    picker.innerHTML = '';
+
+    for (const tier of BOT_TIERS) {
+      const bots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
+      if (bots.length === 0) continue;
+
+      const header = document.createElement('div');
+      header.className = 'bot-tier-header';
+      header.textContent = `${tier.name} (${tier.eloRange})`;
+      picker.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'bot-tier-grid';
+
+      for (const bot of bots) {
+        const card = document.createElement('div');
+        card.className = 'bot-card' + (bot.id === settings.botId ? ' selected' : '');
+        card.dataset.botId = bot.id;
+        card.innerHTML = `
+          <div class="bot-avatar">${BOT_AVATARS[bot.avatar] || ''}</div>
+          <div class="bot-info">
+            <div class="bot-name">${bot.name}</div>
+            <div class="bot-subtitle">${bot.subtitle}</div>
+          </div>
+          <div class="bot-elo">~${bot.elo}</div>
+        `;
+        card.title = bot.description;
+        card.addEventListener('click', () => {
+          picker.querySelectorAll('.bot-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          settings.botId = bot.id;
+        });
+        grid.appendChild(card);
+      }
+
+      picker.appendChild(grid);
+    }
   }
 
   updateDialogVisibility(mode) {
@@ -409,9 +475,10 @@ class ChessApp {
 
     document.getElementById('btn-export-pgn').addEventListener('click', () => {
       const result = this.game.getGameResult();
+      const eventName = this.activeBot ? `vs ${this.activeBot.name}` : (this.game.mode === 'engine' ? 'vs Computer' : 'Local Game');
       const pgn = this.notation.toPGN({
         Result: result ? result.result : '*',
-        Event: this.game.mode === 'engine' ? 'vs Stockfish' : 'Local Game'
+        Event: eventName
       });
 
       // Copy to clipboard
@@ -443,7 +510,6 @@ class ChessApp {
 
   setupDatabaseDialog() {
     const dialog = document.getElementById('database-dialog');
-    const listEl = document.getElementById('db-games-list');
     const searchEl = document.getElementById('db-search');
 
     document.getElementById('btn-database').addEventListener('click', () => {
@@ -462,16 +528,51 @@ class ChessApp {
     document.getElementById('db-collection').addEventListener('change', () => {
       this.renderDatabaseGames();
     });
+
+    // Category tab clicks
+    document.getElementById('db-category-tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.db-tab');
+      if (!tab) return;
+
+      document.querySelectorAll('.db-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      this.activeCategory = tab.dataset.category;
+
+      this.populateCollectionFilter();
+      this.renderDatabaseGames();
+    });
+  }
+
+  populateCategoryTabs() {
+    const tabsEl = document.getElementById('db-category-tabs');
+    // Count games per category
+    const allCount = this.database.games.length;
+
+    // Keep the "All" tab and update its count
+    tabsEl.innerHTML = `<button class="db-tab active" data-category="all">All <span class="tab-count">${allCount}</span></button>`;
+
+    for (const cat of this.database.categories) {
+      const count = this.database.games.filter(g => g.category === cat.id).length;
+      if (count === 0) continue;
+      const btn = document.createElement('button');
+      btn.className = 'db-tab';
+      btn.dataset.category = cat.id;
+      btn.innerHTML = `${cat.name} <span class="tab-count">${count}</span>`;
+      tabsEl.appendChild(btn);
+    }
   }
 
   populateCollectionFilter() {
     const select = document.getElementById('db-collection');
-    this.database.collections.forEach(col => {
+    select.innerHTML = '<option value="all">All Collections</option>';
+
+    const collections = this.database.getCollectionsForCategory(this.activeCategory);
+    for (const col of collections) {
       const option = document.createElement('option');
       option.value = col.name;
       option.textContent = `${col.name} (${col.count})`;
       select.appendChild(option);
-    });
+    }
   }
 
   renderDatabaseGames() {
@@ -479,11 +580,11 @@ class ChessApp {
     const query = document.getElementById('db-search').value;
     const collection = document.getElementById('db-collection').value;
 
-    const games = this.database.search(query, collection);
+    const games = this.database.search(query, collection, this.activeCategory);
     listEl.innerHTML = '';
 
     if (games.length === 0) {
-      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No games found. Classic game PGN files can be added to data/classic-games/</div>';
+      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No games found</div>';
       return;
     }
 
@@ -520,6 +621,9 @@ class ChessApp {
     const bottomName = document.querySelector('#player-bottom .player-name');
     if (topName) topName.textContent = game.black;
     if (bottomName) bottomName.textContent = game.white;
+
+    // Clear bot
+    this.activeBot = null;
 
     // Hide engine status
     hide(document.getElementById('engine-status'));

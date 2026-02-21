@@ -20,6 +20,8 @@ export class Game {
     this.currentMoveIndex = -1;
     this.fens = [this.chess.fen()]; // FEN at each position
 
+    this.botId = null;
+
     // Callbacks
     this.onStatusChange = null;
     this.onTimerUpdate = null;
@@ -32,6 +34,7 @@ export class Game {
     this.mode = options.mode || 'local';
     this.playerColor = options.color || 'w';
     this.difficulty = options.difficulty || 10;
+    this.botId = options.botId || null;
     this.timeControl = options.time || 0;
     this.gameOver = false;
     this.replayMode = false;

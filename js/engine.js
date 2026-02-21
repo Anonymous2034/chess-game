@@ -113,6 +113,37 @@ export class Engine {
     }
   }
 
+  /**
+   * Reset all UCI options to defaults
+   */
+  resetOptions() {
+    if (!this.ready) return;
+    this.send('setoption name Skill Level value 20');
+    this.send('setoption name Contempt value 0');
+    this.depth = 20;
+    this.moveTime = null;
+  }
+
+  /**
+   * Apply a bot personality's UCI configuration
+   */
+  applyPersonality(bot) {
+    if (!this.ready) return;
+
+    this.resetOptions();
+
+    // Apply bot-specific UCI options
+    if (bot.uci) {
+      for (const [option, value] of Object.entries(bot.uci)) {
+        this.send(`setoption name ${option} value ${value}`);
+      }
+    }
+
+    // Set search parameters
+    this.depth = bot.searchDepth || 20;
+    this.moveTime = bot.moveTime || null;
+  }
+
   requestMove(fen) {
     if (!this.ready || this.thinking) return;
 

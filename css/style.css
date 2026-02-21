@@ -591,6 +591,130 @@ main {
   height: 48px;
 }
 
+/* === Bot Picker === */
+.dialog-new-game {
+  min-width: 380px;
+}
+
+.bot-picker {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.bot-tier-header {
+  font-size: 0.72rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 4px 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 4px;
+}
+
+.bot-tier-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.bot-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: var(--bg-color);
+}
+
+.bot-card:hover {
+  background: var(--btn-bg);
+  border-color: var(--btn-hover);
+}
+
+.bot-card.selected {
+  border-color: var(--accent);
+  background: rgba(129, 182, 76, 0.1);
+}
+
+.bot-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--btn-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.bot-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bot-name {
+  font-weight: 600;
+  color: var(--text-light);
+  font-size: 0.82rem;
+}
+
+.bot-subtitle {
+  color: #888;
+  font-size: 0.72rem;
+}
+
+.bot-elo {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* === Database Category Tabs === */
+.db-category-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--border-color);
+  overflow-x: auto;
+}
+
+.db-tab {
+  padding: 6px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: var(--text-color);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.db-tab:hover {
+  color: var(--text-light);
+}
+
+.db-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.db-tab .tab-count {
+  font-size: 0.68rem;
+  color: #888;
+  margin-left: 3px;
+}
+
 /* === Database Browser === */
 .db-controls {
   display: flex;
@@ -739,6 +863,21 @@ main {
   .dialog-wide {
     min-width: unset;
     width: 95vw;
+  }
+
+  .dialog-new-game {
+    min-width: unset;
+    width: 95vw;
+  }
+
+  .bot-picker {
+    max-height: 250px;
+  }
+
+  .db-category-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .coords-files {
