@@ -20,6 +20,7 @@ import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';
 import { DGTBoard } from './dgt.js';
+import { SoundManager } from './sound.js';
 
 class ChessApp {
   constructor() {
@@ -55,6 +56,8 @@ class ChessApp {
     this.adminPanel = null;
     this.firebaseReady = false;
     this.dgtBoard = null;
+    this.sound = new SoundManager();
+    this._gameOverSoundPlayed = false;
 
     this.init();
   }
@@ -111,6 +114,7 @@ class ChessApp {
     this.setupAuth();
     this.setupAdmin();
     this.setupDGT();
+    this.setupSoundToggle();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -172,6 +176,7 @@ class ChessApp {
   // === Move Handling ===
 
   handleMoveMade(move) {
+    this.sound.playMoveSound(move);
     this.notation.addMove(move);
     this.board.setLastMove(move);
     this.board.update();
@@ -232,6 +237,7 @@ class ChessApp {
           if (match) {
             const move = this.game.makeEngineMove(match.from, match.to, match.promotion);
             if (move) {
+              this.sound.playMoveSound(move);
               this.notation.addMove(move);
               this.board.setLastMove(move);
               this.board.update();
@@ -261,6 +267,7 @@ class ChessApp {
     const move = this.game.makeEngineMove(parsed.from, parsed.to, parsed.promotion);
 
     if (move) {
+      this.sound.playMoveSound(move);
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
@@ -289,10 +296,18 @@ class ChessApp {
 
   handleGameOver(result) {
     // This is called from game.js for time-based game-over
+    this._gameOverSoundPlayed = true;
+    this.sound.playGameOverSound();
     this._onGameEnd();
   }
 
   _onGameEnd() {
+    // Sound: checkmate was already played by playMoveSound; only play for other endings
+    if (!this._gameOverSoundPlayed && !this.chess.in_checkmate()) {
+      this.sound.playGameOverSound();
+    }
+    this._gameOverSoundPlayed = false;
+
     // Show analyze button
     if (this.engineInitialized) {
       show(document.getElementById('btn-analyze'));
@@ -572,6 +587,7 @@ class ChessApp {
     const randomMove = moves[Math.floor(Math.random() * moves.length)];
     const move = this.game.makeEngineMove(randomMove.from, randomMove.to, randomMove.promotion);
     if (move) {
+      this.sound.playMoveSound(move);
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
@@ -833,6 +849,8 @@ class ChessApp {
   }
 
   async _startNewGame(settings) {
+    this._gameOverSoundPlayed = false;
+
     let color = settings.color;
     if (color === 'random') {
       color = Math.random() < 0.5 ? 'w' : 'b';
@@ -924,6 +942,9 @@ class ChessApp {
     if (settings.mode === 'engine' && color === 'b') {
       this.requestEngineMove();
     }
+
+    // Play game start sound
+    this.sound.playGameStartSound();
 
     // Fetch opening explorer for starting position
     this.fetchOpeningExplorer();
@@ -1665,6 +1686,25 @@ class ChessApp {
         }
       });
     });
+  }
+
+  // === Sound Toggle ===
+
+  setupSoundToggle() {
+    const btn = document.getElementById('btn-sound');
+    if (!btn) return;
+
+    this._updateSoundButton(btn);
+
+    btn.addEventListener('click', () => {
+      this.sound.toggleMute();
+      this._updateSoundButton(btn);
+    });
+  }
+
+  _updateSoundButton(btn) {
+    btn.textContent = this.sound.muted ? 'Sound Off' : 'Sound On';
+    btn.classList.toggle('muted', this.sound.muted);
   }
 
   // === DGT Board ===
