@@ -5,6 +5,7 @@ import { Engine } from './engine.js';
 import { Notation } from './notation.js';
 import { Database } from './database.js';
 import { BOT_PERSONALITIES, GM_STYLES } from './bots.js';
+import { OpeningBook } from './openings.js';
 import { show, hide, debounce } from './utils.js';
 
 class ChessApp {
@@ -17,6 +18,8 @@ class ChessApp {
     this.engineInitialized = false;
     this.activeBot = null;
     this.activeCategory = 'all';
+    this.openingBook = new OpeningBook();
+    this.lastOpeningName = '';
 
     this.init();
   }
@@ -115,6 +118,38 @@ class ChessApp {
     if (!this.engine || !this.engine.ready) return;
 
     this.board.setInteractive(false);
+
+    // Check opening book first
+    if (this.activeBot) {
+      const engineColor = this.game.playerColor === 'w' ? 'b' : 'w';
+      const bookMove = this.openingBook.getBookMove(this.activeBot, this.game.moveHistory, engineColor);
+      if (bookMove) {
+        // Simulate thinking delay (300-800ms)
+        const delay = 300 + Math.random() * 500;
+        setTimeout(() => {
+          // Find the UCI-style from/to for this SAN move
+          const legalMoves = this.chess.moves({ verbose: true });
+          const match = legalMoves.find(m => m.san === bookMove);
+          if (match) {
+            const move = this.game.makeEngineMove(match.from, match.to, match.promotion);
+            if (move) {
+              this.notation.addMove(move);
+              this.board.setLastMove(move);
+              this.board.update();
+              this.fetchOpeningExplorer();
+            }
+            if (!this.game.gameOver) {
+              this.board.setInteractive(true);
+            }
+          } else {
+            // Book move not legal, fall back to engine
+            this.engine.requestMove(this.chess.fen());
+          }
+        }, delay);
+        return;
+      }
+    }
+
     this.engine.requestMove(this.chess.fen());
   }
 
@@ -126,6 +161,7 @@ class ChessApp {
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
+      this.fetchOpeningExplorer();
     }
 
     if (!this.game.gameOver) {
@@ -352,6 +388,11 @@ class ChessApp {
       this.board.setLastMove(null);
       this.board.setInteractive(true);
 
+      // Clear opening label
+      this.lastOpeningName = '';
+      const labelEl = document.getElementById('opening-label');
+      if (labelEl) labelEl.textContent = '';
+
       // Flip board if playing black
       if (settings.mode === 'engine' && color === 'b') {
         this.board.setFlipped(true);
@@ -384,47 +425,99 @@ class ChessApp {
   }
 
   renderBotPicker(settings) {
-    const picker = document.getElementById('bot-picker');
-    picker.innerHTML = '';
+    const listEl = document.getElementById('bot-picker-list');
+    listEl.innerHTML = '';
 
     for (const bot of BOT_PERSONALITIES) {
       const card = document.createElement('div');
-      card.className = 'bot-card' + (bot.id === settings.botId ? ' selected' : '');
+      card.className = 'bot-list-card' + (bot.id === settings.botId ? ' selected' : '');
       card.dataset.botId = bot.id;
 
-      // Build style attribute bars
-      let stylesHtml = '';
-      for (const style of GM_STYLES) {
-        const val = bot.styles[style.id] || 0;
-        const pct = val * 10;
-        const level = val <= 4 ? 'low' : val <= 7 ? 'mid' : 'high';
-        stylesHtml += `
-          <div class="bot-style">
-            <span class="bot-style-name">${style.name}</span>
-            <div class="bot-style-bar"><div class="bot-style-fill ${level}" style="width:${pct}%"></div></div>
-            <span class="bot-style-val">${val}</span>
-          </div>`;
-      }
-
       card.innerHTML = `
-        <div class="bot-card-header">
-          <div class="bot-avatar">${bot.avatar}</div>
-          <div class="bot-info">
-            <div class="bot-name">${bot.name}</div>
-            <div class="bot-subtitle">${bot.subtitle}</div>
-          </div>
-          <div class="bot-elo">~${bot.elo}</div>
+        <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
+        <div class="bot-list-info">
+          <div class="bot-list-name">${bot.name}</div>
+          <div class="bot-list-elo">${bot.peakElo}</div>
         </div>
-        <div class="bot-styles">${stylesHtml}</div>
       `;
-      card.title = bot.description;
+
       card.addEventListener('click', () => {
-        picker.querySelectorAll('.bot-card').forEach(c => c.classList.remove('selected'));
+        listEl.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         settings.botId = bot.id;
+        this.renderBotDetail(bot);
       });
-      picker.appendChild(card);
+
+      listEl.appendChild(card);
     }
+
+    // Show detail for initially selected bot
+    const initialBot = BOT_PERSONALITIES.find(b => b.id === settings.botId) || BOT_PERSONALITIES[0];
+    this.renderBotDetail(initialBot);
+  }
+
+  renderBotDetail(bot) {
+    const detailEl = document.getElementById('bot-picker-detail');
+
+    // Style bars
+    let stylesHtml = '';
+    for (const style of GM_STYLES) {
+      const val = bot.styles[style.id] || 0;
+      const pct = val * 10;
+      const level = val <= 4 ? 'low' : val <= 7 ? 'mid' : 'high';
+      stylesHtml += `
+        <div class="bot-style">
+          <span class="bot-style-name">${style.name}</span>
+          <div class="bot-style-bar"><div class="bot-style-fill ${level}" style="width:${pct}%"></div></div>
+          <span class="bot-style-val">${val}</span>
+        </div>`;
+    }
+
+    // Favorite openings
+    let openingsHtml = '';
+    if (bot.favoriteOpenings && bot.favoriteOpenings.length > 0) {
+      openingsHtml = bot.favoriteOpenings.map(o =>
+        `<span class="gm-opening-tag"><span class="eco">${o.eco}</span> ${o.name}</span>`
+      ).join('');
+    }
+
+    // Famous games
+    let gamesHtml = '';
+    if (bot.famousGames && bot.famousGames.length > 0) {
+      gamesHtml = bot.famousGames.map(g =>
+        `<div class="gm-famous-game"><div class="gm-game-name">${g.name} (${g.year})</div><div class="gm-game-desc">${g.description}</div></div>`
+      ).join('');
+    }
+
+    // World champion info
+    const wcHtml = bot.bio.worldChampion
+      ? `<div class="gm-detail-wc">World Champion ${bot.bio.worldChampion}</div>`
+      : '';
+
+    detailEl.innerHTML = `
+      <div class="gm-detail-header">
+        <img class="gm-portrait-lg" src="${bot.portrait}" alt="${bot.name}">
+        <div class="gm-detail-info">
+          <div class="gm-detail-name">${bot.name}</div>
+          <div class="gm-detail-subtitle">${bot.subtitle}</div>
+          <div class="gm-detail-elo">Peak Elo: ${bot.peakElo}</div>
+          ${wcHtml}
+        </div>
+      </div>
+      <div class="gm-detail-bio">${bot.bio.playingStyle}</div>
+      <div class="gm-detail-section">
+        <h4>Playing Style</h4>
+        <div class="bot-styles-detail">${stylesHtml}</div>
+      </div>
+      <div class="gm-detail-section">
+        <h4>Favorite Openings</h4>
+        <div class="gm-openings-list">${openingsHtml}</div>
+      </div>
+      <div class="gm-detail-section">
+        <h4>Famous Games</h4>
+        ${gamesHtml}
+      </div>
+    `;
   }
 
   updateDialogVisibility(mode) {
@@ -646,16 +739,24 @@ class ChessApp {
   async _doFetchOpeningExplorer() {
     const nameEl = document.getElementById('opening-name');
     const movesEl = document.getElementById('explorer-moves');
+    const labelEl = document.getElementById('opening-label');
 
     const data = await this.database.fetchOpeningExplorer(this.chess.fen());
     if (!data) {
-      nameEl.textContent = '';
+      // Keep showing last known opening name (persistence)
+      if (labelEl) labelEl.textContent = this.lastOpeningName;
+      nameEl.textContent = this.lastOpeningName;
       movesEl.innerHTML = '';
       return;
     }
 
-    // Opening name
-    nameEl.textContent = data.opening?.name || '';
+    // Opening name — update and persist
+    const openingName = data.opening?.name || '';
+    if (openingName) {
+      this.lastOpeningName = openingName;
+    }
+    nameEl.textContent = this.lastOpeningName;
+    if (labelEl) labelEl.textContent = this.lastOpeningName;
 
     // Top moves
     movesEl.innerHTML = '';

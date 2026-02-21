@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="33" y="52" width="14" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Modern casual collar -->
+  <path d="M20 80 Q40 66 60 80" fill="#4a4745"/>
+  <path d="M25 68 L34 58 L34 68 Z" fill="#4a4745"/>
+  <path d="M55 68 L46 58 L46 68 Z" fill="#4a4745"/>
+  <!-- T-shirt neckline - modern -->
+  <path d="M33 56 Q40 60 47 56" fill="none" stroke="#555" stroke-width="1"/>
+  <!-- Face - young, Nordic, clean features -->
+  <path d="M27 40 Q27 20 40 17 Q53 20 53 40 Q51 54 40 56 Q29 54 27 40Z" fill="#e0d5c7"/>
+  <!-- Light/blond hair -->
+  <path d="M27 34 Q26 14 40 12 Q54 14 53 34 Q52 20 40 16 Q28 20 27 34Z" fill="#b8a882"/>
+  <path d="M26 30 Q25 22 28 16 L26 24Z" fill="#b8a882"/>
+  <path d="M54 30 Q55 22 52 16 L54 24Z" fill="#b8a882"/>
+  <path d="M26 30 L26 36 Q25 32 26 30Z" fill="#b8a882"/>
+  <path d="M54 30 L54 36 Q55 32 54 30Z" fill="#b8a882"/>
+  <!-- Modern hairstyle - textured top -->
+  <path d="M30 16 Q36 12 46 14 Q40 11 30 15Z" fill="#c4b88e"/>
+  <path d="M32 14 Q38 11 44 13 Q39 10 32 13Z" fill="#c4b88e"/>
+  <!-- Eyes - bright, youthful -->
+  <ellipse cx="34" cy="34" rx="3.2" ry="2.5" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.2" ry="2.5" fill="white" opacity="0.9"/>
+  <circle cx="34.2" cy="34" r="1.8" fill="#4a7090"/>
+  <circle cx="46.2" cy="34" r="1.8" fill="#4a7090"/>
+  <circle cx="34.2" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="46.2" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="34.5" cy="33.5" r="0.5" fill="#81b64c"/>
+  <circle cx="46.5" cy="33.5" r="0.5" fill="#81b64c"/>
+  <!-- Light eyebrows -->
+  <path d="M29.5 31 Q34 29.5 37.5 31" fill="none" stroke="#a09474" stroke-width="1" stroke-linecap="round"/>
+  <path d="M42.5 31 Q46 29.5 50.5 31" fill="none" stroke="#a09474" stroke-width="1" stroke-linecap="round"/>
+  <!-- Nose - clean -->
+  <line x1="40" y1="36" x2="40" y2="42" stroke="#c4b9ac" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Slight confident smile - modern/youthful -->
+  <path d="M34 47.5 Q40 51 46 47.5" fill="none" stroke="#b09e8e" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M35.5 48 Q40 49.5 44.5 48" fill="#c4a088" opacity="0.2"/>
+  <!-- Ears -->
+  <ellipse cx="26" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="54" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

@@ -120,6 +120,7 @@ export class Engine {
     if (!this.ready) return;
     this.send('setoption name Skill Level value 20');
     this.send('setoption name Contempt value 0');
+    this.send('setoption name UCI_LimitStrength value false');
     this.depth = 20;
     this.moveTime = null;
   }
@@ -132,7 +133,13 @@ export class Engine {
 
     this.resetOptions();
 
-    // Apply bot-specific UCI options
+    // Use UCI_LimitStrength if stockfishElo is set
+    if (bot.stockfishElo) {
+      this.send('setoption name UCI_LimitStrength value true');
+      this.send(`setoption name UCI_Elo value ${bot.stockfishElo}`);
+    }
+
+    // Apply bot-specific UCI options (Contempt, Skill Level, etc.)
     if (bot.uci) {
       for (const [option, value] of Object.entries(bot.uci)) {
         this.send(`setoption name ${option} value ${value}`);

@@ -21,7 +21,10 @@
         </div>
         <div class="dialog-section engine-only">
           <label>Choose your opponent</label>
-          <div class="bot-picker" id="bot-picker"></div>
+          <div class="bot-picker-layout">
+            <div class="bot-picker-list" id="bot-picker-list"></div>
+            <div class="bot-picker-detail" id="bot-picker-detail"></div>
+          </div>
         </div>
         <div class="dialog-section engine-only">
           <label>Play as</label>
@@ -133,6 +136,9 @@
           <span class="player-name">White</span>
           <span class="timer" id="timer-bottom">--:--</span>
         </div>
+
+        <!-- Always-visible opening name -->
+        <div class="opening-label" id="opening-label"></div>
 
         <!-- Navigation Controls (under board) -->
         <div class="nav-controls">
