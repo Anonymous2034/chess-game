@@ -544,6 +544,42 @@
       </div>
     </div>
 
+    <!-- Game Review Dialog -->
+    <div id="review-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide review-dialog">
+        <div class="review-header" id="review-header">
+          <div class="review-result-icon" id="review-result-icon"></div>
+          <h2 id="review-result-text">Game Over</h2>
+          <div class="review-result-detail" id="review-result-detail"></div>
+        </div>
+        <div class="review-accuracy" id="review-accuracy">
+          <div class="review-accuracy-player">
+            <div class="review-accuracy-label" id="review-white-name">White</div>
+            <div class="review-accuracy-bar-container">
+              <div class="review-accuracy-bar" id="review-white-bar"></div>
+            </div>
+            <div class="review-accuracy-pct" id="review-white-pct">0%</div>
+          </div>
+          <div class="review-accuracy-player">
+            <div class="review-accuracy-label" id="review-black-name">Black</div>
+            <div class="review-accuracy-bar-container">
+              <div class="review-accuracy-bar review-accuracy-bar-black" id="review-black-bar"></div>
+            </div>
+            <div class="review-accuracy-pct" id="review-black-pct">0%</div>
+          </div>
+        </div>
+        <div class="review-breakdown" id="review-breakdown"></div>
+        <div class="review-critical" id="review-critical">
+          <h3>Key Moments</h3>
+          <div class="review-moments-list" id="review-moments-list"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="review-close">Close</button>
+          <button class="btn btn-primary" id="review-step-through">Review Moves</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Move Analysis Tooltip -->
     <div id="move-tooltip" class="move-tooltip hidden"></div>
 

@@ -2504,6 +2504,128 @@ main {
   background: var(--btn-hover);
 }
 
+/* === Game Review Dialog === */
+.review-dialog {
+  max-height: 85dvh;
+  overflow-y: auto;
+}
+.review-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.review-result-icon {
+  font-size: 2.5rem;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.review-header h2 { margin-bottom: 4px; }
+.review-result-detail {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.review-accuracy {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 16px; padding: 12px;
+  background: rgba(255,255,255,0.03); border-radius: 6px;
+}
+.review-accuracy-player {
+  display: flex; align-items: center; gap: 10px;
+}
+.review-accuracy-label {
+  width: 60px; font-size: 0.78rem; color: var(--text-color); flex-shrink: 0;
+}
+.review-accuracy-bar-container {
+  flex: 1; height: 20px;
+  background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;
+}
+.review-accuracy-bar {
+  height: 100%; background: var(--accent); border-radius: 3px;
+  transition: width 0.8s ease; width: 0%;
+}
+.review-accuracy-bar-black { background: #bbb; }
+.review-accuracy-pct {
+  width: 48px; text-align: right;
+  font-size: 1rem; font-weight: 700; color: var(--accent);
+}
+
+.review-breakdown { margin-bottom: 16px; }
+.review-breakdown h3 {
+  font-size: 0.78rem; color: var(--text-light); margin-bottom: 8px;
+}
+.review-breakdown-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.review-breakdown-label {
+  width: 48px; font-size: 0.72rem; color: var(--text-color); flex-shrink: 0;
+}
+.review-stacked-bar {
+  flex: 1; height: 16px; display: flex;
+  border-radius: 3px; overflow: hidden;
+  background: rgba(255,255,255,0.03);
+}
+.review-stacked-segment {
+  height: 100%; min-width: 0;
+  transition: width 0.4s ease;
+  position: relative;
+}
+.review-stacked-segment:hover::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  background: var(--panel-bg); border: 1px solid var(--border-color);
+  color: var(--text-color); font-size: 0.68rem; padding: 2px 6px;
+  border-radius: 3px; white-space: nowrap; z-index: 10;
+}
+.review-breakdown-legend {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 8px; justify-content: center;
+}
+.review-legend-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.7rem; color: var(--text-color);
+}
+.review-legend-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
+.review-critical { margin-bottom: 12px; }
+.review-critical h3 {
+  font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px;
+}
+.review-moments-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 240px; overflow-y: auto;
+}
+.review-moment-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; background: rgba(255,255,255,0.03);
+  border-radius: 6px; border-left: 3px solid #888;
+  cursor: pointer; transition: background 0.15s;
+}
+.review-moment-card:hover { background: rgba(255,255,255,0.07); }
+.review-moment-number {
+  font-size: 0.72rem; color: #888; min-width: 30px;
+}
+.review-moment-badge {
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: #fff; flex-shrink: 0;
+}
+.review-moment-detail { flex: 1; min-width: 0; }
+.review-moment-played {
+  font-size: 0.8rem; color: var(--text-light);
+}
+.review-moment-best {
+  font-size: 0.7rem; color: #888;
+}
+.review-moment-cploss {
+  font-size: 0.72rem; color: #888; text-align: right; flex-shrink: 0;
+}
+.review-no-moments {
+  text-align: center; color: #888; font-size: 0.8rem; padding: 16px 0;
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
   :root {
@@ -2820,6 +2942,10 @@ main {
   .bracket-round {
     min-width: 120px;
   }
+
+  .review-moments-list { max-height: 180px; }
+  .review-accuracy-label { width: 45px; font-size: 0.72rem; }
+  .review-accuracy-pct { width: 40px; font-size: 0.85rem; }
 
   /* --- Safe area insets --- */
   main {

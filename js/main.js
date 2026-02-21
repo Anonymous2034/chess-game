@@ -126,6 +126,7 @@ class ChessApp {
     this.setupSoundToggle();
     this.setupMultiplayer();
     this.setupPuzzles();
+    this.setupReviewDialog();
     this.setupHamburgerMenu();
     this.setupOfflineIndicator();
 
@@ -982,6 +983,7 @@ class ChessApp {
     hide(document.getElementById('analysis-progress'));
     hide(document.getElementById('analysis-summary'));
     hide(document.getElementById('eval-graph-container'));
+    hide(document.getElementById('review-dialog'));
     this.evalGraph.clear();
     this.notation.clearClassifications();
 
@@ -1456,6 +1458,9 @@ class ChessApp {
         show(document.getElementById('eval-graph-container'));
         this.evalGraph.render(results.moves, this.notation.currentIndex);
         this.evalGraph.onMoveClick = (idx) => this.navigateToMove(idx);
+
+        // Show review dialog
+        this._showReviewDialog(results);
       }
     } catch (err) {
       console.error('Analysis failed:', err);
@@ -1498,6 +1503,183 @@ class ChessApp {
       </div>
       <div class="analysis-counts">${countsHtml}</div>
     `;
+  }
+
+  // === Game Review ===
+
+  setupReviewDialog() {
+    document.getElementById('review-close').addEventListener('click', () => {
+      hide(document.getElementById('review-dialog'));
+    });
+
+    document.getElementById('review-step-through').addEventListener('click', () => {
+      hide(document.getElementById('review-dialog'));
+      this.navigateToMove(0);
+    });
+
+    document.getElementById('review-dialog').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        hide(document.getElementById('review-dialog'));
+      }
+    });
+  }
+
+  _findCriticalMoments(results) {
+    const moves = results.moves;
+    const scored = moves.map(m => {
+      let score = 0;
+
+      score += m.cpLoss;
+
+      const swing = Math.abs(m.playedEval - m.bestEval);
+      score += swing * 0.5;
+
+      const signChanged = (m.bestEval > 50 && m.playedEval < -50) ||
+                          (m.bestEval < -50 && m.playedEval > 50);
+      if (signChanged) score += 150;
+
+      if (m.mate != null) score += 300;
+
+      if (m.classification === 'blunder') score = Math.max(score, 250);
+      if (m.classification === 'mistake') score = Math.max(score, 120);
+
+      let label = m.classification;
+      if (m.classification === 'blunder') label = 'Blunder';
+      else if (m.classification === 'mistake') label = 'Mistake';
+      else if (m.classification === 'great') label = 'Great Move';
+      else if (signChanged) label = 'Turning Point';
+      else if (m.classification === 'best' && swing > 100) label = 'Key Move';
+
+      return { ...m, score, label };
+    });
+
+    const candidates = scored.filter(m => m.score >= 80);
+    candidates.sort((a, b) => b.score - a.score);
+    const selected = candidates.slice(0, 5);
+    selected.sort((a, b) => a.moveIndex - b.moveIndex);
+    return selected;
+  }
+
+  _showReviewDialog(results) {
+    const dialog = document.getElementById('review-dialog');
+
+    // Result header
+    const gameResult = this.game.getGameResult();
+    const resultIcon = document.getElementById('review-result-icon');
+    const resultText = document.getElementById('review-result-text');
+    const resultDetail = document.getElementById('review-result-detail');
+
+    let icon = '', headline = 'Game Over', detail = '';
+
+    if (gameResult) {
+      if (gameResult.result === '1-0' || gameResult.result === '0-1') {
+        const winnerColor = gameResult.result === '1-0' ? 'w' : 'b';
+        const isPlayerWin = this.game.mode === 'engine' && this.game.playerColor === winnerColor;
+        icon = this.chess.in_checkmate() ? '\u265A' : '\u2691';
+        headline = isPlayerWin ? 'You Won!' : (this.game.mode === 'engine' ? 'You Lost' : (gameResult.result === '1-0' ? 'White Wins' : 'Black Wins'));
+        detail = gameResult.message;
+      } else {
+        icon = '\u00BD';
+        headline = 'Draw';
+        detail = gameResult.message;
+      }
+    }
+
+    resultIcon.textContent = icon;
+    resultText.textContent = headline;
+    resultDetail.textContent = detail;
+
+    // Player names
+    const whiteName = document.getElementById('review-white-name');
+    const blackName = document.getElementById('review-black-name');
+    if (this.activeBot && this.game.mode === 'engine') {
+      whiteName.textContent = this.game.playerColor === 'w' ? 'You' : this.activeBot.name;
+      blackName.textContent = this.game.playerColor === 'b' ? 'You' : this.activeBot.name;
+    } else {
+      whiteName.textContent = 'White';
+      blackName.textContent = 'Black';
+    }
+
+    // Accuracy bars (animated)
+    const whiteBar = document.getElementById('review-white-bar');
+    const blackBar = document.getElementById('review-black-bar');
+    document.getElementById('review-white-pct').textContent = results.white.accuracy + '%';
+    document.getElementById('review-black-pct').textContent = results.black.accuracy + '%';
+    whiteBar.style.width = '0%';
+    blackBar.style.width = '0%';
+    requestAnimationFrame(() => {
+      whiteBar.style.width = results.white.accuracy + '%';
+      blackBar.style.width = results.black.accuracy + '%';
+    });
+
+    // Classification breakdown
+    const classColors = {
+      best: '#4caf50', great: '#2196f3', good: '#8bc34a',
+      inaccuracy: '#ffc107', mistake: '#ff9800', blunder: '#f44336'
+    };
+
+    const breakdownEl = document.getElementById('review-breakdown');
+    const makeStackedBar = (label, counts) => {
+      const total = Object.values(counts).reduce((s, v) => s + v, 0);
+      if (total === 0) return '';
+      let segments = '';
+      for (const [cls, color] of Object.entries(classColors)) {
+        const count = counts[cls] || 0;
+        if (count === 0) continue;
+        const pct = (count / total) * 100;
+        segments += `<div class="review-stacked-segment" style="width:${pct}%;background:${color}" data-tooltip="${cls}: ${count}"></div>`;
+      }
+      return `<div class="review-breakdown-row">
+        <span class="review-breakdown-label">${label}</span>
+        <div class="review-stacked-bar">${segments}</div>
+      </div>`;
+    };
+
+    let legendHtml = '<div class="review-breakdown-legend">';
+    for (const [cls, color] of Object.entries(classColors)) {
+      legendHtml += `<span class="review-legend-item"><span class="review-legend-dot" style="background:${color}"></span>${cls}</span>`;
+    }
+    legendHtml += '</div>';
+
+    breakdownEl.innerHTML = `<h3>Move Quality</h3>${makeStackedBar('White', results.white.counts)}${makeStackedBar('Black', results.black.counts)}${legendHtml}`;
+
+    // Critical moments
+    const moments = this._findCriticalMoments(results);
+    const momentsList = document.getElementById('review-moments-list');
+
+    if (moments.length === 0) {
+      momentsList.innerHTML = '<div class="review-no-moments">No critical moments \u2014 well played!</div>';
+    } else {
+      const badgeColor = (cls) => classColors[cls] || '#888';
+
+      momentsList.innerHTML = moments.map(m => {
+        const moveNum = Math.floor(m.moveIndex / 2) + 1;
+        const side = m.color === 'w' ? '.' : '...';
+        const cpText = m.cpLoss > 0 ? `\u2212${m.cpLoss} cp` : '';
+        const bestText = m.isBestMove ? '' : `Best: ${m.bestMove}`;
+        const borderColor = badgeColor(m.classification);
+
+        return `<div class="review-moment-card" data-move-index="${m.moveIndex}" style="border-left-color:${borderColor}">
+          <span class="review-moment-number">${moveNum}${side}</span>
+          <span class="review-moment-badge" style="background:${borderColor}">${m.label}</span>
+          <div class="review-moment-detail">
+            <div class="review-moment-played">${m.move}</div>
+            ${bestText ? `<div class="review-moment-best">${bestText}</div>` : ''}
+          </div>
+          ${cpText ? `<span class="review-moment-cploss">${cpText}</span>` : ''}
+        </div>`;
+      }).join('');
+
+      momentsList.querySelectorAll('.review-moment-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.moveIndex);
+          hide(dialog);
+          this.navigateToMove(idx);
+        });
+      });
+    }
+
+    show(dialog);
   }
 
   showMoveTooltip(index, event) {
