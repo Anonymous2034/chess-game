@@ -1,0 +1,34 @@
+{
+  "name": "Grandmasters Chess",
+  "short_name": "Grandmasters",
+  "description": "Play chess against AI bots, solve puzzles, and analyze games",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#312e2b",
+  "theme_color": "#312e2b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    }
+  ]
+}

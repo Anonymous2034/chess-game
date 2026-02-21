@@ -1,3 +1,23 @@
+/* === Offline Indicator === */
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #c33;
+  color: #fff;
+  text-align: center;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  z-index: 1000;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+}
+
+.offline-indicator.visible {
+  transform: translateY(0);
+}
+
 /* === Reset & Base === */
 *, *::before, *::after {
   box-sizing: border-box;

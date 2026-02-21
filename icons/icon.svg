@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="80" ry="80" fill="#312e2b"/>
+  <!-- Chess knight silhouette facing left -->
+  <g transform="translate(256,256) scale(0.7) translate(-256,-256)">
+    <!-- Base of the knight piece -->
+    <path d="
+      M 148,440
+      L 364,440
+      L 364,410
+      Q 364,395 349,395
+      L 163,395
+      Q 148,395 148,410
+      Z
+    " fill="#81b64c"/>
+    <!-- Base platform -->
+    <path d="
+      M 133,440
+      L 379,440
+      L 379,460
+      Q 379,475 364,475
+      L 148,475
+      Q 133,475 133,460
+      Z
+    " fill="#81b64c"/>
+    <!-- Knight body and head -->
+    <path d="
+      M 175,395
+      L 175,310
+      Q 175,270 195,240
+      L 220,200
+      Q 235,175 235,150
+      L 235,120
+      Q 235,95 220,80
+      L 200,60
+      Q 190,50 195,42
+      Q 200,35 212,38
+      L 240,48
+      Q 260,54 270,50
+      L 290,40
+      Q 305,33 312,45
+      L 320,62
+      Q 330,80 325,100
+      L 315,140
+      Q 308,160 310,180
+      L 318,220
+      Q 328,260 338,280
+      L 350,310
+      Q 365,340 340,370
+      Q 330,385 337,395
+      Z
+    " fill="#81b64c"/>
+    <!-- Ear -->
+    <path d="
+      M 235,120
+      Q 240,90 260,75
+      Q 270,68 265,80
+      L 255,105
+      Q 250,118 240,125
+      Z
+    " fill="#312e2b"/>
+    <!-- Eye -->
+    <circle cx="240" cy="145" r="12" fill="#312e2b"/>
+    <!-- Nostril -->
+    <ellipse cx="198" cy="58" rx="6" ry="5" fill="#312e2b"/>
+    <!-- Mouth line -->
+    <path d="
+      M 195,65
+      Q 210,72 225,68
+    " fill="none" stroke="#312e2b" stroke-width="3" stroke-linecap="round"/>
+    <!-- Mane detail -->
+    <path d="
+      M 310,100
+      Q 295,130 300,165
+      Q 305,185 315,200
+    " fill="none" stroke="#312e2b" stroke-width="6" stroke-linecap="round"/>
+    <path d="
+      M 318,120
+      Q 305,150 310,180
+    " fill="none" stroke="#312e2b" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

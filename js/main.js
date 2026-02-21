@@ -123,6 +123,7 @@ class ChessApp {
     this.setupMultiplayer();
     this.setupPuzzles();
     this.setupHamburgerMenu();
+    this.setupOfflineIndicator();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -2070,6 +2071,17 @@ class ChessApp {
         menu.classList.remove('open');
       }
     });
+  }
+
+  // === Offline Indicator ===
+
+  setupOfflineIndicator() {
+    const el = document.getElementById('offline-indicator');
+    if (!el) return;
+    const update = () => el.classList.toggle('visible', !navigator.onLine);
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    update();
   }
 
   // === Multiplayer ===
