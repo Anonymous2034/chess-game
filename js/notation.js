@@ -5,7 +5,9 @@ export class Notation {
     this.container = containerEl;
     this.moves = [];        // Full move list
     this.currentIndex = -1; // Currently viewed move index (-1 = start position)
+    this.classifications = null; // Array of { classification, cpLoss, bestMove } per move
     this.onMoveClick = null; // callback(index)
+    this.onMoveHover = null; // callback(index, event) for detail tooltip
   }
 
   addMove(move) {
@@ -66,9 +68,24 @@ export class Notation {
     this.render();
   }
 
+  /**
+   * Set move classifications from analysis results
+   * @param {Object[]} classificationData - Array of { classification, cpLoss, bestMove, playedEval, bestEval }
+   */
+  setClassifications(classificationData) {
+    this.classifications = classificationData;
+    this.render();
+  }
+
+  clearClassifications() {
+    this.classifications = null;
+    this.render();
+  }
+
   clear() {
     this.moves = [];
     this.currentIndex = -1;
+    this.classifications = null;
     this.render();
   }
 
@@ -94,29 +111,46 @@ export class Notation {
       row.appendChild(numSpan);
 
       // White move
-      const whiteCell = document.createElement('span');
-      whiteCell.className = 'move-cell';
-      whiteCell.textContent = this.moves[i].san;
-      if (i === this.currentIndex) whiteCell.classList.add('active');
-      whiteCell.addEventListener('click', () => {
-        if (this.onMoveClick) this.onMoveClick(i);
-      });
+      const whiteCell = this._createMoveCell(i);
       row.appendChild(whiteCell);
 
       // Black move
       if (i + 1 < this.moves.length) {
-        const blackCell = document.createElement('span');
-        blackCell.className = 'move-cell';
-        blackCell.textContent = this.moves[i + 1].san;
-        if (i + 1 === this.currentIndex) blackCell.classList.add('active');
-        blackCell.addEventListener('click', () => {
-          if (this.onMoveClick) this.onMoveClick(i + 1);
-        });
+        const blackCell = this._createMoveCell(i + 1);
         row.appendChild(blackCell);
       }
 
       this.container.appendChild(row);
     }
+  }
+
+  _createMoveCell(index) {
+    const cell = document.createElement('span');
+    cell.className = 'move-cell';
+    cell.textContent = this.moves[index].san;
+    if (index === this.currentIndex) cell.classList.add('active');
+
+    // Apply classification color if available
+    if (this.classifications && this.classifications[index]) {
+      const cls = this.classifications[index].classification;
+      if (cls) cell.classList.add(`move-${cls}`);
+    }
+
+    cell.addEventListener('click', () => {
+      if (this.onMoveClick) this.onMoveClick(index);
+    });
+
+    // Hover for analysis detail
+    if (this.classifications && this.classifications[index]) {
+      cell.addEventListener('mouseenter', (e) => {
+        if (this.onMoveHover) this.onMoveHover(index, e);
+      });
+      cell.addEventListener('mouseleave', () => {
+        if (this.onMoveHover) this.onMoveHover(-1, null);
+      });
+    }
+
+    return cell;
   }
 
   scrollToBottom() {

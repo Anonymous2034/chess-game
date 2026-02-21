@@ -181,6 +181,57 @@ export class Engine {
     }
   }
 
+  /**
+   * Analyze a position and return evaluation details.
+   * Returns Promise resolving with { bestMove, score, mate, pv }
+   * score is in centipawns from White's perspective.
+   * mate is null or number of moves to mate (positive = white mates).
+   */
+  analyzePosition(fen, depth = 18) {
+    return new Promise((resolve) => {
+      if (!this.ready) {
+        resolve({ bestMove: null, score: 0, mate: null, pv: '' });
+        return;
+      }
+
+      let result = { bestMove: null, score: 0, mate: null, pv: '' };
+
+      const originalHandler = this.worker.onmessage;
+      this.worker.onmessage = (e) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data);
+
+        if (msg.startsWith('info') && msg.includes('depth')) {
+          const depthMatch = msg.match(/depth (\d+)/);
+          const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
+          const pvMatch = msg.match(/ pv (.+)/);
+
+          if (depthMatch && scoreMatch) {
+            if (scoreMatch[1] === 'cp') {
+              result.score = parseInt(scoreMatch[2]);
+              result.mate = null;
+            } else {
+              result.mate = parseInt(scoreMatch[2]);
+              result.score = result.mate > 0 ? 10000 : -10000;
+            }
+          }
+          if (pvMatch) {
+            result.pv = pvMatch[1];
+          }
+        } else if (msg.startsWith('bestmove')) {
+          const parts = msg.split(' ');
+          result.bestMove = parts[1] || null;
+
+          // Restore original handler
+          this.worker.onmessage = originalHandler;
+          resolve(result);
+        }
+      };
+
+      this.send('position fen ' + fen);
+      this.send(`go depth ${depth}`);
+    });
+  }
+
   destroy() {
     if (this.worker) {
       this.worker.terminate();

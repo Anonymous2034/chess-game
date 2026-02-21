@@ -36,12 +36,54 @@
         </div>
         <div class="dialog-section">
           <label>Time Control</label>
-          <div class="btn-group" data-setting="time">
-            <button class="btn active" data-value="0">No Timer</button>
-            <button class="btn" data-value="180">3 min</button>
-            <button class="btn" data-value="300">5 min</button>
-            <button class="btn" data-value="600">10 min</button>
-            <button class="btn" data-value="900">15 min</button>
+          <div class="time-control-grid" id="time-control-grid">
+            <div class="tc-category">
+              <span class="tc-label">None</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn active" data-time="0" data-increment="0">No Timer</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Bullet</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="60" data-increment="0">1 min</button>
+                <button class="btn btn-sm tc-btn" data-time="60" data-increment="1">1+1</button>
+                <button class="btn btn-sm tc-btn" data-time="120" data-increment="1">2+1</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Blitz</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="180" data-increment="0">3 min</button>
+                <button class="btn btn-sm tc-btn" data-time="180" data-increment="2">3+2</button>
+                <button class="btn btn-sm tc-btn" data-time="300" data-increment="0">5 min</button>
+                <button class="btn btn-sm tc-btn" data-time="300" data-increment="3">5+3</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Rapid</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="600" data-increment="0">10 min</button>
+                <button class="btn btn-sm tc-btn" data-time="900" data-increment="10">15+10</button>
+                <button class="btn btn-sm tc-btn" data-time="1800" data-increment="0">30 min</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Classical</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="3600" data-increment="0">60 min</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Custom</span>
+              <div class="tc-buttons tc-custom">
+                <button class="btn btn-sm tc-btn" data-time="custom" data-increment="0">Custom</button>
+                <div class="tc-custom-inputs hidden" id="tc-custom-inputs">
+                  <input type="number" id="tc-custom-minutes" min="1" max="180" value="10" placeholder="min"> min
+                  <input type="number" id="tc-custom-increment" min="0" max="60" value="0" placeholder="inc"> sec
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="dialog-actions">
@@ -96,6 +138,120 @@
       </div>
     </div>
 
+    <!-- Stats Dialog -->
+    <div id="stats-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Player Statistics</h2>
+        <div id="stats-content" class="stats-content"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-stats">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tournament Setup Dialog -->
+    <div id="tournament-setup-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>New Tournament</h2>
+        <div class="dialog-section">
+          <label>Format</label>
+          <div class="btn-group" id="tournament-format-group">
+            <button class="btn active" data-value="round-robin">Round Robin</button>
+            <button class="btn" data-value="knockout">Knockout</button>
+          </div>
+        </div>
+        <div class="dialog-section">
+          <label>Select Opponents</label>
+          <div class="tournament-opponents" id="tournament-opponents"></div>
+        </div>
+        <div class="dialog-section">
+          <label>Games per Match</label>
+          <div class="btn-group" id="tournament-games-group">
+            <button class="btn active" data-value="1">1</button>
+            <button class="btn" data-value="2">2</button>
+            <button class="btn" data-value="4">4</button>
+          </div>
+        </div>
+        <div class="dialog-section">
+          <label>Time Control</label>
+          <div class="btn-group" id="tournament-time-group">
+            <button class="btn active" data-time="0" data-increment="0">No Timer</button>
+            <button class="btn" data-time="180" data-increment="2">3+2</button>
+            <button class="btn" data-time="300" data-increment="3">5+3</button>
+            <button class="btn" data-time="600" data-increment="0">10 min</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-tournament-setup">Cancel</button>
+          <button class="btn btn-primary" id="start-tournament">Start Tournament</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tournament Progress Dialog -->
+    <div id="tournament-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2 id="tournament-title">Tournament</h2>
+        <div id="tournament-content" class="tournament-content"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-sm hidden" id="tournament-next-match">Play Next Match</button>
+          <button class="btn btn-secondary" id="tournament-close">Close</button>
+          <button class="btn btn-secondary" id="tournament-abandon">Abandon</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coach Settings Dialog -->
+    <div id="coach-settings-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Coach Settings</h2>
+        <div class="dialog-section">
+          <label>Coaching Tier</label>
+          <div class="btn-group" id="coach-tier-group">
+            <button class="btn active" data-value="1">Stockfish Tips</button>
+            <button class="btn" data-value="2">In-Browser AI</button>
+            <button class="btn" data-value="3">API Key</button>
+          </div>
+        </div>
+        <div class="dialog-section hidden" id="coach-webllm-section">
+          <label>In-Browser AI (WebLLM)</label>
+          <p class="coach-info" id="coach-webllm-info">Runs a small AI model directly in your browser. Free, no API key needed. Requires WebGPU (Chrome 113+).</p>
+          <button class="btn btn-sm" id="coach-load-webllm">Load Model</button>
+          <div class="coach-progress hidden" id="coach-webllm-progress">
+            <div class="progress-bar"><div class="progress-fill" id="coach-webllm-progress-fill"></div></div>
+            <span class="progress-text" id="coach-webllm-progress-text"></span>
+          </div>
+        </div>
+        <div class="dialog-section hidden" id="coach-api-section">
+          <label>API Configuration</label>
+          <div class="coach-api-form">
+            <div class="form-row">
+              <label>Provider</label>
+              <select id="coach-api-provider">
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>API Key</label>
+              <input type="password" id="coach-api-key" placeholder="Enter your API key">
+            </div>
+            <div class="form-row">
+              <label>Model (optional)</label>
+              <input type="text" id="coach-api-model" placeholder="e.g., gpt-4o-mini">
+            </div>
+            <button class="btn btn-sm btn-primary" id="coach-api-save">Save</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-coach-settings">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move Analysis Tooltip -->
+    <div id="move-tooltip" class="move-tooltip hidden"></div>
+
     <!-- Header -->
     <header>
       <h1>Grandmasters</h1>
@@ -103,6 +259,8 @@
         <button class="btn" id="btn-new-game">New Game</button>
         <button class="btn" id="btn-flip">Flip Board</button>
         <button class="btn" id="btn-database">Database</button>
+        <button class="btn" id="btn-stats">Stats</button>
+        <button class="btn" id="btn-tournament">Tournament</button>
         <div class="dropdown">
           <button class="btn" id="btn-pgn-menu">PGN</button>
           <div class="dropdown-content">
@@ -119,7 +277,11 @@
       <div class="board-area">
         <!-- Top Player Info -->
         <div class="player-info top" id="player-top">
-          <span class="player-name">Black</span>
+          <div class="player-info-left">
+            <span class="player-name">Black</span>
+            <span class="captured-pieces" id="captured-top"></span>
+            <span class="material-advantage" id="material-top"></span>
+          </div>
           <span class="timer" id="timer-top">--:--</span>
         </div>
 
@@ -133,12 +295,19 @@
 
         <!-- Bottom Player Info -->
         <div class="player-info bottom" id="player-bottom">
-          <span class="player-name">White</span>
+          <div class="player-info-left">
+            <span class="player-name">White</span>
+            <span class="captured-pieces" id="captured-bottom"></span>
+            <span class="material-advantage" id="material-bottom"></span>
+          </div>
           <span class="timer" id="timer-bottom">--:--</span>
         </div>
 
         <!-- Always-visible opening name -->
         <div class="opening-label" id="opening-label"></div>
+
+        <!-- Eval Graph (shown after analysis) -->
+        <div class="eval-graph-container hidden" id="eval-graph-container"></div>
 
         <!-- Navigation Controls (under board) -->
         <div class="nav-controls">
@@ -155,25 +324,57 @@
         <div class="status-bar" id="status-bar">
           <span id="game-status">White to move</span>
           <span id="engine-status" class="hidden">Stockfish: Ready</span>
+          <button class="btn btn-sm btn-primary hidden" id="btn-analyze">Analyze Game</button>
+          <div class="analysis-progress hidden" id="analysis-progress">
+            <div class="progress-bar"><div class="progress-fill" id="analysis-progress-fill"></div></div>
+            <span class="progress-text" id="analysis-progress-text">Analyzing...</span>
+          </div>
         </div>
 
-        <!-- Move History -->
-        <div class="move-history-container">
-          <h3>Moves</h3>
-          <div id="move-history" class="move-history"></div>
+        <!-- Analysis Summary (shown after analysis) -->
+        <div class="analysis-summary hidden" id="analysis-summary"></div>
+
+        <!-- Side Panel Tabs -->
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="moves">Moves</button>
+          <button class="panel-tab" data-tab="coach">Coach</button>
         </div>
 
-        <!-- Game Controls -->
-        <div class="game-controls">
-          <button class="btn btn-sm" id="btn-undo" title="Undo">Undo</button>
-          <button class="btn btn-sm" id="btn-redo" title="Redo">Redo</button>
+        <!-- Moves Tab -->
+        <div class="panel-content" id="tab-moves">
+          <!-- Move History -->
+          <div class="move-history-container">
+            <div id="move-history" class="move-history"></div>
+          </div>
+
+          <!-- Game Controls -->
+          <div class="game-controls">
+            <button class="btn btn-sm" id="btn-undo" title="Undo">Undo</button>
+            <button class="btn btn-sm" id="btn-redo" title="Redo">Redo</button>
+          </div>
+
+          <!-- Opening Explorer -->
+          <div class="opening-explorer">
+            <h3>Opening Explorer</h3>
+            <div id="opening-name" class="opening-name"></div>
+            <div id="explorer-moves" class="explorer-moves"></div>
+          </div>
         </div>
 
-        <!-- Opening Explorer -->
-        <div class="opening-explorer">
-          <h3>Opening Explorer</h3>
-          <div id="opening-name" class="opening-name"></div>
-          <div id="explorer-moves" class="explorer-moves"></div>
+        <!-- Coach Tab -->
+        <div class="panel-content hidden" id="tab-coach">
+          <div class="coach-panel">
+            <div class="coach-header">
+              <span class="coach-tier-badge" id="coach-tier-badge">Tier 1</span>
+              <button class="btn btn-sm" id="btn-coach-settings" title="Coach Settings">Settings</button>
+            </div>
+            <div class="coach-messages" id="coach-messages"></div>
+            <div class="coach-input">
+              <input type="text" id="coach-input" placeholder="Ask your coach...">
+              <button class="btn btn-sm btn-primary" id="btn-coach-send">Send</button>
+            </div>
+            <div class="coach-status" id="coach-status"></div>
+          </div>
         </div>
       </div>
     </main>

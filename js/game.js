@@ -9,6 +9,7 @@ export class Game {
     this.playerColor = 'w';     // Player's color when vs engine
     this.difficulty = 10;
     this.timeControl = 0;       // seconds, 0 = no timer
+    this.increment = 0;         // Fischer increment in seconds
     this.timers = { w: 0, b: 0 };
     this.timerInterval = null;
     this.gameOver = false;
@@ -36,6 +37,7 @@ export class Game {
     this.difficulty = options.difficulty || 10;
     this.botId = options.botId || null;
     this.timeControl = options.time || 0;
+    this.increment = options.increment || 0;
     this.gameOver = false;
     this.replayMode = false;
 
@@ -199,6 +201,15 @@ export class Game {
 
     this.stopTimer();
     if (this.gameOver) return;
+
+    // Add increment to the player who just moved
+    if (this.increment > 0 && this.moveHistory.length > 0) {
+      const lastMoveColor = this.moveHistory[this.moveHistory.length - 1].color;
+      this.timers[lastMoveColor] += this.increment;
+      if (this.onTimerUpdate) {
+        this.onTimerUpdate(this.timers);
+      }
+    }
 
     this.timerInterval = setInterval(() => {
       const turn = this.chess.turn();
