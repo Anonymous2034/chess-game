@@ -348,8 +348,9 @@ main {
   width: 260px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   max-height: calc(var(--board-size) + 60px);
+  overflow: hidden;
 }
 
 .status-bar {
@@ -360,6 +361,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 #game-status {
@@ -377,16 +379,10 @@ main {
   background: var(--panel-bg);
   border-radius: 4px;
   flex: 1;
-  min-height: 0;
+  min-height: 80px;
   display: flex;
   flex-direction: column;
-}
-
-.move-history-container h3 {
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  color: var(--text-light);
-  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
 }
 
 .move-history {
@@ -448,6 +444,7 @@ main {
   display: flex;
   gap: 4px;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .game-controls .btn {
@@ -459,6 +456,7 @@ main {
   background: var(--panel-bg);
   border-radius: 4px;
   padding: 8px 12px;
+  flex-shrink: 0;
 }
 
 .opening-explorer h3 {
@@ -1085,6 +1083,7 @@ main {
   display: flex;
   gap: 0;
   border-bottom: 2px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .panel-tab {
@@ -1117,6 +1116,7 @@ main {
   flex: 1;
   min-height: 0;
   gap: 8px;
+  overflow: hidden;
 }
 
 /* === Coach Panel === */
@@ -1125,6 +1125,7 @@ main {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .coach-header {
@@ -1151,8 +1152,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 120px;
-  max-height: 300px;
+  min-height: 80px;
   background: var(--panel-bg);
   border-radius: 4px;
 }
@@ -1274,6 +1274,7 @@ main {
   border-radius: 4px;
   padding: 10px 12px;
   font-size: 0.78rem;
+  flex-shrink: 0;
 }
 
 .analysis-summary h4 {
@@ -1652,6 +1653,7 @@ main {
   .side-panel {
     width: var(--board-size);
     max-height: none;
+    overflow: visible;
   }
 
   header {
