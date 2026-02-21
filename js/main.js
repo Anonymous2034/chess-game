@@ -4,7 +4,7 @@ import { Game } from './game.js';
 import { Engine } from './engine.js';
 import { Notation } from './notation.js';
 import { Database } from './database.js';
-import { BOT_PERSONALITIES, BOT_TIERS, BOT_AVATARS } from './bots.js';
+import { BOT_PERSONALITIES, GM_STYLES } from './bots.js';
 import { show, hide, debounce } from './utils.js';
 
 class ChessApp {
@@ -282,7 +282,7 @@ class ChessApp {
 
   setupNewGameDialog() {
     const dialog = document.getElementById('new-game-dialog');
-    const settings = { mode: 'local', color: 'w', botId: 'club-player-charlie', time: 0 };
+    const settings = { mode: 'local', color: 'w', botId: 'tal', time: 0 };
 
     // Render bot picker
     this.renderBotPicker(settings);
@@ -387,40 +387,43 @@ class ChessApp {
     const picker = document.getElementById('bot-picker');
     picker.innerHTML = '';
 
-    for (const tier of BOT_TIERS) {
-      const bots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
-      if (bots.length === 0) continue;
+    for (const bot of BOT_PERSONALITIES) {
+      const card = document.createElement('div');
+      card.className = 'bot-card' + (bot.id === settings.botId ? ' selected' : '');
+      card.dataset.botId = bot.id;
 
-      const header = document.createElement('div');
-      header.className = 'bot-tier-header';
-      header.textContent = `${tier.name} (${tier.eloRange})`;
-      picker.appendChild(header);
+      // Build style attribute bars
+      let stylesHtml = '';
+      for (const style of GM_STYLES) {
+        const val = bot.styles[style.id] || 0;
+        const pct = val * 10;
+        const level = val <= 4 ? 'low' : val <= 7 ? 'mid' : 'high';
+        stylesHtml += `
+          <div class="bot-style">
+            <span class="bot-style-name">${style.name}</span>
+            <div class="bot-style-bar"><div class="bot-style-fill ${level}" style="width:${pct}%"></div></div>
+            <span class="bot-style-val">${val}</span>
+          </div>`;
+      }
 
-      const grid = document.createElement('div');
-      grid.className = 'bot-tier-grid';
-
-      for (const bot of bots) {
-        const card = document.createElement('div');
-        card.className = 'bot-card' + (bot.id === settings.botId ? ' selected' : '');
-        card.dataset.botId = bot.id;
-        card.innerHTML = `
-          <div class="bot-avatar">${BOT_AVATARS[bot.avatar] || ''}</div>
+      card.innerHTML = `
+        <div class="bot-card-header">
+          <div class="bot-avatar">${bot.avatar}</div>
           <div class="bot-info">
             <div class="bot-name">${bot.name}</div>
             <div class="bot-subtitle">${bot.subtitle}</div>
           </div>
           <div class="bot-elo">~${bot.elo}</div>
-        `;
-        card.title = bot.description;
-        card.addEventListener('click', () => {
-          picker.querySelectorAll('.bot-card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-          settings.botId = bot.id;
-        });
-        grid.appendChild(card);
-      }
-
-      picker.appendChild(grid);
+        </div>
+        <div class="bot-styles">${stylesHtml}</div>
+      `;
+      card.title = bot.description;
+      card.addEventListener('click', () => {
+        picker.querySelectorAll('.bot-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        settings.botId = bot.id;
+      });
+      picker.appendChild(card);
     }
   }
 

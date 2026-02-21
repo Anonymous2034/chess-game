@@ -1,168 +1,134 @@
-// Bot personality definitions for Stockfish UCI configuration
+// Grandmaster personality definitions for Stockfish UCI configuration
 
-export const BOT_TIERS = [
-  { id: 'beginner', name: 'Beginner', eloRange: '800-1200' },
-  { id: 'intermediate', name: 'Intermediate', eloRange: '1200-1800' },
-  { id: 'advanced', name: 'Advanced', eloRange: '1800-2500' },
-  { id: 'expert', name: 'Expert', eloRange: '2500+' }
+export const GM_STYLES = [
+  { id: 'aggression', name: 'Aggression' },
+  { id: 'defense', name: 'Defense' },
+  { id: 'positional', name: 'Positional' },
+  { id: 'tactical', name: 'Tactical' },
+  { id: 'strategy', name: 'Strategy' },
+  { id: 'endgame', name: 'Endgame' },
+  { id: 'pawnPlay', name: 'Pawn Play' },
+  { id: 'counterAttack', name: 'Counter' },
 ];
-
-export const BOT_AVATARS = {
-  beginner: '\u{1F423}',
-  casual: '\u{1F60A}',
-  club: '\u265F',
-  tactician: '\u2694\uFE0F',
-  wall: '\u{1F6E1}\uFE0F',
-  speed: '\u26A1',
-  positional: '\u{1F3DB}\uFE0F',
-  master: '\u{1F3AF}',
-  grandmaster: '\u{1F451}',
-  maximum: '\u{1F916}'
-};
 
 export const BOT_PERSONALITIES = [
   {
-    id: 'beginner-betty',
-    name: 'Beginner Betty',
-    subtitle: 'Just learning the ropes',
-    description: 'Makes basic moves but often overlooks tactics. Perfect for absolute beginners.',
-    elo: 800,
-    tier: 'beginner',
-    avatar: 'beginner',
-    uci: {
-      'Skill Level': 0
-    },
-    searchDepth: 1,
-    moveTime: null
-  },
-  {
-    id: 'casual-carl',
-    name: 'Casual Carl',
-    subtitle: 'Plays for fun',
-    description: 'Knows the basics and can punish obvious blunders, but still makes mistakes.',
-    elo: 1000,
-    tier: 'beginner',
-    avatar: 'casual',
-    uci: {
-      'Skill Level': 3
-    },
-    searchDepth: 4,
-    moveTime: null
-  },
-  {
-    id: 'club-player-charlie',
-    name: 'Club Player Charlie',
-    subtitle: 'Solid amateur',
-    description: 'A decent club player who understands strategy but can be outplayed tactically.',
+    id: 'tal',
+    name: 'Mikhail Tal',
+    subtitle: 'The Magician from Riga',
+    description: 'Wild sacrifices and relentless attacks. The most creative and daring attacker in chess history.',
     elo: 1400,
-    tier: 'intermediate',
-    avatar: 'club',
-    uci: {
-      'Skill Level': 6
-    },
-    searchDepth: 8,
-    moveTime: null
-  },
-  {
-    id: 'tactician-tanya',
-    name: 'Tactician Tanya',
-    subtitle: 'Sharp and aggressive',
-    description: 'Loves sacrifices and complications. Plays aggressively but may overextend. Inspired by Tal.',
-    elo: 1600,
-    tier: 'intermediate',
-    avatar: 'tactician',
-    uci: {
-      'Skill Level': 10,
-      'Contempt': 80
-    },
+    avatar: '\u{1F525}',
+    styles: { aggression: 10, defense: 2, positional: 3, tactical: 10, strategy: 4, endgame: 4, pawnPlay: 4, counterAttack: 6 },
+    uci: { 'Skill Level': 8, 'Contempt': 100 },
     searchDepth: 10,
     moveTime: null
   },
   {
-    id: 'the-wall',
-    name: 'The Wall',
-    subtitle: 'Defensive fortress',
-    description: 'Extremely solid and patient. Will grind you down in the endgame. Inspired by Petrosian.',
-    elo: 1700,
-    tier: 'intermediate',
-    avatar: 'wall',
-    uci: {
-      'Skill Level': 12,
-      'Contempt': -50
-    },
+    id: 'petrosian',
+    name: 'Tigran Petrosian',
+    subtitle: 'Iron Tigran',
+    description: 'The ultimate defensive player. Prophylactic genius who eliminates your plans before they form.',
+    elo: 1500,
+    avatar: '\u{1F6E1}\uFE0F',
+    styles: { aggression: 2, defense: 10, positional: 9, tactical: 5, strategy: 8, endgame: 8, pawnPlay: 8, counterAttack: 6 },
+    uci: { 'Skill Level': 10, 'Contempt': -80 },
     searchDepth: 12,
     moveTime: null
   },
   {
-    id: 'speed-demon',
-    name: 'Speed Demon',
-    subtitle: 'Instant instinct',
-    description: 'Moves almost instantly based on pattern recognition. Strong but time-limited.',
-    elo: 1500,
-    tier: 'intermediate',
-    avatar: 'speed',
-    uci: {
-      'Skill Level': 15,
-      'Contempt': 20
-    },
-    searchDepth: null,
-    moveTime: 500
+    id: 'capablanca',
+    name: 'Jose Raul Capablanca',
+    subtitle: 'The Chess Machine',
+    description: 'Simple, clear, perfect technique. Makes chess look effortless with crystal-clear logic.',
+    elo: 1600,
+    avatar: '\u{1F48E}',
+    styles: { aggression: 3, defense: 7, positional: 9, tactical: 6, strategy: 8, endgame: 10, pawnPlay: 7, counterAttack: 5 },
+    uci: { 'Skill Level': 12, 'Contempt': -30 },
+    searchDepth: 12,
+    moveTime: null
   },
   {
-    id: 'positional-pat',
-    name: 'Positional Pat',
-    subtitle: 'Strategic mastery',
-    description: 'Focuses on long-term positional advantages. Rarely blunders. Inspired by Karpov.',
-    elo: 2000,
-    tier: 'advanced',
-    avatar: 'positional',
-    uci: {
-      'Skill Level': 16,
-      'Contempt': -20
-    },
+    id: 'botvinnik',
+    name: 'Mikhail Botvinnik',
+    subtitle: 'The Patriarch',
+    description: 'Father of the Soviet chess school. Scientific approach with deep opening preparation.',
+    elo: 1700,
+    avatar: '\u{1F52C}',
+    styles: { aggression: 5, defense: 7, positional: 8, tactical: 6, strategy: 9, endgame: 7, pawnPlay: 8, counterAttack: 5 },
+    uci: { 'Skill Level': 14, 'Contempt': 10 },
     searchDepth: 14,
     moveTime: null
   },
   {
-    id: 'candidate-master',
-    name: 'Candidate Master',
-    subtitle: 'Tournament strength',
-    description: 'A serious competitive player. Very few weaknesses. Good luck.',
-    elo: 2200,
-    tier: 'advanced',
-    avatar: 'master',
-    uci: {
-      'Skill Level': 18
-    },
+    id: 'alekhine',
+    name: 'Alexander Alekhine',
+    subtitle: 'The Dark Genius',
+    description: 'Ferocious attacks with deep combinations. Turns calm positions into tactical storms.',
+    elo: 1800,
+    avatar: '\u26A1',
+    styles: { aggression: 9, defense: 4, positional: 6, tactical: 9, strategy: 7, endgame: 6, pawnPlay: 5, counterAttack: 7 },
+    uci: { 'Skill Level': 15, 'Contempt': 70 },
+    searchDepth: 14,
+    moveTime: null
+  },
+  {
+    id: 'karpov',
+    name: 'Anatoly Karpov',
+    subtitle: 'The Boa Constrictor',
+    description: 'Positional mastery and relentless pressure. Slowly squeezes opponents in a python grip.',
+    elo: 2000,
+    avatar: '\u{1F40D}',
+    styles: { aggression: 3, defense: 8, positional: 10, tactical: 6, strategy: 9, endgame: 9, pawnPlay: 10, counterAttack: 5 },
+    uci: { 'Skill Level': 16, 'Contempt': -40 },
     searchDepth: 16,
     moveTime: null
   },
   {
-    id: 'grandmaster',
-    name: 'The Grandmaster',
-    subtitle: 'Elite strength',
-    description: 'Plays at super-GM level. Finds deep tactics and long-term plans effortlessly.',
+    id: 'fischer',
+    name: 'Bobby Fischer',
+    subtitle: 'The Prodigy',
+    description: 'Relentless perfectionist. Equally devastating in attack and endgame. The complete player.',
+    elo: 2200,
+    avatar: '\u{1F3C6}',
+    styles: { aggression: 7, defense: 6, positional: 8, tactical: 8, strategy: 8, endgame: 9, pawnPlay: 8, counterAttack: 7 },
+    uci: { 'Skill Level': 18, 'Contempt': 20 },
+    searchDepth: 16,
+    moveTime: null
+  },
+  {
+    id: 'anand',
+    name: 'Vishy Anand',
+    subtitle: 'The Lightning Kid',
+    description: 'Lightning-fast intuition. Brilliant tactician who sees moves before others even calculate.',
+    elo: 2300,
+    avatar: '\u{1F31F}',
+    styles: { aggression: 6, defense: 6, positional: 7, tactical: 9, strategy: 7, endgame: 7, pawnPlay: 6, counterAttack: 7 },
+    uci: { 'Skill Level': 18 },
+    searchDepth: null,
+    moveTime: 1500
+  },
+  {
+    id: 'kasparov',
+    name: 'Garry Kasparov',
+    subtitle: 'The Beast from Baku',
+    description: 'The most dominating player ever. Crushing preparation, fearsome attacks, unbreakable will.',
     elo: 2700,
-    tier: 'expert',
-    avatar: 'grandmaster',
-    uci: {
-      'Skill Level': 20,
-      'Contempt': 30
-    },
+    avatar: '\u{1F981}',
+    styles: { aggression: 9, defense: 6, positional: 8, tactical: 9, strategy: 9, endgame: 8, pawnPlay: 7, counterAttack: 8 },
+    uci: { 'Skill Level': 20, 'Contempt': 50 },
     searchDepth: 18,
     moveTime: null
   },
   {
-    id: 'stockfish-max',
-    name: 'Stockfish Maximum',
-    subtitle: 'Inhuman precision',
-    description: 'Full engine strength, no handicaps. The ultimate challenge.',
+    id: 'carlsen',
+    name: 'Magnus Carlsen',
+    subtitle: 'The Mozart of Chess',
+    description: 'Universal genius. Perfect intuition, endgame magician. The highest-rated player in history.',
     elo: 3500,
-    tier: 'expert',
-    avatar: 'maximum',
-    uci: {
-      'Skill Level': 20
-    },
+    avatar: '\u{1F451}',
+    styles: { aggression: 5, defense: 8, positional: 10, tactical: 8, strategy: 9, endgame: 10, pawnPlay: 9, counterAttack: 8 },
+    uci: { 'Skill Level': 20 },
     searchDepth: 20,
     moveTime: null
   }

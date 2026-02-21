@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess Game</title>
+  <title>Grandmasters</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -95,7 +95,7 @@
 
     <!-- Header -->
     <header>
-      <h1>Chess</h1>
+      <h1>Grandmasters</h1>
       <nav>
         <button class="btn" id="btn-new-game">New Game</button>
         <button class="btn" id="btn-flip">Flip Board</button>
@@ -133,6 +133,14 @@
           <span class="player-name">White</span>
           <span class="timer" id="timer-bottom">--:--</span>
         </div>
+
+        <!-- Navigation Controls (under board) -->
+        <div class="nav-controls">
+          <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
+          <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
+          <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
+          <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
+        </div>
       </div>
 
       <!-- Right: Side Panel -->
@@ -147,14 +155,6 @@
         <div class="move-history-container">
           <h3>Moves</h3>
           <div id="move-history" class="move-history"></div>
-        </div>
-
-        <!-- Navigation Controls -->
-        <div class="nav-controls">
-          <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
-          <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
-          <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
-          <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
         </div>
 
         <!-- Game Controls -->

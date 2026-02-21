@@ -24,6 +24,9 @@ export class Board {
   }
 
   render() {
+    // Remove any stale drag elements
+    document.querySelectorAll('.piece.dragging').forEach(el => el.remove());
+
     this.container.innerHTML = '';
     this.squares = {};
 
@@ -254,10 +257,27 @@ export class Board {
   setupDragAndDrop() {
     let dragImg = null;
     let startSquare = null;
-    let offsetX = 0, offsetY = 0;
+
+    // Clean up any active drag state
+    const cleanupDrag = () => {
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
+      document.removeEventListener('pointercancel', onPointerCancel);
+      if (dragImg) {
+        dragImg.remove();
+        dragImg = null;
+      }
+      // Remove any stale drag elements that might be stuck
+      document.querySelectorAll('.piece.dragging').forEach(el => el.remove());
+      startSquare = null;
+    };
 
     const onPointerDown = (e) => {
       if (!this.interactive) return;
+
+      // Always clean up any previous drag first
+      cleanupDrag();
+
       const squareDiv = e.target.closest('.square');
       if (!squareDiv) return;
 
@@ -280,17 +300,15 @@ export class Board {
       document.body.appendChild(dragImg);
 
       const rect = pieceImg.getBoundingClientRect();
-      offsetX = e.clientX - rect.left - rect.width / 2;
-      offsetY = e.clientY - rect.top - rect.height / 2;
-
-      dragImg.style.left = (e.clientX - offsetX - rect.width * 0.55) + 'px';
-      dragImg.style.top = (e.clientY - offsetY - rect.height * 0.55) + 'px';
+      dragImg.style.left = (e.clientX - rect.width / 2) + 'px';
+      dragImg.style.top = (e.clientY - rect.height / 2) + 'px';
 
       // Hide original piece
       pieceImg.style.opacity = '0';
 
       document.addEventListener('pointermove', onPointerMove);
       document.addEventListener('pointerup', onPointerUp);
+      document.addEventListener('pointercancel', onPointerCancel);
     };
 
     const onPointerMove = (e) => {
@@ -301,36 +319,42 @@ export class Board {
     };
 
     const onPointerUp = (e) => {
-      document.removeEventListener('pointermove', onPointerMove);
-      document.removeEventListener('pointerup', onPointerUp);
-
-      if (dragImg) {
-        dragImg.remove();
-        dragImg = null;
-      }
+      const savedStart = startSquare;
+      cleanupDrag();
 
       // Find target square
       const target = document.elementFromPoint(e.clientX, e.clientY);
       const squareDiv = target?.closest('.square');
 
-      if (squareDiv && startSquare) {
+      if (squareDiv && savedStart) {
         const toSq = squareDiv.dataset.square;
-        if (toSq !== startSquare) {
+        if (toSq !== savedStart) {
           const legalMove = this.legalMoves.find(m => m.to === toSq);
           if (legalMove) {
-            this.tryMove(startSquare, toSq);
-            startSquare = null;
+            this.tryMove(savedStart, toSq);
             return;
           }
         }
       }
 
       // If no valid drop, re-render to restore piece
-      startSquare = null;
+      this.render();
+    };
+
+    const onPointerCancel = () => {
+      cleanupDrag();
       this.render();
     };
 
     this.container.addEventListener('pointerdown', onPointerDown);
+
+    // Safety: clean up if page loses visibility during drag
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && dragImg) {
+        cleanupDrag();
+        this.render();
+      }
+    });
   }
 
   flip() {
