@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grandmasters</title>
   <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "firebase/app": "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js",
+      "firebase/auth": "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js",
+      "firebase/firestore": "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="app">
@@ -201,6 +210,115 @@
       </div>
     </div>
 
+    <!-- Admin Dialog -->
+    <div id="admin-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Admin Panel</h2>
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="users">Users</button>
+          <button class="admin-tab" data-tab="leaderboard">Leaderboard</button>
+        </div>
+        <div id="admin-content" class="admin-content"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-admin">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth Dialog -->
+    <div id="auth-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <!-- Login Form -->
+        <div id="login-form">
+          <h2>Login</h2>
+          <div class="dialog-section">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="your@email.com">
+          </div>
+          <div class="dialog-section">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Password">
+          </div>
+          <div class="auth-error hidden" id="login-error"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="close-auth">Close</button>
+            <button class="btn btn-primary" id="btn-login">Login</button>
+          </div>
+          <div class="auth-switch">
+            Don't have an account? <a href="#" id="show-register">Register</a>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="hidden">
+          <h2>Register</h2>
+          <div class="dialog-section">
+            <label>Display Name</label>
+            <input type="text" id="register-name" placeholder="Your name">
+          </div>
+          <div class="dialog-section">
+            <label>Email</label>
+            <input type="email" id="register-email" placeholder="your@email.com">
+          </div>
+          <div class="dialog-section">
+            <label>Password</label>
+            <input type="password" id="register-password" placeholder="Password (6+ chars)">
+          </div>
+          <div class="auth-error hidden" id="register-error"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="back-to-login">Back</button>
+            <button class="btn btn-primary" id="btn-register">Register</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Match Dialog -->
+    <div id="bot-match-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-new-game">
+        <h2>Bot vs Bot Match</h2>
+        <div class="dialog-section">
+          <label>White</label>
+          <div class="bot-match-picker" id="bot-match-white"></div>
+        </div>
+        <div class="dialog-section">
+          <label>Black</label>
+          <div class="bot-match-picker" id="bot-match-black"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-bot-match">Cancel</button>
+          <button class="btn btn-primary" id="start-bot-match">Simulate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Match Progress Dialog -->
+    <div id="bot-match-progress" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Simulating Game...</h2>
+        <div class="bot-match-status" id="bot-match-status">Preparing...</div>
+        <div class="progress-bar"><div class="progress-fill" id="bot-match-progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Theme Settings Dialog -->
+    <div id="theme-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Themes</h2>
+        <div class="theme-section">
+          <h4>Board</h4>
+          <div class="board-theme-swatches" id="board-theme-swatches"></div>
+        </div>
+        <div class="theme-section">
+          <h4>Pieces</h4>
+          <div class="piece-theme-list" id="piece-theme-list"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-theme-dialog">Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Coach Settings Dialog -->
     <div id="coach-settings-dialog" class="dialog-overlay hidden">
       <div class="dialog">
@@ -261,6 +379,8 @@
         <button class="btn" id="btn-database">Database</button>
         <button class="btn" id="btn-stats">Stats</button>
         <button class="btn" id="btn-tournament">Tournament</button>
+        <button class="btn" id="btn-bot-match">Bot Match</button>
+        <button class="btn" id="btn-themes">Themes</button>
         <div class="dropdown">
           <button class="btn" id="btn-pgn-menu">PGN</button>
           <div class="dropdown-content">
@@ -268,6 +388,10 @@
             <button id="btn-export-pgn">Export PGN</button>
           </div>
         </div>
+        <button class="btn hidden" id="btn-admin">Admin</button>
+        <span class="nav-separator"></span>
+        <span class="auth-status hidden" id="auth-status"></span>
+        <button class="btn" id="btn-auth">Login</button>
       </nav>
     </header>
 

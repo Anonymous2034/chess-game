@@ -12,7 +12,13 @@ import { EvalGraph } from './eval-graph.js';
 import { CoachManager } from './coach.js';
 import { PlayerStats } from './stats.js';
 import { Tournament } from './tournament.js';
-import { show, hide, debounce } from './utils.js';
+import { show, hide, debounce, setPieceBasePath } from './utils.js';
+import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
+import { BotMatch } from './bot-match.js';
+import { initFirebase, isFirebaseConfigured } from './firebase-config.js';
+import { AuthManager } from './auth.js';
+import { DataService } from './data-service.js';
+import { AdminPanel } from './admin.js';
 
 class ChessApp {
   constructor() {
@@ -27,6 +33,9 @@ class ChessApp {
     this.openingBook = new OpeningBook();
     this.lastOpeningName = '';
 
+    // Themes
+    this.themes = new ThemeManager();
+
     // New features
     this.captured = new CapturedPieces();
     this.analyzer = null;
@@ -36,11 +45,24 @@ class ChessApp {
     this.tournament = new Tournament();
     this.analysisResults = null;
     this.currentTournamentMatch = null;
+    this.botMatch = null;
+    this.auth = null;
+    this.dataService = null;
+    this.adminPanel = null;
+    this.firebaseReady = false;
 
     this.init();
   }
 
   async init() {
+    // Apply themes
+    setPieceBasePath(this.themes.getPieceBasePath());
+    this.themes.apply();
+    this.themes.onPieceThemeChange = () => {
+      setPieceBasePath(this.themes.getPieceBasePath());
+      this.board.update();
+    };
+
     // Init board
     const boardEl = document.getElementById('board');
     this.board = new Board(boardEl, this.game);
@@ -77,6 +99,10 @@ class ChessApp {
     this.setupPanelTabs();
     this.setupStatsDialog();
     this.setupTournament();
+    this.setupThemes();
+    this.setupBotMatch();
+    this.setupAuth();
+    this.setupAdmin();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -261,7 +287,7 @@ class ChessApp {
         }
       }
 
-      this.stats.recordGame({
+      const gameRecord = {
         opponent: this.activeBot.name,
         opponentElo: this.activeBot.stockfishElo || this.activeBot.peakElo,
         result,
@@ -269,7 +295,17 @@ class ChessApp {
         playerColor: this.game.playerColor,
         moveCount: this.game.moveHistory.length,
         timeControl: this.game.timeControl
-      });
+      };
+      this.stats.recordGame(gameRecord);
+
+      // Save to cloud
+      if (this.dataService) {
+        this.dataService.saveStats(this.stats.data);
+        this.dataService.saveGame({
+          ...gameRecord,
+          pgn: this.notation.toPGN({ Result: gameResult?.result || '*' })
+        });
+      }
 
       // Tournament match result
       if (this.tournament.active && this.currentTournamentMatch) {
@@ -1300,6 +1336,401 @@ class ChessApp {
     } else {
       hide(webllmSection);
       hide(apiSection);
+    }
+  }
+
+  // === Admin ===
+
+  setupAdmin() {
+    document.getElementById('btn-admin').addEventListener('click', async () => {
+      if (!this.dataService) return;
+
+      if (!this.adminPanel) {
+        this.adminPanel = new AdminPanel(this.dataService);
+      }
+
+      const contentEl = document.getElementById('admin-content');
+      contentEl.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Loading...</p>';
+      show(document.getElementById('admin-dialog'));
+
+      await this.adminPanel.loadUsers();
+      contentEl.innerHTML = this.adminPanel.renderUsersTab();
+      this._wireAdminUserClicks(contentEl);
+    });
+
+    document.getElementById('close-admin').addEventListener('click', () => {
+      hide(document.getElementById('admin-dialog'));
+    });
+
+    // Admin tabs
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const contentEl = document.getElementById('admin-content');
+        if (tab.dataset.tab === 'users') {
+          contentEl.innerHTML = this.adminPanel ? this.adminPanel.renderUsersTab() : '';
+          this._wireAdminUserClicks(contentEl);
+        } else if (tab.dataset.tab === 'leaderboard') {
+          contentEl.innerHTML = this.adminPanel ? this.adminPanel.renderLeaderboard() : '';
+        }
+      });
+    });
+  }
+
+  _wireAdminUserClicks(container) {
+    container.querySelectorAll('.admin-user-row').forEach(row => {
+      row.addEventListener('click', async () => {
+        const uid = row.dataset.uid;
+        const detail = await this.adminPanel.getUserDetail(uid);
+        if (detail) {
+          const contentEl = document.getElementById('admin-content');
+          contentEl.innerHTML = this.adminPanel.renderUserDetail(detail) +
+            '<button class="btn btn-sm" id="admin-back-to-users" style="margin-top:12px;">Back to Users</button>';
+
+          document.getElementById('admin-back-to-users').addEventListener('click', () => {
+            contentEl.innerHTML = this.adminPanel.renderUsersTab();
+            this._wireAdminUserClicks(contentEl);
+          });
+        }
+      });
+    });
+  }
+
+  // === Auth ===
+
+  setupAuth() {
+    // Init Firebase if configured
+    if (isFirebaseConfigured()) {
+      this.firebaseReady = initFirebase();
+    }
+
+    if (this.firebaseReady) {
+      this.auth = new AuthManager();
+      this.dataService = new DataService(this.auth);
+      this.auth.onAuthChange = async (user) => {
+        this._updateAuthUI(user);
+        if (user) {
+          // Migrate local data on first login
+          await this.dataService.migrateLocalData();
+          // Sync stats from cloud
+          const cloudStats = await this.dataService.loadStats();
+          if (cloudStats && cloudStats.games) {
+            this.stats.data = cloudStats;
+          }
+        }
+      };
+      this.auth.init();
+    }
+
+    const authDialog = document.getElementById('auth-dialog');
+    const authBtn = document.getElementById('btn-auth');
+
+    authBtn.addEventListener('click', () => {
+      if (this.auth && this.auth.isLoggedIn()) {
+        // Logout
+        this.auth.logout();
+      } else {
+        show(authDialog);
+      }
+    });
+
+    document.getElementById('close-auth').addEventListener('click', () => {
+      hide(authDialog);
+    });
+
+    // Switch forms
+    document.getElementById('show-register').addEventListener('click', (e) => {
+      e.preventDefault();
+      hide(document.getElementById('login-form'));
+      show(document.getElementById('register-form'));
+    });
+
+    document.getElementById('back-to-login').addEventListener('click', () => {
+      hide(document.getElementById('register-form'));
+      show(document.getElementById('login-form'));
+    });
+
+    // Login
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      if (!this.auth) {
+        this._showAuthError('login', 'Firebase not configured. Update firebase-config.js with your project settings.');
+        return;
+      }
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) return;
+
+      try {
+        await this.auth.login(email, password);
+        hide(authDialog);
+      } catch (err) {
+        this._showAuthError('login', err.message);
+      }
+    });
+
+    // Register
+    document.getElementById('btn-register').addEventListener('click', async () => {
+      if (!this.auth) {
+        this._showAuthError('register', 'Firebase not configured. Update firebase-config.js with your project settings.');
+        return;
+      }
+      const name = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value;
+      if (!name || !email || !password) return;
+
+      try {
+        await this.auth.register(email, password, name);
+        hide(authDialog);
+      } catch (err) {
+        this._showAuthError('register', err.message);
+      }
+    });
+  }
+
+  _updateAuthUI(user) {
+    const authBtn = document.getElementById('btn-auth');
+    const authStatus = document.getElementById('auth-status');
+
+    if (user) {
+      authBtn.textContent = 'Logout';
+      authStatus.textContent = user.displayName || user.email;
+      show(authStatus);
+
+      // Show admin button if admin
+      if (this.auth.isAdmin()) {
+        const adminBtn = document.getElementById('btn-admin');
+        if (adminBtn) show(adminBtn);
+      }
+    } else {
+      authBtn.textContent = 'Login';
+      hide(authStatus);
+
+      const adminBtn = document.getElementById('btn-admin');
+      if (adminBtn) hide(adminBtn);
+    }
+  }
+
+  _showAuthError(form, message) {
+    const errorEl = document.getElementById(`${form}-error`);
+    errorEl.textContent = message;
+    show(errorEl);
+  }
+
+  // === Bot Match ===
+
+  setupBotMatch() {
+    const matchSettings = { whiteId: null, blackId: null };
+
+    document.getElementById('btn-bot-match').addEventListener('click', () => {
+      this._renderBotMatchPickers(matchSettings);
+      show(document.getElementById('bot-match-dialog'));
+    });
+
+    document.getElementById('cancel-bot-match').addEventListener('click', () => {
+      hide(document.getElementById('bot-match-dialog'));
+    });
+
+    document.getElementById('start-bot-match').addEventListener('click', async () => {
+      if (!matchSettings.whiteId || !matchSettings.blackId) {
+        this.showToast('Select both white and black bots');
+        return;
+      }
+      hide(document.getElementById('bot-match-dialog'));
+      await this._runBotMatch(matchSettings);
+    });
+  }
+
+  _renderBotMatchPickers(settings) {
+    const whiteEl = document.getElementById('bot-match-white');
+    const blackEl = document.getElementById('bot-match-black');
+
+    [whiteEl, blackEl].forEach((el, idx) => {
+      el.innerHTML = '';
+      const side = idx === 0 ? 'whiteId' : 'blackId';
+
+      for (const tier of BOT_TIERS) {
+        const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
+        if (tierBots.length === 0) continue;
+
+        const label = document.createElement('div');
+        label.className = 'bot-tier-label';
+        label.textContent = tier.name;
+        el.appendChild(label);
+
+        for (const bot of tierBots) {
+          const card = document.createElement('div');
+          card.className = 'bot-list-card' + (settings[side] === bot.id ? ' selected' : '');
+          card.innerHTML = `
+            <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
+            <div class="bot-list-info">
+              <div class="bot-list-name">${bot.name}</div>
+              <div class="bot-list-elo">${bot.peakElo}</div>
+            </div>
+          `;
+          card.addEventListener('click', () => {
+            el.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            settings[side] = bot.id;
+          });
+          el.appendChild(card);
+        }
+      }
+    });
+  }
+
+  async _runBotMatch(settings) {
+    const white = BOT_PERSONALITIES.find(b => b.id === settings.whiteId);
+    const black = BOT_PERSONALITIES.find(b => b.id === settings.blackId);
+    if (!white || !black) return;
+
+    // Ensure engine is ready
+    await this.initEngine();
+    if (!this.engine || !this.engine.ready) {
+      this.showToast('Engine failed to load');
+      return;
+    }
+
+    // Show progress
+    const progressDialog = document.getElementById('bot-match-progress');
+    const statusEl = document.getElementById('bot-match-status');
+    const fillEl = document.getElementById('bot-match-progress-fill');
+    show(progressDialog);
+    statusEl.textContent = `${white.name} vs ${black.name} — Preparing...`;
+    fillEl.style.width = '0%';
+
+    // Temporarily remove onBestMove to prevent interference
+    const origHandler = this.engine.onBestMove;
+    this.engine.onBestMove = null;
+
+    this.botMatch = new BotMatch(this.engine);
+    this.botMatch.onProgress = (moveNum) => {
+      const pct = Math.min(100, moveNum * 0.5);
+      fillEl.style.width = `${pct}%`;
+      statusEl.textContent = `${white.name} vs ${black.name} — Move ${moveNum}...`;
+    };
+
+    try {
+      const result = await this.botMatch.simulate(white, black);
+      hide(progressDialog);
+
+      // Restore handler
+      this.engine.onBestMove = origHandler;
+
+      // Load game for replay
+      this._loadBotMatchForReplay(result, white, black);
+    } catch (err) {
+      hide(progressDialog);
+      this.engine.onBestMove = origHandler;
+      console.error('Bot match failed:', err);
+      this.showToast('Bot match simulation failed');
+    }
+  }
+
+  _loadBotMatchForReplay(result, white, black) {
+    // Load moves into game (loadFromMoves expects SAN strings)
+    const sanMoves = result.moves.map(m => m.san);
+    this.game.loadFromMoves(sanMoves);
+    this.notation.setMoves(this.game.moveHistory);
+
+    // Go to start for replay
+    this.game.goToStart();
+    this.notation.setCurrentIndex(-1);
+    this.board.setLastMove(null);
+    this.board.setInteractive(false);
+    this.board.setFlipped(false);
+    this.board.update();
+    this.captured.clear();
+
+    // Clear analysis
+    this.analysisResults = null;
+    hide(document.getElementById('btn-analyze'));
+    hide(document.getElementById('analysis-progress'));
+    hide(document.getElementById('analysis-summary'));
+    hide(document.getElementById('eval-graph-container'));
+    this.evalGraph.clear();
+    this.notation.clearClassifications();
+
+    // Show analyze button (game is "over" since it's a replay)
+    if (this.engineInitialized) {
+      show(document.getElementById('btn-analyze'));
+    }
+
+    // Update player names
+    const topName = document.querySelector('#player-top .player-name');
+    const bottomName = document.querySelector('#player-bottom .player-name');
+    if (topName) topName.textContent = black.name;
+    if (bottomName) bottomName.textContent = white.name;
+
+    // Clear bot (not a player game)
+    this.activeBot = null;
+    hide(document.getElementById('engine-status'));
+
+    this.updateGameStatus(`${white.name} vs ${black.name} — ${result.result}`);
+    this.showToast(`Game complete: ${result.result}. Use arrow keys to replay.`);
+  }
+
+  // === Themes ===
+
+  setupThemes() {
+    document.getElementById('btn-themes').addEventListener('click', () => {
+      this._renderThemeDialog();
+      show(document.getElementById('theme-dialog'));
+    });
+
+    document.getElementById('close-theme-dialog').addEventListener('click', () => {
+      hide(document.getElementById('theme-dialog'));
+    });
+  }
+
+  _renderThemeDialog() {
+    // Board themes
+    const swatchesEl = document.getElementById('board-theme-swatches');
+    swatchesEl.innerHTML = '';
+
+    for (const theme of BOARD_THEMES) {
+      const btn = document.createElement('button');
+      btn.className = 'board-theme-swatch' + (theme.id === this.themes.boardTheme ? ' active' : '');
+      btn.innerHTML = `
+        <div class="swatch-preview">
+          <div style="background:${theme.light}"></div>
+          <div style="background:${theme.dark}"></div>
+          <div style="background:${theme.dark}"></div>
+          <div style="background:${theme.light}"></div>
+        </div>
+        <span class="swatch-label">${theme.name}</span>
+      `;
+      btn.addEventListener('click', () => {
+        swatchesEl.querySelectorAll('.board-theme-swatch').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        this.themes.applyBoardTheme(theme.id);
+      });
+      swatchesEl.appendChild(btn);
+    }
+
+    // Piece themes
+    const piecesEl = document.getElementById('piece-theme-list');
+    piecesEl.innerHTML = '';
+
+    for (const theme of PIECE_THEMES) {
+      const btn = document.createElement('button');
+      btn.className = 'piece-theme-option' + (theme.id === this.themes.pieceTheme ? ' active' : '');
+      btn.innerHTML = `
+        <div class="piece-preview">
+          <img src="assets/pieces/${theme.id}/wK.svg" alt="King">
+          <img src="assets/pieces/${theme.id}/wQ.svg" alt="Queen">
+          <img src="assets/pieces/${theme.id}/bN.svg" alt="Knight">
+        </div>
+        <span class="piece-theme-label">${theme.name}</span>
+      `;
+      btn.addEventListener('click', () => {
+        piecesEl.querySelectorAll('.piece-theme-option').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        this.themes.setPieceTheme(theme.id);
+      });
+      piecesEl.appendChild(btn);
     }
   }
 

@@ -29,13 +29,22 @@ export function formatTime(seconds) {
 }
 
 /**
+ * Piece theme base path (updated by ThemeManager)
+ */
+let _pieceBasePath = 'assets/pieces/standard';
+
+export function setPieceBasePath(basePath) {
+  _pieceBasePath = basePath;
+}
+
+/**
  * Get piece image path
  */
 export function pieceImagePath(piece) {
   // piece object from chess.js: { type: 'p', color: 'w' }
   const color = piece.color;
   const type = piece.type.toUpperCase();
-  return `assets/pieces/${color}${type}.svg`;
+  return `${_pieceBasePath}/${color}${type}.svg`;
 }
 
 /**

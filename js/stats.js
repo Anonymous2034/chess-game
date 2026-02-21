@@ -150,6 +150,20 @@ export class PlayerStats {
   }
 
   /**
+   * Get/set data for cloud sync
+   */
+  get data() {
+    return { games: this.games };
+  }
+
+  set data(val) {
+    if (val && Array.isArray(val.games)) {
+      this.games = val.games;
+      this._save();
+    }
+  }
+
+  /**
    * Clear all stats
    */
   clearAll() {
