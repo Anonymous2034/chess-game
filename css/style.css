@@ -2033,6 +2033,55 @@ main {
   border-color: #555;
 }
 
+/* === Multiplayer === */
+.mp-divider {
+  text-align: center;
+  color: #666;
+  margin: 16px 0;
+  font-size: 0.8rem;
+}
+
+.mp-code-display {
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  text-align: center;
+  color: var(--accent);
+  padding: 16px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-family: monospace;
+}
+
+.mp-code-hint {
+  text-align: center;
+  color: #888;
+  font-size: 0.8rem;
+}
+
+#mp-join-code {
+  text-align: center;
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.mp-opponent-status {
+  font-size: 0.75rem;
+  color: #81b64c;
+  margin-left: 8px;
+}
+
+.mp-opponent-status.disconnected {
+  color: #f44336;
+}
+
+#btn-resign-mp,
+#btn-draw-mp {
+  margin-left: 4px;
+}
+
 /* === DGT Board === */
 .dgt-status-indicator {
   display: flex;

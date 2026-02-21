@@ -408,6 +408,70 @@
       </div>
     </div>
 
+    <!-- Multiplayer Dialog -->
+    <div id="multiplayer-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Play Online</h2>
+        <div id="mp-login-required" class="hidden">
+          <p style="text-align:center;color:#888;padding:12px 0;">You must be logged in to play online.</p>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="mp-cancel-login">Cancel</button>
+          </div>
+        </div>
+        <div id="mp-menu">
+          <div class="dialog-section">
+            <label>Play as</label>
+            <div class="btn-group" id="mp-color-group">
+              <button class="btn active" data-value="w">White</button>
+              <button class="btn" data-value="b">Black</button>
+              <button class="btn" data-value="random">Random</button>
+            </div>
+          </div>
+          <div class="dialog-section">
+            <label>Time Control</label>
+            <div class="btn-group" id="mp-time-group">
+              <button class="btn active" data-time="0" data-increment="0">No Timer</button>
+              <button class="btn" data-time="300" data-increment="0">5 min</button>
+              <button class="btn" data-time="600" data-increment="0">10 min</button>
+              <button class="btn" data-time="300" data-increment="3">5+3</button>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button class="btn btn-primary" id="mp-create">Create Game</button>
+          </div>
+          <div class="mp-divider">&mdash; or join an existing game &mdash;</div>
+          <div class="dialog-section">
+            <label>Game Code</label>
+            <input type="text" id="mp-join-code" placeholder="Enter 6-character code" maxlength="6">
+          </div>
+          <div class="dialog-actions">
+            <button class="btn btn-primary" id="mp-join">Join Game</button>
+            <button class="btn btn-secondary" id="mp-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="mp-waiting" class="hidden">
+          <p style="text-align:center;">Waiting for opponent...</p>
+          <div class="mp-code-display" id="mp-code-display"></div>
+          <p class="mp-code-hint">Share this code with your opponent</p>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="mp-cancel-waiting">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draw Offer Dialog -->
+    <div id="draw-offer-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Draw Offer</h2>
+        <p style="text-align:center;">Your opponent offers a draw.</p>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="draw-decline">Decline</button>
+          <button class="btn btn-primary" id="draw-accept">Accept</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Move Analysis Tooltip -->
     <div id="move-tooltip" class="move-tooltip hidden"></div>
 
@@ -423,6 +487,7 @@
         <button class="btn" id="btn-bot-match">Bot Match</button>
         <button class="btn" id="btn-themes">Themes</button>
         <button class="btn" id="btn-multi-analysis">Analysis Lines</button>
+        <button class="btn" id="btn-play-online">Play Online</button>
         <button class="btn" id="btn-dgt">DGT Board</button>
         <div class="dropdown">
           <button class="btn" id="btn-pgn-menu">PGN</button>
@@ -495,6 +560,9 @@
           <span id="dgt-board-status" class="dgt-board-status hidden">DGT: Connected</span>
           <button class="btn btn-sm btn-force hidden" id="btn-force-move">Force Move</button>
           <button class="btn btn-sm btn-primary hidden" id="btn-analyze">Analyze Game</button>
+          <button class="btn btn-sm hidden" id="btn-resign-mp">Resign</button>
+          <button class="btn btn-sm hidden" id="btn-draw-mp">Offer Draw</button>
+          <span class="mp-opponent-status hidden" id="mp-opponent-status"></span>
           <div class="analysis-progress hidden" id="analysis-progress">
             <div class="progress-bar"><div class="progress-fill" id="analysis-progress-fill"></div></div>
             <span class="progress-text" id="analysis-progress-text">Analyzing...</span>

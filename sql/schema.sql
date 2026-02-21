@@ -150,3 +150,39 @@ create trigger on_auth_user_created
 create index if not exists idx_games_user_id on games(user_id);
 create index if not exists idx_games_created_at on games(created_at desc);
 create index if not exists idx_coach_chats_user_id on coach_chats(user_id);
+
+-- ============================================
+-- Multiplayer Games
+-- ============================================
+
+create table if not exists multiplayer_games (
+  id uuid default gen_random_uuid() primary key,
+  code text not null,
+  host_id uuid references auth.users on delete set null,
+  guest_id uuid references auth.users on delete set null,
+  host_color text default 'w',
+  time_control integer default 0,
+  increment integer default 0,
+  status text default 'waiting',  -- waiting, playing, finished
+  result text,                    -- 1-0, 0-1, 1/2-1/2
+  pgn text,
+  created_at timestamptz default now()
+);
+
+alter table multiplayer_games enable row level security;
+
+create policy "Users can insert multiplayer games"
+  on multiplayer_games for insert with check (auth.uid() = host_id);
+
+create policy "Players can view own multiplayer games"
+  on multiplayer_games for select using (
+    auth.uid() = host_id or auth.uid() = guest_id or status = 'waiting'
+  );
+
+create policy "Players can update own multiplayer games"
+  on multiplayer_games for update using (
+    auth.uid() = host_id or auth.uid() = guest_id
+  );
+
+create index if not exists idx_mp_games_code on multiplayer_games(code);
+create index if not exists idx_mp_games_status on multiplayer_games(status);

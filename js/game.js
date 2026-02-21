@@ -59,7 +59,7 @@ export class Game {
 
   canPlayerMove(color) {
     if (this.gameOver || this.replayMode) return false;
-    if (this.mode === 'engine') {
+    if (this.mode === 'engine' || this.mode === 'multiplayer') {
       return color === this.playerColor;
     }
     return true; // local mode: both can move
@@ -101,6 +101,7 @@ export class Game {
   }
 
   undo() {
+    if (this.mode === 'multiplayer') return false;
     if (this.currentMoveIndex < 0 || this.gameOver) return false;
 
     // In engine mode, undo both the engine's and player's last move

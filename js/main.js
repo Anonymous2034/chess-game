@@ -15,12 +15,13 @@ import { Tournament } from './tournament.js';
 import { show, hide, debounce, setPieceBasePath } from './utils.js';
 import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
 import { BotMatch } from './bot-match.js';
-import { initSupabase, isSupabaseConfigured } from './supabase-config.js';
+import { initSupabase, isSupabaseConfigured, getSupabase } from './supabase-config.js';
 import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';
 import { DGTBoard } from './dgt.js';
 import { SoundManager } from './sound.js';
+import { MultiplayerManager } from './multiplayer.js';
 
 class ChessApp {
   constructor() {
@@ -58,6 +59,7 @@ class ChessApp {
     this.dgtBoard = null;
     this.sound = new SoundManager();
     this._gameOverSoundPlayed = false;
+    this.multiplayer = null;
 
     this.init();
   }
@@ -115,6 +117,7 @@ class ChessApp {
     this.setupAdmin();
     this.setupDGT();
     this.setupSoundToggle();
+    this.setupMultiplayer();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -201,6 +204,12 @@ class ChessApp {
         move,
         moveHistory: this.game.moveHistory
       });
+    }
+
+    // Relay move to opponent in multiplayer
+    if (this.game.mode === 'multiplayer' && this.multiplayer) {
+      this.multiplayer.sendMove(move);
+      this.board.setInteractive(false);
     }
 
     // If playing vs engine and it's engine's turn
@@ -298,10 +307,20 @@ class ChessApp {
     // This is called from game.js for time-based game-over
     this._gameOverSoundPlayed = true;
     this.sound.playGameOverSound();
+    // In multiplayer, notify opponent of timeout loss
+    if (this.game.mode === 'multiplayer' && this.multiplayer) {
+      this.multiplayer.sendResign();
+    }
     this._onGameEnd();
   }
 
   _onGameEnd() {
+    // Multiplayer game end — archive and clean up
+    if (this.game.mode === 'multiplayer') {
+      this._onMultiplayerGameEnd();
+      return;
+    }
+
     // Sound: checkmate was already played by playMoveSound; only play for other endings
     if (!this._gameOverSoundPlayed && !this.chess.in_checkmate()) {
       this.sound.playGameOverSound();
@@ -850,6 +869,15 @@ class ChessApp {
 
   async _startNewGame(settings) {
     this._gameOverSoundPlayed = false;
+
+    // Disconnect any active multiplayer game
+    if (this.multiplayer) {
+      this.multiplayer.disconnect();
+      this.multiplayer = null;
+    }
+    hide(document.getElementById('btn-resign-mp'));
+    hide(document.getElementById('btn-draw-mp'));
+    hide(document.getElementById('mp-opponent-status'));
 
     let color = settings.color;
     if (color === 'random') {
@@ -1705,6 +1733,323 @@ class ChessApp {
   _updateSoundButton(btn) {
     btn.textContent = this.sound.muted ? 'Sound Off' : 'Sound On';
     btn.classList.toggle('muted', this.sound.muted);
+  }
+
+  // === Multiplayer ===
+
+  setupMultiplayer() {
+    const dialog = document.getElementById('multiplayer-dialog');
+    const mpMenu = document.getElementById('mp-menu');
+    const mpWaiting = document.getElementById('mp-waiting');
+    const mpLoginRequired = document.getElementById('mp-login-required');
+
+    const mpSettings = { color: 'w', time: 0, increment: 0 };
+
+    // Play Online button
+    document.getElementById('btn-play-online').addEventListener('click', () => {
+      if (!this.auth || !this.auth.isLoggedIn()) {
+        hide(mpMenu);
+        hide(mpWaiting);
+        show(mpLoginRequired);
+      } else {
+        show(mpMenu);
+        hide(mpWaiting);
+        hide(mpLoginRequired);
+      }
+      show(dialog);
+    });
+
+    // Cancel buttons
+    document.getElementById('mp-cancel').addEventListener('click', () => hide(dialog));
+    document.getElementById('mp-cancel-login').addEventListener('click', () => hide(dialog));
+    document.getElementById('mp-cancel-waiting').addEventListener('click', () => {
+      if (this.multiplayer) {
+        this.multiplayer.disconnect();
+        this.multiplayer = null;
+      }
+      show(mpMenu);
+      hide(mpWaiting);
+    });
+
+    // Color selection
+    document.getElementById('mp-color-group').querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('mp-color-group').querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mpSettings.color = btn.dataset.value;
+      });
+    });
+
+    // Time control selection
+    document.getElementById('mp-time-group').querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('mp-time-group').querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mpSettings.time = parseInt(btn.dataset.time) || 0;
+        mpSettings.increment = parseInt(btn.dataset.increment) || 0;
+      });
+    });
+
+    // Create Game
+    document.getElementById('mp-create').addEventListener('click', async () => {
+      const sb = getSupabase();
+      if (!sb) { this.showToast('Supabase not configured'); return; }
+
+      let color = mpSettings.color;
+      if (color === 'random') color = Math.random() < 0.5 ? 'w' : 'b';
+
+      this.multiplayer = new MultiplayerManager(sb);
+      this._wireMultiplayerCallbacks(mpSettings.time, mpSettings.increment);
+
+      const result = await this.multiplayer.createGame(
+        this.auth.getCurrentUser()?.displayName || 'Player',
+        color,
+        mpSettings.time,
+        mpSettings.increment
+      );
+
+      if (result) {
+        hide(mpMenu);
+        show(mpWaiting);
+        document.getElementById('mp-code-display').textContent = result.code;
+      }
+    });
+
+    // Join Game
+    document.getElementById('mp-join').addEventListener('click', async () => {
+      const sb = getSupabase();
+      if (!sb) { this.showToast('Supabase not configured'); return; }
+
+      const code = document.getElementById('mp-join-code').value.trim().toUpperCase();
+      if (code.length !== 6) {
+        this.showToast('Enter a 6-character game code');
+        return;
+      }
+
+      this.multiplayer = new MultiplayerManager(sb);
+      // Wire callbacks before joining (joinGame broadcasts player-joined)
+      this._wireMultiplayerCallbacks(0, 0);
+
+      const result = await this.multiplayer.joinGame(
+        code,
+        this.auth.getCurrentUser()?.displayName || 'Player'
+      );
+
+      if (result) {
+        hide(dialog);
+        this._startMultiplayerGame(result.color, result.timeControl, result.increment);
+      }
+    });
+
+    // Resign button
+    document.getElementById('btn-resign-mp').addEventListener('click', () => {
+      if (!this.multiplayer || !confirm('Are you sure you want to resign?')) return;
+      this.multiplayer.sendResign();
+      this.game.gameOver = true;
+      this.game.stopTimer();
+      const winner = this.multiplayer.myColor === 'w' ? 'Black' : 'White';
+      this.updateGameStatus(`You resigned. ${winner} wins.`);
+      this.sound.playGameOverSound();
+      this._onMultiplayerGameEnd();
+    });
+
+    // Draw offer button
+    document.getElementById('btn-draw-mp').addEventListener('click', () => {
+      if (!this.multiplayer) return;
+      this.multiplayer.sendDrawOffer();
+      this.showToast('Draw offer sent');
+    });
+
+    // Draw offer response
+    document.getElementById('draw-accept').addEventListener('click', () => {
+      hide(document.getElementById('draw-offer-dialog'));
+      if (!this.multiplayer) return;
+      this.multiplayer.sendDrawResponse(true);
+      this.game.gameOver = true;
+      this.game.stopTimer();
+      this.updateGameStatus('Draw agreed!');
+      this.sound.playGameOverSound();
+      this._onMultiplayerGameEnd();
+    });
+
+    document.getElementById('draw-decline').addEventListener('click', () => {
+      hide(document.getElementById('draw-offer-dialog'));
+      if (this.multiplayer) this.multiplayer.sendDrawResponse(false);
+    });
+  }
+
+  _wireMultiplayerCallbacks(timeControl, increment) {
+    if (!this.multiplayer) return;
+
+    this.multiplayer.onOpponentJoined = (name) => {
+      this.multiplayer.opponentName = name;
+      hide(document.getElementById('multiplayer-dialog'));
+      this._startMultiplayerGame(this.multiplayer.myColor, timeControl, increment);
+    };
+
+    this.multiplayer.onOpponentMove = ({ from, to, promotion }) => {
+      const move = this.game.makeMove(from, to, promotion);
+      if (move) {
+        this.sound.playMoveSound(move);
+        this.notation.addMove(move);
+        this.board.setLastMove(move);
+        this.board.update();
+        this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+        this.fetchOpeningExplorer();
+
+        if (this.game.gameOver) {
+          this.board.setInteractive(false);
+          this._onGameEnd();
+        } else {
+          this.board.setInteractive(true);
+        }
+      }
+    };
+
+    this.multiplayer.onOpponentResigned = () => {
+      this.game.gameOver = true;
+      this.game.stopTimer();
+      const winner = this.multiplayer.myColor === 'w' ? 'White' : 'Black';
+      this.updateGameStatus(`Opponent resigned! ${winner} wins.`);
+      this.sound.playGameOverSound();
+      this._onMultiplayerGameEnd();
+    };
+
+    this.multiplayer.onDrawOffered = () => {
+      show(document.getElementById('draw-offer-dialog'));
+    };
+
+    this.multiplayer.onDrawResponse = (accepted) => {
+      if (accepted) {
+        this.game.gameOver = true;
+        this.game.stopTimer();
+        this.updateGameStatus('Draw agreed!');
+        this.sound.playGameOverSound();
+        this._onMultiplayerGameEnd();
+      } else {
+        this.showToast('Draw offer declined');
+      }
+    };
+
+    this.multiplayer.onOpponentDisconnected = () => {
+      const statusEl = document.getElementById('mp-opponent-status');
+      statusEl.textContent = 'Opponent disconnected';
+      statusEl.classList.add('disconnected');
+      show(statusEl);
+    };
+
+    this.multiplayer.onOpponentReconnected = () => {
+      const statusEl = document.getElementById('mp-opponent-status');
+      statusEl.textContent = 'Opponent connected';
+      statusEl.classList.remove('disconnected');
+      show(statusEl);
+      setTimeout(() => hide(statusEl), 3000);
+    };
+
+    this.multiplayer.onTimerSync = (timers) => {
+      if (this.multiplayer.role === 'guest') {
+        this.game.timers = timers;
+        this.updateTimers(timers);
+      }
+    };
+
+    this.multiplayer.onError = (msg) => {
+      this.showToast(msg);
+    };
+  }
+
+  _startMultiplayerGame(color, timeControl, increment) {
+    this._gameOverSoundPlayed = false;
+
+    // Stop any engine
+    this._clearEngineMoveTimer();
+    if (this.engine && this.engine.thinking) {
+      this.engine.stop();
+    }
+    this.activeBot = null;
+
+    this.game.newGame({
+      mode: 'multiplayer',
+      color,
+      time: timeControl,
+      increment
+    });
+
+    this.notation.clear();
+    this.board.setLastMove(null);
+    this.captured.clear();
+
+    // Clear analysis
+    this.analysisResults = null;
+    hide(document.getElementById('btn-analyze'));
+    hide(document.getElementById('analysis-progress'));
+    hide(document.getElementById('analysis-summary'));
+    hide(document.getElementById('eval-graph-container'));
+    this.evalGraph.clear();
+    this.notation.clearClassifications();
+
+    // Clear coach
+    if (this.coach) this.coach.clearMessages();
+
+    // Flip board if playing black
+    this.board.setFlipped(color === 'b');
+    this.board.update();
+    this.updateTimers(this.game.timers);
+
+    // Show multiplayer controls, hide engine status
+    show(document.getElementById('btn-resign-mp'));
+    show(document.getElementById('btn-draw-mp'));
+    hide(document.getElementById('engine-status'));
+
+    // Update player names
+    const topColor = this.board.flipped ? 'w' : 'b';
+    const myName = this.auth?.getCurrentUser()?.displayName || 'You';
+    const oppName = this.multiplayer?.opponentName || 'Opponent';
+    const topName = document.querySelector('#player-top .player-name');
+    const bottomName = document.querySelector('#player-bottom .player-name');
+    if (topName) topName.textContent = topColor === color ? myName : oppName;
+    if (bottomName) bottomName.textContent = topColor === color ? oppName : myName;
+
+    // Board interactivity — white moves first
+    this.board.setInteractive(color === 'w');
+
+    // Start timer sync if host
+    if (this.multiplayer && timeControl > 0) {
+      this.multiplayer.startTimerSync(() => this.game.timers);
+    }
+
+    this.sound.playGameStartSound();
+    this.fetchOpeningExplorer();
+  }
+
+  _onMultiplayerGameEnd() {
+    // Sound
+    if (!this._gameOverSoundPlayed && !this.chess.in_checkmate()) {
+      this.sound.playGameOverSound();
+    }
+    this._gameOverSoundPlayed = false;
+
+    this.board.setInteractive(false);
+
+    // Hide multiplayer controls
+    hide(document.getElementById('btn-resign-mp'));
+    hide(document.getElementById('btn-draw-mp'));
+    hide(document.getElementById('mp-opponent-status'));
+
+    // Show analyze button
+    if (this.engineInitialized) {
+      show(document.getElementById('btn-analyze'));
+    }
+
+    // Archive game to DB
+    if (this.multiplayer) {
+      const gameResult = this.game.getGameResult();
+      const result = gameResult ? gameResult.result : '*';
+      const pgn = this.notation.toPGN({ Result: result });
+      this.multiplayer.archiveGame(result, pgn);
+      this.multiplayer.disconnect();
+      this.multiplayer = null;
+    }
   }
 
   // === DGT Board ===
