@@ -388,4 +388,59 @@ export class Board {
       this.lastMove = null;
     }
   }
+
+  /**
+   * Animate a piece from one square to another.
+   * Returns a Promise that resolves after the animation completes.
+   */
+  animateMove(from, to) {
+    return new Promise((resolve) => {
+      const fromDiv = this.squares[from];
+      const toDiv = this.squares[to];
+      if (!fromDiv || !toDiv) { resolve(); return; }
+
+      const pieceImg = fromDiv.querySelector('.piece');
+      if (!pieceImg) { resolve(); return; }
+
+      const fromRect = fromDiv.getBoundingClientRect();
+      const toRect = toDiv.getBoundingClientRect();
+      const dx = toRect.left - fromRect.left;
+      const dy = toRect.top - fromRect.top;
+
+      pieceImg.style.transition = 'transform 0.3s ease';
+      pieceImg.style.transform = `translate(${dx}px, ${dy}px)`;
+      pieceImg.style.zIndex = '10';
+
+      setTimeout(() => {
+        pieceImg.style.transition = '';
+        pieceImg.style.transform = '';
+        pieceImg.style.zIndex = '';
+        resolve();
+      }, 320);
+    });
+  }
+
+  /**
+   * Flash a square with a CSS class for visual feedback.
+   * @param {string} square - e.g. 'e4'
+   * @param {string} cssClass - e.g. 'puzzle-correct' or 'puzzle-wrong'
+   */
+  flashSquare(square, cssClass) {
+    const div = this.squares[square];
+    if (!div) return;
+    div.classList.remove(cssClass);
+    // Force reflow to restart animation
+    void div.offsetWidth;
+    div.classList.add(cssClass);
+    setTimeout(() => div.classList.remove(cssClass), 700);
+  }
+
+  /**
+   * Clear puzzle hint highlights from all squares.
+   */
+  clearHints() {
+    Object.values(this.squares).forEach(div => {
+      div.classList.remove('puzzle-hint');
+    });
+  }
 }

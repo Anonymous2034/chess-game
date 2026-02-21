@@ -22,6 +22,7 @@ import { AdminPanel } from './admin.js';
 import { DGTBoard } from './dgt.js';
 import { SoundManager } from './sound.js';
 import { MultiplayerManager } from './multiplayer.js';
+import { PuzzleManager } from './puzzle.js';
 
 class ChessApp {
   constructor() {
@@ -60,6 +61,8 @@ class ChessApp {
     this.sound = new SoundManager();
     this._gameOverSoundPlayed = false;
     this.multiplayer = null;
+    this.puzzleManager = new PuzzleManager();
+    this.puzzleActive = false;
 
     this.init();
   }
@@ -118,6 +121,7 @@ class ChessApp {
     this.setupDGT();
     this.setupSoundToggle();
     this.setupMultiplayer();
+    this.setupPuzzles();
     this.setupHamburgerMenu();
 
     // Load database in background
@@ -180,6 +184,12 @@ class ChessApp {
   // === Move Handling ===
 
   handleMoveMade(move) {
+    // Puzzle mode interception — validate move before applying side effects
+    if (this.puzzleActive) {
+      this._handlePuzzleMove(move);
+      return;
+    }
+
     this.sound.playMoveSound(move);
     this.notation.addMove(move);
     this.board.setLastMove(move);
@@ -870,6 +880,9 @@ class ChessApp {
 
   async _startNewGame(settings) {
     this._gameOverSoundPlayed = false;
+
+    // Exit puzzle mode if active
+    this._exitPuzzleMode();
 
     // Disconnect any active multiplayer game
     if (this.multiplayer) {
@@ -1734,6 +1747,267 @@ class ChessApp {
   _updateSoundButton(btn) {
     btn.textContent = this.sound.muted ? 'Sound Off' : 'Sound On';
     btn.classList.toggle('muted', this.sound.muted);
+  }
+
+  // === Puzzles ===
+
+  setupPuzzles() {
+    const dialog = document.getElementById('puzzle-dialog');
+    const difficultyGroup = document.getElementById('puzzle-difficulty-group');
+
+    // Puzzles button
+    document.getElementById('btn-puzzles').addEventListener('click', () => {
+      this._renderPuzzleStats();
+      show(dialog);
+    });
+
+    // Cancel
+    document.getElementById('cancel-puzzle').addEventListener('click', () => {
+      hide(dialog);
+    });
+
+    // Difficulty btn-group toggle
+    difficultyGroup.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        difficultyGroup.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Random Puzzle
+    document.getElementById('start-puzzle').addEventListener('click', () => {
+      const theme = document.getElementById('puzzle-theme-filter').value;
+      const difficulty = difficultyGroup.querySelector('.btn.active')?.dataset.value || 'all';
+      this._startPuzzle({ theme, difficulty });
+    });
+
+    // Daily Puzzle
+    document.getElementById('btn-daily-puzzle').addEventListener('click', () => {
+      this._startPuzzle({ daily: true });
+    });
+
+    // Hint
+    document.getElementById('btn-puzzle-hint').addEventListener('click', () => {
+      if (!this.puzzleActive || this.puzzleManager.solved) return;
+      this.board.clearHints();
+      const hint = this.puzzleManager.getHint(this.puzzleManager.hintsUsed);
+      if (hint) {
+        const sq = this.squares?.[hint.square] || this.board.squares[hint.square];
+        if (this.board.squares[hint.square]) {
+          this.board.squares[hint.square].classList.add('puzzle-hint');
+        }
+      }
+    });
+
+    // Skip
+    document.getElementById('btn-puzzle-skip').addEventListener('click', () => {
+      if (!this.puzzleActive) return;
+      this.puzzleManager.progress.streak = 0;
+      this.puzzleManager._saveProgress();
+      const theme = document.getElementById('puzzle-theme-filter').value;
+      const difficulty = difficultyGroup.querySelector('.btn.active')?.dataset.value || 'all';
+      this._startPuzzle({ theme, difficulty });
+    });
+
+    // Next Puzzle
+    document.getElementById('btn-puzzle-next').addEventListener('click', () => {
+      const theme = document.getElementById('puzzle-theme-filter').value;
+      const difficulty = difficultyGroup.querySelector('.btn.active')?.dataset.value || 'all';
+      this._startPuzzle({ theme, difficulty });
+    });
+  }
+
+  async _startPuzzle(options = {}) {
+    hide(document.getElementById('puzzle-dialog'));
+
+    // Load puzzles if needed
+    if (!this.puzzleManager.loaded) {
+      await this.puzzleManager.loadPuzzles();
+    }
+
+    if (this.puzzleManager.puzzles.length === 0) {
+      this.showToast('Failed to load puzzles');
+      return;
+    }
+
+    // Get puzzle
+    let puzzle;
+    if (options.daily) {
+      puzzle = this.puzzleManager.getDailyPuzzle();
+    } else {
+      puzzle = this.puzzleManager.getPuzzle({
+        theme: options.theme,
+        difficulty: options.difficulty
+      });
+    }
+
+    if (!puzzle) {
+      this.showToast('No puzzles matching filters');
+      return;
+    }
+
+    // Start puzzle
+    this.puzzleManager.startPuzzle(puzzle);
+    this.puzzleActive = true;
+
+    const playerColor = this.puzzleManager.getPlayerColor(puzzle.fen);
+
+    // Set up game
+    this.game.mode = 'puzzle';
+    this.game.playerColor = playerColor;
+    this.game.loadFromFEN(puzzle.fen);
+
+    // Set up board
+    this.board.setFlipped(playerColor === 'b');
+    this.board.setLastMove(null);
+    this.board.setInteractive(false);
+    this.board.update();
+    this.notation.clear();
+
+    // Update puzzle bar
+    this._updatePuzzleBar(puzzle);
+    show(document.getElementById('puzzle-bar'));
+    hide(document.getElementById('btn-puzzle-next'));
+
+    // Update status
+    const colorName = playerColor === 'w' ? 'White' : 'Black';
+    document.getElementById('game-status').textContent = `Find the best move for ${colorName}`;
+
+    // Auto-play setup move after delay
+    const setupMove = this.puzzleManager.getSetupMove();
+    if (setupMove) {
+      setTimeout(async () => {
+        await this.board.animateMove(setupMove.from, setupMove.to);
+        const move = this.game.makeMove(setupMove.from, setupMove.to, setupMove.promotion);
+        if (move) {
+          this.sound.playMoveSound(move);
+          this.board.setLastMove(move);
+        }
+        this.board.update();
+        this.puzzleManager.advancePastSetup();
+        this.board.setInteractive(true);
+        this.game.updateStatus();
+        const statusColorName = playerColor === 'w' ? 'White' : 'Black';
+        document.getElementById('game-status').textContent = `Your turn — find the best move for ${statusColorName}`;
+      }, 500);
+    } else {
+      this.board.setInteractive(true);
+    }
+  }
+
+  _handlePuzzleMove(move) {
+    const result = this.puzzleManager.validateMove(move.from, move.to, move.promotion);
+
+    if (result === 'wrong') {
+      // Flash red, undo the move, let player retry
+      this.board.flashSquare(move.to, 'puzzle-wrong');
+      this.sound.playMoveSound(move); // still play sound
+
+      // Undo the move in chess.js and sync game state
+      this.game.chess.undo();
+      this.game.moveHistory.pop();
+      this.game.currentMoveIndex = this.game.moveHistory.length - 1;
+      this.game.fens.pop();
+      this.game.gameOver = false;
+
+      this.board.update();
+      this.board.clearHints();
+
+      document.getElementById('game-status').textContent = 'Incorrect — try again!';
+      return;
+    }
+
+    // Correct move
+    this.sound.playMoveSound(move);
+    this.board.setLastMove(move);
+    this.board.update();
+    this.board.flashSquare(move.to, 'puzzle-correct');
+    this.board.clearHints();
+
+    if (result === 'complete') {
+      // Puzzle solved!
+      this.puzzleManager.completePuzzle();
+      this.board.setInteractive(false);
+
+      const summary = this.puzzleManager.getProgressSummary();
+      document.getElementById('game-status').textContent = 'Puzzle solved!';
+      document.getElementById('puzzle-streak').textContent = `Streak: ${summary.streak}`;
+      show(document.getElementById('btn-puzzle-next'));
+      hide(document.getElementById('btn-puzzle-hint'));
+      hide(document.getElementById('btn-puzzle-skip'));
+      return;
+    }
+
+    // More moves to go — play opponent's response
+    this.board.setInteractive(false);
+    document.getElementById('game-status').textContent = 'Correct!';
+
+    setTimeout(async () => {
+      const opponentMove = this.puzzleManager.getNextOpponentMove();
+      if (opponentMove) {
+        await this.board.animateMove(opponentMove.from, opponentMove.to);
+        const m = this.game.makeMove(opponentMove.from, opponentMove.to, opponentMove.promotion);
+        if (m) {
+          this.sound.playMoveSound(m);
+          this.board.setLastMove(m);
+        }
+        this.board.update();
+      }
+
+      // Check if that was the last move
+      if (this.puzzleManager.moveIndex >= this.puzzleManager.currentPuzzle.moves.length) {
+        this.puzzleManager.completePuzzle();
+        const summary = this.puzzleManager.getProgressSummary();
+        document.getElementById('game-status').textContent = 'Puzzle solved!';
+        document.getElementById('puzzle-streak').textContent = `Streak: ${summary.streak}`;
+        show(document.getElementById('btn-puzzle-next'));
+        hide(document.getElementById('btn-puzzle-hint'));
+        hide(document.getElementById('btn-puzzle-skip'));
+      } else {
+        const playerColor = this.game.playerColor === 'w' ? 'White' : 'Black';
+        document.getElementById('game-status').textContent = `Your turn — find the best move for ${playerColor}`;
+        this.board.setInteractive(true);
+      }
+    }, 400);
+  }
+
+  _updatePuzzleBar(puzzle) {
+    document.getElementById('puzzle-rating-badge').textContent = puzzle.rating;
+    document.getElementById('puzzle-theme-badge').textContent = puzzle.themes.join(', ');
+    const summary = this.puzzleManager.getProgressSummary();
+    document.getElementById('puzzle-streak').textContent = `Streak: ${summary.streak}`;
+    show(document.getElementById('btn-puzzle-hint'));
+    show(document.getElementById('btn-puzzle-skip'));
+  }
+
+  _renderPuzzleStats() {
+    const el = document.getElementById('puzzle-stats-summary');
+    const summary = this.puzzleManager.getProgressSummary();
+    el.innerHTML = `
+      <div class="puzzle-stat">
+        <span class="puzzle-stat-value">${summary.totalSolved}</span>
+        <span class="puzzle-stat-label">Solved</span>
+      </div>
+      <div class="puzzle-stat">
+        <span class="puzzle-stat-value">${summary.rating}</span>
+        <span class="puzzle-stat-label">Rating</span>
+      </div>
+      <div class="puzzle-stat">
+        <span class="puzzle-stat-value">${summary.streak}</span>
+        <span class="puzzle-stat-label">Streak</span>
+      </div>
+      <div class="puzzle-stat">
+        <span class="puzzle-stat-value">${summary.bestStreak}</span>
+        <span class="puzzle-stat-label">Best</span>
+      </div>
+    `;
+  }
+
+  _exitPuzzleMode() {
+    if (!this.puzzleActive) return;
+    this.puzzleActive = false;
+    this.board.clearHints();
+    hide(document.getElementById('puzzle-bar'));
   }
 
   // === Hamburger Menu ===

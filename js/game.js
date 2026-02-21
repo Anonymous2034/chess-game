@@ -59,7 +59,7 @@ export class Game {
 
   canPlayerMove(color) {
     if (this.gameOver || this.replayMode) return false;
-    if (this.mode === 'engine' || this.mode === 'multiplayer') {
+    if (this.mode === 'engine' || this.mode === 'multiplayer' || this.mode === 'puzzle') {
       return color === this.playerColor;
     }
     return true; // local mode: both can move
@@ -101,7 +101,7 @@ export class Game {
   }
 
   undo() {
-    if (this.mode === 'multiplayer') return false;
+    if (this.mode === 'multiplayer' || this.mode === 'puzzle') return false;
     if (this.currentMoveIndex < 0 || this.gameOver) return false;
 
     // In engine mode, undo both the engine's and player's last move
@@ -277,6 +277,20 @@ export class Game {
     this.currentMoveIndex = this.moveHistory.length - 1;
     this.updateStatus();
     return this.moveHistory;
+  }
+
+  /**
+   * Load a position from FEN string
+   */
+  loadFromFEN(fen) {
+    this.chess.load(fen);
+    this.moveHistory = [];
+    this.currentMoveIndex = -1;
+    this.fens = [this.chess.fen()];
+    this.gameOver = false;
+    this.replayMode = false;
+    this.stopTimer();
+    this.updateStatus();
   }
 
   /**

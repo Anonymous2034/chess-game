@@ -472,6 +472,45 @@
       </div>
     </div>
 
+    <!-- Puzzle Dialog -->
+    <div id="puzzle-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Puzzles</h2>
+        <div class="puzzle-stats-summary" id="puzzle-stats-summary"></div>
+        <div class="dialog-section">
+          <label>Theme</label>
+          <select id="puzzle-theme-filter" class="dialog-select">
+            <option value="all">All Themes</option>
+            <option value="mate">Checkmate</option>
+            <option value="fork">Fork</option>
+            <option value="pin">Pin</option>
+            <option value="skewer">Skewer</option>
+            <option value="discovery">Discovered Attack</option>
+            <option value="deflection">Deflection</option>
+            <option value="sacrifice">Sacrifice</option>
+            <option value="endgame">Endgame</option>
+            <option value="promotion">Promotion</option>
+            <option value="back-rank">Back Rank</option>
+          </select>
+        </div>
+        <div class="dialog-section">
+          <label>Difficulty</label>
+          <div class="btn-group" id="puzzle-difficulty-group">
+            <button class="btn active" data-value="all">All</button>
+            <button class="btn" data-value="beginner">Beginner</button>
+            <button class="btn" data-value="intermediate">Intermediate</button>
+            <button class="btn" data-value="advanced">Advanced</button>
+            <button class="btn" data-value="expert">Expert</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-puzzle">Cancel</button>
+          <button class="btn" id="btn-daily-puzzle">Daily Puzzle</button>
+          <button class="btn btn-primary" id="start-puzzle">Random Puzzle</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Move Analysis Tooltip -->
     <div id="move-tooltip" class="move-tooltip hidden"></div>
 
@@ -488,6 +527,7 @@
           <div class="nav-menu-section">
             <span class="nav-menu-label">Play</span>
             <button class="btn" id="btn-play-online">Play Online</button>
+            <button class="btn" id="btn-puzzles">Puzzles</button>
             <button class="btn" id="btn-tournament">Tournament</button>
             <button class="btn" id="btn-bot-match">Bot Match</button>
           </div>
@@ -563,6 +603,20 @@
           <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
           <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
           <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
+        </div>
+
+        <!-- Puzzle Bar (shown during puzzle mode) -->
+        <div class="puzzle-bar hidden" id="puzzle-bar">
+          <div class="puzzle-info">
+            <span class="puzzle-rating-badge" id="puzzle-rating-badge"></span>
+            <span class="puzzle-theme-badge" id="puzzle-theme-badge"></span>
+            <span class="puzzle-streak" id="puzzle-streak"></span>
+          </div>
+          <div class="puzzle-controls">
+            <button class="btn btn-sm" id="btn-puzzle-hint">Hint</button>
+            <button class="btn btn-sm" id="btn-puzzle-skip">Skip</button>
+            <button class="btn btn-sm btn-primary hidden" id="btn-puzzle-next">Next</button>
+          </div>
         </div>
       </div>
 
