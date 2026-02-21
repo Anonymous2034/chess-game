@@ -1,4 +1,10 @@
-// Grandmaster personality definitions — Chessmaster-inspired style system
+// Three-tier opponent system: Personalities, Grandmasters, Chess Machines
+
+export const BOT_TIERS = [
+  { id: 'personality', name: 'Personalities' },
+  { id: 'grandmaster', name: 'Grandmasters' },
+  { id: 'machine', name: 'Chess Machines' },
+];
 
 export const GM_STYLES = [
   { id: 'material',      name: 'Material' },
@@ -14,10 +20,141 @@ export const GM_STYLES = [
 ];
 
 export const BOT_PERSONALITIES = [
+  // === Tier 1: Personalities ===
+  {
+    id: 'beginner-betty',
+    name: 'Beginner Betty',
+    subtitle: 'Just learning the ropes',
+    tier: 'personality',
+    peakElo: 800,
+    stockfishElo: 1320,
+    portrait: 'img/personalities/beginner-betty.svg',
+    bio: {
+      playingStyle: 'Makes basic moves but often overlooks tactics. Hangs pieces occasionally and misses forks. Perfect opponent for absolute beginners who are still learning how the pieces move.'
+    },
+    styles: { material: 2, positional: 1, aggression: 3, defense: 1, kingSafety: 1, pawnStructure: 1, pieceActivity: 2, tactical: 1, endgame: 1, drawContempt: 5 },
+    uci: { 'Skill Level': 0 },
+    searchDepth: 1,
+    moveTime: null,
+  },
+  {
+    id: 'casual-carl',
+    name: 'Casual Carl',
+    subtitle: 'Plays for fun',
+    tier: 'personality',
+    peakElo: 1000,
+    stockfishElo: 1320,
+    portrait: 'img/personalities/casual-carl.svg',
+    bio: {
+      playingStyle: 'Knows the basics and can punish obvious blunders, but still makes mistakes regularly. Enjoys the game without taking it too seriously. A relaxed opponent who occasionally surprises with decent moves.'
+    },
+    styles: { material: 3, positional: 2, aggression: 4, defense: 3, kingSafety: 2, pawnStructure: 2, pieceActivity: 3, tactical: 3, endgame: 2, drawContempt: 6 },
+    uci: { 'Skill Level': 3 },
+    searchDepth: 4,
+    moveTime: null,
+  },
+  {
+    id: 'club-charlie',
+    name: 'Club Player Charlie',
+    subtitle: 'Solid amateur',
+    tier: 'personality',
+    peakElo: 1400,
+    stockfishElo: 1500,
+    portrait: 'img/personalities/club-charlie.svg',
+    bio: {
+      playingStyle: 'A decent club player who understands basic strategy and can spot simple tactics. Plays solid but predictable chess. Can be outplayed with creative ideas or deep positional understanding.'
+    },
+    styles: { material: 5, positional: 4, aggression: 4, defense: 5, kingSafety: 4, pawnStructure: 4, pieceActivity: 4, tactical: 5, endgame: 4, drawContempt: 5 },
+    uci: { 'Skill Level': 6 },
+    searchDepth: 8,
+    moveTime: null,
+  },
+  {
+    id: 'speed-demon',
+    name: 'Speed Demon',
+    subtitle: 'Instant instinct',
+    tier: 'personality',
+    peakElo: 1500,
+    stockfishElo: 1600,
+    portrait: 'img/personalities/speed-demon.svg',
+    bio: {
+      playingStyle: 'Moves almost instantly based on pattern recognition. Surprisingly strong despite minimal thinking time. Plays on pure instinct, which can lead to brilliant flashes but also impulsive mistakes.'
+    },
+    styles: { material: 4, positional: 3, aggression: 7, defense: 3, kingSafety: 3, pawnStructure: 3, pieceActivity: 6, tactical: 7, endgame: 3, drawContempt: 8 },
+    uci: { 'Skill Level': 15, 'Contempt': 20 },
+    searchDepth: null,
+    moveTime: 500,
+  },
+  {
+    id: 'tactician-tanya',
+    name: 'Tactician Tanya',
+    subtitle: 'Sharp and aggressive',
+    tier: 'personality',
+    peakElo: 1600,
+    stockfishElo: 1700,
+    portrait: 'img/personalities/tactician-tanya.svg',
+    bio: {
+      playingStyle: 'Loves sacrifices and complications. Plays aggressively and constantly looks for tactical shots. May overextend in pursuit of an attack, but punishes passive play with devastating combinations.'
+    },
+    styles: { material: 3, positional: 3, aggression: 9, defense: 2, kingSafety: 3, pawnStructure: 3, pieceActivity: 7, tactical: 8, endgame: 3, drawContempt: 9 },
+    uci: { 'Skill Level': 10, 'Contempt': 80 },
+    searchDepth: 10,
+    moveTime: null,
+  },
+  {
+    id: 'the-wall',
+    name: 'The Wall',
+    subtitle: 'Defensive fortress',
+    tier: 'personality',
+    peakElo: 1700,
+    stockfishElo: 1800,
+    portrait: 'img/personalities/the-wall.svg',
+    bio: {
+      playingStyle: 'Extremely solid and patient. Builds an impregnable fortress and waits for you to overextend. Will grind you down in the endgame with relentless technique. Nearly impossible to break through.'
+    },
+    styles: { material: 6, positional: 7, aggression: 1, defense: 9, kingSafety: 8, pawnStructure: 7, pieceActivity: 4, tactical: 4, endgame: 7, drawContempt: 1 },
+    uci: { 'Skill Level': 12, 'Contempt': -50 },
+    searchDepth: 12,
+    moveTime: null,
+  },
+  {
+    id: 'positional-pat',
+    name: 'Positional Pat',
+    subtitle: 'Strategic mastery',
+    tier: 'personality',
+    peakElo: 2000,
+    stockfishElo: 2000,
+    portrait: 'img/personalities/positional-pat.svg',
+    bio: {
+      playingStyle: 'Focuses on long-term positional advantages and piece placement. Rarely blunders and maintains steady pressure. Excels at exploiting structural weaknesses and converting small edges into wins.'
+    },
+    styles: { material: 6, positional: 8, aggression: 3, defense: 7, kingSafety: 6, pawnStructure: 8, pieceActivity: 7, tactical: 5, endgame: 7, drawContempt: 4 },
+    uci: { 'Skill Level': 16, 'Contempt': -20 },
+    searchDepth: 14,
+    moveTime: null,
+  },
+  {
+    id: 'candidate-master',
+    name: 'Candidate Master',
+    subtitle: 'Tournament strength',
+    tier: 'personality',
+    peakElo: 2200,
+    stockfishElo: 2200,
+    portrait: 'img/personalities/candidate-master.svg',
+    bio: {
+      playingStyle: 'A serious competitive player with very few weaknesses. Combines solid positional understanding with sharp tactical awareness. Punishes mistakes ruthlessly and plays accurate endgames. Good luck.'
+    },
+    styles: { material: 6, positional: 7, aggression: 6, defense: 6, kingSafety: 6, pawnStructure: 6, pieceActivity: 7, tactical: 7, endgame: 7, drawContempt: 6 },
+    uci: { 'Skill Level': 18 },
+    searchDepth: 16,
+    moveTime: null,
+  },
+  // === Tier 2: Grandmasters ===
   {
     id: 'tal',
     name: 'Mikhail Tal',
     subtitle: 'The Magician from Riga',
+    tier: 'grandmaster',
     peakElo: 2705,
     stockfishElo: 1600,
     portrait: 'img/gm/tal.svg',
@@ -65,6 +202,7 @@ export const BOT_PERSONALITIES = [
     id: 'petrosian',
     name: 'Tigran Petrosian',
     subtitle: 'Iron Tigran',
+    tier: 'grandmaster',
     peakElo: 2649,
     stockfishElo: 1800,
     portrait: 'img/gm/petrosian.svg',
@@ -113,6 +251,7 @@ export const BOT_PERSONALITIES = [
     id: 'capablanca',
     name: 'Jose Raul Capablanca',
     subtitle: 'The Chess Machine',
+    tier: 'grandmaster',
     peakElo: 2725,
     stockfishElo: 2000,
     portrait: 'img/gm/capablanca.svg',
@@ -159,6 +298,7 @@ export const BOT_PERSONALITIES = [
     id: 'botvinnik',
     name: 'Mikhail Botvinnik',
     subtitle: 'The Patriarch',
+    tier: 'grandmaster',
     peakElo: 2730,
     stockfishElo: 2100,
     portrait: 'img/gm/botvinnik.svg',
@@ -207,6 +347,7 @@ export const BOT_PERSONALITIES = [
     id: 'alekhine',
     name: 'Alexander Alekhine',
     subtitle: 'The Great Attacker',
+    tier: 'grandmaster',
     peakElo: 2690,
     stockfishElo: 2200,
     portrait: 'img/gm/alekhine.svg',
@@ -254,6 +395,7 @@ export const BOT_PERSONALITIES = [
     id: 'karpov',
     name: 'Anatoly Karpov',
     subtitle: 'The Boa Constrictor',
+    tier: 'grandmaster',
     peakElo: 2780,
     stockfishElo: 2400,
     portrait: 'img/gm/karpov.svg',
@@ -302,6 +444,7 @@ export const BOT_PERSONALITIES = [
     id: 'fischer',
     name: 'Bobby Fischer',
     subtitle: 'The Prodigy',
+    tier: 'grandmaster',
     peakElo: 2785,
     stockfishElo: 2600,
     portrait: 'img/gm/fischer.svg',
@@ -348,6 +491,7 @@ export const BOT_PERSONALITIES = [
     id: 'anand',
     name: 'Vishy Anand',
     subtitle: 'The Lightning Kid',
+    tier: 'grandmaster',
     peakElo: 2817,
     stockfishElo: 2700,
     portrait: 'img/gm/anand.svg',
@@ -396,6 +540,7 @@ export const BOT_PERSONALITIES = [
     id: 'kasparov',
     name: 'Garry Kasparov',
     subtitle: 'The Beast from Baku',
+    tier: 'grandmaster',
     peakElo: 2851,
     stockfishElo: 2900,
     portrait: 'img/gm/kasparov.svg',
@@ -444,6 +589,7 @@ export const BOT_PERSONALITIES = [
     id: 'carlsen',
     name: 'Magnus Carlsen',
     subtitle: 'The Mozart of Chess',
+    tier: 'grandmaster',
     peakElo: 2882,
     stockfishElo: 3190,
     portrait: 'img/gm/carlsen.svg',
@@ -487,6 +633,75 @@ export const BOT_PERSONALITIES = [
     styles: { material: 7, positional: 10, aggression: 5, defense: 8, kingSafety: 8, pawnStructure: 9, pieceActivity: 9, tactical: 8, endgame: 10, drawContempt: 7 },
     uci: { 'Skill Level': 20 },
     searchDepth: 20,
+    moveTime: null,
+  },
+  // === Tier 3: Chess Machines ===
+  {
+    id: 'komodo',
+    name: 'Komodo',
+    subtitle: 'Positional Engine',
+    tier: 'machine',
+    peakElo: 3350,
+    stockfishElo: 3000,
+    portrait: 'img/machines/komodo.svg',
+    bio: {
+      summary: 'Komodo is a UCI chess engine developed by Don Dailey, Larry Kaufman, and Mark Lefler. Known for its human-like positional evaluation and understanding of complex structures. Won multiple TCEC championships.',
+      playingStyle: 'Positional powerhouse with human-like evaluation. Excels at exploiting long-term structural advantages and complex middlegame positions. Plays more "humanly" than other engines, making it an excellent training partner.'
+    },
+    styles: { material: 8, positional: 10, aggression: 5, defense: 9, kingSafety: 8, pawnStructure: 9, pieceActivity: 8, tactical: 8, endgame: 9, drawContempt: 5 },
+    uci: { 'Skill Level': 20, 'Contempt': -10 },
+    searchDepth: 22,
+    moveTime: null,
+  },
+  {
+    id: 'leela',
+    name: 'Leela Zero',
+    subtitle: 'Neural Network Engine',
+    tier: 'machine',
+    peakElo: 3400,
+    stockfishElo: 3100,
+    portrait: 'img/machines/leela.svg',
+    bio: {
+      summary: 'Leela Chess Zero (LC0) is an open-source neural network chess engine inspired by DeepMind\'s AlphaZero. Trained entirely through self-play reinforcement learning with zero human chess knowledge.',
+      playingStyle: 'Creative, intuition-driven play powered by deep neural networks. Finds unconventional plans and prophylactic moves that traditional engines miss. Known for spectacular piece sacrifices for long-term positional compensation.'
+    },
+    styles: { material: 6, positional: 9, aggression: 7, defense: 7, kingSafety: 7, pawnStructure: 8, pieceActivity: 10, tactical: 8, endgame: 8, drawContempt: 7 },
+    uci: { 'Skill Level': 20 },
+    searchDepth: 24,
+    moveTime: null,
+  },
+  {
+    id: 'stockfish',
+    name: 'Stockfish',
+    subtitle: 'Maximum Strength',
+    tier: 'machine',
+    peakElo: 3550,
+    stockfishElo: 3190,
+    portrait: 'img/machines/stockfish.svg',
+    bio: {
+      summary: 'Stockfish is the strongest open-source chess engine in the world. Combining traditional alpha-beta search with an efficiently updatable neural network (NNUE), it has dominated computer chess since 2018.',
+      playingStyle: 'Pure computational perfection. Combines brute-force calculation depth with neural network evaluation. Finds the objectively best move in virtually every position. The gold standard against which all other engines are measured.'
+    },
+    styles: { material: 9, positional: 9, aggression: 7, defense: 9, kingSafety: 9, pawnStructure: 9, pieceActivity: 9, tactical: 10, endgame: 10, drawContempt: 6 },
+    uci: { 'Skill Level': 20 },
+    searchDepth: 26,
+    moveTime: null,
+  },
+  {
+    id: 'alphazero',
+    name: 'AlphaZero',
+    subtitle: 'The Revolutionary',
+    tier: 'machine',
+    peakElo: 3600,
+    stockfishElo: 3190,
+    portrait: 'img/machines/alphazero.svg',
+    bio: {
+      summary: 'AlphaZero is DeepMind\'s revolutionary AI that taught itself chess in just 4 hours, then decisively defeated Stockfish. Published in 2017, it changed our understanding of chess and artificial intelligence forever.',
+      playingStyle: 'Plays with breathtaking creativity and aggression. Willingly sacrifices material for long-term initiative and piece activity. Favors dynamic, attacking chess with a style many compare to the great romantic players but with inhuman precision.'
+    },
+    styles: { material: 5, positional: 10, aggression: 9, defense: 7, kingSafety: 6, pawnStructure: 7, pieceActivity: 10, tactical: 9, endgame: 9, drawContempt: 10 },
+    uci: { 'Skill Level': 20, 'Contempt': 60 },
+    searchDepth: 26,
     moveTime: null,
   },
 ];

@@ -646,6 +646,21 @@ main {
   padding: 16px;
 }
 
+/* Tier labels in bot list */
+.bot-tier-label {
+  padding: 4px 8px;
+  font-size: 0.65rem;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  background: var(--bg-color);
+  z-index: 1;
+}
+
 /* Compact card in left list */
 .bot-list-card {
   display: flex;
@@ -1058,6 +1073,17 @@ main {
     overflow-y: hidden;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .bot-tier-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 8px 2px;
+    font-size: 0.55rem;
+    border-bottom: none;
+    border-right: 1px solid var(--border-color);
+    position: static;
+    flex-shrink: 0;
   }
 
   .bot-list-card {

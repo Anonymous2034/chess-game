@@ -4,7 +4,7 @@ import { Game } from './game.js';
 import { Engine } from './engine.js';
 import { Notation } from './notation.js';
 import { Database } from './database.js';
-import { BOT_PERSONALITIES, GM_STYLES } from './bots.js';
+import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS } from './bots.js';
 import { OpeningBook } from './openings.js';
 import { show, hide, debounce } from './utils.js';
 
@@ -318,7 +318,7 @@ class ChessApp {
 
   setupNewGameDialog() {
     const dialog = document.getElementById('new-game-dialog');
-    const settings = { mode: 'local', color: 'w', botId: 'tal', time: 0 };
+    const settings = { mode: 'local', color: 'w', botId: 'beginner-betty', time: 0 };
 
     // Render bot picker
     this.renderBotPicker(settings);
@@ -428,27 +428,37 @@ class ChessApp {
     const listEl = document.getElementById('bot-picker-list');
     listEl.innerHTML = '';
 
-    for (const bot of BOT_PERSONALITIES) {
-      const card = document.createElement('div');
-      card.className = 'bot-list-card' + (bot.id === settings.botId ? ' selected' : '');
-      card.dataset.botId = bot.id;
+    for (const tier of BOT_TIERS) {
+      const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
+      if (tierBots.length === 0) continue;
 
-      card.innerHTML = `
-        <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
-        <div class="bot-list-info">
-          <div class="bot-list-name">${bot.name}</div>
-          <div class="bot-list-elo">${bot.peakElo}</div>
-        </div>
-      `;
+      const label = document.createElement('div');
+      label.className = 'bot-tier-label';
+      label.textContent = tier.name;
+      listEl.appendChild(label);
 
-      card.addEventListener('click', () => {
-        listEl.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        settings.botId = bot.id;
-        this.renderBotDetail(bot);
-      });
+      for (const bot of tierBots) {
+        const card = document.createElement('div');
+        card.className = 'bot-list-card' + (bot.id === settings.botId ? ' selected' : '');
+        card.dataset.botId = bot.id;
 
-      listEl.appendChild(card);
+        card.innerHTML = `
+          <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
+          <div class="bot-list-info">
+            <div class="bot-list-name">${bot.name}</div>
+            <div class="bot-list-elo">${bot.peakElo}</div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          listEl.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          settings.botId = bot.id;
+          this.renderBotDetail(bot);
+        });
+
+        listEl.appendChild(card);
+      }
     }
 
     // Show detail for initially selected bot
@@ -473,26 +483,31 @@ class ChessApp {
         </div>`;
     }
 
-    // Favorite openings
-    let openingsHtml = '';
+    // Favorite openings (GM-only)
+    let openingsSectionHtml = '';
     if (bot.favoriteOpenings && bot.favoriteOpenings.length > 0) {
-      openingsHtml = bot.favoriteOpenings.map(o =>
+      const tags = bot.favoriteOpenings.map(o =>
         `<span class="gm-opening-tag"><span class="eco">${o.eco}</span> ${o.name}</span>`
       ).join('');
+      openingsSectionHtml = `<div class="gm-detail-section"><h4>Favorite Openings</h4><div class="gm-openings-list">${tags}</div></div>`;
     }
 
-    // Famous games
-    let gamesHtml = '';
+    // Famous games (GM-only)
+    let gamesSectionHtml = '';
     if (bot.famousGames && bot.famousGames.length > 0) {
-      gamesHtml = bot.famousGames.map(g =>
+      const items = bot.famousGames.map(g =>
         `<div class="gm-famous-game"><div class="gm-game-name">${g.name} (${g.year})</div><div class="gm-game-desc">${g.description}</div></div>`
       ).join('');
+      gamesSectionHtml = `<div class="gm-detail-section"><h4>Famous Games</h4>${items}</div>`;
     }
 
     // World champion info
-    const wcHtml = bot.bio.worldChampion
+    const wcHtml = bot.bio?.worldChampion
       ? `<div class="gm-detail-wc">World Champion ${bot.bio.worldChampion}</div>`
       : '';
+
+    // Elo label varies by tier
+    const eloLabel = bot.tier === 'machine' ? 'Rating' : bot.tier === 'grandmaster' ? 'Peak Elo' : 'Elo';
 
     detailEl.innerHTML = `
       <div class="gm-detail-header">
@@ -500,23 +515,17 @@ class ChessApp {
         <div class="gm-detail-info">
           <div class="gm-detail-name">${bot.name}</div>
           <div class="gm-detail-subtitle">${bot.subtitle}</div>
-          <div class="gm-detail-elo">Peak Elo: ${bot.peakElo}</div>
+          <div class="gm-detail-elo">${eloLabel}: ${bot.peakElo}</div>
           ${wcHtml}
         </div>
       </div>
-      <div class="gm-detail-bio">${bot.bio.playingStyle}</div>
+      <div class="gm-detail-bio">${bot.bio?.playingStyle || bot.bio?.summary || ''}</div>
       <div class="gm-detail-section">
         <h4>Playing Style</h4>
         <div class="bot-styles-detail">${stylesHtml}</div>
       </div>
-      <div class="gm-detail-section">
-        <h4>Favorite Openings</h4>
-        <div class="gm-openings-list">${openingsHtml}</div>
-      </div>
-      <div class="gm-detail-section">
-        <h4>Famous Games</h4>
-        ${gamesHtml}
-      </div>
+      ${openingsSectionHtml}
+      ${gamesSectionHtml}
     `;
   }
 
