@@ -73,6 +73,7 @@ class ChessApp {
     this.chessNews = new ChessNews();
     this._evalBarEnabled = localStorage.getItem('chess_eval_bar') !== 'false'; // ON by default
     this._evalBarAbortId = 0;
+    this._layout = {};
     this._lastAdvisorResults = {}; // botId -> { san, eval }
 
     // Move clock — tracks thinking time per move
@@ -146,6 +147,7 @@ class ChessApp {
     this.setupNews();
     this.setupEvalBar();
     this.setupEvalBarToggle();
+    this.setupLayoutEditor();
     this.setupResizeHandles();
     this.setupNotes();
 
@@ -2750,6 +2752,159 @@ class ChessApp {
 
   _updateEvalBarButton(btn) {
     btn.textContent = this._evalBarEnabled ? 'Eval Bar On' : 'Eval Bar Off';
+  }
+
+  // === Layout Editor ===
+
+  static get _LAYOUT_DEFAULTS() {
+    return {
+      evalBar: true, playerInfoTop: true, playerInfoBottom: true,
+      capturedPieces: true, timers: true, openingLabel: true,
+      evalGraph: true, navControls: true, statusBar: true,
+      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true
+    };
+  }
+
+  setupLayoutEditor() {
+    this._loadLayoutSettings();
+    this._applyAllLayoutSettings();
+
+    document.getElementById('btn-layout').addEventListener('click', () => {
+      this._syncLayoutCheckboxes();
+      show(document.getElementById('layout-dialog'));
+    });
+
+    document.getElementById('close-layout-dialog').addEventListener('click', () => {
+      hide(document.getElementById('layout-dialog'));
+    });
+
+    document.getElementById('layout-dialog').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) hide(document.getElementById('layout-dialog'));
+    });
+
+    document.getElementById('layout-reset').addEventListener('click', () => {
+      this._layout = { ...ChessApp._LAYOUT_DEFAULTS };
+      this._saveLayoutSettings();
+      this._applyAllLayoutSettings();
+      this._syncLayoutCheckboxes();
+    });
+
+    document.getElementById('layout-dialog').addEventListener('change', (e) => {
+      const cb = e.target.closest('[data-layout-key]');
+      if (!cb) return;
+      const key = cb.dataset.layoutKey;
+      this._layout[key] = cb.checked;
+      this._saveLayoutSettings();
+      this._applyLayoutSetting(key, cb.checked);
+    });
+  }
+
+  _loadLayoutSettings() {
+    const defaults = ChessApp._LAYOUT_DEFAULTS;
+    try {
+      const saved = localStorage.getItem('chess_layout');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this._layout = Object.fromEntries(
+          Object.keys(defaults).map(k => [k, k in parsed ? !!parsed[k] : defaults[k]])
+        );
+      } else {
+        this._layout = { ...defaults };
+      }
+    } catch {
+      this._layout = { ...defaults };
+    }
+  }
+
+  _saveLayoutSettings() {
+    localStorage.setItem('chess_layout', JSON.stringify(this._layout));
+  }
+
+  _applyLayoutSetting(key, visible) {
+    const lshow = (el) => el && el.classList.remove('layout-hidden');
+    const lhide = (el) => el && el.classList.add('layout-hidden');
+    const toggle = (el) => visible ? lshow(el) : lhide(el);
+
+    switch (key) {
+      case 'evalBar':
+        if (visible) { this._showEvalBar(); } else { this._hideEvalBar(); }
+        this._updateEvalBarButton(document.getElementById('btn-eval-bar'));
+        break;
+      case 'playerInfoTop':
+        toggle(document.getElementById('player-top'));
+        break;
+      case 'playerInfoBottom':
+        toggle(document.getElementById('player-bottom'));
+        break;
+      case 'capturedPieces':
+        document.querySelectorAll('.captured-pieces, .material-advantage')
+          .forEach(el => toggle(el));
+        break;
+      case 'timers':
+        document.querySelectorAll('.timer-group')
+          .forEach(el => toggle(el));
+        break;
+      case 'openingLabel':
+        toggle(document.getElementById('opening-label'));
+        break;
+      case 'evalGraph':
+        toggle(document.getElementById('eval-graph-container'));
+        break;
+      case 'navControls':
+        toggle(document.querySelector('.nav-controls'));
+        break;
+      case 'statusBar':
+        toggle(document.getElementById('status-bar'));
+        break;
+      case 'moveList': {
+        toggle(document.querySelector('.panel-tab[data-tab="moves"]'));
+        toggle(document.getElementById('tab-moves'));
+        if (!visible) this._activateFirstVisibleTab();
+        break;
+      }
+      case 'advisorsTab': {
+        toggle(document.querySelector('.panel-tab[data-tab="ideas"]'));
+        if (!visible) toggle(document.getElementById('tab-ideas'));
+        if (!visible) this._activateFirstVisibleTab();
+        break;
+      }
+      case 'coachTab': {
+        toggle(document.querySelector('.panel-tab[data-tab="coach"]'));
+        if (!visible) toggle(document.getElementById('tab-coach'));
+        if (!visible) this._activateFirstVisibleTab();
+        break;
+      }
+      case 'openingExplorer':
+        toggle(document.querySelector('.opening-explorer'));
+        break;
+    }
+  }
+
+  _applyAllLayoutSettings() {
+    for (const [key, visible] of Object.entries(this._layout)) {
+      this._applyLayoutSetting(key, visible);
+    }
+  }
+
+  _activateFirstVisibleTab() {
+    const tabs = document.querySelectorAll('.panel-tab:not(.layout-hidden)');
+    if (!tabs.length) return;
+    const activeTab = document.querySelector('.panel-tab.active');
+    if (activeTab && !activeTab.classList.contains('layout-hidden')) return;
+
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel-content').forEach(c => c.classList.add('hidden'));
+
+    tabs[0].classList.add('active');
+    const tabId = tabs[0].dataset.tab;
+    const content = document.getElementById(`tab-${tabId}`);
+    if (content) content.classList.remove('hidden');
+  }
+
+  _syncLayoutCheckboxes() {
+    document.querySelectorAll('#layout-dialog [data-layout-key]').forEach(cb => {
+      cb.checked = this._layout[cb.dataset.layoutKey] !== false;
+    });
   }
 
   // === Resize Handles ===

@@ -453,6 +453,76 @@
       </div>
     </div>
 
+    <!-- Layout Editor Dialog -->
+    <div id="layout-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Layout Editor</h2>
+        <p class="layout-dialog-desc">Choose which elements are visible.</p>
+        <div class="layout-section">
+          <h4 class="layout-section-title">Board Area</h4>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Eval Bar</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Player Info (Top)</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Player Info (Bottom)</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Captured Pieces</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="capturedPieces"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Timers</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Opening Label</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Eval Graph</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Nav Controls</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+        <div class="layout-section">
+          <h4 class="layout-section-title">Side Panel</h4>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Status Bar</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Move List</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Advisors Tab</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Coach Tab</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Opening Explorer</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="layout-reset">Reset to Defaults</button>
+          <button class="btn btn-primary" id="close-layout-dialog">Done</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Theme Settings Dialog -->
     <div id="theme-dialog" class="dialog-overlay hidden">
       <div class="dialog">
@@ -750,6 +820,7 @@
             <span class="nav-menu-label">Settings</span>
             <button class="btn" id="btn-themes">Themes</button>
             <button class="btn" id="btn-eval-bar">Eval Bar</button>
+            <button class="btn" id="btn-layout">Layout</button>
             <button class="btn" id="btn-sound" title="Toggle Sound">Sound On</button>
             <button class="btn" id="btn-dgt">DGT Board</button>
           </div>
