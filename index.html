@@ -322,6 +322,25 @@
           </div>
         </div>
 
+        <!-- Set New Password Form (shown after PASSWORD_RECOVERY redirect) -->
+        <div id="set-new-password-form" class="hidden">
+          <h2>Set New Password</h2>
+          <p class="auth-desc">Enter your new password below.</p>
+          <div class="dialog-section">
+            <label>New Password</label>
+            <input type="password" id="new-password-input" placeholder="New password (6+ chars)">
+          </div>
+          <div class="dialog-section">
+            <label>Confirm Password</label>
+            <input type="password" id="confirm-password-input" placeholder="Confirm new password">
+          </div>
+          <div class="auth-error hidden" id="new-password-error"></div>
+          <div class="auth-success hidden" id="new-password-success"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-primary" id="btn-set-new-password">Update Password</button>
+          </div>
+        </div>
+
         <!-- Register Form -->
         <div id="register-form" class="hidden">
           <h2>Register</h2>

@@ -6,6 +6,7 @@ export class AuthManager {
     this.user = null;
     this.profile = null;
     this.onAuthChange = null; // callback(user)
+    this.onPasswordRecovery = null; // callback() — show new-password UI
     this._initialized = false;
   }
 
@@ -25,17 +26,9 @@ export class AuthManager {
       }
       this._initialized = true;
 
-      // Handle password recovery redirect
+      // Handle password recovery redirect — show in-app form
       if (event === 'PASSWORD_RECOVERY') {
-        const newPassword = prompt('Enter your new password:');
-        if (newPassword && newPassword.length >= 6) {
-          const { error } = await sb.auth.updateUser({ password: newPassword });
-          if (error) {
-            alert('Password update failed: ' + error.message);
-          } else {
-            alert('Password updated successfully! You are now logged in.');
-          }
-        }
+        if (this.onPasswordRecovery) this.onPasswordRecovery();
       }
 
       if (this.onAuthChange) this.onAuthChange(this.user);
@@ -177,5 +170,15 @@ export class AuthManager {
     await sb.from('profiles').update({ display_name: name }).eq('id', this.user.id);
 
     if (this.profile) this.profile.display_name = name;
+  }
+
+  /**
+   * Set a new password (used after PASSWORD_RECOVERY redirect)
+   */
+  async setPassword(newPassword) {
+    const sb = getSupabase();
+    if (!sb) throw new Error('Supabase not configured');
+    const { error } = await sb.auth.updateUser({ password: newPassword });
+    if (error) throw error;
   }
 }

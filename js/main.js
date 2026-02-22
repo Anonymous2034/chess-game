@@ -3629,6 +3629,15 @@ class ChessApp {
           }
         }
       };
+      this.auth.onPasswordRecovery = () => {
+        // Show the set-new-password form inside the auth dialog
+        const authDialog = document.getElementById('auth-dialog');
+        hide(document.getElementById('login-form'));
+        hide(document.getElementById('register-form'));
+        hide(document.getElementById('forgot-password-form'));
+        show(document.getElementById('set-new-password-form'));
+        show(authDialog);
+      };
       this.auth.init();
     }
 
@@ -3723,6 +3732,47 @@ class ChessApp {
       } finally {
         btn.disabled = false;
         btn.textContent = 'Send Magic Link (no password)';
+      }
+    });
+
+    // Set New Password (after PASSWORD_RECOVERY redirect)
+    document.getElementById('btn-set-new-password').addEventListener('click', async () => {
+      const pw = document.getElementById('new-password-input').value;
+      const confirm = document.getElementById('confirm-password-input').value;
+      const errEl = document.getElementById('new-password-error');
+      const successEl = document.getElementById('new-password-success');
+      hide(errEl);
+      hide(successEl);
+
+      if (!pw || pw.length < 6) {
+        errEl.textContent = 'Password must be at least 6 characters.';
+        show(errEl);
+        return;
+      }
+      if (pw !== confirm) {
+        errEl.textContent = 'Passwords do not match.';
+        show(errEl);
+        return;
+      }
+
+      const btn = document.getElementById('btn-set-new-password');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+      try {
+        await this.auth.setPassword(pw);
+        successEl.textContent = 'Password updated successfully! You are now logged in.';
+        show(successEl);
+        setTimeout(() => {
+          hide(authDialog);
+          hide(document.getElementById('set-new-password-form'));
+          show(document.getElementById('login-form'));
+        }, 2000);
+      } catch (err) {
+        errEl.textContent = 'Failed: ' + err.message;
+        show(errEl);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Update Password';
       }
     });
 
