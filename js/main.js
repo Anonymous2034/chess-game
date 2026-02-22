@@ -3697,6 +3697,35 @@ class ChessApp {
       }
     });
 
+    // Magic Link
+    document.getElementById('btn-magic-link').addEventListener('click', async () => {
+      if (!this.auth) {
+        this._showAuthError('login', 'Supabase not configured.');
+        return;
+      }
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) {
+        this._showAuthError('login', 'Enter your email address first.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-magic-link');
+      const statusEl = document.getElementById('magic-link-status');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        await this.auth.sendMagicLink(email);
+        statusEl.textContent = 'Magic link sent! Check your inbox and click the link to log in.';
+        statusEl.className = 'auth-magic-status success';
+        show(statusEl);
+      } catch (err) {
+        this._showAuthError('login', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Magic Link (no password)';
+      }
+    });
+
     // Login
     document.getElementById('btn-login').addEventListener('click', async () => {
       if (!this.auth) {

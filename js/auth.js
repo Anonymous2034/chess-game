@@ -84,6 +84,18 @@ export class AuthManager {
   }
 
   /**
+   * Send magic link (passwordless login)
+   */
+  async sendMagicLink(email) {
+    const sb = getSupabase();
+    if (!sb) throw new Error('Supabase not configured');
+
+    const redirectTo = 'https://anonymous2034.github.io/chess-game/';
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+    if (error) throw error;
+  }
+
+  /**
    * Send password reset email
    */
   async resetPassword(email) {
