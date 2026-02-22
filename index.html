@@ -7,9 +7,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Play chess against AI bots, solve puzzles, and analyze games">
+  <!-- Open Graph — professional link previews when sharing -->
+  <meta property="og:title" content="Grandmasters Chess">
+  <meta property="og:description" content="Play chess against AI grandmasters, solve puzzles, and analyze games">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Grandmasters Chess">
+  <meta name="twitter:description" content="Play chess against AI grandmasters, solve puzzles, and analyze games">
+  <meta name="twitter:image" content="icons/icon-512.png">
   <title>Grandmasters</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
@@ -101,6 +111,13 @@
             </div>
           </div>
         </div>
+        <div class="dialog-section engine-only">
+          <label>Game Type</label>
+          <div class="btn-group" data-setting="rated">
+            <button class="btn active" data-value="casual">Casual</button>
+            <button class="btn" data-value="rated">Rated</button>
+          </div>
+        </div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="cancel-new-game">Cancel</button>
           <button class="btn btn-primary" id="start-new-game">Start Game</button>
@@ -170,6 +187,9 @@
             <div class="profile-record" id="profile-record"></div>
           </div>
         </div>
+
+        <!-- Account Details (shown when logged in) -->
+        <div id="profile-account-details" class="profile-account-details hidden"></div>
 
         <!-- Avatar Picker -->
         <div class="avatar-picker hidden" id="avatar-picker"></div>
@@ -276,7 +296,26 @@
             <button class="btn btn-primary" id="btn-login">Login</button>
           </div>
           <div class="auth-switch">
+            <a href="#" id="show-forgot-password">Forgot password?</a>
+          </div>
+          <div class="auth-switch">
             Don't have an account? <a href="#" id="show-register">Register</a>
+          </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-password-form" class="hidden">
+          <h2>Reset Password</h2>
+          <p class="auth-desc">Enter your email and we'll send you a link to reset your password.</p>
+          <div class="dialog-section">
+            <label>Email</label>
+            <input type="email" id="forgot-email" placeholder="your@email.com">
+          </div>
+          <div class="auth-error hidden" id="forgot-error"></div>
+          <div class="auth-success hidden" id="forgot-success"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="back-to-login-from-forgot">Back</button>
+            <button class="btn btn-primary" id="btn-send-reset">Send Reset Link</button>
           </div>
         </div>
 
@@ -318,7 +357,7 @@
         </div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="cancel-bot-match">Cancel</button>
-          <button class="btn btn-primary" id="start-bot-match">Simulate</button>
+          <button class="btn btn-primary" id="start-bot-match">Watch Live</button>
         </div>
       </div>
     </div>
@@ -329,6 +368,64 @@
         <h2>Simulating Game...</h2>
         <div class="bot-match-status" id="bot-match-status">Preparing...</div>
         <div class="progress-bar"><div class="progress-fill" id="bot-match-progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Chess News Dialog -->
+    <div id="news-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <div class="news-header" id="news-header">
+          <h2>Chess World</h2>
+          <div class="news-tabs">
+            <button class="news-tab active" data-tab="live">Live & Upcoming</button>
+            <button class="news-tab" data-tab="follow">Follow Chess</button>
+          </div>
+        </div>
+        <div class="news-detail-header hidden" id="news-detail-header">
+          <button class="btn btn-sm" id="news-back">&larr; Back</button>
+          <span class="news-detail-title" id="news-detail-title"></span>
+        </div>
+        <div class="news-content" id="news-content">
+          <div class="news-loading">Loading broadcasts...</div>
+        </div>
+        <div class="news-detail-view hidden" id="news-detail-view">
+          <iframe id="news-iframe" class="news-iframe" sandbox="allow-scripts allow-same-origin" allowfullscreen></iframe>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-news">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music Player Dialog -->
+    <div id="music-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Music</h2>
+        <div class="music-now-playing" id="music-now-playing">
+          <div class="music-track-title">No track selected</div>
+          <div class="music-track-composer"></div>
+        </div>
+        <div class="music-controls-main">
+          <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
+          <button class="btn btn-primary" id="music-play-pause" title="Play/Pause">&#9654;</button>
+          <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
+          <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
+        </div>
+        <div class="music-volume-row">
+          <span class="music-vol-icon">&#128264;</span>
+          <input type="range" id="music-volume" min="0" max="100" value="30" class="music-volume-slider">
+          <span class="music-vol-icon">&#128266;</span>
+        </div>
+        <div class="music-filter-row">
+          <select class="music-composer-filter" id="music-composer-filter">
+            <option value="all">All Composers</option>
+          </select>
+          <span class="music-track-count" id="music-track-count"></span>
+        </div>
+        <div class="music-playlist" id="music-playlist"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-music">Close</button>
+        </div>
       </div>
     </div>
 
@@ -585,10 +682,17 @@
 
     <!-- Header -->
     <header>
-      <h1>Grandmasters</h1>
+      <div class="header-brand">
+        <img src="assets/logo.svg" alt="Grandmasters" class="header-logo">
+        <h1>Grandmasters</h1>
+      </div>
       <nav>
         <button class="btn" id="btn-new-game">New Game</button>
         <button class="btn" id="btn-flip">Flip Board</button>
+        <button class="btn header-user-badge" id="btn-user-badge">
+          <img class="header-user-avatar hidden" id="header-user-avatar" src="img/avatars/knight.svg" alt="">
+          <span class="header-user-name" id="header-user-name">Login</span>
+        </button>
         <button class="btn nav-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
           <span class="menu-icon"></span>
         </button>
@@ -604,7 +708,7 @@
             <span class="nav-menu-label">Tools</span>
             <button class="btn" id="btn-database">Database</button>
             <button class="btn" id="btn-stats">Stats</button>
-            <button class="btn" id="btn-multi-analysis">Analysis Lines</button>
+            <button class="btn" id="btn-multi-analysis">Live Advisors</button>
             <div class="dropdown">
               <button class="btn" id="btn-pgn-menu">PGN</button>
               <div class="dropdown-content">
@@ -614,8 +718,14 @@
             </div>
           </div>
           <div class="nav-menu-section">
+            <span class="nav-menu-label">More</span>
+            <button class="btn" id="btn-news">Chess World</button>
+            <button class="btn" id="btn-music">Music</button>
+          </div>
+          <div class="nav-menu-section">
             <span class="nav-menu-label">Settings</span>
             <button class="btn" id="btn-themes">Themes</button>
+            <button class="btn" id="btn-eval-bar">Eval Bar</button>
             <button class="btn" id="btn-sound" title="Toggle Sound">Sound On</button>
             <button class="btn" id="btn-dgt">DGT Board</button>
           </div>
@@ -639,11 +749,18 @@
             <span class="captured-pieces" id="captured-top"></span>
             <span class="material-advantage" id="material-top"></span>
           </div>
-          <span class="timer" id="timer-top">--:--</span>
+          <div class="timer-group">
+            <span class="move-clock" id="move-clock-top">0s</span>
+            <span class="timer" id="timer-top">--:--</span>
+          </div>
         </div>
 
         <!-- Chess Board -->
         <div id="board-container">
+          <div class="eval-bar" id="eval-bar">
+            <div class="eval-bar-white" id="eval-bar-white"></div>
+            <div class="eval-bar-label" id="eval-bar-label">0.0</div>
+          </div>
           <div id="board" class="board"></div>
           <!-- Coordinate labels -->
           <div class="coords coords-files" id="coords-files"></div>
@@ -657,7 +774,10 @@
             <span class="captured-pieces" id="captured-bottom"></span>
             <span class="material-advantage" id="material-bottom"></span>
           </div>
-          <span class="timer" id="timer-bottom">--:--</span>
+          <div class="timer-group">
+            <span class="move-clock" id="move-clock-bottom">0s</span>
+            <span class="timer" id="timer-bottom">--:--</span>
+          </div>
         </div>
 
         <!-- Always-visible opening name -->
@@ -689,6 +809,9 @@
         </div>
       </div>
 
+      <!-- Resize Handle -->
+      <div class="resize-handle resize-handle-v" id="resize-handle-main" title="Drag to resize"></div>
+
       <!-- Right: Side Panel -->
       <div class="side-panel">
         <!-- Game Status -->
@@ -697,7 +820,14 @@
           <span id="engine-status" class="hidden">Stockfish: Ready</span>
           <span id="dgt-board-status" class="dgt-board-status hidden">DGT: Connected</span>
           <button class="btn btn-sm btn-force hidden" id="btn-force-move">Force Move</button>
-          <button class="btn btn-sm btn-primary hidden" id="btn-analyze">Analyze Game</button>
+          <div class="analyze-group hidden" id="analyze-group">
+            <button class="btn btn-sm btn-primary" id="btn-analyze">Analyze</button>
+            <select class="analyze-depth-select" id="analyze-depth" title="Analysis depth">
+              <option value="10">Quick (~3s/move)</option>
+              <option value="16" selected>Normal (~6s/move)</option>
+              <option value="22">Deep (~15s/move)</option>
+            </select>
+          </div>
           <button class="btn btn-sm hidden" id="btn-resign-mp">Resign</button>
           <button class="btn btn-sm hidden" id="btn-draw-mp">Offer Draw</button>
           <span class="mp-opponent-status hidden" id="mp-opponent-status"></span>
@@ -713,6 +843,7 @@
         <!-- Side Panel Tabs -->
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="moves">Moves</button>
+          <button class="panel-tab" data-tab="ideas">Advisors</button>
           <button class="panel-tab" data-tab="coach">Coach</button>
         </div>
 
@@ -722,11 +853,24 @@
           <div class="move-history-container">
             <div id="move-history" class="move-history"></div>
           </div>
+          <div class="resize-handle resize-handle-h" id="resize-handle-moves" title="Drag to resize move list"></div>
+
+          <!-- Advisor Annotations (shown below current move) -->
+          <div class="advisor-annotations" id="advisor-annotations"></div>
+
+          <!-- Move Insight (shown after analysis, per-move learning feedback) -->
+          <div class="move-insight hidden" id="move-insight"></div>
 
           <!-- Game Controls -->
           <div class="game-controls">
             <button class="btn btn-sm" id="btn-undo" title="Undo">Undo</button>
             <button class="btn btn-sm" id="btn-redo" title="Redo">Redo</button>
+            <button class="btn btn-sm" id="btn-toggle-notes" title="Notes">Notes</button>
+          </div>
+
+          <!-- Per-move notebook -->
+          <div class="move-notes hidden" id="move-notes">
+            <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..." rows="2"></textarea>
           </div>
 
           <!-- Opening Explorer -->
@@ -734,6 +878,19 @@
             <h3>Opening Explorer</h3>
             <div id="opening-name" class="opening-name"></div>
             <div id="explorer-moves" class="explorer-moves"></div>
+          </div>
+        </div>
+
+        <!-- Ideas Tab -->
+        <div class="panel-content hidden" id="tab-ideas">
+          <div class="ideas-panel">
+            <div class="ideas-header">
+              <button class="btn btn-sm" id="btn-pick-advisors">Choose Advisors</button>
+            </div>
+            <div class="advisor-picker hidden" id="advisor-picker"></div>
+            <div class="ideas-list" id="ideas-list">
+              <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
+            </div>
           </div>
         </div>
 
@@ -760,7 +917,7 @@
   <script src="lib/chess.min.js"></script>
   <script type="module" src="js/main.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && !window.Capacitor) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>

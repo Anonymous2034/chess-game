@@ -25,6 +25,8 @@ import { MultiplayerManager } from './multiplayer.js';
 import { PuzzleManager } from './puzzle.js';
 import { PlayerProfile } from './profile.js';
 import { RatingGraph } from './rating-graph.js';
+import { MusicPlayer, PLAYLIST } from './music.js';
+import { ChessNews } from './chess-news.js';
 
 class ChessApp {
   constructor() {
@@ -67,6 +69,16 @@ class ChessApp {
     this.puzzleActive = false;
     this.profile = new PlayerProfile();
     this.ratingGraph = null;
+    this.music = new MusicPlayer();
+    this.chessNews = new ChessNews();
+    this._evalBarEnabled = localStorage.getItem('chess_eval_bar') !== 'false'; // ON by default
+    this._evalBarAbortId = 0;
+    this._lastAdvisorResults = {}; // botId -> { san, eval }
+
+    // Move clock — tracks thinking time per move
+    this._moveClockStart = Date.now();
+    this._moveClockInterval = null;
+    this._moveClockColor = 'w'; // whose turn is being timed
 
     this.init();
   }
@@ -118,6 +130,7 @@ class ChessApp {
     this.setupTournament();
     this.setupForceMove();
     this.setupMultiAnalysis();
+    this.setupAdvisors();
     this.setupThemes();
     this.setupBotMatch();
     this.setupAuth();
@@ -129,6 +142,12 @@ class ChessApp {
     this.setupReviewDialog();
     this.setupHamburgerMenu();
     this.setupOfflineIndicator();
+    this.setupMusic();
+    this.setupNews();
+    this.setupEvalBar();
+    this.setupEvalBarToggle();
+    this.setupResizeHandles();
+    this.setupNotes();
 
     // Load database in background
     this.database.loadCollections().then(categories => {
@@ -167,6 +186,7 @@ class ChessApp {
         }
       };
       this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+      this.engine.onNoMove = () => this._handleEngineNoMove();
 
       await this.engine.init();
       this.engineInitialized = true;
@@ -210,6 +230,7 @@ class ChessApp {
     this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
 
     if (this.game.gameOver) {
+      this._stopMoveClock();
       this.board.setInteractive(false);
       this._onGameEnd();
       return;
@@ -233,9 +254,17 @@ class ChessApp {
       this.board.setInteractive(false);
     }
 
+    // Start move clock for the new side to move
+    this._startMoveClock(this.chess.turn());
+
     // If playing vs engine and it's engine's turn
     if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor) {
       this.requestEngineMove();
+      // DON'T run analysis while engine needs to move — wait for handleEngineMove()
+    } else {
+      // Safe to analyze — it's the player's turn or local/multiplayer mode
+      this._updateAdvisorAnalysis();
+      this._updateEvalBar();
     }
 
     // Fetch opening explorer
@@ -284,6 +313,9 @@ class ChessApp {
             }
           } else {
             // Book move not legal, fall back to engine
+            this._setEngineThinking(true);
+            this._startEngineMoveTimer();
+            this.engine.thinking = false;
             this.engine.requestMove(this.chess.fen());
           }
         }, delay);
@@ -324,8 +356,30 @@ class ChessApp {
 
     if (!this.game.gameOver) {
       this.board.setInteractive(true);
+      // Start move clock for player's turn
+      this._startMoveClock(this.chess.turn());
+      // Update advisor analysis and eval bar after engine move
+      this._updateAdvisorAnalysis();
+      this._updateEvalBar();
     } else {
+      this._stopMoveClock();
       this._onGameEnd();
+    }
+  }
+
+  _handleEngineNoMove() {
+    // Engine returned bestmove (none) or 0000 — game is over (checkmate/stalemate)
+    this._clearEngineMoveTimer();
+    this._setEngineThinking(false);
+    if (!this.game.gameOver) {
+      // The game should already be over — check
+      if (this.chess.game_over()) {
+        this.game.gameOver = true;
+        this._onGameEnd();
+      } else {
+        // Something unexpected — make board interactive again
+        this.board.setInteractive(true);
+      }
     }
   }
 
@@ -355,7 +409,7 @@ class ChessApp {
 
     // Show analyze button
     if (this.engineInitialized) {
-      show(document.getElementById('btn-analyze'));
+      show(document.getElementById('analyze-group'));
     }
 
     // Record stats if playing vs bot
@@ -411,6 +465,14 @@ class ChessApp {
         resultStr
       );
     }
+
+    // Auto-run analysis after game ends (delayed to let UI settle)
+    if (this.engineInitialized && this.game.moveHistory.length >= 4) {
+      setTimeout(() => {
+        // Only run if game is still over (user didn't start a new one)
+        if (this.game.gameOver) this.runAnalysis();
+      }, 1000);
+    }
   }
 
   // === UI Updates ===
@@ -456,8 +518,11 @@ class ChessApp {
     if (this.activeBot && this.game.mode === 'engine') {
       const botColor = this.game.playerColor === 'w' ? 'b' : 'w';
       const playerColor = this.game.playerColor;
-      if (topName) topName.textContent = topColor === botColor ? this.activeBot.name : (playerColor === 'w' ? 'White' : 'Black');
-      if (bottomName) bottomName.textContent = bottomColor === botColor ? this.activeBot.name : (playerColor === 'w' ? 'White' : 'Black');
+      const botLabel = `${this.activeBot.name} (${this.activeBot.peakElo})`;
+      const playerRating = this.stats?.estimateRating() || 1200;
+      const playerLabel = `You (${playerRating})`;
+      if (topName) topName.textContent = topColor === botColor ? botLabel : playerLabel;
+      if (bottomName) bottomName.textContent = bottomColor === botColor ? botLabel : playerLabel;
     } else {
       if (topName) topName.textContent = topColor === 'w' ? 'White' : 'Black';
       if (bottomName) bottomName.textContent = bottomColor === 'w' ? 'White' : 'Black';
@@ -494,6 +559,15 @@ class ChessApp {
       // At the end of moves, re-enable if game is not over
       this.board.setInteractive(!this.game.gameOver);
     }
+
+    // Show per-move insight if analysis is available
+    this._updateMoveInsight(index);
+
+    // Load notes for this move
+    this._loadNoteForCurrentMove();
+
+    // Update advisor analysis for navigated position
+    this._updateAdvisorAnalysis();
   }
 
   setupNavigationControls() {
@@ -580,6 +654,39 @@ class ChessApp {
     });
   }
 
+  // === Per-Move Notes ===
+
+  setupNotes() {
+    this._gameNotes = {}; // moveIndex -> text
+
+    document.getElementById('btn-toggle-notes').addEventListener('click', () => {
+      const el = document.getElementById('move-notes');
+      el.classList.toggle('hidden');
+      if (!el.classList.contains('hidden')) {
+        this._loadNoteForCurrentMove();
+      }
+    });
+
+    document.getElementById('move-notes-input').addEventListener('input', (e) => {
+      const idx = this.notation.currentIndex;
+      if (idx < 0) return;
+      if (e.target.value.trim()) {
+        this._gameNotes[idx] = e.target.value;
+      } else {
+        delete this._gameNotes[idx];
+      }
+    });
+  }
+
+  _loadNoteForCurrentMove() {
+    const input = document.getElementById('move-notes-input');
+    if (!input) return;
+    const idx = this.notation.currentIndex;
+    input.value = this._gameNotes[idx] || '';
+    const moveNum = idx >= 0 ? `Move ${Math.floor(idx / 2) + 1}` : 'Start';
+    input.placeholder = `Notes for ${moveNum}...`;
+  }
+
   // === Force Move ===
 
   setupForceMove() {
@@ -596,6 +703,13 @@ class ChessApp {
         show(document.getElementById('btn-force-move'));
       }
     }, 8000);
+    // Auto-recover after 15 seconds if engine is completely stuck
+    this.engineSafetyTimeout = setTimeout(() => {
+      if (this.engine && this.engine.thinking && !this.game.gameOver && this.game.mode === 'engine') {
+        console.warn('Engine safety timeout — forcing move');
+        this._forceEngineMove();
+      }
+    }, 15000);
   }
 
   _clearEngineMoveTimer() {
@@ -603,7 +717,60 @@ class ChessApp {
       clearTimeout(this.engineMoveTimeout);
       this.engineMoveTimeout = null;
     }
+    if (this.engineSafetyTimeout) {
+      clearTimeout(this.engineSafetyTimeout);
+      this.engineSafetyTimeout = null;
+    }
     hide(document.getElementById('btn-force-move'));
+  }
+
+  // === Move Clock (per-move thinking time) ===
+
+  _startMoveClock(color) {
+    this._stopMoveClock();
+    this._moveClockColor = color;
+    this._moveClockStart = Date.now();
+
+    // Determine which clock element is active
+    const topColor = this.board.flipped ? 'w' : 'b';
+    const activeId = color === topColor ? 'move-clock-top' : 'move-clock-bottom';
+    const inactiveId = color === topColor ? 'move-clock-bottom' : 'move-clock-top';
+
+    const activeEl = document.getElementById(activeId);
+    const inactiveEl = document.getElementById(inactiveId);
+
+    if (activeEl) { activeEl.classList.add('active'); activeEl.textContent = '0s'; }
+    if (inactiveEl) inactiveEl.classList.remove('active');
+
+    this._moveClockInterval = setInterval(() => this._tickMoveClock(), 100);
+  }
+
+  _stopMoveClock() {
+    if (this._moveClockInterval) {
+      clearInterval(this._moveClockInterval);
+      this._moveClockInterval = null;
+    }
+    // Remove active class from both
+    const top = document.getElementById('move-clock-top');
+    const bot = document.getElementById('move-clock-bottom');
+    if (top) top.classList.remove('active');
+    if (bot) bot.classList.remove('active');
+  }
+
+  _tickMoveClock() {
+    const elapsed = (Date.now() - this._moveClockStart) / 1000;
+    const topColor = this.board.flipped ? 'w' : 'b';
+    const elId = this._moveClockColor === topColor ? 'move-clock-top' : 'move-clock-bottom';
+    const el = document.getElementById(elId);
+    if (!el) return;
+
+    if (elapsed < 60) {
+      el.textContent = `${Math.floor(elapsed)}s`;
+    } else {
+      const mins = Math.floor(elapsed / 60);
+      const secs = Math.floor(elapsed % 60);
+      el.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
   }
 
   _setEngineThinking(thinking) {
@@ -615,6 +782,32 @@ class ChessApp {
     if (bar) {
       bar.classList.toggle('engine-thinking', thinking);
       if (thinking) bar.classList.remove('active-turn');
+    }
+  }
+
+  // Watchdog: periodically check if the game is stuck
+  _startEngineWatchdog() {
+    if (this._engineWatchdog) clearInterval(this._engineWatchdog);
+    this._engineWatchdog = setInterval(() => {
+      if (this.game.gameOver || this.game.mode !== 'engine') return;
+
+      const engineTurn = this.chess.turn() !== this.game.playerColor;
+      if (engineTurn && !this.engine.thinking && !this.board.interactive) {
+        console.warn('Watchdog: engine stuck — handler may have been lost. Re-requesting move.');
+        // Restore canonical handler first
+        this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+        this.engine.onNoMove = () => this._handleEngineNoMove();
+        if (this.activeBot) this.engine.applyPersonality(this.activeBot);
+        this.engine.requestMove(this.chess.fen());
+        this._startEngineMoveTimer();
+      }
+    }, 5000);
+  }
+
+  _stopEngineWatchdog() {
+    if (this._engineWatchdog) {
+      clearInterval(this._engineWatchdog);
+      this._engineWatchdog = null;
     }
   }
 
@@ -673,16 +866,29 @@ class ChessApp {
   // === Multi-Bot Analysis ===
 
   setupMultiAnalysis() {
+    // "Analysis Lines" now opens the Ideas tab with the advisor picker
     document.getElementById('btn-multi-analysis').addEventListener('click', () => {
-      this._renderMultiAnalysisBots();
-      show(document.getElementById('multi-analysis-dialog'));
+      // Switch to Ideas tab
+      document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel-content').forEach(c => hide(c));
+      const ideasTab = document.querySelector('.panel-tab[data-tab="ideas"]');
+      if (ideasTab) ideasTab.classList.add('active');
+      show(document.getElementById('tab-ideas'));
+
+      // Open the advisor picker
+      const picker = document.getElementById('advisor-picker');
+      if (picker.classList.contains('hidden')) {
+        this._renderAdvisorPicker();
+        show(picker);
+      }
     });
 
-    document.getElementById('close-multi-analysis').addEventListener('click', () => {
+    // Keep the dialog close handler for backwards compatibility
+    document.getElementById('close-multi-analysis')?.addEventListener('click', () => {
       hide(document.getElementById('multi-analysis-dialog'));
     });
 
-    document.getElementById('run-multi-analysis').addEventListener('click', () => {
+    document.getElementById('run-multi-analysis')?.addEventListener('click', () => {
       this._runMultiAnalysis();
     });
   }
@@ -831,11 +1037,392 @@ class ChessApp {
     el.innerHTML = html;
   }
 
+  // === Live Advisor Panel ===
+
+  setupAdvisors() {
+    this._advisorAbortId = 0;
+    this._advisorBots = [];
+    this._advisorAnalyzing = false;
+
+    // Load saved advisor selection, or use defaults
+    try {
+      const saved = localStorage.getItem('chess_live_advisors');
+      if (saved) {
+        const ids = JSON.parse(saved);
+        this._advisorBots = ids.map(id => BOT_PERSONALITIES.find(b => b.id === id)).filter(Boolean);
+      }
+    } catch { /* ignore */ }
+
+    // No default advisors — user must explicitly choose them via the picker
+
+    // "Choose Advisors" button
+    document.getElementById('btn-pick-advisors').addEventListener('click', () => {
+      const picker = document.getElementById('advisor-picker');
+      if (picker.classList.contains('hidden')) {
+        this._renderAdvisorPicker();
+        show(picker);
+      } else {
+        hide(picker);
+      }
+    });
+
+    // Render initial state and start analyzing if advisors already selected
+    if (this._advisorBots.length > 0) {
+      this._renderAdvisorCards();
+      // Auto-analyze after engine loads
+      setTimeout(() => this._updateAdvisorAnalysis(), 2000);
+    }
+  }
+
+  _renderAdvisorPicker() {
+    const picker = document.getElementById('advisor-picker');
+    const selectedIds = this._advisorBots.map(b => b.id);
+    let html = '';
+
+    for (const tier of BOT_TIERS) {
+      const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
+      if (tierBots.length === 0) continue;
+
+      html += `<div class="advisor-picker-tier">${tier.name}</div>`;
+      for (const bot of tierBots) {
+        const checked = selectedIds.includes(bot.id) ? 'checked' : '';
+        html += `
+          <label>
+            <input type="checkbox" value="${bot.id}" ${checked}>
+            <img src="${bot.portrait}" alt="${bot.name}">
+            <span>${bot.name}</span>
+            <span class="advisor-pick-elo">${bot.peakElo}</span>
+          </label>`;
+      }
+    }
+
+    picker.innerHTML = html;
+
+    // Listen for changes
+    picker.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const checked = picker.querySelectorAll('input[type="checkbox"]:checked');
+        if (checked.length > 3) {
+          cb.checked = false;
+          this.showToast('Maximum 3 advisors');
+          return;
+        }
+        this._advisorBots = Array.from(checked).map(c =>
+          BOT_PERSONALITIES.find(b => b.id === c.value)
+        ).filter(Boolean);
+
+        // Save selection
+        localStorage.setItem('chess_live_advisors', JSON.stringify(this._advisorBots.map(b => b.id)));
+
+        this._renderAdvisorCards();
+        this._updateAdvisorTabBadge(false);
+        this._updateAdvisorAnalysis();
+      });
+    });
+  }
+
+  _renderAdvisorCards() {
+    const list = document.getElementById('ideas-list');
+    if (this._advisorBots.length === 0) {
+      list.innerHTML = '<div class="ideas-empty">Pick up to 3 grandmasters or engines to see their ideas for each position.</div>';
+      return;
+    }
+    let html = '';
+    for (const bot of this._advisorBots) {
+      html += `
+        <div class="idea-card idea-thinking" id="idea-${bot.id}">
+          <div class="idea-card-top">
+            <img class="idea-portrait" src="${bot.portrait}" alt="${bot.name}">
+            <div class="idea-info">
+              <span class="idea-name">${bot.name}</span>
+              <span class="idea-elo">${bot.peakElo}</span>
+            </div>
+            <div class="idea-move-box">
+              <div class="idea-move">...</div>
+              <div class="idea-eval"></div>
+            </div>
+          </div>
+          <div class="idea-pv"></div>
+        </div>`;
+    }
+    list.innerHTML = html;
+  }
+
+  async _updateAdvisorAnalysis() {
+    if (this._advisorBots.length === 0) return;
+    if (this.game.gameOver) return;
+
+    // Abort previous analysis
+    const abortId = ++this._advisorAbortId;
+
+    // Wait for engine to be free
+    if (!this.engine || !this.engine.ready) {
+      await this.initEngine();
+      if (!this.engine || !this.engine.ready) return;
+    }
+
+    // Wait until engine is not thinking for the game
+    const waitForEngine = () => new Promise(resolve => {
+      if (!this.engine.thinking) return resolve();
+      const check = setInterval(() => {
+        if (!this.engine.thinking) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 200);
+      // Timeout after 30 seconds
+      setTimeout(() => { clearInterval(check); resolve(); }, 30000);
+    });
+
+    await waitForEngine();
+    if (abortId !== this._advisorAbortId) return;
+
+    this._advisorAnalyzing = true;
+    this._updateAdvisorTabBadge(true);
+
+    // Show thinking state
+    this._renderAdvisorCards();
+
+    const fen = this.chess.fen();
+
+    // Skip if engine is needed for game moves
+    if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor) {
+      return;
+    }
+
+    for (const bot of this._advisorBots) {
+      if (abortId !== this._advisorAbortId) break;
+
+      // Wait again if engine got busy (e.g. engine made a move mid-analysis)
+      await waitForEngine();
+      if (abortId !== this._advisorAbortId) break;
+
+      // Apply this advisor's personality
+      this.engine.applyPersonality(bot);
+
+      // Quick analysis at moderate depth
+      const analysis = await this.engine.analyzePosition(fen, Math.min(bot.searchDepth || 14, 14));
+      if (abortId !== this._advisorAbortId) break;
+
+      // Convert UCI bestmove to SAN
+      let san = analysis.bestMove || '?';
+      if (analysis.bestMove) {
+        const from = analysis.bestMove.substring(0, 2);
+        const to = analysis.bestMove.substring(2, 4);
+        const promo = analysis.bestMove.length > 4 ? analysis.bestMove[4] : undefined;
+        const tempChess = new Chess(fen);
+        const legalMoves = tempChess.moves({ verbose: true });
+        const match = legalMoves.find(m => m.from === from && m.to === to && (!promo || m.promotion === promo));
+        if (match) san = match.san;
+      }
+
+      // Format eval
+      let evalStr;
+      if (analysis.mate !== null) {
+        evalStr = `M${analysis.mate}`;
+      } else {
+        const cp = analysis.score / 100;
+        evalStr = `${cp > 0 ? '+' : ''}${cp.toFixed(1)}`;
+      }
+
+      // Format PV as SAN
+      let pvSan = '';
+      if (analysis.pv) {
+        try {
+          const tempChess = new Chess(fen);
+          const sanMoves = [];
+          for (const uci of analysis.pv.split(' ').slice(0, 5)) {
+            const f = uci.substring(0, 2);
+            const t = uci.substring(2, 4);
+            const p = uci.length > 4 ? uci[4] : undefined;
+            const m = tempChess.move({ from: f, to: t, promotion: p });
+            if (m) sanMoves.push(m.san);
+            else break;
+          }
+          pvSan = sanMoves.join(' ');
+        } catch {
+          pvSan = '';
+        }
+      }
+
+      // Save result for Moves tab annotation
+      this._lastAdvisorResults[bot.id] = { san, evalStr, name: bot.name };
+
+      // Update this advisor's card
+      const card = document.getElementById(`idea-${bot.id}`);
+      if (card && abortId === this._advisorAbortId) {
+        card.classList.remove('idea-thinking');
+        card.querySelector('.idea-move').textContent = san;
+        card.querySelector('.idea-eval').textContent = evalStr;
+        card.querySelector('.idea-pv').textContent = pvSan;
+      }
+    }
+
+    // Show advisor annotations in Moves tab
+    this._updateAdvisorAnnotations();
+
+    // Restore active bot personality
+    if (this.activeBot) {
+      this.engine.applyPersonality(this.activeBot);
+    } else {
+      this.engine.resetOptions();
+    }
+
+    // Always restore the canonical game handler (never use captured snapshot)
+    this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+    this.engine.onNoMove = () => this._handleEngineNoMove();
+    this._advisorAnalyzing = false;
+    this._updateAdvisorTabBadge(false);
+  }
+
+  _updateAdvisorAnnotations() {
+    // Add advisor suggestions below the current move in the notation panel
+    const annotationEl = document.getElementById('advisor-annotations');
+    if (!annotationEl) return;
+
+    const bots = Object.values(this._lastAdvisorResults);
+    if (bots.length === 0) {
+      annotationEl.innerHTML = '';
+      return;
+    }
+
+    let html = '';
+    for (const r of bots) {
+      html += `<span class="advisor-ann"><span class="advisor-ann-name">${r.name}</span> ${r.san} <span class="advisor-ann-eval">${r.evalStr}</span></span>`;
+    }
+    annotationEl.innerHTML = html;
+  }
+
+  _updateAdvisorTabBadge(thinking) {
+    const tab = document.querySelector('.panel-tab[data-tab="ideas"]');
+    if (!tab) return;
+    if (thinking && this._advisorBots.length > 0) {
+      tab.textContent = `Advisors (${this._advisorBots.length})`;
+      tab.classList.add('tab-analyzing');
+    } else if (this._advisorBots.length > 0) {
+      tab.textContent = `Advisors (${this._advisorBots.length})`;
+      tab.classList.remove('tab-analyzing');
+    } else {
+      tab.textContent = 'Advisors';
+      tab.classList.remove('tab-analyzing');
+    }
+  }
+
+  // === Eval Bar ===
+
+  setupEvalBar() {
+    // Apply saved preference (ON by default)
+    if (this._evalBarEnabled) {
+      this._showEvalBar();
+    } else {
+      this._hideEvalBar();
+    }
+  }
+
+  _showEvalBar() {
+    const bar = document.getElementById('eval-bar');
+    bar.classList.remove('eval-hidden');
+    bar.classList.remove('hidden');
+    this._evalBarEnabled = true;
+    localStorage.setItem('chess_eval_bar', 'true');
+  }
+
+  _hideEvalBar() {
+    const bar = document.getElementById('eval-bar');
+    bar.classList.add('eval-hidden');
+    this._evalBarEnabled = false;
+    localStorage.setItem('chess_eval_bar', 'false');
+  }
+
+  toggleEvalBar() {
+    if (this._evalBarEnabled) {
+      this._hideEvalBar();
+    } else {
+      this._showEvalBar();
+      this._updateEvalBar();
+    }
+  }
+
+  async _updateEvalBar() {
+    if (!this._evalBarEnabled) return;
+    if (!this.engine || !this.engine.ready) return;
+    if (this.game.gameOver) return;
+
+    // Skip if engine is needed for game moves
+    if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor) {
+      return;
+    }
+
+    const abortId = ++this._evalBarAbortId;
+    const fen = this.chess.fen();
+    const isBlackToMove = this.chess.turn() === 'b';
+
+    // Wait for engine to be free (but don't wait too long)
+    let waited = 0;
+    while (this.engine.thinking && waited < 5000) {
+      await new Promise(r => setTimeout(r, 200));
+      waited += 200;
+    }
+    if (abortId !== this._evalBarAbortId) return;
+    if (this.engine.thinking) return;
+
+    // Reset engine to default strength for neutral evaluation
+    this.engine.resetOptions();
+
+    // analyzePosition() is serialized — safe to call without handler swap
+    const result = await this.engine.analyzePosition(fen, 12);
+    if (abortId !== this._evalBarAbortId) return;
+
+    // Restore active bot personality and canonical handler
+    if (this.activeBot) {
+      this.engine.applyPersonality(this.activeBot);
+    }
+    this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+    this.engine.onNoMove = () => this._handleEngineNoMove();
+
+    // Stockfish returns score from side-to-move perspective — flip for Black
+    let scoreWhite = result.score;
+    let mateWhite = result.mate;
+    if (isBlackToMove) {
+      scoreWhite = -scoreWhite;
+      if (mateWhite !== null) mateWhite = -mateWhite;
+    }
+
+    // Update bar
+    const bar = document.getElementById('eval-bar-white');
+    const label = document.getElementById('eval-bar-label');
+    if (!bar || !label) return;
+
+    let whitePct, labelText;
+    if (mateWhite !== null) {
+      whitePct = mateWhite > 0 ? 95 : 5;
+      const absM = Math.abs(mateWhite);
+      labelText = `M${absM}`;
+
+      // Announce forced mate via toast (only when mate is newly detected)
+      if (this._lastMateAnnounce !== mateWhite) {
+        this._lastMateAnnounce = mateWhite;
+        const who = mateWhite > 0 ? 'White' : 'Black';
+        this.showToast(`Forced mate in ${absM} for ${who}!`);
+      }
+    } else {
+      this._lastMateAnnounce = null;
+      // Convert centipawns to percentage (sigmoid-like)
+      const cp = scoreWhite / 100;
+      whitePct = 50 + 50 * (2 / (1 + Math.exp(-0.4 * cp)) - 1);
+      whitePct = Math.max(3, Math.min(97, whitePct));
+      labelText = `${cp > 0 ? '+' : ''}${cp.toFixed(1)}`;
+    }
+
+    bar.style.height = `${whitePct}%`;
+    label.textContent = labelText;
+  }
+
   // === New Game Dialog ===
 
   setupNewGameDialog() {
     const dialog = document.getElementById('new-game-dialog');
-    const settings = { mode: 'local', color: 'w', botId: 'beginner-betty', time: 0, increment: 0 };
+    const settings = { mode: 'local', color: 'w', botId: 'beginner-betty', time: 0, increment: 0, rated: false };
 
     // Render bot picker
     this.renderBotPicker(settings);
@@ -858,7 +1445,11 @@ class ChessApp {
           group.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           const val = btn.dataset.value;
-          settings[setting] = isNaN(val) ? val : Number(val);
+          if (setting === 'rated') {
+            settings.rated = val === 'rated';
+          } else {
+            settings[setting] = isNaN(val) ? val : Number(val);
+          }
 
           if (setting === 'mode') {
             this.updateDialogVisibility(val);
@@ -936,10 +1527,18 @@ class ChessApp {
       color = Math.random() < 0.5 ? 'w' : 'b';
     }
 
-    // Stop any current engine computation
+    // Stop any current engine computation or bot match
     this._clearEngineMoveTimer();
+    this._botMatchAbort = true;
+    ++this._advisorAbortId;  // cancel any ongoing advisor analysis
+    ++this._evalBarAbortId;  // cancel any ongoing eval bar analysis
     if (this.engine && this.engine.thinking) {
       this.engine.stop();
+    }
+    // Restore canonical handler in case analysis left it null
+    if (this.engine) {
+      this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+      this.engine.onNoMove = () => this._handleEngineNoMove();
     }
 
     // Find selected bot
@@ -962,7 +1561,8 @@ class ChessApp {
       color,
       botId: settings.botId,
       time: settings.time,
-      increment: settings.increment
+      increment: settings.increment,
+      rated: settings.rated || false
     });
 
     this.notation.clear();
@@ -979,7 +1579,7 @@ class ChessApp {
 
     // Clear analysis
     this.analysisResults = null;
-    hide(document.getElementById('btn-analyze'));
+    hide(document.getElementById('analyze-group'));
     hide(document.getElementById('analysis-progress'));
     hide(document.getElementById('analysis-summary'));
     hide(document.getElementById('eval-graph-container'));
@@ -1013,6 +1613,20 @@ class ChessApp {
       hide(engineStatusEl);
     }
 
+    // Show/hide rated badge
+    const existingBadge = document.getElementById('rated-badge');
+    if (existingBadge) existingBadge.remove();
+    if (this.game.rated) {
+      const statusEl = document.getElementById('game-status');
+      if (statusEl) {
+        const badge = document.createElement('span');
+        badge.className = 'rated-badge';
+        badge.textContent = 'RATED';
+        badge.id = 'rated-badge';
+        statusEl.parentElement.insertBefore(badge, statusEl);
+      }
+    }
+
     // Sync DGT board to new game position
     if (this.dgtBoard?.isConnected()) {
       this.dgtBoard.syncToPosition(this.chess);
@@ -1029,6 +1643,27 @@ class ChessApp {
 
     // Fetch opening explorer for starting position
     this.fetchOpeningExplorer();
+
+    // Start eval bar for the new game (if player goes first)
+    if (this._evalBarEnabled && settings.mode === 'engine' && color === 'w') {
+      setTimeout(() => this._updateEvalBar(), 500);
+    }
+
+    // Start move clock — White always moves first
+    this._startMoveClock('w');
+
+    // Start engine watchdog for engine games
+    if (settings.mode === 'engine') {
+      this._startEngineWatchdog();
+    } else {
+      this._stopEngineWatchdog();
+    }
+
+    // Clear mate announcement
+    this._lastMateAnnounce = null;
+
+    // Clear move insight
+    hide(document.getElementById('move-insight'));
   }
 
   renderBotPicker(settings) {
@@ -1422,16 +2057,23 @@ class ChessApp {
     if (this.analyzer.analyzing) return;
     if (this.game.moveHistory.length === 0) return;
 
+    // Get selected analysis depth
+    const depthSelect = document.getElementById('analyze-depth');
+    const analysisDepth = depthSelect ? parseInt(depthSelect.value) : 16;
+
     // Stop engine from any ongoing work
     if (this.engine.thinking) {
       this.engine.stop();
     }
 
+    // Cancel any advisor/eval bar analysis
+    ++this._advisorAbortId;
+    ++this._evalBarAbortId;
+
     // Temporarily remove the onBestMove handler so analysis doesn't trigger game moves
-    const origHandler = this.engine.onBestMove;
     this.engine.onBestMove = null;
 
-    hide(document.getElementById('btn-analyze'));
+    hide(document.getElementById('analyze-group'));
     const progressEl = document.getElementById('analysis-progress');
     const progressFill = document.getElementById('analysis-progress-fill');
     const progressText = document.getElementById('analysis-progress-text');
@@ -1444,7 +2086,7 @@ class ChessApp {
     };
 
     try {
-      const results = await this.analyzer.analyzeGame(this.game.fens, this.game.moveHistory);
+      const results = await this.analyzer.analyzeGame(this.game.fens, this.game.moveHistory, analysisDepth);
       this.analysisResults = results;
 
       if (results) {
@@ -1469,8 +2111,12 @@ class ChessApp {
 
     hide(progressEl);
 
-    // Restore handler
-    this.engine.onBestMove = origHandler;
+    // Restore canonical handler
+    this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+    this.engine.onNoMove = () => this._handleEngineNoMove();
+    if (this.activeBot) {
+      this.engine.applyPersonality(this.activeBot);
+    }
   }
 
   _renderAnalysisSummary(results) {
@@ -1680,6 +2326,123 @@ class ChessApp {
     }
 
     show(dialog);
+  }
+
+  _updateMoveInsight(index) {
+    const el = document.getElementById('move-insight');
+    if (!el) return;
+
+    if (!this.analysisResults || index < 0 || index >= this.analysisResults.moves.length) {
+      hide(el);
+      return;
+    }
+
+    const data = this.analysisResults.moves[index];
+    const classColors = {
+      best: '#4caf50', great: '#2196f3', good: '#8bc34a',
+      inaccuracy: '#ffc107', mistake: '#ff9800', blunder: '#f44336'
+    };
+    const color = classColors[data.classification] || '#888';
+    const moveNum = Math.floor(index / 2) + 1;
+    const side = data.color === 'w' ? '.' : '...';
+
+    // Format eval
+    const evalCp = data.playedEval / 100;
+    const evalStr = `${evalCp > 0 ? '+' : ''}${evalCp.toFixed(1)}`;
+
+    // Generate learning comment
+    const comment = this._getMoveComment(data);
+
+    // Format best move line if not best
+    let bestHtml = '';
+    if (!data.isBestMove && data.bestMove) {
+      // Convert UCI best move to SAN
+      let bestSan = data.bestMove;
+      try {
+        const fen = this.game.fens[index];
+        const tempChess = new Chess(fen);
+        const from = data.bestMove.substring(0, 2);
+        const to = data.bestMove.substring(2, 4);
+        const promo = data.bestMove.length > 4 ? data.bestMove[4] : undefined;
+        const m = tempChess.move({ from, to, promotion: promo });
+        if (m) bestSan = m.san;
+      } catch {}
+      bestHtml = `<div class="move-insight-best">Best: <strong>${bestSan}</strong> (${data.cpLoss > 0 ? '-' : ''}${data.cpLoss} cp)</div>`;
+    }
+
+    // Format PV continuation
+    let pvHtml = '';
+    if (data.pv) {
+      try {
+        const fen = this.game.fens[index];
+        const tempChess = new Chess(fen);
+        const sanMoves = [];
+        for (const uci of data.pv.split(' ').slice(0, 6)) {
+          const f = uci.substring(0, 2);
+          const t = uci.substring(2, 4);
+          const p = uci.length > 4 ? uci[4] : undefined;
+          const m = tempChess.move({ from: f, to: t, promotion: p });
+          if (m) sanMoves.push(m.san);
+          else break;
+        }
+        if (sanMoves.length > 1) {
+          pvHtml = `<div class="move-insight-pv">${sanMoves.join(' ')}</div>`;
+        }
+      } catch {}
+    }
+
+    el.innerHTML = `
+      <div class="move-insight-header">
+        <span class="move-insight-badge" style="background:${color}">${data.classification}</span>
+        <span class="move-insight-move">${moveNum}${side} ${data.move}</span>
+        <span class="move-insight-eval">${evalStr}</span>
+      </div>
+      <div class="move-insight-comment">${comment}</div>
+      ${bestHtml}
+      ${pvHtml}
+    `;
+
+    el.style.borderLeftColor = color;
+    show(el);
+  }
+
+  _getMoveComment(data) {
+    const { classification, cpLoss, isBestMove, move, color, bestEval, playedEval } = data;
+    const side = color === 'w' ? 'White' : 'Black';
+
+    // Check for eval sign change (advantage flipping)
+    const advantageBefore = bestEval > 50 ? 'advantage' : bestEval < -50 ? 'disadvantage' : 'equal';
+    const advantageAfter = playedEval > 50 ? 'advantage' : playedEval < -50 ? 'disadvantage' : 'equal';
+    const flipped = (bestEval > 100 && playedEval < -100) || (bestEval < -100 && playedEval > 100);
+
+    switch (classification) {
+      case 'best':
+        if (Math.abs(bestEval) > 300) return 'The engine\'s top choice. Maintaining a strong position.';
+        if (Math.abs(bestEval) < 30) return 'Excellent move — keeping the position balanced.';
+        return 'This is the best move in the position.';
+
+      case 'great':
+        return 'A strong, ambitious move that maintains or improves the position.';
+
+      case 'good':
+        return `A reasonable move. The best option was slightly better (${cpLoss} cp difference).`;
+
+      case 'inaccuracy':
+        if (flipped) return `This inaccuracy shifted the balance. The position was ${advantageBefore} but is now ${advantageAfter}. Consider looking for more active moves.`;
+        return `A small inaccuracy losing ~${(cpLoss / 100).toFixed(1)} pawns of advantage. Look for moves that create threats or improve piece activity.`;
+
+      case 'mistake':
+        if (flipped) return `This mistake changed the evaluation significantly. ${side} had an ${advantageBefore} position but now faces ${advantageAfter}. Check for tactics before making moves.`;
+        return `A mistake costing ~${(cpLoss / 100).toFixed(1)} pawns. Always check if your opponent has tactical responses before committing.`;
+
+      case 'blunder':
+        if (data.mate !== null) return `A critical blunder allowing a forced checkmate. Always scan for checks and captures before moving.`;
+        if (flipped) return `A serious blunder that swings the game. Always ask: "What can my opponent do after this move?" Check all captures, checks, and threats.`;
+        return `A significant blunder losing ~${(cpLoss / 100).toFixed(1)} pawns. Before each move, consider: Can my opponent capture something? Give a check? Create a threat?`;
+
+      default:
+        return '';
+    }
   }
 
   showMoveTooltip(index, event) {
@@ -1966,6 +2729,158 @@ class ChessApp {
   _updateSoundButton(btn) {
     btn.textContent = this.sound.muted ? 'Sound Off' : 'Sound On';
     btn.classList.toggle('muted', this.sound.muted);
+  }
+
+  setupEvalBarToggle() {
+    const btn = document.getElementById('btn-eval-bar');
+    if (!btn) return;
+    this._updateEvalBarButton(btn);
+
+    btn.addEventListener('click', () => {
+      this.toggleEvalBar();
+      this._updateEvalBarButton(btn);
+    });
+  }
+
+  _updateEvalBarButton(btn) {
+    btn.textContent = this._evalBarEnabled ? 'Eval Bar On' : 'Eval Bar Off';
+  }
+
+  // === Resize Handles ===
+
+  setupResizeHandles() {
+    // Vertical handle between board-area and side-panel
+    this._setupResizeV();
+    // Horizontal handle for move history height
+    this._setupResizeH();
+    // Load saved sizes
+    this._loadResizeSizes();
+  }
+
+  _setupResizeV() {
+    const handle = document.getElementById('resize-handle-main');
+    if (!handle) return;
+
+    let startX, startBoardW, startPanelW;
+    const boardArea = document.querySelector('.board-area');
+    const sidePanel = document.querySelector('.side-panel');
+    if (!boardArea || !sidePanel) return;
+
+    const onMove = (e) => {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const dx = clientX - startX;
+      const newBoardSize = Math.max(200, Math.min(800, startBoardW + dx));
+
+      // Update CSS custom property for board size
+      document.documentElement.style.setProperty('--board-size', newBoardSize + 'px');
+
+      // Update side panel width
+      const newPanelW = Math.max(180, startPanelW - dx);
+      sidePanel.style.width = newPanelW + 'px';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-v');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+
+      // Save sizes
+      const boardSize = getComputedStyle(document.documentElement).getPropertyValue('--board-size').trim();
+      const panelW = sidePanel.style.width;
+      localStorage.setItem('chess_board_size', boardSize);
+      localStorage.setItem('chess_panel_width', panelW);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      startX = clientX;
+      // Get current board size from CSS var
+      const cs = getComputedStyle(document.documentElement);
+      startBoardW = parseInt(cs.getPropertyValue('--board-size')) || boardArea.offsetWidth;
+      startPanelW = sidePanel.offsetWidth;
+
+      document.body.classList.add('resizing', 'resizing-v');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  _setupResizeH() {
+    const handle = document.getElementById('resize-handle-moves');
+    if (!handle) return;
+
+    let startY, startH;
+    const moveContainer = document.querySelector('.move-history-container');
+    if (!moveContainer) return;
+
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = clientY - startY;
+      const newH = Math.max(60, Math.min(500, startH + dy));
+      moveContainer.style.minHeight = newH + 'px';
+      moveContainer.style.maxHeight = newH + 'px';
+      moveContainer.style.flex = 'none';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-h');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+
+      localStorage.setItem('chess_moves_height', moveContainer.style.minHeight);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startY = clientY;
+      startH = moveContainer.offsetHeight;
+
+      document.body.classList.add('resizing', 'resizing-h');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  _loadResizeSizes() {
+    const savedBoardSize = localStorage.getItem('chess_board_size');
+    const savedPanelW = localStorage.getItem('chess_panel_width');
+    const savedMovesH = localStorage.getItem('chess_moves_height');
+
+    if (savedBoardSize) {
+      document.documentElement.style.setProperty('--board-size', savedBoardSize);
+    }
+    if (savedPanelW) {
+      const panel = document.querySelector('.side-panel');
+      if (panel) panel.style.width = savedPanelW;
+    }
+    if (savedMovesH) {
+      const mc = document.querySelector('.move-history-container');
+      if (mc) {
+        mc.style.minHeight = savedMovesH;
+        mc.style.maxHeight = savedMovesH;
+        mc.style.flex = 'none';
+      }
+    }
   }
 
   // === Puzzles ===
@@ -2573,7 +3488,7 @@ class ChessApp {
 
     // Show analyze button
     if (this.engineInitialized) {
-      show(document.getElementById('btn-analyze'));
+      show(document.getElementById('analyze-group'));
     }
 
     // Archive game to DB
@@ -2591,6 +3506,11 @@ class ChessApp {
 
   setupDGT() {
     this.dgtBoard = new DGTBoard();
+
+    // Hide USB Serial option on platforms that don't support it (mobile/Capacitor)
+    if (!navigator.serial) {
+      document.getElementById('dgt-connect-usb').style.display = 'none';
+    }
 
     const dgtDialog = document.getElementById('dgt-dialog');
     const statusDot = document.getElementById('dgt-status-dot');
@@ -2734,6 +3654,43 @@ class ChessApp {
       show(document.getElementById('login-form'));
     });
 
+    // Forgot password
+    document.getElementById('show-forgot-password').addEventListener('click', (e) => {
+      e.preventDefault();
+      hide(document.getElementById('login-form'));
+      show(document.getElementById('forgot-password-form'));
+    });
+
+    document.getElementById('back-to-login-from-forgot').addEventListener('click', () => {
+      hide(document.getElementById('forgot-password-form'));
+      show(document.getElementById('login-form'));
+    });
+
+    document.getElementById('btn-send-reset').addEventListener('click', async () => {
+      if (!this.auth) {
+        this._showAuthError('forgot', 'Supabase not configured.');
+        return;
+      }
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) return;
+
+      const btn = document.getElementById('btn-send-reset');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        await this.auth.resetPassword(email);
+        hide(document.getElementById('forgot-error'));
+        const successEl = document.getElementById('forgot-success');
+        successEl.textContent = 'Password reset email sent! Check your inbox.';
+        show(successEl);
+      } catch (err) {
+        this._showAuthError('forgot', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Link';
+      }
+    });
+
     // Login
     document.getElementById('btn-login').addEventListener('click', async () => {
       if (!this.auth) {
@@ -2744,11 +3701,23 @@ class ChessApp {
       const password = document.getElementById('login-password').value;
       if (!email || !password) return;
 
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
       try {
         await this.auth.login(email, password);
         hide(authDialog);
       } catch (err) {
-        this._showAuthError('login', err.message);
+        let msg = err.message;
+        if (msg.includes('Email not confirmed')) {
+          msg = 'Please confirm your email first. Check your inbox for a confirmation link.';
+        } else if (msg.includes('Invalid login credentials')) {
+          msg = 'Invalid email or password. Please try again.';
+        }
+        this._showAuthError('login', msg);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
       }
     });
 
@@ -2763,11 +3732,25 @@ class ChessApp {
       const password = document.getElementById('register-password').value;
       if (!name || !email || !password) return;
 
+      const btn = document.getElementById('btn-register');
+      btn.disabled = true;
+      btn.textContent = 'Registering...';
       try {
-        await this.auth.register(email, password, name);
-        hide(authDialog);
+        const user = await this.auth.register(email, password, name);
+        if (user && !user.confirmed_at && user.identities?.length === 0) {
+          this._showAuthError('register', 'An account with this email already exists. Try logging in.');
+        } else if (user && !user.confirmed_at) {
+          hide(authDialog);
+          this.showToast('Check your email to confirm your account, then log in.');
+        } else {
+          hide(authDialog);
+          this.showToast(`Welcome, ${name}!`);
+        }
       } catch (err) {
         this._showAuthError('register', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Register';
       }
     });
   }
@@ -2775,11 +3758,21 @@ class ChessApp {
   _updateAuthUI(user) {
     const authBtn = document.getElementById('btn-auth');
     const authStatus = document.getElementById('auth-status');
+    const badge = document.getElementById('btn-user-badge');
+    const badgeAvatar = document.getElementById('header-user-avatar');
+    const badgeName = document.getElementById('header-user-name');
 
     if (user) {
+      const currentUser = this.auth.getCurrentUser();
+      const displayName = currentUser?.displayName || user.user_metadata?.display_name || user.email;
       authBtn.textContent = 'Logout';
-      authStatus.textContent = user.displayName || user.email;
+      authStatus.textContent = displayName;
       show(authStatus);
+
+      // Header badge — show name + avatar
+      badgeName.textContent = displayName;
+      badgeAvatar.src = this.profile.getAvatar();
+      show(badgeAvatar);
 
       // Show admin button if admin
       if (this.auth.isAdmin()) {
@@ -2789,6 +3782,10 @@ class ChessApp {
     } else {
       authBtn.textContent = 'Login';
       hide(authStatus);
+
+      // Header badge — show "Login" text, hide avatar
+      badgeName.textContent = 'Login';
+      hide(badgeAvatar);
 
       const adminBtn = document.getElementById('btn-admin');
       if (adminBtn) hide(adminBtn);
@@ -2875,70 +3872,16 @@ class ChessApp {
       return;
     }
 
-    // Show progress
-    const progressDialog = document.getElementById('bot-match-progress');
-    const statusEl = document.getElementById('bot-match-status');
-    const fillEl = document.getElementById('bot-match-progress-fill');
-    show(progressDialog);
-    statusEl.textContent = `${white.name} vs ${black.name} — Preparing...`;
-    fillEl.style.width = '0%';
-
-    // Temporarily remove onBestMove to prevent interference
-    const origHandler = this.engine.onBestMove;
-    this.engine.onBestMove = null;
-
-    this.botMatch = new BotMatch(this.engine);
-    this.botMatch.onProgress = (moveNum) => {
-      const pct = Math.min(100, moveNum * 0.5);
-      fillEl.style.width = `${pct}%`;
-      statusEl.textContent = `${white.name} vs ${black.name} — Move ${moveNum}...`;
-    };
-
-    try {
-      const result = await this.botMatch.simulate(white, black);
-      hide(progressDialog);
-
-      // Restore handler
-      this.engine.onBestMove = origHandler;
-
-      // Load game for replay
-      this._loadBotMatchForReplay(result, white, black);
-    } catch (err) {
-      hide(progressDialog);
-      this.engine.onBestMove = origHandler;
-      console.error('Bot match failed:', err);
-      this.showToast('Bot match simulation failed');
-    }
-  }
-
-  _loadBotMatchForReplay(result, white, black) {
-    // Load moves into game (loadFromMoves expects SAN strings)
-    const sanMoves = result.moves.map(m => m.san);
-    this.game.loadFromMoves(sanMoves);
-    this.notation.setMoves(this.game.moveHistory);
-
-    // Go to start for replay
-    this.game.goToStart();
-    this.notation.setCurrentIndex(-1);
-    this.board.setLastMove(null);
+    // Set up the board for live spectating
+    this.game.newGame({ mode: 'local', color: 'w', time: 0 });
+    this.game.replayMode = true; // Prevent player interaction
     this.board.setInteractive(false);
     this.board.setFlipped(false);
+    this.notation.clear();
+    this.board.setLastMove(null);
     this.board.update();
     this.captured.clear();
-
-    // Clear analysis
-    this.analysisResults = null;
-    hide(document.getElementById('btn-analyze'));
-    hide(document.getElementById('analysis-progress'));
-    hide(document.getElementById('analysis-summary'));
-    hide(document.getElementById('eval-graph-container'));
-    this.evalGraph.clear();
-    this.notation.clearClassifications();
-
-    // Show analyze button (game is "over" since it's a replay)
-    if (this.engineInitialized) {
-      show(document.getElementById('btn-analyze'));
-    }
+    this.activeBot = null;
 
     // Update player names
     const topName = document.querySelector('#player-top .player-name');
@@ -2946,12 +3889,383 @@ class ChessApp {
     if (topName) topName.textContent = black.name;
     if (bottomName) bottomName.textContent = white.name;
 
-    // Clear bot (not a player game)
-    this.activeBot = null;
-    hide(document.getElementById('engine-status'));
+    // Show engine status for the match
+    const engineStatusEl = document.getElementById('engine-status');
+    show(engineStatusEl);
+    engineStatusEl.textContent = `${white.name} vs ${black.name} — Live`;
 
-    this.updateGameStatus(`${white.name} vs ${black.name} — ${result.result}`);
-    this.showToast(`Game complete: ${result.result}. Use arrow keys to replay.`);
+    this.updateGameStatus(`${white.name} vs ${black.name} — In progress`);
+
+    // Temporarily remove onBestMove to prevent interference
+    const origBestMove = this.engine.onBestMove;
+    const origNoMove = this.engine.onNoMove;
+    this.engine.onBestMove = null;
+    this.engine.onNoMove = null;
+
+    // Abort flag — set to true to stop the match
+    this._botMatchAbort = false;
+    const MAX_MOVES = 200;
+
+    this.engine.send('ucinewgame');
+    this.engine.send('isready');
+    await this.botMatch_waitReady();
+
+    try {
+      while (!this.chess.game_over() && this.game.moveHistory.length < MAX_MOVES && !this._botMatchAbort) {
+        const currentBot = this.chess.turn() === 'w' ? white : black;
+
+        // Show who is thinking
+        engineStatusEl.innerHTML = `<span class="thinking">${currentBot.name}: Thinking <span class="thinking-dots"><span></span><span></span><span></span></span></span>`;
+
+        // Apply personality and get move
+        this.engine.applyPersonality(currentBot);
+        const uciMove = await this.botMatch_getMove(this.chess.fen(), currentBot);
+
+        if (!uciMove || this._botMatchAbort) break;
+
+        // Parse and make the move on the actual game board
+        const from = uciMove.substring(0, 2);
+        const to = uciMove.substring(2, 4);
+        const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
+
+        const move = this.game.makeMove(from, to, promotion);
+        if (!move) break;
+
+        // Update board visuals live
+        this.sound.playMoveSound(move);
+        this.notation.addMove(move);
+        this.board.setLastMove(move);
+        this.board.update();
+        this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+        this.fetchOpeningExplorer();
+
+        const moveNum = Math.ceil(this.game.moveHistory.length / 2);
+        engineStatusEl.textContent = `${white.name} vs ${black.name} — Move ${moveNum}`;
+
+        // Small delay so the viewer can follow along
+        await new Promise(r => setTimeout(r, 400));
+      }
+    } catch (err) {
+      console.error('Bot match error:', err);
+    }
+
+    // Restore handlers
+    this.engine.onBestMove = origBestMove;
+    this.engine.onNoMove = origNoMove;
+    this._botMatchAbort = false;
+
+    // Determine result
+    let result = '1/2-1/2';
+    if (this.chess.in_checkmate()) {
+      result = this.chess.turn() === 'w' ? '0-1' : '1-0';
+    }
+
+    this.game.gameOver = true;
+    this.game.replayMode = false;
+
+    // Allow analysis
+    this.analysisResults = null;
+    if (this.engineInitialized) {
+      show(document.getElementById('analyze-group'));
+    }
+
+    this.updateGameStatus(`${white.name} vs ${black.name} — ${result}`);
+    engineStatusEl.textContent = `${white.name} vs ${black.name} — ${result}`;
+    this.showToast(`Game complete: ${result}. Use arrow keys to review.`);
+  }
+
+  async botMatch_waitReady() {
+    return new Promise((resolve) => {
+      const orig = this.engine.worker.onmessage;
+      this.engine.worker.onmessage = (e) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data);
+        if (msg === 'readyok') {
+          this.engine.worker.onmessage = orig;
+          resolve();
+        }
+      };
+    });
+  }
+
+  async botMatch_getMove(fen, bot) {
+    return new Promise((resolve) => {
+      const orig = this.engine.worker.onmessage;
+      this.engine.worker.onmessage = (e) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data);
+        if (msg.startsWith('bestmove')) {
+          const parts = msg.split(' ');
+          const bestMove = parts[1];
+          this.engine.worker.onmessage = orig;
+          this.engine.thinking = false;
+          if (bestMove && bestMove !== '(none)' && bestMove !== '0000') {
+            resolve(bestMove);
+          } else {
+            resolve(null);
+          }
+        }
+      };
+
+      this.engine.thinking = true;
+      this.engine.send('position fen ' + fen);
+      if (bot.moveTime) {
+        this.engine.send(`go movetime ${Math.min(bot.moveTime, 3000)}`);
+      } else {
+        this.engine.send(`go depth ${Math.min(bot.searchDepth || this.engine.depth, 14)}`);
+      }
+    });
+  }
+
+  // === Music Player ===
+
+  setupMusic() {
+    const dialog = document.getElementById('music-dialog');
+    const playlistEl = document.getElementById('music-playlist');
+    const nowTitle = dialog.querySelector('.music-track-title');
+    const nowComposer = dialog.querySelector('.music-track-composer');
+    const playBtn = document.getElementById('music-play-pause');
+    const volumeSlider = document.getElementById('music-volume');
+    const shuffleBtn = document.getElementById('music-shuffle');
+
+    // Open dialog
+    document.getElementById('btn-music').addEventListener('click', () => {
+      this._renderMusicDialog();
+      show(dialog);
+    });
+
+    document.getElementById('close-music').addEventListener('click', () => {
+      hide(dialog);
+    });
+
+    // Play/Pause
+    playBtn.addEventListener('click', () => {
+      this.music.toggle();
+    });
+
+    // Next / Prev
+    document.getElementById('music-next').addEventListener('click', () => {
+      this.music.next();
+    });
+    document.getElementById('music-prev').addEventListener('click', () => {
+      this.music.prev();
+    });
+
+    // Shuffle
+    shuffleBtn.addEventListener('click', () => {
+      this.music.toggleShuffle();
+    });
+
+    // Volume
+    volumeSlider.value = Math.round(this.music.audio.volume * 100);
+    volumeSlider.addEventListener('input', (e) => {
+      this.music.setVolume(parseInt(e.target.value) / 100);
+    });
+
+    // Composer filter
+    const composerFilter = document.getElementById('music-composer-filter');
+    if (composerFilter) {
+      // Populate composer options
+      const composers = [...new Set(PLAYLIST.map(t => t.composer))].sort();
+      composers.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        composerFilter.appendChild(opt);
+      });
+      composerFilter.addEventListener('change', () => {
+        this._updateMusicPlaylist();
+      });
+    }
+
+    // State change callback
+    this.music.onStateChange = ({ playing, track, shuffle }) => {
+      playBtn.innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
+      nowTitle.textContent = track.title;
+      nowComposer.textContent = track.composer;
+      shuffleBtn.classList.toggle('active', shuffle);
+      this._updateMusicPlaylist();
+    };
+  }
+
+  _renderMusicDialog() {
+    this._updateMusicPlaylist();
+    const nowTitle = document.querySelector('#music-dialog .music-track-title');
+    const nowComposer = document.querySelector('#music-dialog .music-track-composer');
+    const track = this.music.currentTrack;
+    nowTitle.textContent = track.title;
+    nowComposer.textContent = track.composer;
+
+    const playBtn = document.getElementById('music-play-pause');
+    playBtn.innerHTML = this.music.playing ? '&#9646;&#9646;' : '&#9654;';
+
+    const shuffleBtn = document.getElementById('music-shuffle');
+    shuffleBtn.classList.toggle('active', this.music.shuffle);
+  }
+
+  _updateMusicPlaylist() {
+    const filterValue = document.getElementById('music-composer-filter')?.value || 'all';
+    const filteredTracks = filterValue === 'all' ? PLAYLIST : PLAYLIST.filter(t => t.composer === filterValue);
+    const countEl = document.getElementById('music-track-count');
+    if (countEl) countEl.textContent = `${filteredTracks.length} tracks`;
+
+    const playlistEl = document.getElementById('music-playlist');
+    playlistEl.innerHTML = '';
+
+    filteredTracks.forEach((track) => {
+      const i = PLAYLIST.indexOf(track);
+      const el = document.createElement('div');
+      el.className = 'music-track' + (i === this.music.currentIndex ? ' active' : '');
+      el.innerHTML = `
+        <span class="music-track-num">${i + 1}</span>
+        <div class="music-track-details">
+          <div class="music-track-details-title">${track.title}</div>
+          <div class="music-track-details-composer">${track.composer}</div>
+        </div>
+        <span class="music-track-dur">${track.duration}</span>
+      `;
+      el.addEventListener('click', () => {
+        this.music.setTrack(i);
+        if (!this.music.playing) this.music.play();
+      });
+      playlistEl.appendChild(el);
+    });
+  }
+
+  // === Chess News ===
+
+  setupNews() {
+    const dialog = document.getElementById('news-dialog');
+    const contentEl = document.getElementById('news-content');
+
+    document.getElementById('btn-news').addEventListener('click', async () => {
+      show(dialog);
+      this._renderNewsTab('live');
+    });
+
+    document.getElementById('close-news').addEventListener('click', () => {
+      this._hideNewsDetail();
+      hide(dialog);
+    });
+
+    // Back button in detail view
+    document.getElementById('news-back').addEventListener('click', () => {
+      this._hideNewsDetail();
+    });
+
+    // Tab switching
+    dialog.querySelectorAll('.news-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        dialog.querySelectorAll('.news-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        this._renderNewsTab(tab.dataset.tab);
+      });
+    });
+  }
+
+  async _renderNewsTab(tab) {
+    const contentEl = document.getElementById('news-content');
+
+    if (tab === 'live') {
+      contentEl.innerHTML = '<div class="news-loading">Loading live broadcasts...</div>';
+
+      const broadcasts = await this.chessNews.fetchBroadcasts();
+
+      if (broadcasts.length === 0) {
+        contentEl.innerHTML = '<div class="news-loading">No broadcasts available right now. Check back later.</div>';
+        return;
+      }
+
+      contentEl.innerHTML = '';
+
+      // Sort: live first, then upcoming, then finished
+      const order = { live: 0, upcoming: 1, finished: 2 };
+      const sorted = [...broadcasts].sort((a, b) => (order[a.status] || 2) - (order[b.status] || 2));
+
+      // Group by status
+      let lastStatus = '';
+      for (const b of sorted) {
+        if (b.status !== lastStatus) {
+          lastStatus = b.status;
+          const label = document.createElement('div');
+          label.className = 'news-section-label';
+          label.textContent = b.status === 'live' ? 'Live Now' : b.status === 'upcoming' ? 'Upcoming' : 'Recently Finished';
+          contentEl.appendChild(label);
+        }
+
+        const card = document.createElement('div');
+        card.className = `news-card ${b.status}`;
+        card.innerHTML = `
+          <span class="news-badge ${b.status}">${b.status === 'live' ? 'LIVE' : b.status === 'upcoming' ? 'SOON' : 'DONE'}</span>
+          <div class="news-info">
+            <div class="news-title">${b.name}</div>
+            ${b.round ? `<div class="news-desc">${b.round}</div>` : ''}
+            ${b.startsAt ? `<div class="news-meta">${this.chessNews.formatDate(b.startsAt)}</div>` : ''}
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          this._showNewsDetail(b.name, b.url);
+        });
+        contentEl.appendChild(card);
+      }
+    } else if (tab === 'follow') {
+      contentEl.innerHTML = '';
+      const items = this.chessNews.getNewsItems();
+
+      const icons = {
+        fide: '\u265A',
+        news: '\uD83D\uDCF0',
+        live: '\uD83D\uDD34',
+        rating: '\uD83C\uDFC6'
+      };
+
+      for (const item of items) {
+        const card = document.createElement('div');
+        card.className = 'news-link-card';
+        card.style.cursor = 'pointer';
+        card.innerHTML = `
+          <div class="news-link-icon">${icons[item.icon] || '\u265E'}</div>
+          <div class="news-info">
+            <div class="news-title">${item.title}</div>
+            <div class="news-desc">${item.description}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          this._showNewsDetail(item.title, item.url);
+        });
+        contentEl.appendChild(card);
+      }
+    }
+  }
+
+  _showNewsDetail(title, url) {
+    const header = document.getElementById('news-header');
+    const detailHeader = document.getElementById('news-detail-header');
+    const content = document.getElementById('news-content');
+    const detailView = document.getElementById('news-detail-view');
+    const iframe = document.getElementById('news-iframe');
+    const titleEl = document.getElementById('news-detail-title');
+
+    header.classList.add('hidden');
+    content.classList.add('hidden');
+    detailHeader.classList.remove('hidden');
+    detailView.classList.remove('hidden');
+
+    titleEl.textContent = title;
+    iframe.src = url;
+  }
+
+  _hideNewsDetail() {
+    const header = document.getElementById('news-header');
+    const detailHeader = document.getElementById('news-detail-header');
+    const content = document.getElementById('news-content');
+    const detailView = document.getElementById('news-detail-view');
+    const iframe = document.getElementById('news-iframe');
+
+    header.classList.remove('hidden');
+    content.classList.remove('hidden');
+    detailHeader.classList.add('hidden');
+    detailView.classList.add('hidden');
+
+    iframe.src = ''; // Stop loading
   }
 
   // === Themes ===
@@ -3032,6 +4346,11 @@ class ChessApp {
             hide(panel);
           }
         });
+
+        // Auto-trigger advisor analysis when switching to Ideas tab
+        if (tabId === 'ideas' && this._advisorBots.length > 0) {
+          this._updateAdvisorAnalysis();
+        }
       });
     });
   }
@@ -3042,6 +4361,16 @@ class ChessApp {
     document.getElementById('btn-stats').addEventListener('click', () => {
       this._renderStats();
       show(document.getElementById('stats-dialog'));
+    });
+
+    // Header user badge → open profile
+    document.getElementById('btn-user-badge').addEventListener('click', () => {
+      if (this.auth && this.auth.isLoggedIn()) {
+        this._renderStats();
+        show(document.getElementById('stats-dialog'));
+      } else {
+        show(document.getElementById('auth-dialog'));
+      }
     });
 
     document.getElementById('close-stats').addEventListener('click', () => {
@@ -3098,6 +4427,22 @@ class ChessApp {
     document.getElementById('profile-record').textContent = record.total > 0
       ? `${record.wins}W / ${record.losses}L / ${record.draws}D — ${record.total} games`
       : 'No games played yet';
+
+    // Account details (when logged in)
+    const accountEl = document.getElementById('profile-account-details');
+    if (this.auth && this.auth.isLoggedIn()) {
+      const user = this.auth.getCurrentUser();
+      const createdAt = this.auth.user?.created_at;
+      const memberSince = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '';
+      accountEl.innerHTML = `
+        <div class="profile-detail"><span class="profile-detail-label">Email</span><span>${user.email}</span></div>
+        ${memberSince ? `<div class="profile-detail"><span class="profile-detail-label">Member since</span><span>${memberSince}</span></div>` : ''}
+        <div class="profile-detail"><span class="profile-detail-label">Status</span><span><span class="profile-online-dot"></span> Online</span></div>
+      `;
+      show(accountEl);
+    } else {
+      hide(accountEl);
+    }
 
     // Rating graph
     const graphSection = document.getElementById('rating-graph-section');

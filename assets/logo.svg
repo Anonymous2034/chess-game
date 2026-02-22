@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4a843"/>
+      <stop offset="100%" stop-color="#b8922f"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e6c060"/>
+      <stop offset="100%" stop-color="#d4a843"/>
+    </linearGradient>
+  </defs>
+
+  <!-- King crown cross finial -->
+  <rect x="18.5" y="1" width="3" height="4" rx="0.8" fill="url(#goldLight)"/>
+  <rect x="16.5" y="3" width="7" height="2.2" rx="0.8" fill="url(#goldLight)"/>
+
+  <!-- Crown body with 3 points -->
+  <path d="
+    M12 14
+    L12 9.5
+    L14.5 12
+    L17.5 7.5
+    L20 11
+    L22.5 7.5
+    L25.5 12
+    L28 9.5
+    L28 14
+    Z
+  " fill="url(#gold)"/>
+
+  <!-- Crown band -->
+  <rect x="12" y="13" width="16" height="3" rx="0.8" fill="url(#goldLight)"/>
+  <!-- Crown jewel dots -->
+  <circle cx="16" cy="14.5" r="0.9" fill="#b8922f"/>
+  <circle cx="20" cy="14.5" r="1" fill="#b8922f"/>
+  <circle cx="24" cy="14.5" r="0.9" fill="#b8922f"/>
+
+  <!-- Head / face silhouette -->
+  <ellipse cx="20" cy="21.5" rx="7" ry="6.5" fill="url(#gold)"/>
+
+  <!-- Neck -->
+  <rect x="16.5" y="27" width="7" height="3" rx="1" fill="url(#gold)"/>
+
+  <!-- Shoulders / bust -->
+  <path d="
+    M8 38
+    Q8 30 16.5 29.5
+    L23.5 29.5
+    Q32 30 32 38
+    Z
+  " fill="url(#gold)"/>
+
+  <!-- Lapel / collar detail for distinguished look -->
+  <path d="M16.5 29.5 L20 34 L23.5 29.5" fill="none" stroke="#b8922f" stroke-width="1" stroke-linejoin="round"/>
+
+  <!-- Subtle eye line to give character -->
+  <line x1="16" y1="21" x2="18.2" y2="21" stroke="#b8922f" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="21.8" y1="21" x2="24" y2="21" stroke="#b8922f" stroke-width="0.9" stroke-linecap="round"/>
+</svg>

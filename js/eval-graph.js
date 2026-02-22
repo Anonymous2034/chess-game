@@ -28,11 +28,12 @@ export class EvalGraph {
     const maxCp = 500;
     const clamp = (v) => Math.max(-maxCp, Math.min(maxCp, v));
 
+    // Use playedEval (position after the move) to show how the game actually went
     const points = analysisResults.map((r, i) => {
-      const eval_ = clamp(r.bestEval);
+      const eval_ = clamp(r.playedEval);
       const x = padding.left + (i / (analysisResults.length - 1 || 1)) * graphW;
       const y = midY - (eval_ / maxCp) * (graphH / 2);
-      return { x, y, eval: r.bestEval, index: i };
+      return { x, y, eval: r.playedEval, index: i };
     });
 
     // Build SVG

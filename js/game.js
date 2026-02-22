@@ -38,6 +38,7 @@ export class Game {
     this.botId = options.botId || null;
     this.timeControl = options.time || 0;
     this.increment = options.increment || 0;
+    this.rated = options.rated || false;
     this.gameOver = false;
     this.replayMode = false;
 

@@ -76,9 +76,11 @@ export class Engine {
       const bestMove = parts[1];
       this.thinking = false;
       if (this.onStatus) this.onStatus('Ready');
-      // Ignore invalid bestmove responses (checkmate/stalemate position)
-      if (bestMove && bestMove !== '(none)' && bestMove !== '0000' && this.onBestMove) {
-        this.onBestMove(bestMove);
+      if (bestMove && bestMove !== '(none)' && bestMove !== '0000') {
+        if (this.onBestMove) this.onBestMove(bestMove);
+      } else {
+        // No valid move (checkmate/stalemate) — notify so UI can unstick
+        if (this.onNoMove) this.onNoMove();
       }
     } else if (msg.startsWith('info')) {
       // Parse search info for display
@@ -184,11 +186,12 @@ export class Engine {
   /**
    * Analyze a position and return evaluation details.
    * Returns Promise resolving with { bestMove, score, mate, pv }
-   * score is in centipawns from White's perspective.
-   * mate is null or number of moves to mate (positive = white mates).
+   * score is in centipawns from side-to-move's perspective.
+   * mate is null or number of moves to mate (positive = side-to-move mates).
+   * Calls are serialized — only one analysis runs at a time.
    */
   analyzePosition(fen, depth = 18) {
-    return new Promise((resolve) => {
+    const doAnalysis = () => new Promise((resolve) => {
       if (!this.ready) {
         resolve({ bestMove: null, score: 0, mate: null, pv: '' });
         return;
@@ -230,6 +233,12 @@ export class Engine {
       this.send('position fen ' + fen);
       this.send(`go depth ${depth}`);
     });
+
+    // Serialize: chain onto previous analysis to prevent concurrent handler swaps
+    this._analysisQueue = (this._analysisQueue || Promise.resolve())
+      .then(() => doAnalysis())
+      .catch(() => ({ bestMove: null, score: 0, mate: null, pv: '' }));
+    return this._analysisQueue;
   }
 
   destroy() {

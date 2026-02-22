@@ -24,6 +24,20 @@ export class AuthManager {
         this.profile = null;
       }
       this._initialized = true;
+
+      // Handle password recovery redirect
+      if (event === 'PASSWORD_RECOVERY') {
+        const newPassword = prompt('Enter your new password:');
+        if (newPassword && newPassword.length >= 6) {
+          const { error } = await sb.auth.updateUser({ password: newPassword });
+          if (error) {
+            alert('Password update failed: ' + error.message);
+          } else {
+            alert('Password updated successfully! You are now logged in.');
+          }
+        }
+      }
+
       if (this.onAuthChange) this.onAuthChange(this.user);
     });
   }
@@ -39,7 +53,8 @@ export class AuthManager {
       email,
       password,
       options: {
-        data: { display_name: displayName }
+        data: { display_name: displayName },
+        emailRedirectTo: 'https://anonymous2034.github.io/chess-game/'
       }
     });
 
@@ -66,6 +81,19 @@ export class AuthManager {
     const sb = getSupabase();
     if (!sb) return;
     await sb.auth.signOut();
+  }
+
+  /**
+   * Send password reset email
+   */
+  async resetPassword(email) {
+    const sb = getSupabase();
+    if (!sb) throw new Error('Supabase not configured');
+
+    // Always redirect to the production URL (must be whitelisted in Supabase dashboard)
+    const redirectTo = 'https://anonymous2034.github.io/chess-game/';
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
   }
 
   /**
