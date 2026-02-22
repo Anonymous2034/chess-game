@@ -787,6 +787,26 @@ main {
 .dialog-new-game {
   width: 720px;
   max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.dialog-new-game .dialog-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.dialog-new-game .dialog-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel-bg);
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .bot-picker-layout {
@@ -3426,7 +3446,6 @@ body.resizing-h {
     min-width: unset;
     width: 95vw;
     max-height: 90dvh;
-    overflow-y: auto;
   }
 
   .btn-group .btn {
