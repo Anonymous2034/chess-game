@@ -8,19 +8,27 @@ export class Engine {
     this.depth = 10;
     this.onReady = null;
     this.onBestMove = null;
+    this.onNoMove = null;
     this.onStatus = null;
     this.moveTime = null; // ms, alternative to depth
+
+    // Analysis state — never swap worker.onmessage
+    this._analyzing = false;
+    this._analysisResult = null;
+    this._analysisResolve = null;
+    this._analysisCancelId = 0;
+    this._analysisQueue = Promise.resolve();
+    this._ignoreNextBestmove = false;
   }
 
   async init() {
     return new Promise((resolve, reject) => {
       try {
-        // The stockfish.js file auto-detects worker context and looks for
-        // stockfish-nnue-16-single.wasm in the same directory by default.
         this.worker = new Worker('lib/stockfish/stockfish.js');
 
         let settled = false;
 
+        // Single permanent handler — never replaced
         this.worker.onmessage = (e) => {
           const msg = typeof e.data === 'string' ? e.data : String(e.data);
           this.handleMessage(msg);
@@ -72,38 +80,80 @@ export class Engine {
       this.ready = true;
       if (this.onStatus) this.onStatus('Ready');
     } else if (msg.startsWith('bestmove')) {
+
+      // Ignore bestmove from a cancelled analysis (after 'stop' was sent)
+      if (this._ignoreNextBestmove) {
+        this._ignoreNextBestmove = false;
+        return;
+      }
+
       const parts = msg.split(' ');
       const bestMove = parts[1];
+
+      // Analysis result — route to analysis resolver, NOT to onBestMove
+      if (this._analyzing) {
+        this._analyzing = false;
+        if (this._analysisResult) {
+          this._analysisResult.bestMove = bestMove || null;
+        }
+        if (this._analysisResolve) {
+          const resolve = this._analysisResolve;
+          this._analysisResolve = null;
+          resolve(this._analysisResult || { bestMove: bestMove || null, score: 0, mate: null, pv: '' });
+        }
+        this._analysisResult = null;
+        return;
+      }
+
+      // Game move result
       this.thinking = false;
       if (this.onStatus) this.onStatus('Ready');
       if (bestMove && bestMove !== '(none)' && bestMove !== '0000') {
         if (this.onBestMove) this.onBestMove(bestMove);
       } else {
-        // No valid move (checkmate/stalemate) — notify so UI can unstick
         if (this.onNoMove) this.onNoMove();
       }
+
     } else if (msg.startsWith('info')) {
-      // Parse search info for display
-      const depthMatch = msg.match(/depth (\d+)/);
-      const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
-      if (depthMatch && this.thinking) {
-        let status = `Thinking... depth ${depthMatch[1]}`;
-        if (scoreMatch) {
+      if (this._analyzing && this._analysisResult) {
+        // Analysis info — update result object
+        const depthMatch = msg.match(/depth (\d+)/);
+        const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
+        const pvMatch = msg.match(/ pv (.+)/);
+
+        if (depthMatch && scoreMatch) {
           if (scoreMatch[1] === 'cp') {
-            const cp = parseInt(scoreMatch[2]) / 100;
-            status += ` (${cp > 0 ? '+' : ''}${cp.toFixed(1)})`;
+            this._analysisResult.score = parseInt(scoreMatch[2]);
+            this._analysisResult.mate = null;
           } else {
-            status += ` (mate in ${scoreMatch[2]})`;
+            this._analysisResult.mate = parseInt(scoreMatch[2]);
+            this._analysisResult.score = this._analysisResult.mate > 0 ? 10000 : -10000;
           }
         }
-        if (this.onStatus) this.onStatus(status);
+        if (pvMatch) {
+          this._analysisResult.pv = pvMatch[1];
+        }
+      } else if (this.thinking) {
+        // Game move thinking info — update status
+        const depthMatch = msg.match(/depth (\d+)/);
+        const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
+        if (depthMatch) {
+          let status = `Thinking... depth ${depthMatch[1]}`;
+          if (scoreMatch) {
+            if (scoreMatch[1] === 'cp') {
+              const cp = parseInt(scoreMatch[2]) / 100;
+              status += ` (${cp > 0 ? '+' : ''}${cp.toFixed(1)})`;
+            } else {
+              status += ` (mate in ${scoreMatch[2]})`;
+            }
+          }
+          if (this.onStatus) this.onStatus(status);
+        }
       }
     }
   }
 
   setDifficulty(level) {
-    // Level 1-20
-    // Map to depth and optionally skill level
     this.depth = Math.max(1, Math.min(level, 20));
 
     if (this.ready) {
@@ -115,9 +165,6 @@ export class Engine {
     }
   }
 
-  /**
-   * Reset all UCI options to defaults
-   */
   resetOptions() {
     if (!this.ready) return;
     this.send('setoption name Skill Level value 20');
@@ -127,34 +174,36 @@ export class Engine {
     this.moveTime = null;
   }
 
-  /**
-   * Apply a bot personality's UCI configuration
-   */
   applyPersonality(bot) {
     if (!this.ready) return;
 
     this.resetOptions();
 
-    // Use UCI_LimitStrength if stockfishElo is set
     if (bot.stockfishElo) {
       this.send('setoption name UCI_LimitStrength value true');
       this.send(`setoption name UCI_Elo value ${bot.stockfishElo}`);
     }
 
-    // Apply bot-specific UCI options (Contempt, Skill Level, etc.)
     if (bot.uci) {
       for (const [option, value] of Object.entries(bot.uci)) {
         this.send(`setoption name ${option} value ${value}`);
       }
     }
 
-    // Set search parameters
     this.depth = bot.searchDepth || 20;
     this.moveTime = bot.moveTime || null;
   }
 
+  /**
+   * Request a game move. Cancels any in-progress analysis first.
+   */
   requestMove(fen) {
-    if (!this.ready || this.thinking) return;
+    if (!this.ready) return;
+
+    // Cancel any in-progress analysis before requesting a game move
+    this._cancelAnalysis();
+
+    if (this.thinking) return;
 
     this.thinking = true;
     if (this.onStatus) this.onStatus('Thinking...');
@@ -168,6 +217,33 @@ export class Engine {
     }
   }
 
+  /**
+   * Cancel any in-progress or queued analysis.
+   * Sends 'stop' to the engine and resolves the pending promise with empty results.
+   */
+  _cancelAnalysis() {
+    // Increment cancel ID so queued analyses know to skip
+    this._analysisCancelId++;
+
+    if (this._analyzing) {
+      this.send('stop');
+      this._analyzing = false;
+
+      // Resolve pending promise with empty result
+      if (this._analysisResolve) {
+        this._analysisResolve({ bestMove: null, score: 0, mate: null, pv: '' });
+        this._analysisResolve = null;
+      }
+      this._analysisResult = null;
+
+      // The 'stop' will cause a bestmove response — ignore it
+      this._ignoreNextBestmove = true;
+    }
+
+    // Clear the queue so no more queued analyses run
+    this._analysisQueue = Promise.resolve();
+  }
+
   stop() {
     if (this.thinking) {
       this.send('stop');
@@ -178,6 +254,7 @@ export class Engine {
   newGame() {
     if (this.ready) {
       this.stop();
+      this._cancelAnalysis();
       this.send('ucinewgame');
       this.send('isready');
     }
@@ -186,56 +263,39 @@ export class Engine {
   /**
    * Analyze a position and return evaluation details.
    * Returns Promise resolving with { bestMove, score, mate, pv }
-   * score is in centipawns from side-to-move's perspective.
-   * mate is null or number of moves to mate (positive = side-to-move mates).
-   * Calls are serialized — only one analysis runs at a time.
+   * Messages are routed through handleMessage() — worker.onmessage is never swapped.
+   * Calls are serialized and can be cancelled by requestMove() or _cancelAnalysis().
    */
   analyzePosition(fen, depth = 18) {
+    const cancelId = this._analysisCancelId;
+
     const doAnalysis = () => new Promise((resolve) => {
-      if (!this.ready) {
+      // Skip if cancelled, not ready, or engine is thinking about a game move
+      if (!this.ready || this.thinking || cancelId !== this._analysisCancelId) {
         resolve({ bestMove: null, score: 0, mate: null, pv: '' });
         return;
       }
 
-      let result = { bestMove: null, score: 0, mate: null, pv: '' };
-
-      const originalHandler = this.worker.onmessage;
-      this.worker.onmessage = (e) => {
-        const msg = typeof e.data === 'string' ? e.data : String(e.data);
-
-        if (msg.startsWith('info') && msg.includes('depth')) {
-          const depthMatch = msg.match(/depth (\d+)/);
-          const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
-          const pvMatch = msg.match(/ pv (.+)/);
-
-          if (depthMatch && scoreMatch) {
-            if (scoreMatch[1] === 'cp') {
-              result.score = parseInt(scoreMatch[2]);
-              result.mate = null;
-            } else {
-              result.mate = parseInt(scoreMatch[2]);
-              result.score = result.mate > 0 ? 10000 : -10000;
-            }
-          }
-          if (pvMatch) {
-            result.pv = pvMatch[1];
-          }
-        } else if (msg.startsWith('bestmove')) {
-          const parts = msg.split(' ');
-          result.bestMove = parts[1] || null;
-
-          // Restore original handler
-          this.worker.onmessage = originalHandler;
-          resolve(result);
-        }
-      };
+      this._analyzing = true;
+      this._analysisResult = { bestMove: null, score: 0, mate: null, pv: '' };
+      this._analysisResolve = resolve;
 
       this.send('position fen ' + fen);
       this.send(`go depth ${depth}`);
+
+      // Safety timeout — if analysis doesn't complete in 30s, resolve empty
+      setTimeout(() => {
+        if (this._analysisResolve === resolve) {
+          this._analyzing = false;
+          this._analysisResolve = null;
+          this._analysisResult = null;
+          resolve({ bestMove: null, score: 0, mate: null, pv: '' });
+        }
+      }, 30000);
     });
 
-    // Serialize: chain onto previous analysis to prevent concurrent handler swaps
-    this._analysisQueue = (this._analysisQueue || Promise.resolve())
+    // Serialize: chain onto previous analysis
+    this._analysisQueue = this._analysisQueue
       .then(() => doAnalysis())
       .catch(() => ({ bestMove: null, score: 0, mate: null, pv: '' }));
     return this._analysisQueue;
@@ -249,9 +309,6 @@ export class Engine {
     }
   }
 
-  /**
-   * Convert UCI move (e.g. "e2e4", "e7e8q") to from/to/promotion
-   */
   static parseUCIMove(uci) {
     return {
       from: uci.substring(0, 2),

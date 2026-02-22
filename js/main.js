@@ -282,6 +282,12 @@ class ChessApp {
     this._setEngineThinking(true);
     this._startEngineMoveTimer();
 
+    // ALWAYS restore active bot personality before requesting a move.
+    // Analysis (eval bar, advisors) may have changed engine personality.
+    if (this.activeBot) {
+      this.engine.applyPersonality(this.activeBot);
+    }
+
     // Check opening book first
     if (this.activeBot) {
       const engineColor = this.game.playerColor === 'w' ? 'b' : 'w';
