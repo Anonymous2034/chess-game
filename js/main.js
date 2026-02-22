@@ -163,7 +163,7 @@ class ChessApp {
     }
 
     // Start with default game
-    this.game.newGame({ mode: 'local' });
+    this.game.newGame({ mode: 'engine' });
     this.board.update();
     this.updateGameStatus('White to move');
   }
@@ -1428,7 +1428,7 @@ class ChessApp {
 
   setupNewGameDialog() {
     const dialog = document.getElementById('new-game-dialog');
-    const settings = { mode: 'local', color: 'w', botId: 'beginner-betty', time: 0, increment: 0, rated: false };
+    const settings = { mode: 'engine', color: 'w', botId: 'beginner-betty', time: 0, increment: 0, rated: false };
 
     // Render bot picker
     this.renderBotPicker(settings);
