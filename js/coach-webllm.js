@@ -101,7 +101,7 @@ export class CoachWebLLM {
   }
 
   _buildSystemPrompt(context) {
-    let prompt = `You are a friendly and knowledgeable chess coach. Give concise, helpful advice about chess positions, strategy, and tactics. Keep responses under 150 words. Be encouraging and educational.`;
+    let prompt = context.systemPromptOverride || `You are a friendly and knowledgeable chess coach. Give concise, helpful advice about chess positions, strategy, and tactics. Keep responses under 150 words. Be encouraging and educational.`;
 
     if (context.fen) {
       prompt += `\n\nCurrent position (FEN): ${context.fen}`;

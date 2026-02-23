@@ -504,11 +504,11 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Advisors Tab</span>
+            <span class="layout-toggle-label">GM Hints Tab</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Coach Tab</span>
+            <span class="layout-toggle-label">GM Coach Tab</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
@@ -523,20 +523,96 @@
       </div>
     </div>
 
-    <!-- Theme Settings Dialog -->
-    <div id="theme-dialog" class="dialog-overlay hidden">
-      <div class="dialog">
-        <h2>Themes</h2>
-        <div class="theme-section">
-          <h4>Board</h4>
-          <div class="board-theme-swatches" id="board-theme-swatches"></div>
+    <!-- Settings Dialog -->
+    <div id="settings-dialog" class="dialog-overlay hidden">
+      <div class="dialog settings-dialog">
+        <h2>Settings</h2>
+
+        <!-- SOUND section -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Sound</h4>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Move Sounds</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-sound"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Voice Announcements</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Background Music</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-music"><span class="toggle-slider"></span></span>
+          </label>
+          <div class="settings-volume-row">
+            <span class="layout-toggle-label">Music Volume</span>
+            <div class="settings-volume-control">
+              <span class="music-vol-icon">&#128264;</span>
+              <input type="range" id="settings-music-volume" min="0" max="100" value="30" class="music-volume-slider">
+              <span class="music-vol-icon">&#128266;</span>
+            </div>
+          </div>
         </div>
-        <div class="theme-section">
-          <h4>Pieces</h4>
-          <div class="piece-theme-list" id="piece-theme-list"></div>
+
+        <!-- DISPLAY section -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Display</h4>
+          <div class="settings-subsection">
+            <span class="settings-sublabel">Board Theme</span>
+            <div class="board-theme-swatches" id="board-theme-swatches"></div>
+          </div>
+          <div class="settings-subsection">
+            <span class="settings-sublabel">Piece Style</span>
+            <div class="piece-theme-list" id="piece-theme-list"></div>
+          </div>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Eval Bar</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-eval-bar"><span class="toggle-slider"></span></span>
+          </label>
+          <div class="settings-toggle-row settings-btn-row">
+            <span class="layout-toggle-label">Layout Editor</span>
+            <button class="btn btn-sm" id="settings-open-layout">Open</button>
+          </div>
         </div>
+
+        <!-- BOARD section -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Board</h4>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Flip Board</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-flip"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+
+        <!-- DGT BOARD section -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">DGT Board</h4>
+          <div class="dgt-status-indicator" id="dgt-status-indicator">
+            <span class="dgt-status-dot" id="dgt-status-dot"></span>
+            <span id="dgt-status-text">Not connected</span>
+          </div>
+          <div class="dgt-connect-options" id="dgt-connect-options">
+            <button class="dgt-connect-btn" id="dgt-connect-usb">
+              <div class="dgt-connect-title">USB (Web Serial)</div>
+              <div class="dgt-connect-desc">Direct USB connection. Chrome/Edge only.</div>
+            </button>
+            <button class="dgt-connect-btn" id="dgt-connect-livechess">
+              <div class="dgt-connect-title">DGT LiveChess</div>
+              <div class="dgt-connect-desc">Connect via LiveChess 2 software (WebSocket).</div>
+            </button>
+            <button class="dgt-connect-btn" id="dgt-connect-pegasus">
+              <div class="dgt-connect-title">DGT Pegasus</div>
+              <div class="dgt-connect-desc">Connect via Bluetooth (BLE).</div>
+            </button>
+          </div>
+          <div class="dgt-engine-move hidden" id="dgt-engine-move">
+            <div class="dgt-engine-move-label">Play this move on your board:</div>
+            <div class="dgt-engine-move-san" id="dgt-engine-move-san"></div>
+          </div>
+          <button class="btn btn-secondary hidden" id="dgt-disconnect">Disconnect</button>
+        </div>
+
         <div class="dialog-actions">
-          <button class="btn btn-secondary" id="close-theme-dialog">Close</button>
+          <button class="btn btn-primary" id="close-settings">Done</button>
         </div>
       </div>
     </div>
@@ -603,42 +679,6 @@
       </div>
     </div>
 
-    <!-- DGT Board Dialog -->
-    <div id="dgt-dialog" class="dialog-overlay hidden">
-      <div class="dialog">
-        <h2>DGT Board</h2>
-        <div class="dgt-status-indicator" id="dgt-status-indicator">
-          <span class="dgt-status-dot" id="dgt-status-dot"></span>
-          <span id="dgt-status-text">Not connected</span>
-        </div>
-        <div class="dgt-connect-options" id="dgt-connect-options">
-          <button class="dgt-connect-btn" id="dgt-connect-usb">
-            <div class="dgt-connect-title">USB (Web Serial)</div>
-            <div class="dgt-connect-desc">Direct USB connection. Chrome/Edge only.</div>
-          </button>
-          <button class="dgt-connect-btn" id="dgt-connect-livechess">
-            <div class="dgt-connect-title">DGT LiveChess</div>
-            <div class="dgt-connect-desc">Connect via LiveChess 2 software (WebSocket).</div>
-          </button>
-          <button class="dgt-connect-btn" id="dgt-connect-pegasus">
-            <div class="dgt-connect-title">DGT Pegasus</div>
-            <div class="dgt-connect-desc">Connect via Bluetooth (BLE).</div>
-          </button>
-        </div>
-        <div class="dgt-engine-move hidden" id="dgt-engine-move">
-          <div class="dgt-engine-move-label">Play this move on your board:</div>
-          <div class="dgt-engine-move-san" id="dgt-engine-move-san"></div>
-        </div>
-        <label class="dgt-voice-toggle" id="dgt-voice-toggle">
-          <input type="checkbox" id="dgt-voice-enabled" checked>
-          Voice announcements
-        </label>
-        <div class="dialog-actions">
-          <button class="btn btn-secondary hidden" id="dgt-disconnect">Disconnect</button>
-          <button class="btn btn-secondary" id="close-dgt">Close</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Multiplayer Dialog -->
     <div id="multiplayer-dialog" class="dialog-overlay hidden">
@@ -790,7 +830,6 @@
       </div>
       <nav>
         <button class="btn" id="btn-new-game">New Game</button>
-        <button class="btn" id="btn-flip">Flip Board</button>
         <button class="btn header-user-badge" id="btn-user-badge">
           <img class="header-user-avatar hidden" id="header-user-avatar" src="img/avatars/knight.svg" alt="">
           <span class="header-user-name" id="header-user-name">Login</span>
@@ -810,7 +849,7 @@
             <span class="nav-menu-label">Tools</span>
             <button class="btn" id="btn-database">Database</button>
             <button class="btn" id="btn-stats">Stats</button>
-            <button class="btn" id="btn-multi-analysis">Live Advisors</button>
+            <button class="btn" id="btn-multi-analysis">GM Coach</button>
             <div class="dropdown">
               <button class="btn" id="btn-pgn-menu">PGN</button>
               <div class="dropdown-content">
@@ -822,15 +861,10 @@
           <div class="nav-menu-section">
             <span class="nav-menu-label">More</span>
             <button class="btn" id="btn-news">Chess World</button>
-            <button class="btn" id="btn-music">Music</button>
           </div>
           <div class="nav-menu-section">
             <span class="nav-menu-label">Settings</span>
-            <button class="btn" id="btn-themes">Themes</button>
-            <button class="btn" id="btn-eval-bar">Eval Bar</button>
-            <button class="btn" id="btn-layout">Layout</button>
-            <button class="btn" id="btn-sound" title="Toggle Sound">Sound On</button>
-            <button class="btn" id="btn-dgt">DGT Board</button>
+            <button class="btn" id="btn-settings">Settings</button>
           </div>
           <div class="nav-menu-section">
             <button class="btn hidden" id="btn-admin">Admin</button>
@@ -946,8 +980,8 @@
         <!-- Side Panel Tabs -->
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="moves">Moves</button>
-          <button class="panel-tab" data-tab="ideas">Advisors</button>
-          <button class="panel-tab" data-tab="coach">Coach</button>
+          <button class="panel-tab" data-tab="ideas">GM Hints</button>
+          <button class="panel-tab" data-tab="gm-coach">GM Coach</button>
         </div>
 
         <!-- Moves Tab -->
@@ -997,19 +1031,25 @@
           </div>
         </div>
 
-        <!-- Coach Tab -->
-        <div class="panel-content hidden" id="tab-coach">
-          <div class="coach-panel">
-            <div class="coach-header">
-              <span class="coach-tier-badge" id="coach-tier-badge">Tier 1</span>
-              <button class="btn btn-sm" id="btn-coach-settings" title="Coach Settings">Settings</button>
+        <!-- GM Coach Tab -->
+        <div class="panel-content hidden" id="tab-gm-coach">
+          <div class="gm-coach-panel">
+            <div class="gm-coach-header">
+              <button class="btn btn-sm" id="btn-pick-coaches">Choose Coaches</button>
+              <button class="btn btn-sm" id="btn-coach-settings" title="Settings">\u2699</button>
             </div>
-            <div class="coach-messages" id="coach-messages"></div>
-            <div class="coach-input">
-              <input type="text" id="coach-input" placeholder="Ask your coach...">
-              <button class="btn btn-sm btn-primary" id="btn-coach-send">Send</button>
+            <div class="gm-coach-picker hidden" id="gm-coach-picker"></div>
+            <div class="gm-coach-cards" id="gm-coach-cards">
+              <div class="gm-coach-empty">Pick 1\u20133 grandmasters or engines to receive personalized coaching.</div>
             </div>
-            <div class="coach-status" id="coach-status"></div>
+            <div class="gm-coach-chat">
+              <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>
+              <div class="gm-coach-chat-input">
+                <input type="text" id="gm-coach-input" placeholder="Ask your coaches...">
+                <button class="btn btn-sm btn-primary" id="btn-gm-coach-send">Send</button>
+              </div>
+            </div>
+            <div class="gm-coach-status" id="gm-coach-status"></div>
           </div>
         </div>
       </div>

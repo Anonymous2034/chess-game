@@ -3,6 +3,7 @@
 import { CoachTips } from './coach-tips.js';
 import { CoachWebLLM } from './coach-webllm.js';
 import { CoachAPI } from './coach-api.js';
+import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
 
 const TIER_KEY = 'chess_coach_tier';
 
@@ -153,6 +154,120 @@ export class CoachManager {
     }
   }
 
+  /**
+   * Generate personality-filtered positional commentary for a GM coach
+   * @param {string} coachId — bot id (e.g. 'tal', 'stockfish')
+   * @param {Object} positionData — { chess, analysis, fen, sections }
+   * @returns {Promise<{ tier: number, text: string, moveHintIntro: string }>}
+   */
+  async generateCoachCommentary(coachId, positionData) {
+    const profile = GM_COACH_PROFILES[coachId];
+    if (!profile) return { tier: 1, text: '', moveHintIntro: '' };
+
+    const { sections, analysis } = positionData;
+
+    // Tier 1 (always available): template matching
+    const tier1Text = this._buildTier1Commentary(profile, sections, analysis);
+
+    // If tier 2/3 available, enhance with AI
+    if (this.activeTier === 3 && this.api.isConfigured()) {
+      try {
+        const sectionText = sections.map(s => `${s.title}: ${s.text}`).join('\n');
+        const prompt = `Based on this position analysis, give a 2-3 sentence coaching insight in character:\n\n${sectionText}`;
+        const context = { ...positionData, systemPromptOverride: profile.systemPrompt, phase: 'positional' };
+        const response = await this.api.chat(prompt, context);
+        return { tier: 3, text: response, moveHintIntro: profile.moveHintIntro };
+      } catch { /* fall through to tier 1 */ }
+    }
+
+    if (this.activeTier === 2 && this.webllm.isReady()) {
+      try {
+        const sectionText = sections.map(s => `${s.title}: ${s.text}`).join('\n');
+        const prompt = `Based on this position analysis, give a 2-3 sentence coaching insight in character:\n\n${sectionText}`;
+        const context = { ...positionData, systemPromptOverride: profile.systemPrompt, phase: 'positional' };
+        const response = await this.webllm.chat(prompt, context);
+        return { tier: 2, text: response, moveHintIntro: profile.moveHintIntro };
+      } catch { /* fall through to tier 1 */ }
+    }
+
+    return { tier: 1, text: tier1Text, moveHintIntro: profile.moveHintIntro };
+  }
+
+  /**
+   * Tier 1: template-based commentary from profile + position sections
+   */
+  _buildTier1Commentary(profile, sections, analysis) {
+    const lines = [];
+
+    // 1) Evaluation line
+    if (analysis) {
+      const cp = analysis.score / 100;
+      if (analysis.mate !== null && analysis.mate !== undefined) {
+        lines.push(cp > 0 ? profile.commentary.advantage : profile.commentary.disadvantage);
+      } else if (Math.abs(cp) < 0.3) {
+        lines.push(profile.commentary.equalPosition);
+      } else if (cp > 0.3) {
+        lines.push(profile.commentary.advantage);
+      } else {
+        lines.push(profile.commentary.disadvantage);
+      }
+    }
+
+    // 2) Scan sections for features, matched to profile commentary keys
+    const featureMatches = [];
+    for (const section of sections) {
+      if (section.title === 'Material') {
+        if (section.text.includes('up')) featureMatches.push({ key: 'materialUp', priority: 'material' });
+        else if (section.text.includes('down') || section.text.match(/Black is up|White is up/))
+          featureMatches.push({ key: 'materialDown', priority: 'material' });
+      }
+      if (section.title === 'Pawn Structure') {
+        if (section.text.includes('isolated')) featureMatches.push({ key: 'isolatedPawn', priority: 'pawn_structure' });
+        if (section.text.includes('passed')) featureMatches.push({ key: 'passedPawn', priority: 'pawn_structure' });
+        if (section.text.includes('doubled')) featureMatches.push({ key: 'doubledPawns', priority: 'pawn_structure' });
+      }
+      if (section.title === 'King Safety') {
+        if (section.text.includes('exposed') || section.text.includes('broken'))
+          featureMatches.push({ key: 'openKing', priority: 'king_safety' });
+        else if (section.text.includes('well-sheltered') || section.text.includes('intact'))
+          featureMatches.push({ key: 'kingSafe', priority: 'king_safety' });
+        if (section.text.includes('remains in the center'))
+          featureMatches.push({ key: 'notCastled', priority: 'king_safety' });
+      }
+      if (section.title === 'Open Files') {
+        if (section.text.includes('open')) featureMatches.push({ key: 'openFile', priority: 'piece_activity' });
+      }
+      if (section.title === 'Piece Activity') {
+        if (section.text.includes('cramped')) featureMatches.push({ key: 'cramped', priority: 'piece_activity' });
+        else if (section.text.includes('active') || section.text.includes('very active'))
+          featureMatches.push({ key: 'activePosition', priority: 'piece_activity' });
+      }
+      if (section.title === 'Center') {
+        featureMatches.push({ key: 'centerControl', priority: 'center_control' });
+      }
+    }
+
+    // 3) Sort by profile priorities
+    const priorityOrder = profile.priorities || [];
+    featureMatches.sort((a, b) => {
+      const aIdx = priorityOrder.indexOf(a.priority);
+      const bIdx = priorityOrder.indexOf(b.priority);
+      return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+    });
+
+    // 4) Take top 2 features
+    const seen = new Set();
+    for (const match of featureMatches) {
+      if (seen.has(match.key)) continue;
+      seen.add(match.key);
+      const template = profile.commentary[match.key];
+      if (template) lines.push(template);
+      if (lines.length >= 3) break; // eval + 2 features
+    }
+
+    return lines.join(' ');
+  }
+
   _addMessage(role, content, type = '') {
     this.messages.push({ role, content, type, time: Date.now() });
 
@@ -186,6 +301,79 @@ export class CoachManager {
       apiProvider: this.api.provider,
       apiModel: this.api.model
     };
+  }
+
+  /**
+   * Generate positional summary for Live Advisors tab
+   * @param {Object} context - { fen, evaluation, commentary (PositionCommentary sections) }
+   * @returns {Promise<string|null>} Natural language positional guidance (no concrete moves)
+   */
+  async getPositionalSummary(context) {
+    if (!this.enabled) return null;
+
+    const { evaluation, commentary } = context;
+
+    if (this.activeTier === 3 && this.api.isConfigured()) {
+      // Tier 3: API — rich positional guidance
+      try {
+        const sectionText = commentary.map(s => `${s.title}: ${s.text}`).join('\n');
+        const prompt = `You are a chess coach. Based on this position analysis, describe the strategic themes and plans for both sides in 2-3 sentences. Do NOT suggest specific moves.\n\n${sectionText}`;
+        return await this.api.chat(prompt, { ...context, phase: 'positional' });
+      } catch {
+        return null;
+      }
+    }
+
+    if (this.activeTier === 2 && this.webllm.isReady()) {
+      // Tier 2: WebLLM — in-browser AI guidance
+      try {
+        const sectionText = commentary.map(s => `${s.title}: ${s.text}`).join('\n');
+        const prompt = `You are a chess coach. Based on this position analysis, describe the strategic themes and plans for both sides in 2-3 sentences. Do NOT suggest specific moves.\n\n${sectionText}`;
+        return await this.webllm.chat(prompt, { ...context, phase: 'positional' });
+      } catch {
+        return null;
+      }
+    }
+
+    // Tier 1: Template-based summary from evaluation + commentary features
+    if (!evaluation) return null;
+
+    const tips = [];
+    const cp = evaluation.score / 100;
+
+    // Evaluation-based tip
+    if (evaluation.mate !== null && evaluation.mate !== undefined) {
+      tips.push(evaluation.mate > 0
+        ? 'White should look for forcing moves to deliver checkmate.'
+        : 'Black should look for forcing moves to deliver checkmate.');
+    } else if (Math.abs(cp) < 0.3) {
+      tips.push('The position is balanced. Focus on improving piece placement and creating long-term weaknesses.');
+    } else if (Math.abs(cp) < 1.5) {
+      tips.push(`${cp > 0 ? 'White' : 'Black'} has a small advantage. Maintain pressure and avoid unnecessary exchanges.`);
+    } else {
+      tips.push(`${cp > 0 ? 'White' : 'Black'} has a significant advantage. Convert by simplifying into a winning endgame.`);
+    }
+
+    // Add tips based on commentary features
+    for (const section of commentary) {
+      if (section.title === 'Pawn Structure' && section.text.includes('isolated')) {
+        tips.push('Target the isolated pawn — blockade it and attack it with pieces.');
+      }
+      if (section.title === 'Pawn Structure' && section.text.includes('passed')) {
+        tips.push('A passed pawn is a powerful asset. Support its advance or use it to tie down the opponent\'s pieces.');
+      }
+      if (section.title === 'King Safety' && section.text.includes('exposed')) {
+        tips.push('The exposed king is a target. Look for ways to open lines toward it.');
+      }
+      if (section.title === 'Open Files' && section.text.includes('open')) {
+        tips.push('Contest the open files with rooks. Rooks are strongest when doubled on open files.');
+      }
+      if (section.title === 'Piece Activity' && section.text.includes('cramped')) {
+        tips.push('The cramped side should look for piece exchanges to relieve pressure.');
+      }
+    }
+
+    return tips.length > 0 ? tips.slice(0, 3).join(' ') : null;
   }
 
   /**

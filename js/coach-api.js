@@ -145,7 +145,7 @@ export class CoachAPI {
   }
 
   _buildSystemPrompt(context) {
-    let prompt = `You are an expert chess coach helping a player improve. Provide strategic and tactical advice. Be concise (under 200 words), encouraging, and educational. Explain concepts clearly. When analyzing positions, discuss pawn structure, piece activity, king safety, and tactical patterns.`;
+    let prompt = context.systemPromptOverride || `You are an expert chess coach helping a player improve. Provide strategic and tactical advice. Be concise (under 200 words), encouraging, and educational. Explain concepts clearly. When analyzing positions, discuss pawn structure, piece activity, king safety, and tactical patterns.`;
 
     if (context.fen) {
       prompt += `\n\nCurrent position (FEN): ${context.fen}`;

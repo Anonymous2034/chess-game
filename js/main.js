@@ -5,6 +5,7 @@ import { Engine } from './engine.js';
 import { Notation } from './notation.js';
 import { Database } from './database.js';
 import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS } from './bots.js';
+import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
 import { OpeningBook } from './openings.js';
 import { CapturedPieces } from './captured.js';
 import { GameAnalyzer } from './analysis.js';
@@ -27,6 +28,7 @@ import { PlayerProfile } from './profile.js';
 import { RatingGraph } from './rating-graph.js';
 import { MusicPlayer, PLAYLIST } from './music.js';
 import { ChessNews } from './chess-news.js';
+import { PositionCommentary } from './position-commentary.js';
 
 class ChessApp {
   constructor() {
@@ -123,7 +125,6 @@ class ChessApp {
     this.setupGameControls();
     this.setupPGNHandlers();
     this.setupDatabaseDialog();
-    this.setupBoardFlip();
     this.setupAnalysis();
     this.setupCoach();
     this.setupPanelTabs();
@@ -132,12 +133,11 @@ class ChessApp {
     this.setupForceMove();
     this.setupMultiAnalysis();
     this.setupAdvisors();
-    this.setupThemes();
+    this.setupGMCoach();
     this.setupBotMatch();
     this.setupAuth();
     this.setupAdmin();
     this.setupDGT();
-    this.setupSoundToggle();
     this.setupMultiplayer();
     this.setupPuzzles();
     this.setupReviewDialog();
@@ -146,8 +146,8 @@ class ChessApp {
     this.setupMusic();
     this.setupNews();
     this.setupEvalBar();
-    this.setupEvalBarToggle();
     this.setupLayoutEditor();
+    this.setupSettings();
     this.setupResizeHandles();
     this.setupNotes();
 
@@ -164,10 +164,8 @@ class ChessApp {
       this._showTournamentButton();
     }
 
-    // Start with default game
-    this.game.newGame({ mode: 'engine' });
-    this.board.update();
-    this.updateGameStatus('White to move');
+    // Start with default bot selected
+    this._startNewGame({ mode: 'engine', color: 'w', botId: 'beginner-betty', time: 0, increment: 0 });
   }
 
   async initEngine() {
@@ -267,6 +265,10 @@ class ChessApp {
       // Safe to analyze — it's the player's turn or local/multiplayer mode
       this._updateAdvisorAnalysis();
       this._updateEvalBar();
+      // Update GM Coach if visible
+      if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
+        this._updateGMCoachCommentary();
+      }
     }
 
     // Fetch opening explorer
@@ -386,6 +388,10 @@ class ChessApp {
       // Update advisor analysis and eval bar after engine move
       this._updateAdvisorAnalysis();
       this._updateEvalBar();
+      // Update GM Coach if visible
+      if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
+        this._updateGMCoachCommentary();
+      }
     } else {
       this._stopMoveClock();
       this._onGameEnd();
@@ -891,21 +897,15 @@ class ChessApp {
   // === Multi-Bot Analysis ===
 
   setupMultiAnalysis() {
-    // "Analysis Lines" now opens the Ideas tab with the advisor picker
+    // "GM Coach" hamburger button opens the GM Coach tab
     document.getElementById('btn-multi-analysis').addEventListener('click', () => {
-      // Switch to Ideas tab
       document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.panel-content').forEach(c => hide(c));
-      const ideasTab = document.querySelector('.panel-tab[data-tab="ideas"]');
-      if (ideasTab) ideasTab.classList.add('active');
-      show(document.getElementById('tab-ideas'));
+      const gmTab = document.querySelector('.panel-tab[data-tab="gm-coach"]');
+      if (gmTab) gmTab.classList.add('active');
+      show(document.getElementById('tab-gm-coach'));
 
-      // Open the advisor picker
-      const picker = document.getElementById('advisor-picker');
-      if (picker.classList.contains('hidden')) {
-        this._renderAdvisorPicker();
-        show(picker);
-      }
+      this._updateGMCoachCommentary();
     });
 
     // Keep the dialog close handler for backwards compatibility
@@ -1104,7 +1104,7 @@ class ChessApp {
     const selectedIds = this._advisorBots.map(b => b.id);
     let html = '';
 
-    for (const tier of BOT_TIERS) {
+    for (const tier of BOT_TIERS.filter(t => t.id === 'grandmaster' || t.id === 'machine')) {
       const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
       if (tierBots.length === 0) continue;
 
@@ -1322,15 +1322,299 @@ class ChessApp {
     const tab = document.querySelector('.panel-tab[data-tab="ideas"]');
     if (!tab) return;
     if (thinking && this._advisorBots.length > 0) {
-      tab.textContent = `Advisors (${this._advisorBots.length})`;
+      tab.textContent = `GM Hints (${this._advisorBots.length})`;
       tab.classList.add('tab-analyzing');
     } else if (this._advisorBots.length > 0) {
-      tab.textContent = `Advisors (${this._advisorBots.length})`;
+      tab.textContent = `GM Hints (${this._advisorBots.length})`;
       tab.classList.remove('tab-analyzing');
     } else {
-      tab.textContent = 'Advisors';
+      tab.textContent = 'GM Hints';
       tab.classList.remove('tab-analyzing');
     }
+  }
+
+  // === GM Coach ===
+
+  setupGMCoach() {
+    this._gmCoachBots = [];
+    this._gmCoachPending = false;
+    this._gmCoachChatMessages = [];
+
+    // Load saved coach selections
+    try {
+      const saved = localStorage.getItem('chess_gm_coaches');
+      if (saved) {
+        const ids = JSON.parse(saved);
+        this._gmCoachBots = ids.map(id => BOT_PERSONALITIES.find(b => b.id === id)).filter(Boolean);
+      }
+    } catch { /* ignore */ }
+
+    // Choose Coaches button
+    document.getElementById('btn-pick-coaches')?.addEventListener('click', () => {
+      const picker = document.getElementById('gm-coach-picker');
+      if (picker.classList.contains('hidden')) {
+        this._renderGMCoachPicker();
+        show(picker);
+      } else {
+        hide(picker);
+      }
+    });
+
+    // Chat input
+    document.getElementById('btn-gm-coach-send')?.addEventListener('click', () => {
+      this._sendGMCoachQuestion();
+    });
+    document.getElementById('gm-coach-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this._sendGMCoachQuestion();
+      }
+    });
+
+    // Event delegation for "Show me a move" buttons
+    document.getElementById('gm-coach-cards')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.gm-coach-hint-btn');
+      if (btn) {
+        const coachId = btn.dataset.coachId;
+        if (coachId) this._handleCoachMoveHint(coachId);
+      }
+    });
+
+    // Render initial state
+    if (this._gmCoachBots.length > 0) {
+      this._renderGMCoachCards();
+    }
+  }
+
+  _renderGMCoachPicker() {
+    const picker = document.getElementById('gm-coach-picker');
+    const selectedIds = this._gmCoachBots.map(b => b.id);
+    let html = '';
+
+    for (const tier of BOT_TIERS.filter(t => t.id === 'grandmaster' || t.id === 'machine')) {
+      const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
+      if (tierBots.length === 0) continue;
+
+      html += `<div class="gm-coach-picker-tier">${tier.name}</div>`;
+      for (const bot of tierBots) {
+        const checked = selectedIds.includes(bot.id) ? 'checked' : '';
+        html += `
+          <label>
+            <input type="checkbox" value="${bot.id}" ${checked}>
+            <img src="${bot.portrait}" alt="${bot.name}">
+            <span>${bot.name}</span>
+            <span class="gm-coach-pick-elo">${bot.peakElo}</span>
+          </label>`;
+      }
+    }
+
+    picker.innerHTML = html;
+
+    picker.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const checked = picker.querySelectorAll('input[type="checkbox"]:checked');
+        if (checked.length > 3) {
+          cb.checked = false;
+          this.showToast('Maximum 3 coaches');
+          return;
+        }
+        this._gmCoachBots = Array.from(checked).map(c =>
+          BOT_PERSONALITIES.find(b => b.id === c.value)
+        ).filter(Boolean);
+
+        localStorage.setItem('chess_gm_coaches', JSON.stringify(this._gmCoachBots.map(b => b.id)));
+
+        this._renderGMCoachCards();
+        this._updateGMCoachCommentary();
+      });
+    });
+  }
+
+  _renderGMCoachCards() {
+    const container = document.getElementById('gm-coach-cards');
+    if (!container) return;
+
+    if (this._gmCoachBots.length === 0) {
+      container.innerHTML = '<div class="gm-coach-empty">Pick 1\u20133 grandmasters or engines to receive personalized coaching.</div>';
+      return;
+    }
+
+    let html = '';
+    for (const bot of this._gmCoachBots) {
+      const profile = GM_COACH_PROFILES[bot.id];
+      const icon = profile ? profile.icon : '';
+      const title = profile ? profile.coachTitle : bot.subtitle || '';
+      html += `
+        <div class="gm-coach-card gm-coach-thinking" id="gm-coach-${bot.id}">
+          <div class="gm-coach-card-top">
+            <img class="gm-coach-portrait" src="${bot.portrait}" alt="${bot.name}">
+            <div class="gm-coach-info">
+              <span class="gm-coach-name">${bot.name}</span>
+              <span class="gm-coach-title">${icon} ${title}</span>
+            </div>
+          </div>
+          <div class="gm-coach-commentary" id="gm-coach-commentary-${bot.id}">Analyzing position\u2026</div>
+          <div class="gm-coach-actions">
+            <button class="gm-coach-hint-btn" data-coach-id="${bot.id}">Show me a move</button>
+            <span class="gm-coach-hint-result" id="gm-coach-hint-${bot.id}"></span>
+          </div>
+        </div>`;
+    }
+    container.innerHTML = html;
+  }
+
+  async _updateGMCoachCommentary() {
+    if (this._gmCoachBots.length === 0) return;
+    if (this._gmCoachPending) return;
+    if (!this.engine || !this.engine.ready) return;
+
+    const fen = this.chess.fen();
+    if (fen === 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') return;
+
+    this._gmCoachPending = true;
+
+    // Set thinking state
+    for (const bot of this._gmCoachBots) {
+      const card = document.getElementById(`gm-coach-${bot.id}`);
+      if (card) card.classList.add('gm-coach-thinking');
+      const commentary = document.getElementById(`gm-coach-commentary-${bot.id}`);
+      if (commentary) commentary.textContent = 'Analyzing position\u2026';
+      const hint = document.getElementById(`gm-coach-hint-${bot.id}`);
+      if (hint) hint.textContent = '';
+    }
+
+    try {
+      const analysis = await this.engine.analyzePosition(fen, 16);
+      const sections = PositionCommentary.generate(this.chess, analysis);
+
+      // Generate commentary for each coach in parallel
+      const promises = this._gmCoachBots.map(async (bot) => {
+        if (!this.coach) return;
+        try {
+          const result = await this.coach.generateCoachCommentary(bot.id, {
+            chess: this.chess,
+            analysis,
+            fen,
+            sections
+          });
+
+          const card = document.getElementById(`gm-coach-${bot.id}`);
+          if (card) card.classList.remove('gm-coach-thinking');
+          const commentary = document.getElementById(`gm-coach-commentary-${bot.id}`);
+          if (commentary && result.text) commentary.textContent = result.text;
+        } catch { /* ignore individual coach errors */ }
+      });
+
+      await Promise.all(promises);
+    } catch { /* ignore analysis errors */ }
+
+    this._gmCoachPending = false;
+  }
+
+  async _handleCoachMoveHint(coachId) {
+    const bot = BOT_PERSONALITIES.find(b => b.id === coachId);
+    const profile = GM_COACH_PROFILES[coachId];
+    if (!bot || !profile) return;
+    if (!this.engine || !this.engine.ready) return;
+
+    const hintEl = document.getElementById(`gm-coach-hint-${coachId}`);
+    if (hintEl) hintEl.textContent = 'Thinking\u2026';
+
+    try {
+      // Apply bot's UCI personality for the analysis
+      if (bot.uci) {
+        for (const [key, val] of Object.entries(bot.uci)) {
+          this.engine.setOption(key, val);
+        }
+      }
+      const depth = bot.searchDepth || 16;
+      const analysis = await this.engine.analyzePosition(this.chess.fen(), depth);
+
+      // Reset engine options
+      this.engine.setOption('Skill Level', 20);
+      this.engine.setOption('Contempt', 0);
+
+      if (analysis.bestMove) {
+        // Convert UCI to SAN
+        const from = analysis.bestMove.substring(0, 2);
+        const to = analysis.bestMove.substring(2, 4);
+        const promo = analysis.bestMove.length > 4 ? analysis.bestMove[4] : undefined;
+        const moveObj = this.chess.move({ from, to, promotion: promo });
+        let san = 'unknown';
+        if (moveObj) {
+          san = moveObj.san;
+          this.chess.undo(); // undo the test move
+        } else {
+          // Try to get SAN from legal moves list
+          san = analysis.bestMove;
+        }
+        if (hintEl) hintEl.textContent = `${profile.moveHintIntro} ${san}!`;
+      } else {
+        if (hintEl) hintEl.textContent = 'No move found.';
+      }
+    } catch {
+      if (hintEl) hintEl.textContent = 'Analysis failed.';
+      // Reset engine options on error too
+      try {
+        this.engine.setOption('Skill Level', 20);
+        this.engine.setOption('Contempt', 0);
+      } catch { /* ignore */ }
+    }
+  }
+
+  async _sendGMCoachQuestion() {
+    const input = document.getElementById('gm-coach-input');
+    const text = input?.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    const chatEl = document.getElementById('gm-coach-chat-messages');
+    if (!chatEl) return;
+
+    // Add user message
+    const userDiv = document.createElement('div');
+    userDiv.className = 'gm-coach-chat-msg user';
+    userDiv.textContent = text;
+    chatEl.appendChild(userDiv);
+    chatEl.scrollTop = chatEl.scrollHeight;
+
+    const statusEl = document.getElementById('gm-coach-status');
+    if (statusEl) statusEl.textContent = 'Coaches are thinking\u2026';
+
+    const context = {
+      fen: this.chess.fen(),
+      opening: this.lastOpeningName,
+      moves: this.game.moveHistory.slice(-10).map(m => m.san).join(' '),
+      phase: this._getGamePhase(),
+      playerColor: this.game.playerColor
+    };
+
+    // Each coach responds
+    for (const bot of this._gmCoachBots) {
+      const profile = GM_COACH_PROFILES[bot.id];
+      if (!profile) continue;
+
+      try {
+        const coachContext = { ...context, systemPromptOverride: profile.systemPrompt };
+        let response = '';
+
+        if (this.coach.activeTier === 3 && this.coach.api.isConfigured()) {
+          response = await this.coach.api.chat(text, coachContext);
+        } else if (this.coach.activeTier === 2 && this.coach.webllm.isReady()) {
+          response = await this.coach.webllm.chat(text, coachContext);
+        } else {
+          response = `${profile.commentary.equalPosition} (Switch to Tier 2 or 3 in coach settings for richer answers.)`;
+        }
+
+        const coachDiv = document.createElement('div');
+        coachDiv.className = 'gm-coach-chat-msg coach';
+        coachDiv.innerHTML = `<div class="gm-coach-chat-author">${profile.icon} ${bot.name}</div>${response}`;
+        chatEl.appendChild(coachDiv);
+        chatEl.scrollTop = chatEl.scrollHeight;
+      } catch { /* ignore individual errors */ }
+    }
+
+    if (statusEl) statusEl.textContent = '';
   }
 
   // === Eval Bar ===
@@ -1809,12 +2093,10 @@ class ChessApp {
 
   // === Board Flip ===
 
-  setupBoardFlip() {
-    document.getElementById('btn-flip').addEventListener('click', () => {
-      this.board.flip();
-      this.updateTimers(this.game.timers);
-      this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
-    });
+  _flipBoard() {
+    this.board.flip();
+    this.updateTimers(this.game.timers);
+    this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
   }
 
   // === PGN Import/Export ===
@@ -2510,42 +2792,28 @@ class ChessApp {
     this.coach = new CoachManager(null);
     this._wireCoachCallbacks();
 
-    // Send button
-    document.getElementById('btn-coach-send').addEventListener('click', () => {
-      this._sendCoachMessage();
-    });
-
-    // Enter key
-    document.getElementById('coach-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this._sendCoachMessage();
-      }
-    });
-
-    // Settings button
-    document.getElementById('btn-coach-settings').addEventListener('click', () => {
+    // Settings button (in GM Coach panel)
+    document.getElementById('btn-coach-settings')?.addEventListener('click', () => {
       this._showCoachSettings();
     });
 
-    document.getElementById('close-coach-settings').addEventListener('click', () => {
+    document.getElementById('close-coach-settings')?.addEventListener('click', () => {
       hide(document.getElementById('coach-settings-dialog'));
     });
 
     // Coach tier selection
-    document.getElementById('coach-tier-group').querySelectorAll('.btn').forEach(btn => {
+    document.getElementById('coach-tier-group')?.querySelectorAll('.btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.getElementById('coach-tier-group').querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const tier = parseInt(btn.dataset.value);
         this.coach.setTier(tier);
-        this._updateCoachTierBadge();
         this._updateCoachSettingsSections(tier);
       });
     });
 
     // Load WebLLM button
-    document.getElementById('coach-load-webllm').addEventListener('click', async () => {
+    document.getElementById('coach-load-webllm')?.addEventListener('click', async () => {
       try {
         show(document.getElementById('coach-webllm-progress'));
         await this.coach.loadWebLLM();
@@ -2559,7 +2827,7 @@ class ChessApp {
     });
 
     // API save button
-    document.getElementById('coach-api-save').addEventListener('click', () => {
+    document.getElementById('coach-api-save')?.addEventListener('click', () => {
       this.coach.updateAPISettings({
         provider: document.getElementById('coach-api-provider').value,
         apiKey: document.getElementById('coach-api-key').value,
@@ -2572,12 +2840,10 @@ class ChessApp {
   _wireCoachCallbacks() {
     if (!this.coach) return;
 
-    this.coach.onMessage = (messages) => {
-      this._renderCoachMessages(messages);
-    };
+    this.coach.onMessage = () => {};
 
     this.coach.onStatus = (status) => {
-      const el = document.getElementById('coach-status');
+      const el = document.getElementById('gm-coach-status');
       if (el) el.textContent = status;
 
       // Update WebLLM progress if loading
@@ -2588,50 +2854,11 @@ class ChessApp {
     };
   }
 
-  _sendCoachMessage() {
-    const input = document.getElementById('coach-input');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-
-    // Build game context
-    const context = {
-      fen: this.chess.fen(),
-      opening: this.lastOpeningName,
-      moves: this.game.moveHistory.slice(-10).map(m => m.san).join(' '),
-      phase: this._getGamePhase(),
-      playerColor: this.game.playerColor
-    };
-
-    this.coach.sendMessage(text, context);
-  }
-
   _getGamePhase() {
     const moveCount = this.game.moveHistory.length;
     if (moveCount < 15) return 'opening';
     if (moveCount < 40) return 'middlegame';
     return 'endgame';
-  }
-
-  _renderCoachMessages(messages) {
-    const el = document.getElementById('coach-messages');
-    el.innerHTML = '';
-
-    for (const msg of messages) {
-      const div = document.createElement('div');
-      div.className = `coach-msg ${msg.role}`;
-      if (msg.type) div.classList.add(msg.type);
-      div.textContent = msg.content;
-      el.appendChild(div);
-    }
-
-    el.scrollTop = el.scrollHeight;
-  }
-
-  _updateCoachTierBadge() {
-    const badge = document.getElementById('coach-tier-badge');
-    const tierNames = { 1: 'Stockfish', 2: 'Browser AI', 3: 'API' };
-    badge.textContent = tierNames[this.coach.activeTier] || 'Tier 1';
   }
 
   _showCoachSettings() {
@@ -2739,37 +2966,6 @@ class ChessApp {
 
   // === Sound Toggle ===
 
-  setupSoundToggle() {
-    const btn = document.getElementById('btn-sound');
-    if (!btn) return;
-
-    this._updateSoundButton(btn);
-
-    btn.addEventListener('click', () => {
-      this.sound.toggleMute();
-      this._updateSoundButton(btn);
-    });
-  }
-
-  _updateSoundButton(btn) {
-    btn.textContent = this.sound.muted ? 'Sound Off' : 'Sound On';
-    btn.classList.toggle('muted', this.sound.muted);
-  }
-
-  setupEvalBarToggle() {
-    const btn = document.getElementById('btn-eval-bar');
-    if (!btn) return;
-    this._updateEvalBarButton(btn);
-
-    btn.addEventListener('click', () => {
-      this.toggleEvalBar();
-      this._updateEvalBarButton(btn);
-    });
-  }
-
-  _updateEvalBarButton(btn) {
-    btn.textContent = this._evalBarEnabled ? 'Eval Bar On' : 'Eval Bar Off';
-  }
 
   // === Layout Editor ===
 
@@ -2786,7 +2982,7 @@ class ChessApp {
     this._loadLayoutSettings();
     this._applyAllLayoutSettings();
 
-    document.getElementById('btn-layout').addEventListener('click', () => {
+    document.getElementById('settings-open-layout').addEventListener('click', () => {
       this._syncLayoutCheckboxes();
       show(document.getElementById('layout-dialog'));
     });
@@ -2845,7 +3041,8 @@ class ChessApp {
     switch (key) {
       case 'evalBar':
         if (visible) { this._showEvalBar(); } else { this._hideEvalBar(); }
-        this._updateEvalBarButton(document.getElementById('btn-eval-bar'));
+        this._evalBarEnabled = visible;
+        { const cb = document.getElementById('settings-eval-bar'); if (cb) cb.checked = visible; }
         break;
       case 'playerInfoTop':
         toggle(document.getElementById('player-top'));
@@ -2886,8 +3083,8 @@ class ChessApp {
         break;
       }
       case 'coachTab': {
-        toggle(document.querySelector('.panel-tab[data-tab="coach"]'));
-        if (!visible) toggle(document.getElementById('tab-coach'));
+        toggle(document.querySelector('.panel-tab[data-tab="gm-coach"]'));
+        if (!visible) toggle(document.getElementById('tab-gm-coach'));
         if (!visible) this._activateFirstVisibleTab();
         break;
       }
@@ -2922,6 +3119,117 @@ class ChessApp {
     document.querySelectorAll('#layout-dialog [data-layout-key]').forEach(cb => {
       cb.checked = this._layout[cb.dataset.layoutKey] !== false;
     });
+  }
+
+  // === Unified Settings Dialog ===
+
+  setupSettings() {
+    const dialog = document.getElementById('settings-dialog');
+
+    // Open / close
+    document.getElementById('btn-settings').addEventListener('click', () => {
+      this._syncSettingsState();
+      this._renderThemeDialog();
+      show(dialog);
+    });
+
+    document.getElementById('close-settings').addEventListener('click', () => {
+      hide(dialog);
+    });
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) hide(dialog);
+    });
+
+    // --- SOUND section ---
+
+    // Move Sounds toggle
+    const soundCb = document.getElementById('settings-sound');
+    soundCb.addEventListener('change', () => {
+      if (soundCb.checked === this.sound.muted) {
+        this.sound.toggleMute();
+      }
+    });
+
+    // Voice Announcements toggle
+    const voiceCb = document.getElementById('settings-voice');
+    voiceCb.addEventListener('change', () => {
+      localStorage.setItem('chess_voice_enabled', voiceCb.checked ? 'true' : 'false');
+    });
+
+    // Background Music toggle
+    const musicCb = document.getElementById('settings-music');
+    musicCb.addEventListener('change', () => {
+      if (musicCb.checked) {
+        this.music.play();
+      } else {
+        this.music.pause();
+      }
+    });
+
+    // Music Volume slider
+    const volSlider = document.getElementById('settings-music-volume');
+    volSlider.value = Math.round(this.music.audio.volume * 100);
+    volSlider.addEventListener('input', (e) => {
+      this.music.setVolume(parseInt(e.target.value) / 100);
+    });
+
+    // Keep music dialog volume slider in sync
+    this.music.onStateChange = (state) => {
+      musicCb.checked = state.playing;
+      // Also update the full music dialog UI if it exists
+      const playBtn = document.getElementById('music-play-pause');
+      if (playBtn) playBtn.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
+      const nowTitle = document.querySelector('#music-dialog .music-track-title');
+      const nowComposer = document.querySelector('#music-dialog .music-track-composer');
+      if (nowTitle) nowTitle.textContent = state.track.title;
+      if (nowComposer) nowComposer.textContent = state.track.composer;
+      const shuffleBtn = document.getElementById('music-shuffle');
+      if (shuffleBtn) shuffleBtn.classList.toggle('active', state.shuffle);
+      this._updateMusicPlaylist();
+    };
+
+    // --- DISPLAY section ---
+
+    // Eval Bar toggle
+    const evalCb = document.getElementById('settings-eval-bar');
+    evalCb.addEventListener('change', () => {
+      if (evalCb.checked !== this._evalBarEnabled) {
+        this.toggleEvalBar();
+      }
+    });
+
+    // --- BOARD section ---
+
+    // Flip Board toggle
+    const flipCb = document.getElementById('settings-flip');
+    flipCb.addEventListener('change', () => {
+      if (flipCb.checked !== this.board.flipped) {
+        this._flipBoard();
+      }
+    });
+
+    // --- Voice preference persistence ---
+    // Initialize from localStorage (default: enabled)
+    const savedVoice = localStorage.getItem('chess_voice_enabled');
+    if (savedVoice === null) {
+      localStorage.setItem('chess_voice_enabled', 'true');
+    }
+  }
+
+  _syncSettingsState() {
+    // Sound
+    document.getElementById('settings-sound').checked = !this.sound.muted;
+    // Voice
+    document.getElementById('settings-voice').checked = localStorage.getItem('chess_voice_enabled') !== 'false';
+    // Music
+    document.getElementById('settings-music').checked = this.music.playing;
+    // Music volume
+    document.getElementById('settings-music-volume').value = Math.round(this.music.audio.volume * 100);
+    // Eval bar
+    document.getElementById('settings-eval-bar').checked = this._evalBarEnabled;
+    // Flip
+    document.getElementById('settings-flip').checked = this.board.flipped;
   }
 
   // === Resize Handles ===
@@ -3691,10 +3999,8 @@ class ChessApp {
     }
 
     // Hide Pegasus BLE option only on non-Capacitor platforms without any Bluetooth API
-    // Note: some Chromium browsers need flags enabled for Web Bluetooth
     const hasBle = navigator.bluetooth || window.Capacitor?.Plugins?.BluetoothLe;
     if (!hasBle) {
-      // Still show button but update description to guide user
       const pegBtn = document.getElementById('dgt-connect-pegasus');
       pegBtn.querySelector('.dgt-connect-desc').textContent =
         'Requires Chrome or Chromium with Web Bluetooth enabled.';
@@ -3705,15 +4011,12 @@ class ChessApp {
       document.getElementById('dgt-connect-livechess').style.display = 'none';
     }
 
-    const dgtDialog = document.getElementById('dgt-dialog');
     const statusDot = document.getElementById('dgt-status-dot');
     const statusText = document.getElementById('dgt-status-text');
     const connectOptions = document.getElementById('dgt-connect-options');
     const disconnectBtn = document.getElementById('dgt-disconnect');
     const boardStatusEl = document.getElementById('dgt-board-status');
-    const dgtBtn = document.getElementById('btn-dgt');
     const engineMoveEl = document.getElementById('dgt-engine-move');
-    const engineMoveSan = document.getElementById('dgt-engine-move-san');
 
     // Status callback
     this.dgtBoard.onStatusChange = (msg) => {
@@ -3723,14 +4026,12 @@ class ChessApp {
     // Connection change callback
     this.dgtBoard.onConnectionChange = (connected) => {
       statusDot.classList.toggle('connected', connected);
-      dgtBtn.classList.toggle('dgt-active', connected);
 
       if (connected) {
         hide(connectOptions);
         show(disconnectBtn);
         show(boardStatusEl);
         boardStatusEl.textContent = 'DGT: Connected';
-        // Sync board to current game position
         this.dgtBoard.syncToPosition(this.chess);
       } else {
         show(connectOptions);
@@ -3744,11 +4045,9 @@ class ChessApp {
     this.dgtBoard._onPhysicalBoardChanged = async () => {
       console.log('[DGT-main] Physical board changed callback fired');
 
-      // If there's a pending engine move, check if user replayed it on the board
       if (this.dgtBoard.pendingEngineMove) {
         const gameBoard = this.dgtBoard._chessJsToArray(this.chess);
         if (this.dgtBoard._boardsMatch(gameBoard, this.dgtBoard.dgtBoard)) {
-          // Physical board now matches game — engine move was replayed
           this.dgtBoard.lastStableBoard = [...this.dgtBoard.dgtBoard];
           this.dgtBoard._expectedGameBoard = [...gameBoard];
           this.dgtBoard.pendingEngineMove = null;
@@ -3759,7 +4058,6 @@ class ChessApp {
         }
       }
 
-      // Try to detect a player move
       let detected;
       try {
         detected = this.dgtBoard.detectMove(this.chess);
@@ -3776,7 +4074,6 @@ class ChessApp {
         'mode=' + this.game.mode, 'turn=' + this.chess.turn(), 'playerColor=' + this.game.playerColor,
         'gameOver=' + this.game.gameOver, 'replay=' + this.game.replayMode);
 
-      // In engine mode, only accept moves from the player's color
       if (this.game.mode === 'engine') {
         const turn = this.chess.turn();
         if (turn !== this.game.playerColor) {
@@ -3785,29 +4082,21 @@ class ChessApp {
         }
       }
 
-      // Don't accept moves if game is over or in replay
       if (this.game.gameOver || this.game.replayMode) {
         console.log('[DGT-main] Rejected: gameOver or replay');
         return;
       }
 
-      // Clear any LEDs from previous engine move
       this.dgtBoard.clearLeds();
-
-      // Execute the move via the board (handles promotion, validation, etc.)
       console.log('[DGT-main] Executing tryMove:', detected.from, detected.to);
       await this.board.tryMove(detected.from, detected.to);
 
-      // Update expected board to match new game position (for sync detection)
       this.dgtBoard._expectedGameBoard = this.dgtBoard._gameToBoard(this.chess);
 
-      // Voice + confirmation flash for player move
       const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
       if (lastMove) this.dgtBoard.speakMove(lastMove.san);
       this.dgtBoard.flashLeds(detected.from, detected.to);
 
-      // Failsafe: if it's now the engine's turn, ensure engine responds
-      // (handleMoveMade should trigger this, but as a safety net for DGT moves)
       if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor && !this.game.gameOver) {
         if (!this.engine?.thinking) {
           console.log('[DGT-main] Failsafe: triggering engine move');
@@ -3818,7 +4107,6 @@ class ChessApp {
 
     // Starting position detected — auto-start new game with same settings
     this.dgtBoard.onStartingPositionDetected = () => {
-      // Only trigger if a game was actually played (has moves or is over)
       if (this.chess.history().length === 0 && !this.game.gameOver) {
         console.log('[DGT-main] Starting position detected but no game played — ignoring');
         return;
@@ -3834,15 +4122,7 @@ class ChessApp {
       });
     };
 
-    // Button handlers
-    dgtBtn.addEventListener('click', () => {
-      show(dgtDialog);
-    });
-
-    document.getElementById('close-dgt').addEventListener('click', () => {
-      hide(dgtDialog);
-    });
-
+    // DGT connection button handlers
     document.getElementById('dgt-connect-usb').addEventListener('click', () => {
       this.dgtBoard.connectSerial();
     });
@@ -4363,18 +4643,9 @@ class ChessApp {
 
   setupMusic() {
     const dialog = document.getElementById('music-dialog');
-    const playlistEl = document.getElementById('music-playlist');
-    const nowTitle = dialog.querySelector('.music-track-title');
-    const nowComposer = dialog.querySelector('.music-track-composer');
     const playBtn = document.getElementById('music-play-pause');
     const volumeSlider = document.getElementById('music-volume');
     const shuffleBtn = document.getElementById('music-shuffle');
-
-    // Open dialog
-    document.getElementById('btn-music').addEventListener('click', () => {
-      this._renderMusicDialog();
-      show(dialog);
-    });
 
     document.getElementById('close-music').addEventListener('click', () => {
       hide(dialog);
@@ -4407,7 +4678,6 @@ class ChessApp {
     // Composer filter
     const composerFilter = document.getElementById('music-composer-filter');
     if (composerFilter) {
-      // Populate composer options
       const composers = [...new Set(PLAYLIST.map(t => t.composer))].sort();
       composers.forEach(c => {
         const opt = document.createElement('option');
@@ -4420,14 +4690,7 @@ class ChessApp {
       });
     }
 
-    // State change callback
-    this.music.onStateChange = ({ playing, track, shuffle }) => {
-      playBtn.innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
-      nowTitle.textContent = track.title;
-      nowComposer.textContent = track.composer;
-      shuffleBtn.classList.toggle('active', shuffle);
-      this._updateMusicPlaylist();
-    };
+    // Note: onStateChange is set in setupSettings()
   }
 
   _renderMusicDialog() {
@@ -4615,14 +4878,7 @@ class ChessApp {
   // === Themes ===
 
   setupThemes() {
-    document.getElementById('btn-themes').addEventListener('click', () => {
-      this._renderThemeDialog();
-      show(document.getElementById('theme-dialog'));
-    });
-
-    document.getElementById('close-theme-dialog').addEventListener('click', () => {
-      hide(document.getElementById('theme-dialog'));
-    });
+    // Theme rendering is handled by setupSettings(); this is kept for init ordering.
   }
 
   _renderThemeDialog() {
@@ -4694,6 +4950,11 @@ class ChessApp {
         // Auto-trigger advisor analysis when switching to Ideas tab
         if (tabId === 'ideas' && this._advisorBots.length > 0) {
           this._updateAdvisorAnalysis();
+        }
+
+        // Auto-trigger GM Coach commentary when switching to that tab
+        if (tabId === 'gm-coach') {
+          this._updateGMCoachCommentary();
         }
       });
     });
