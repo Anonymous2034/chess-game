@@ -223,6 +223,7 @@ class ChessApp {
     }
 
     this.sound.playMoveSound(move);
+    this.sound.speakMove(move.san);
     this.notation.addMove(move);
     this.board.setLastMove(move);
     this.board.update();
@@ -311,6 +312,7 @@ class ChessApp {
             const move = this.game.makeEngineMove(match.from, match.to, match.promotion);
             if (move) {
               this.sound.playMoveSound(move);
+              this.sound.speakMove(move.san);
               this.notation.addMove(move);
               this.board.setLastMove(move);
               this.board.update();
@@ -318,7 +320,7 @@ class ChessApp {
               this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
               this.fetchOpeningExplorer();
 
-              // DGT: show book move on board LEDs + voice
+              // DGT: show book move on board LEDs
               if (this.dgtBoard?.isConnected()) {
                 this.dgtBoard.setEngineMoveToPlay({ from: move.from, to: move.to, san: move.san });
                 const engineMoveEl = document.getElementById('dgt-engine-move');
@@ -327,7 +329,6 @@ class ChessApp {
                   engineMoveSan.textContent = move.san;
                   show(engineMoveEl);
                 }
-                this.dgtBoard.speakMove(move.san);
                 this.showToast(`Play ${move.san} on your DGT board`);
               }
             }
@@ -359,6 +360,7 @@ class ChessApp {
 
     if (move) {
       this.sound.playMoveSound(move);
+      this.sound.speakMove(move.san);
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
@@ -369,16 +371,12 @@ class ChessApp {
       // DGT: show engine move guidance and update expected board
       if (this.dgtBoard?.isConnected()) {
         this.dgtBoard.setEngineMoveToPlay({ from: move.from, to: move.to, san: move.san });
-        // Keep _expectedGameBoard current (game advanced by engine move)
-        // Physical board still shows pre-move state; lastStableBoard stays as-is
-        // so that the user's replay is detected as a diff from lastStableBoard.
         const engineMoveEl = document.getElementById('dgt-engine-move');
         const engineMoveSan = document.getElementById('dgt-engine-move-san');
         if (engineMoveEl && engineMoveSan) {
           engineMoveSan.textContent = move.san;
           show(engineMoveEl);
         }
-        this.dgtBoard.speakMove(move.san);
         this.showToast(`Play ${move.san} on your DGT board`);
       }
     }

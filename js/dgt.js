@@ -596,11 +596,18 @@ export class DGTBoard {
     const text = this._sanToSpeech(san);
     if (!text) return;
 
+    // Chrome bug: cancel() immediately before speak() can silently kill the utterance.
+    // Also Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
     speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    speechSynthesis.speak(utterance);
+    speechSynthesis.resume();
+    // Small delay after cancel so the engine is ready to accept new speech
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      speechSynthesis.speak(utterance);
+    }, 50);
   }
 
   /**

@@ -44,6 +44,65 @@ export class SoundManager {
     this._playGameStart();
   }
 
+  /**
+   * Speak a move aloud using Web Speech API.
+   * Works independently of DGT board connection.
+   */
+  speakMove(san) {
+    if (!window.speechSynthesis) return;
+    if (localStorage.getItem('chess_voice_enabled') === 'false') return;
+    if (!san) return;
+
+    const text = this._sanToSpeech(san);
+    if (!text) return;
+
+    // Chrome bug: cancel() immediately before speak() can kill the utterance.
+    // Also Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
+    speechSynthesis.cancel();
+    speechSynthesis.resume();
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      speechSynthesis.speak(utterance);
+    }, 50);
+  }
+
+  _sanToSpeech(san) {
+    if (san.replace(/[+#]/, '').trim() === 'O-O-O') return 'Castles queenside';
+    if (san.replace(/[+#]/, '').trim() === 'O-O') return 'Castles kingside';
+
+    let s = san;
+    let suffix = '';
+    if (s.endsWith('#')) { suffix = ', checkmate'; s = s.slice(0, -1); }
+    else if (s.endsWith('+')) { suffix = ', check'; s = s.slice(0, -1); }
+
+    let promo = '';
+    const promoIdx = s.indexOf('=');
+    if (promoIdx !== -1) {
+      const promoNames = { Q: 'Queen', R: 'Rook', B: 'Bishop', N: 'Knight' };
+      promo = ' promotes to ' + (promoNames[s[promoIdx + 1]] || s[promoIdx + 1]);
+      s = s.slice(0, promoIdx);
+    }
+
+    const pieceNames = { K: 'King', Q: 'Queen', R: 'Rook', B: 'Bishop', N: 'Knight' };
+    let piece = '';
+    if (pieceNames[s[0]]) { piece = pieceNames[s[0]]; s = s.slice(1); }
+
+    const takes = s.includes('x');
+    s = s.replace('x', '');
+    const dest = s.slice(-2);
+    const disambig = s.slice(0, -2);
+
+    let text = '';
+    if (piece) { text = piece + ' '; }
+    else if (takes && disambig) { text = disambig + ' '; }
+    if (takes) text += 'takes ';
+    text += dest + promo + suffix;
+    return text;
+  }
+
   /** Toggle mute state; returns new muted value. */
   toggleMute() {
     this._muted = !this._muted;
