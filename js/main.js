@@ -3727,7 +3727,7 @@ class ChessApp {
     };
 
     // Physical board change callback — detect moves
-    this.dgtBoard._onPhysicalBoardChanged = () => {
+    this.dgtBoard._onPhysicalBoardChanged = async () => {
       console.log('[DGT-main] Physical board changed callback fired');
 
       // If there's a pending engine move, check if user replayed it on the board
@@ -3782,13 +3782,22 @@ class ChessApp {
 
       // Execute the move via the board (handles promotion, validation, etc.)
       console.log('[DGT-main] Executing tryMove:', detected.from, detected.to);
-      this.board.tryMove(detected.from, detected.to);
+      await this.board.tryMove(detected.from, detected.to);
 
       // Update expected board to match new game position (for sync detection)
       this.dgtBoard._expectedGameBoard = this.dgtBoard._gameToBoard(this.chess);
 
       // Confirmation flash for player move
       this.dgtBoard.flashLeds(detected.from, detected.to);
+
+      // Failsafe: if it's now the engine's turn, ensure engine responds
+      // (handleMoveMade should trigger this, but as a safety net for DGT moves)
+      if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor && !this.game.gameOver) {
+        if (!this.engine?.thinking) {
+          console.log('[DGT-main] Failsafe: triggering engine move');
+          this.requestEngineMove();
+        }
+      }
     };
 
     // Button handlers
