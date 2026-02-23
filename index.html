@@ -144,7 +144,8 @@
     <div id="pgn-dialog" class="dialog-overlay hidden">
       <div class="dialog">
         <h2>Import PGN</h2>
-        <textarea id="pgn-input" placeholder="Paste PGN here..." rows="10"></textarea>
+        <div class="pgn-file-row"><label class="btn btn-secondary pgn-file-label" for="pgn-file-input">Choose .pgn file</label><input type="file" id="pgn-file-input" accept=".pgn,.txt" hidden><span id="pgn-file-name" class="pgn-file-name"></span></div>
+        <textarea id="pgn-input" placeholder="Paste PGN here or choose a file above..." rows="10"></textarea>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="cancel-pgn">Cancel</button>
           <button class="btn btn-primary" id="load-pgn">Load</button>
@@ -165,6 +166,7 @@
             <option value="all">All Collections</option>
           </select>
         </div>
+        <div id="db-results-summary" class="db-results-summary"></div>
         <div id="db-games-list" class="db-games-list"></div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="close-database">Close</button>
@@ -612,7 +614,10 @@
             <div class="dgt-engine-move-label">Play this move on your board:</div>
             <div class="dgt-engine-move-san" id="dgt-engine-move-san"></div>
           </div>
-          <button class="btn btn-secondary hidden" id="dgt-disconnect">Disconnect</button>
+          <div class="dgt-connected-actions hidden" id="dgt-connected-actions">
+            <button class="btn btn-secondary" id="dgt-disconnect">Disconnect</button>
+            <button class="btn btn-secondary" id="dgt-reset-board">Reset Board</button>
+          </div>
         </div>
 
         <div class="dialog-actions">

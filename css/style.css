@@ -1125,6 +1125,12 @@ main {
   font-size: 0.85rem;
 }
 
+.db-results-summary {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  color: #999;
+}
+
 .db-games-list {
   max-height: 400px;
   overflow-y: auto;
@@ -1156,6 +1162,25 @@ main {
 .db-game-info {
   color: #888;
   font-size: 0.78rem;
+}
+
+.pgn-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pgn-file-label {
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+.pgn-file-name {
+  color: #999;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* PGN textarea */
@@ -3309,6 +3334,16 @@ main {
 .dgt-connect-desc {
   color: #888;
   font-size: 0.72rem;
+}
+
+.dgt-connected-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dgt-connected-actions .btn {
+  flex: 1;
 }
 
 .dgt-engine-move {

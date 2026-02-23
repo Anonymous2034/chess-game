@@ -2149,6 +2149,21 @@ class ChessApp {
     document.getElementById('btn-import-pgn').addEventListener('click', () => {
       show(pgnDialog);
       document.getElementById('pgn-input').value = '';
+      document.getElementById('pgn-file-name').textContent = '';
+      const fileInput = document.getElementById('pgn-file-input');
+      if (fileInput) fileInput.value = '';
+    });
+
+    // File upload handler
+    document.getElementById('pgn-file-input')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('pgn-file-name').textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('pgn-input').value = ev.target.result;
+      };
+      reader.readAsText(file);
     });
 
     document.getElementById('cancel-pgn').addEventListener('click', () => {
@@ -2280,6 +2295,18 @@ class ChessApp {
 
     const games = this.database.search(query, collection, this.activeCategory);
     listEl.innerHTML = '';
+
+    // Show result count
+    const summaryEl = document.getElementById('db-results-summary');
+    if (summaryEl) {
+      if (games.length === 0) {
+        summaryEl.textContent = 'No results';
+      } else if (games.length > 100) {
+        summaryEl.textContent = `Showing 100 of ${games.length} results`;
+      } else {
+        summaryEl.textContent = `${games.length} result${games.length !== 1 ? 's' : ''}`;
+      }
+    }
 
     if (games.length === 0) {
       listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No games found</div>';
@@ -4060,7 +4087,9 @@ class ChessApp {
     const statusDot = document.getElementById('dgt-status-dot');
     const statusText = document.getElementById('dgt-status-text');
     const connectOptions = document.getElementById('dgt-connect-options');
+    const connectedActions = document.getElementById('dgt-connected-actions');
     const disconnectBtn = document.getElementById('dgt-disconnect');
+    const resetBoardBtn = document.getElementById('dgt-reset-board');
     const boardStatusEl = document.getElementById('dgt-board-status');
     const engineMoveEl = document.getElementById('dgt-engine-move');
 
@@ -4075,13 +4104,13 @@ class ChessApp {
 
       if (connected) {
         hide(connectOptions);
-        show(disconnectBtn);
+        show(connectedActions);
         show(boardStatusEl);
         boardStatusEl.textContent = 'DGT: Connected';
         this.dgtBoard.syncToPosition(this.chess);
       } else {
         show(connectOptions);
-        hide(disconnectBtn);
+        hide(connectedActions);
         hide(boardStatusEl);
         hide(engineMoveEl);
         // Re-enable screen interaction so the player can continue the game
@@ -4208,6 +4237,14 @@ class ChessApp {
 
     disconnectBtn.addEventListener('click', () => {
       this.dgtBoard.disconnect();
+    });
+
+    // Reset board state — clears all tracking but keeps BLE connection alive
+    resetBoardBtn?.addEventListener('click', () => {
+      if (!this.dgtBoard?.isConnected()) return;
+      this.dgtBoard.resetBoardState();
+      this.dgtBoard.syncToPosition(this.chess);
+      this.showToast('Board state reset — place pieces to match the game');
     });
   }
 

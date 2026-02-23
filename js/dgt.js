@@ -696,6 +696,35 @@ export class DGTBoard {
   }
 
   /**
+   * Reset all board tracking state while keeping the BLE/Serial connection alive.
+   * Use when the board gets into a bad state (wrong moves, sensor issues, etc.).
+   */
+  resetBoardState() {
+    // Clear all tracking state
+    this.dgtBoard = new Array(64).fill(0x00);
+    this.lastStableBoard = null;
+    this._expectedGameBoard = null;
+    this._sensorGaps = new Set();
+    this._boardSynced = false;
+    this._startPosDetected = false;
+    this.pendingEngineMove = null;
+    this._engineMovePhase = null;
+    this.rxBuffer = new Uint8Array(0);
+
+    // Clear all timers
+    clearTimeout(this.debounceTimer);
+    clearTimeout(this._flashTimer);
+    clearTimeout(this._castleTimer);
+    clearTimeout(this._startPosTimer);
+    clearTimeout(this._syncWarningTimer);
+    this._startPosTimer = null;
+
+    this.clearLeds();
+    this._setStatus('Board state reset — syncing...');
+    console.log('[DGT] Board state reset (connection preserved)');
+  }
+
+  /**
    * Sync lastStableBoard to the current game position and request a board dump.
    * Called when starting a new game or on connection.
    */
