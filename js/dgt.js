@@ -464,6 +464,7 @@ export class DGTBoard {
    */
   setEngineMoveToPlay(move) {
     this.pendingEngineMove = move;
+    clearTimeout(this._flashTimer); // Cancel player confirmation flash
     if (this.boardType === 'pegasus' && move.from && move.to) {
       // Detect castling: king moves 2 squares horizontally
       const castleSquares = this._getCastleSquares(move);
