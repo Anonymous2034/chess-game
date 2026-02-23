@@ -1321,14 +1321,10 @@ class ChessApp {
   _updateAdvisorTabBadge(thinking) {
     const tab = document.querySelector('.panel-tab[data-tab="ideas"]');
     if (!tab) return;
+    tab.textContent = 'GM Hints';
     if (thinking && this._advisorBots.length > 0) {
-      tab.textContent = `GM Hints (${this._advisorBots.length})`;
       tab.classList.add('tab-analyzing');
-    } else if (this._advisorBots.length > 0) {
-      tab.textContent = `GM Hints (${this._advisorBots.length})`;
-      tab.classList.remove('tab-analyzing');
     } else {
-      tab.textContent = 'GM Hints';
       tab.classList.remove('tab-analyzing');
     }
   }
@@ -1413,9 +1409,9 @@ class ChessApp {
     picker.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', () => {
         const checked = picker.querySelectorAll('input[type="checkbox"]:checked');
-        if (checked.length > 3) {
+        if (checked.length > 2) {
           cb.checked = false;
-          this.showToast('Maximum 3 coaches');
+          this.showToast('Maximum 2 coaches');
           return;
         }
         this._gmCoachBots = Array.from(checked).map(c =>
@@ -1423,6 +1419,9 @@ class ChessApp {
         ).filter(Boolean);
 
         localStorage.setItem('chess_gm_coaches', JSON.stringify(this._gmCoachBots.map(b => b.id)));
+
+        // Auto-close picker after selection
+        hide(picker);
 
         this._renderGMCoachCards();
         this._updateGMCoachCommentary();
@@ -1435,7 +1434,7 @@ class ChessApp {
     if (!container) return;
 
     if (this._gmCoachBots.length === 0) {
-      container.innerHTML = '<div class="gm-coach-empty">Pick 1\u20133 grandmasters or engines to receive personalized coaching.</div>';
+      container.innerHTML = '<div class="gm-coach-empty">Pick 1\u20132 grandmasters or engines to receive personalized coaching.</div>';
       return;
     }
 
@@ -2060,24 +2059,59 @@ class ChessApp {
     // Elo label varies by tier
     const eloLabel = bot.tier === 'machine' ? 'Rating' : bot.tier === 'grandmaster' ? 'Peak Elo' : 'Elo';
 
+    // Life dates
+    let datesHtml = '';
+    if (bot.bio?.born) {
+      datesHtml = bot.bio.died
+        ? `<div class="gm-detail-dates">${bot.bio.born}\u2013${bot.bio.died}</div>`
+        : `<div class="gm-detail-dates">Born ${bot.bio.born}</div>`;
+    }
+
+    // Browse games button (only for GMs/machines with data files)
+    const browseGamesHtml = (bot.tier === 'grandmaster' || bot.tier === 'machine')
+      ? `<button class="btn btn-sm gm-detail-browse-btn" data-gm-name="${bot.name}">Browse Games in Database</button>`
+      : '';
+
+    // Coaching profile
+    const coachProfile = GM_COACH_PROFILES[bot.id];
+    const coachHtml = coachProfile
+      ? `<div class="gm-detail-section"><h4>As Your Coach</h4><div class="gm-detail-philosophy">${coachProfile.icon} <strong>${coachProfile.coachTitle}</strong><br><em>${coachProfile.philosophy}</em></div></div>`
+      : '';
+
     detailEl.innerHTML = `
       <div class="gm-detail-header">
         <img class="gm-portrait-lg" src="${bot.portrait}" alt="${bot.name}">
         <div class="gm-detail-info">
           <div class="gm-detail-name">${bot.name}</div>
           <div class="gm-detail-subtitle">${bot.subtitle}</div>
+          ${datesHtml}
           <div class="gm-detail-elo">${eloLabel}: ${bot.peakElo}</div>
           ${wcHtml}
         </div>
       </div>
-      <div class="gm-detail-bio">${bot.bio?.playingStyle || bot.bio?.summary || ''}</div>
+      ${bot.bio?.summary ? `<div class="gm-detail-bio">${bot.bio.summary}</div>` : ''}
+      ${bot.bio?.playingStyle ? `<div class="gm-detail-section"><h4>Playing Style</h4><div class="gm-detail-bio">${bot.bio.playingStyle}</div></div>` : ''}
+      ${coachHtml}
       <div class="gm-detail-section">
-        <h4>Playing Style</h4>
+        <h4>Style Attributes</h4>
         <div class="bot-styles-detail">${stylesHtml}</div>
       </div>
       ${openingsSectionHtml}
       ${gamesSectionHtml}
+      ${browseGamesHtml}
     `;
+
+    // Wire up "Browse Games" button
+    const browseBtn = detailEl.querySelector('.gm-detail-browse-btn');
+    if (browseBtn) {
+      browseBtn.addEventListener('click', () => {
+        hide(document.getElementById('new-game-dialog'));
+        const searchEl = document.getElementById('db-search');
+        if (searchEl) searchEl.value = browseBtn.dataset.gmName;
+        show(document.getElementById('database-dialog'));
+        this.renderDatabaseGames();
+      });
+    }
   }
 
   updateDialogVisibility(mode) {

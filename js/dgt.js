@@ -575,8 +575,7 @@ export class DGTBoard {
    */
   speakMove(san) {
     if (!window.speechSynthesis) return;
-    const voiceCheckbox = document.getElementById('dgt-voice-enabled');
-    if (voiceCheckbox && !voiceCheckbox.checked) return;
+    if (localStorage.getItem('chess_voice_enabled') === 'false') return;
 
     const text = this._sanToSpeech(san);
     if (!text) return;

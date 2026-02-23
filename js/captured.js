@@ -54,15 +54,14 @@ export class CapturedPieces {
     const topColor = flipped ? 'w' : 'b';
     const bottomColor = flipped ? 'b' : 'w';
 
-    // Render captured pieces (pieces captured by opponent = your lost pieces shown near you)
-    // Convention: show pieces that the opponent captured near that player
-    // So near the top player, show pieces captured by the bottom player
-    this._renderPieces(this.topEl, captured[bottomColor], topColor);
-    this._renderPieces(this.bottomEl, captured[topColor], bottomColor);
+    // Render captured pieces — show pieces you captured near your name
+    // Near white: show black pieces that white took (in opponent's color = visible)
+    this._renderPieces(this.topEl, captured[topColor], bottomColor);
+    this._renderPieces(this.bottomEl, captured[bottomColor], topColor);
 
-    // Material advantage display
-    const topAdv = topColor === 'w' ? -advantage : advantage;
-    const bottomAdv = bottomColor === 'w' ? -advantage : advantage;
+    // Material advantage — show +N next to the player who is ahead
+    const topAdv = topColor === 'w' ? advantage : -advantage;
+    const bottomAdv = bottomColor === 'w' ? advantage : -advantage;
 
     this.topAdvEl.textContent = topAdv > 0 ? `+${topAdv}` : '';
     this.bottomAdvEl.textContent = bottomAdv > 0 ? `+${bottomAdv}` : '';

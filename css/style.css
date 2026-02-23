@@ -416,6 +416,9 @@ main {
   border-left: 3px solid transparent;
   transition: border-color 0.2s, background 0.2s;
 }
+.player-info.bottom {
+  margin-top: 14px;
+}
 
 .player-info.active-turn {
   border-left-color: var(--accent);
@@ -843,7 +846,7 @@ main {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(129, 182, 76, 0.05);
+  background: var(--panel-bg, #1e1e1e);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -961,6 +964,20 @@ main {
   color: var(--text-color);
   line-height: 1.4;
   margin-bottom: 10px;
+}
+.gm-detail-dates {
+  font-size: 0.72rem;
+  color: #888;
+  margin-top: 2px;
+}
+.gm-detail-philosophy {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #aaa);
+  line-height: 1.45;
+}
+.gm-detail-browse-btn {
+  margin-top: 8px;
+  width: 100%;
 }
 
 /* Style attribute bars in detail panel */
@@ -1758,7 +1775,7 @@ main {
 }
 
 /* === GM Coach Panel === */
-.gm-coach-panel { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.gm-coach-panel { padding: 12px; display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; }
 .gm-coach-header {
   display: flex; justify-content: space-between; align-items: center;
 }
@@ -1791,14 +1808,14 @@ main {
 .gm-coach-picker .gm-coach-pick-elo {
   margin-left: auto; font-size: 0.65rem; color: #888;
 }
-.gm-coach-cards { display: flex; flex-direction: column; gap: 10px; }
+.gm-coach-cards { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
 .gm-coach-empty {
   color: var(--text-secondary, #888); text-align: center;
   padding: 30px 10px; font-size: 0.85rem;
 }
 .gm-coach-card {
-  display: flex; flex-direction: column; gap: 6px;
-  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 8px 10px;
   background: var(--bg-color);
   border-radius: 8px;
   border-left: 3px solid var(--accent);
@@ -1823,8 +1840,8 @@ main {
   font-size: 0.82rem; color: var(--text-secondary, #aaa); line-height: 1.45;
   font-style: italic; padding: 4px 0;
 }
-.gm-coach-commentary::before { content: '\u201C'; }
-.gm-coach-commentary::after { content: '\u201D'; }
+.gm-coach-commentary::before { content: '\201C'; }
+.gm-coach-commentary::after { content: '\201D'; }
 .gm-coach-actions {
   display: flex; align-items: center; gap: 8px; margin-top: 2px;
 }
