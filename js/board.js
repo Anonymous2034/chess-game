@@ -17,6 +17,7 @@ export class Board {
     this.pendingPromotion = null;
     this.promotionResolve = null;
 
+    this.showLegalMoves = false;
     this.squares = {};
     this.render();
     this.setupDragAndDrop();
@@ -113,23 +114,25 @@ export class Board {
       this.squares[this.selectedSquare].classList.add('selected');
     }
 
-    // Legal move indicators
-    this.legalMoves.forEach(move => {
-      const div = this.squares[move.to];
-      if (!div) return;
-      const targetPiece = this.game.chess.get(move.to);
-      if (targetPiece || move.flags.includes('e')) {
-        // Capture: ring indicator
-        const ring = document.createElement('div');
-        ring.className = 'legal-capture';
-        div.appendChild(ring);
-      } else {
-        // Empty square: dot indicator
-        const dot = document.createElement('div');
-        dot.className = 'legal-dot';
-        div.appendChild(dot);
-      }
-    });
+    // Legal move indicators (only when showLegalMoves is enabled)
+    if (this.showLegalMoves) {
+      this.legalMoves.forEach(move => {
+        const div = this.squares[move.to];
+        if (!div) return;
+        const targetPiece = this.game.chess.get(move.to);
+        if (targetPiece || move.flags.includes('e')) {
+          // Capture: ring indicator
+          const ring = document.createElement('div');
+          ring.className = 'legal-capture';
+          div.appendChild(ring);
+        } else {
+          // Empty square: dot indicator
+          const dot = document.createElement('div');
+          dot.className = 'legal-dot';
+          div.appendChild(dot);
+        }
+      });
+    }
 
     // Check highlight
     if (this.game.chess.in_check()) {

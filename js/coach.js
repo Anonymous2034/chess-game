@@ -164,10 +164,10 @@ export class CoachManager {
     const profile = GM_COACH_PROFILES[coachId];
     if (!profile) return { tier: 1, text: '', moveHintIntro: '' };
 
-    const { sections, analysis } = positionData;
+    const { sections, analysis, playerColor } = positionData;
 
     // Tier 1 (always available): template matching
-    const tier1Text = this._buildTier1Commentary(profile, sections, analysis);
+    const tier1Text = this._buildTier1Commentary(profile, sections, analysis, playerColor);
 
     // If tier 2/3 available, enhance with AI
     if (this.activeTier === 3 && this.api.isConfigured()) {
@@ -196,14 +196,16 @@ export class CoachManager {
   /**
    * Tier 1: template-based commentary from profile + position sections
    */
-  _buildTier1Commentary(profile, sections, analysis) {
+  _buildTier1Commentary(profile, sections, analysis, playerColor) {
     const lines = [];
 
-    // 1) Evaluation line
+    // 1) Evaluation line — flip sign for Black so "advantage" means player's advantage
     if (analysis) {
-      const cp = analysis.score / 100;
+      const rawCp = analysis.score / 100;
+      const cp = playerColor === 'b' ? -rawCp : rawCp;
       if (analysis.mate !== null && analysis.mate !== undefined) {
-        lines.push(cp > 0 ? profile.commentary.advantage : profile.commentary.disadvantage);
+        const mateForPlayer = playerColor === 'b' ? -analysis.mate : analysis.mate;
+        lines.push(mateForPlayer > 0 ? profile.commentary.advantage : profile.commentary.disadvantage);
       } else if (Math.abs(cp) < 0.3) {
         lines.push(profile.commentary.equalPosition);
       } else if (cp > 0.3) {

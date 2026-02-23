@@ -544,7 +544,7 @@ export class DGTBoard {
     const cmd = [0x60, 0x07, 0x05, 0x03, 0x01, 0x02, fromIdx, toIdx, 0x00];
     console.log('[DGT] LED flash: ' + from + ' → ' + to);
     await this._sendPegasusBytes(cmd);
-    this._flashTimer = setTimeout(() => this.clearLeds(), 1500);
+    this._flashTimer = setTimeout(() => this.clearLeds(), 600);
   }
 
   /**
@@ -733,8 +733,21 @@ export class DGTBoard {
       }
 
       // Multiple different from/to — for Pegasus, occupancy might match multiple moves.
-      // Pick the first non-promotion move, or first match.
-      if (this.boardType === 'pegasus') {
+      // Use lastStableBoard to disambiguate which piece actually moved.
+      if (this.boardType === 'pegasus' && this.lastStableBoard) {
+        const best = matches.find(m => {
+          const fromIdx = this._algebraicToDgtSquare(m.from);
+          const toIdx = this._algebraicToDgtSquare(m.to);
+          return this.lastStableBoard[fromIdx] !== 0 && this.lastStableBoard[toIdx] === 0;
+        });
+        if (best) {
+          this.lastStableBoard = [...this.dgtBoard];
+          clearTimeout(this._syncWarningTimer);
+          return { from: best.from, to: best.to, promotion: best.promotion };
+        }
+        // Still ambiguous — wait for more board state changes rather than guessing
+        return null;
+      } else if (this.boardType === 'pegasus') {
         const nonPromo = matches.find(m => !m.promotion) || matches[0];
         this.lastStableBoard = [...this.dgtBoard];
         clearTimeout(this._syncWarningTimer);

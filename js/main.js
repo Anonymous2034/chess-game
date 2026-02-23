@@ -165,7 +165,9 @@ class ChessApp {
     }
 
     // Start with default bot selected
-    this._startNewGame({ mode: 'engine', color: 'w', botId: 'beginner-betty', time: 0, increment: 0 });
+    const gmBots = BOT_PERSONALITIES.filter(b => b.tier === 'grandmaster');
+    const randomGM = gmBots[Math.floor(Math.random() * gmBots.length)];
+    this._startNewGame({ mode: 'engine', color: 'w', botId: randomGM.id, time: 0, increment: 0 });
   }
 
   async initEngine() {
@@ -666,6 +668,11 @@ class ChessApp {
         this.board.update();
         this.board.setInteractive(true);
         this.captured.update(this.game.moveHistory, idx, this.board.flipped);
+
+        // Resync DGT board state so next physical move detects correctly
+        if (this.dgtBoard && this.dgtBoard.isConnected()) {
+          this.dgtBoard.syncToPosition(this.chess);
+        }
       }
     });
 
@@ -1494,7 +1501,8 @@ class ChessApp {
             chess: this.chess,
             analysis,
             fen,
-            sections
+            sections,
+            playerColor: this.game.playerColor
           });
 
           const card = document.getElementById(`gm-coach-${bot.id}`);
@@ -3008,7 +3016,8 @@ class ChessApp {
       evalBar: true, playerInfoTop: true, playerInfoBottom: true,
       capturedPieces: true, timers: true, openingLabel: true,
       evalGraph: true, navControls: true, statusBar: true,
-      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true
+      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
+      showLegalMoves: false
     };
   }
 
@@ -3124,6 +3133,9 @@ class ChessApp {
       }
       case 'openingExplorer':
         toggle(document.querySelector('.opening-explorer'));
+        break;
+      case 'showLegalMoves':
+        if (this.board) this.board.showLegalMoves = visible;
         break;
     }
   }
