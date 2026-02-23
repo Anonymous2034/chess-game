@@ -151,9 +151,14 @@ class ChessApp {
     this.setupResizeHandles();
     this.setupNotes();
 
-    // Load database in background
-    this.database.loadCollections().then(categories => {
-      if (categories.length > 0) {
+    // Load database in background, then restore saved imports
+    this.database.loadCollections().then(async (categories) => {
+      // Restore any previously imported PGN collections from IndexedDB
+      const restored = await this.database.loadSavedImports();
+      if (restored > 0) {
+        console.log('[DB] Restored ' + restored + ' imported games from IndexedDB');
+      }
+      if (categories.length > 0 || restored > 0) {
         this.populateCategoryTabs();
         this.populateCollectionFilter();
       }
@@ -3855,6 +3860,48 @@ class ChessApp {
       }
     });
 
+    // Copy invite link
+    document.getElementById('mp-copy-link').addEventListener('click', () => {
+      const code = document.getElementById('mp-code-display').textContent;
+      if (!code) return;
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = '';
+      url.searchParams.set('game', code);
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        this.showToast('Invite link copied!');
+      }).catch(() => {
+        // Fallback: select the code text
+        this.showToast('Code: ' + code);
+      });
+    });
+
+    // Auto-join from URL (e.g. ?game=ABC123)
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameCode = urlParams.get('game');
+    if (gameCode && gameCode.length === 6) {
+      // Clean the URL so refreshing doesn't re-trigger
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('game');
+      window.history.replaceState({}, '', cleanUrl.toString());
+
+      // Pre-fill and auto-open join dialog
+      setTimeout(() => {
+        show(dialog);
+        if (this.auth?.isLoggedIn()) {
+          show(mpMenu);
+          hide(mpWaiting);
+          hide(mpLoginRequired);
+        } else {
+          hide(mpMenu);
+          hide(mpWaiting);
+          show(mpLoginRequired);
+        }
+        document.getElementById('mp-join-code').value = gameCode.toUpperCase();
+        this.showToast('Game invite: ' + gameCode.toUpperCase());
+      }, 500);
+    }
+
     // Join Game
     document.getElementById('mp-join').addEventListener('click', async () => {
       const sb = getSupabase();
@@ -4129,32 +4176,24 @@ class ChessApp {
       if (statusText) statusText.textContent = msg;
     };
 
-    // Connection change callback
-    this.dgtBoard.onConnectionChange = (connected) => {
-      statusDot.classList.toggle('connected', connected);
-
-      if (connected) {
-        hide(connectOptions);
-        show(connectedActions);
-        show(boardStatusEl);
-        boardStatusEl.textContent = 'DGT: Connected';
-        this.dgtBoard.syncToPosition(this.chess);
-      } else {
-        show(connectOptions);
-        hide(connectedActions);
-        hide(boardStatusEl);
-        hide(engineMoveEl);
-        // Re-enable screen interaction so the player can continue the game
-        if (!this.game.gameOver && !this.game.replayMode) {
-          this.board.setInteractive(true);
-        }
-      }
-    };
+    // Connection change callback — set later (after hardware settings wired up)
 
     // Physical board change callback — detect moves
     let dgtProcessing = false;
+    let dgtLastMoveTime = 0;
+    const DGT_MOVE_COOLDOWN = 800; // ms — ignore board changes for 800ms after executing a move
+
     this.dgtBoard._onPhysicalBoardChanged = async () => {
       if (dgtProcessing) return; // Prevent re-entry during move execution
+
+      // Cooldown: ignore rapid board changes right after a move was executed.
+      // Prevents the engine's response from triggering a phantom second detection.
+      const now = Date.now();
+      if (now - dgtLastMoveTime < DGT_MOVE_COOLDOWN) {
+        console.log('[DGT-main] Cooldown active — ignoring board change');
+        return;
+      }
+
       console.log('[DGT-main] Physical board changed callback fired');
 
       if (this.dgtBoard.pendingEngineMove) {
@@ -4174,8 +4213,12 @@ class ChessApp {
           return;
         }
         // Board doesn't match game yet — waiting for user to play engine move on board.
-        // Do NOT fall through to detectMove — that would try to find player moves
-        // from the wrong position (game has advanced past the physical board state).
+        return;
+      }
+
+      // Guard: engine is currently thinking — don't detect player moves
+      if (this.engine?.thinking) {
+        console.log('[DGT-main] Engine thinking — ignoring board change');
         return;
       }
 
@@ -4188,6 +4231,17 @@ class ChessApp {
       }
       if (!detected) {
         console.log('[DGT-main] No move detected (board may be in transition)');
+        return;
+      }
+
+      // Validate: confirm the detected move is actually legal in current position
+      const legalMoves = this.chess.moves({ verbose: true });
+      const isLegal = legalMoves.some(m =>
+        m.from === detected.from && m.to === detected.to &&
+        (!detected.promotion || m.promotion === detected.promotion)
+      );
+      if (!isLegal) {
+        console.log('[DGT-main] Detected move is not legal:', detected.from, '->', detected.to);
         return;
       }
 
@@ -4212,7 +4266,16 @@ class ChessApp {
       console.log('[DGT-main] Executing tryMove:', detected.from, detected.to);
       dgtProcessing = true;
       try {
+        const prevMoveCount = this.game.moveHistory.length;
         await this.board.tryMove(detected.from, detected.to);
+
+        // Verify the move was actually executed (moveHistory grew)
+        if (this.game.moveHistory.length <= prevMoveCount) {
+          console.log('[DGT-main] tryMove did not produce a move — ignoring');
+          return;
+        }
+
+        dgtLastMoveTime = Date.now(); // Start cooldown
 
         // Update DGT board state AFTER move is confirmed by the game
         this.dgtBoard.lastStableBoard = [...this.dgtBoard.dgtBoard];
@@ -4221,11 +4284,6 @@ class ChessApp {
         const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
         if (lastMove) this.dgtBoard.speakMove(lastMove.san);
         this.dgtBoard.flashLeds(detected.from, detected.to);
-
-        // Engine move is already triggered by handleMoveMade() during tryMove.
-        // Do NOT call requestEngineMove() again here — for opening book moves,
-        // engine.thinking isn't set, so the check would pass and create a duplicate
-        // request that plays an extra move (e.g., d4 → e6 → phantom Nc3).
       } finally {
         dgtProcessing = false;
       }
@@ -4276,6 +4334,77 @@ class ChessApp {
       this.dgtBoard.resetBoardState();
       this.dgtBoard.syncToPosition(this.chess);
       this.showToast('Board state reset — place pieces to match the game');
+    });
+
+    // DGT Hardware settings
+    const hwSettings = document.getElementById('dgt-hardware-settings');
+    const brightnessSlider = document.getElementById('dgt-led-brightness');
+    const brightnessVal = document.getElementById('dgt-led-brightness-val');
+    const speedSlider = document.getElementById('dgt-led-speed');
+    const speedVal = document.getElementById('dgt-led-speed-val');
+    const flashSlider = document.getElementById('dgt-flash-duration');
+    const flashVal = document.getElementById('dgt-flash-duration-val');
+    const resetDefaultsBtn = document.getElementById('dgt-reset-defaults');
+
+    // Show hardware settings when connected
+    const origOnConnection = this.dgtBoard.onConnectionChange;
+    this.dgtBoard.onConnectionChange = (connected) => {
+      // Call the original handler (set above)
+      statusDot.classList.toggle('connected', connected);
+      if (connected) {
+        hide(connectOptions);
+        show(connectedActions);
+        show(boardStatusEl);
+        show(hwSettings);
+        boardStatusEl.textContent = 'DGT: Connected';
+        this.dgtBoard.syncToPosition(this.chess);
+      } else {
+        show(connectOptions);
+        hide(connectedActions);
+        hide(boardStatusEl);
+        hide(engineMoveEl);
+        hide(hwSettings);
+        if (!this.game.gameOver && !this.game.replayMode) {
+          this.board.setInteractive(true);
+        }
+      }
+    };
+
+    // Initialize sliders from saved settings
+    brightnessSlider.value = this.dgtBoard.ledBrightness;
+    brightnessVal.textContent = this.dgtBoard.ledBrightness;
+    speedSlider.value = this.dgtBoard.ledSpeed;
+    speedVal.textContent = this.dgtBoard.ledSpeed;
+    flashSlider.value = this.dgtBoard.flashDuration;
+    flashVal.textContent = this.dgtBoard.flashDuration;
+
+    brightnessSlider.addEventListener('input', () => {
+      const v = parseInt(brightnessSlider.value);
+      brightnessVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('ledBrightness', v);
+    });
+
+    speedSlider.addEventListener('input', () => {
+      const v = parseInt(speedSlider.value);
+      speedVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('ledSpeed', v);
+    });
+
+    flashSlider.addEventListener('input', () => {
+      const v = parseInt(flashSlider.value);
+      flashVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('flashDuration', v);
+    });
+
+    resetDefaultsBtn.addEventListener('click', () => {
+      this.dgtBoard.resetHardwareDefaults();
+      brightnessSlider.value = this.dgtBoard.ledBrightness;
+      brightnessVal.textContent = this.dgtBoard.ledBrightness;
+      speedSlider.value = this.dgtBoard.ledSpeed;
+      speedVal.textContent = this.dgtBoard.ledSpeed;
+      flashSlider.value = this.dgtBoard.flashDuration;
+      flashVal.textContent = this.dgtBoard.flashDuration;
+      this.showToast('LED settings reset to defaults');
     });
   }
 

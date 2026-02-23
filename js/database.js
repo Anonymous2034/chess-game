@@ -232,6 +232,109 @@ export class Database {
       category: categoryId
     });
 
+    // Persist to IndexedDB so imports survive page refresh
+    this._saveImport(collectionName, normalized);
+
     return games.length;
+  }
+
+  // === IndexedDB Persistence for Imported Collections ===
+
+  _openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('chess_imported_pgns', 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains('imports')) {
+          db.createObjectStore('imports', { keyPath: 'name' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async _saveImport(collectionName, pgnText) {
+    try {
+      const db = await this._openDB();
+      const tx = db.transaction('imports', 'readwrite');
+      tx.objectStore('imports').put({ name: collectionName, pgn: pgnText });
+      await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+      db.close();
+    } catch (err) {
+      console.warn('[DB] Failed to save import:', err);
+    }
+  }
+
+  async _deleteImport(collectionName) {
+    try {
+      const db = await this._openDB();
+      const tx = db.transaction('imports', 'readwrite');
+      tx.objectStore('imports').delete(collectionName);
+      await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+      db.close();
+    } catch (err) {
+      console.warn('[DB] Failed to delete import:', err);
+    }
+  }
+
+  /**
+   * Restore all previously imported collections from IndexedDB.
+   * Call this after loadCollections() on startup.
+   */
+  async loadSavedImports() {
+    try {
+      const db = await this._openDB();
+      const tx = db.transaction('imports', 'readonly');
+      const store = tx.objectStore('imports');
+      const allReq = store.getAll();
+
+      const entries = await new Promise((res, rej) => {
+        allReq.onsuccess = () => res(allReq.result);
+        allReq.onerror = rej;
+      });
+      db.close();
+
+      if (!entries || entries.length === 0) return 0;
+
+      let totalGames = 0;
+      const categoryId = 'imported';
+
+      // Ensure the "Imported" category exists
+      if (!this.categories.find(c => c.id === categoryId)) {
+        this.categories.push({ id: categoryId, name: 'Imported', collections: [] });
+      }
+
+      for (const entry of entries) {
+        const games = this.parsePGNFile(entry.pgn);
+        if (games.length === 0) continue;
+
+        // Tag games
+        games.forEach(g => {
+          g.collection = entry.name;
+          g.category = categoryId;
+          g.categoryName = 'Imported';
+        });
+
+        // Remove duplicates (in case loadCollections already added same-named built-in)
+        this.games = this.games.filter(g => g.collection !== entry.name);
+        this.collections = this.collections.filter(c => c.name !== entry.name);
+
+        this.games.push(...games);
+        this.collections.push({
+          name: entry.name,
+          count: games.length,
+          category: categoryId
+        });
+
+        totalGames += games.length;
+        console.log('[DB] Restored import "' + entry.name + '": ' + games.length + ' games');
+      }
+
+      return totalGames;
+    } catch (err) {
+      console.warn('[DB] Failed to load saved imports:', err);
+      return 0;
+    }
   }
 }

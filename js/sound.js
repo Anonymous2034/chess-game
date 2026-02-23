@@ -56,17 +56,22 @@ export class SoundManager {
     const text = this._sanToSpeech(san);
     if (!text) return;
 
-    // Chrome bug: cancel() immediately before speak() can kill the utterance.
-    // Also Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
-    speechSynthesis.cancel();
+    // Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
     speechSynthesis.resume();
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      speechSynthesis.speak(utterance);
-    }, 50);
+
+    // Only cancel if actively speaking — calling cancel() unconditionally
+    // before speak() silently kills the new utterance in Chrome.
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+    }
+
+    // Speak directly — no setTimeout. Wrapping in setTimeout moves the call
+    // out of the user-gesture context, which can block speech on some browsers.
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    speechSynthesis.speak(utterance);
   }
 
   _sanToSpeech(san) {

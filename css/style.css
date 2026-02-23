@@ -3346,6 +3346,53 @@ main {
   flex: 1;
 }
 
+.dgt-hardware-settings {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--bg-dark, #1a1a2e);
+  border-radius: 6px;
+}
+
+.dgt-hw-title {
+  font-size: 0.82rem;
+  color: var(--text-muted, #888);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dgt-hw-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.dgt-hw-label {
+  min-width: 80px;
+  color: var(--text-secondary, #aaa);
+}
+
+.dgt-hw-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--accent, #4ecdc4);
+}
+
+.dgt-hw-value {
+  min-width: 30px;
+  text-align: right;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82rem;
+  color: var(--accent, #4ecdc4);
+}
+
+#dgt-reset-defaults {
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
 .dgt-engine-move {
   margin: 12px 0;
   padding: 10px 14px;

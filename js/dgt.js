@@ -89,11 +89,66 @@ export class DGTBoard {
     // Engine move guidance
     this.pendingEngineMove = null; // { from, to, san }
 
+    // Hardware settings (persisted in localStorage)
+    this._loadHardwareSettings();
+
     // Callbacks (wired by main.js)
     this.onStatusChange = null;
     this.onConnectionChange = null;
     this._onPhysicalBoardChanged = null;
     this.onStartingPositionDetected = null;
+  }
+
+  // === Hardware Settings ===
+
+  static HARDWARE_DEFAULTS = {
+    ledBrightness: 2,   // 1-5 (DGT intensity byte)
+    ledSpeed: 3,         // 1-5 (DGT speed byte)
+    flashDuration: 600,  // ms — auto-clear time for player move confirmation
+    castleDelay: 2000,   // ms — delay between king and rook LED phases
+  };
+
+  _loadHardwareSettings() {
+    const defaults = DGTBoard.HARDWARE_DEFAULTS;
+    try {
+      const saved = JSON.parse(localStorage.getItem('dgt_hardware_settings'));
+      this.ledBrightness = saved?.ledBrightness ?? defaults.ledBrightness;
+      this.ledSpeed = saved?.ledSpeed ?? defaults.ledSpeed;
+      this.flashDuration = saved?.flashDuration ?? defaults.flashDuration;
+      this.castleDelay = saved?.castleDelay ?? defaults.castleDelay;
+    } catch {
+      this.ledBrightness = defaults.ledBrightness;
+      this.ledSpeed = defaults.ledSpeed;
+      this.flashDuration = defaults.flashDuration;
+      this.castleDelay = defaults.castleDelay;
+    }
+  }
+
+  _saveHardwareSettings() {
+    try {
+      localStorage.setItem('dgt_hardware_settings', JSON.stringify({
+        ledBrightness: this.ledBrightness,
+        ledSpeed: this.ledSpeed,
+        flashDuration: this.flashDuration,
+        castleDelay: this.castleDelay,
+      }));
+    } catch {}
+  }
+
+  setHardwareSetting(key, value) {
+    if (key in DGTBoard.HARDWARE_DEFAULTS) {
+      this[key] = value;
+      this._saveHardwareSettings();
+    }
+  }
+
+  resetHardwareDefaults() {
+    const defaults = DGTBoard.HARDWARE_DEFAULTS;
+    this.ledBrightness = defaults.ledBrightness;
+    this.ledSpeed = defaults.ledSpeed;
+    this.flashDuration = defaults.flashDuration;
+    this.castleDelay = defaults.castleDelay;
+    this._saveHardwareSettings();
   }
 
   // === Public API ===
@@ -496,8 +551,7 @@ export class DGTBoard {
     const fromIdx = this._algebraicToDgtSquare(from);
     const toIdx = this._algebraicToDgtSquare(to);
     // LED ON: 0x60, length, 0x05, speed, blink, intensity, squares..., 0x00
-    // speed=3, blink=0 (continuous), intensity=2
-    const cmd = [0x60, 0x07, 0x05, 0x03, 0x00, 0x02, fromIdx, toIdx, 0x00];
+    const cmd = [0x60, 0x07, 0x05, this.ledSpeed, 0x00, this.ledBrightness, fromIdx, toIdx, 0x00];
     console.log('[DGT] LEDs on: ' + from + '(' + fromIdx + '), ' + to + '(' + toIdx + ')');
     await this._sendPegasusBytes(cmd);
   }
@@ -509,7 +563,7 @@ export class DGTBoard {
   async setLedSingle(square) {
     if (this.connectionType !== 'pegasus') return;
     const idx = this._algebraicToDgtSquare(square);
-    const cmd = [0x60, 0x06, 0x05, 0x03, 0x00, 0x02, idx, 0x00];
+    const cmd = [0x60, 0x06, 0x05, this.ledSpeed, 0x00, this.ledBrightness, idx, 0x00];
     console.log('[DGT] LED single: ' + square + '(' + idx + ')');
     await this._sendPegasusBytes(cmd);
   }
@@ -524,8 +578,7 @@ export class DGTBoard {
     const indices = squares.map(sq => this._algebraicToDgtSquare(sq));
     const n = indices.length;
     const blink = flash ? 0x01 : 0x00;
-    // speed=3, intensity=2
-    const cmd = [0x60, 5 + n, 0x05, 0x03, blink, 0x02, ...indices, 0x00];
+    const cmd = [0x60, 5 + n, 0x05, this.ledSpeed, blink, this.ledBrightness, ...indices, 0x00];
     console.log('[DGT] LEDs multi (' + (flash ? 'flash' : 'pulse') + '): ' + squares.join(', '));
     await this._sendPegasusBytes(cmd);
   }
@@ -540,11 +593,11 @@ export class DGTBoard {
     // Phase 1: light king from/to
     console.log('[DGT] Castle LEDs phase 1 (king): ' + squares[0] + ' → ' + squares[1]);
     await this.setLeds(squares[0], squares[1]);
-    // Phase 2: after 2s, add rook squares (show all 4)
+    // Phase 2: after delay, add rook squares (show all 4)
     this._castleTimer = setTimeout(() => {
       console.log('[DGT] Castle LEDs phase 2 (+ rook): ' + squares[2] + ' → ' + squares[3]);
       this.setLedsMulti(squares, false);
-    }, 2000);
+    }, this.castleDelay);
   }
 
   /**
@@ -556,11 +609,10 @@ export class DGTBoard {
     clearTimeout(this._flashTimer);
     const fromIdx = this._algebraicToDgtSquare(from);
     const toIdx = this._algebraicToDgtSquare(to);
-    // speed=3, blink=1 (single flash), intensity=2
-    const cmd = [0x60, 0x07, 0x05, 0x03, 0x01, 0x02, fromIdx, toIdx, 0x00];
+    const cmd = [0x60, 0x07, 0x05, this.ledSpeed, 0x01, this.ledBrightness, fromIdx, toIdx, 0x00];
     console.log('[DGT] LED flash: ' + from + ' → ' + to);
     await this._sendPegasusBytes(cmd);
-    this._flashTimer = setTimeout(() => this.clearLeds(), 600);
+    this._flashTimer = setTimeout(() => this.clearLeds(), this.flashDuration);
   }
 
   /**
@@ -596,18 +648,20 @@ export class DGTBoard {
     const text = this._sanToSpeech(san);
     if (!text) return;
 
-    // Chrome bug: cancel() immediately before speak() can silently kill the utterance.
-    // Also Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
-    speechSynthesis.cancel();
+    // Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
     speechSynthesis.resume();
-    // Small delay after cancel so the engine is ready to accept new speech
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      speechSynthesis.speak(utterance);
-    }, 50);
+
+    // Only cancel if actively speaking — calling cancel() unconditionally
+    // before speak() silently kills the new utterance in Chrome.
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    speechSynthesis.speak(utterance);
   }
 
   /**

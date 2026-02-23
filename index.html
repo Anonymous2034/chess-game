@@ -618,6 +618,26 @@
             <button class="btn btn-secondary" id="dgt-disconnect">Disconnect</button>
             <button class="btn btn-secondary" id="dgt-reset-board">Reset Board</button>
           </div>
+          <!-- DGT Hardware Settings -->
+          <div class="dgt-hardware-settings hidden" id="dgt-hardware-settings">
+            <h5 class="dgt-hw-title">LED Settings</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Brightness</span>
+              <input type="range" id="dgt-led-brightness" min="1" max="5" step="1" value="2">
+              <span class="dgt-hw-value" id="dgt-led-brightness-val">2</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Speed</span>
+              <input type="range" id="dgt-led-speed" min="1" max="5" step="1" value="3">
+              <span class="dgt-hw-value" id="dgt-led-speed-val">3</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Flash (ms)</span>
+              <input type="range" id="dgt-flash-duration" min="200" max="2000" step="100" value="600">
+              <span class="dgt-hw-value" id="dgt-flash-duration-val">600</span>
+            </label>
+            <button class="btn btn-small btn-secondary" id="dgt-reset-defaults">Reset Defaults</button>
+          </div>
         </div>
 
         <div class="dialog-actions">
@@ -733,8 +753,9 @@
         <div id="mp-waiting" class="hidden">
           <p style="text-align:center;">Waiting for opponent...</p>
           <div class="mp-code-display" id="mp-code-display"></div>
-          <p class="mp-code-hint">Share this code with your opponent</p>
-          <div class="dialog-actions">
+          <p class="mp-code-hint">Share the link or code with your opponent</p>
+          <div class="dialog-actions" style="flex-direction:column;gap:8px;">
+            <button class="btn btn-primary" id="mp-copy-link">Copy Invite Link</button>
             <button class="btn btn-secondary" id="mp-cancel-waiting">Cancel</button>
           </div>
         </div>
