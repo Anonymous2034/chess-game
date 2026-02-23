@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
+  <g fill="#f8f0e0" stroke="#5c3d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Base -->
+    <path d="M9 39c0 0 2.5-1 13-1s13 1 13 1v-2c0 0-2.5-1-13-1s-13 1-13 1v2z"/>
+    <path d="M10 36c0 0 3-1.5 12.5-1.5s12.5 1.5 12.5 1.5v-2c0 0-3-1.5-12.5-1.5s-12.5 1.5-12.5 1.5v2z"/>
+    <!-- Decorated base ring -->
+    <ellipse cx="22.5" cy="33" rx="10" ry="2"/>
+    <!-- Body -->
+    <path d="M15 30c1-4 3-7.5 4-9.5l-2.5-4l3.5 2l2.5-5l2.5 5l3.5-2l-2.5 4c1 2 3 5.5 4 9.5"/>
+    <!-- Crown peaks with jewels -->
+    <circle cx="14" cy="16" r="1.5"/>
+    <circle cx="19" cy="11.5" r="1.5"/>
+    <circle cx="22.5" cy="8.5" r="1.5"/>
+    <circle cx="26" cy="11.5" r="1.5"/>
+    <circle cx="31" cy="16" r="1.5"/>
+    <!-- Jewel circles on crown tips -->
+    <circle cx="14" cy="16" r="0.6" fill="#5c3d2e"/>
+    <circle cx="19" cy="11.5" r="0.6" fill="#5c3d2e"/>
+    <circle cx="22.5" cy="8.5" r="0.6" fill="#5c3d2e"/>
+    <circle cx="26" cy="11.5" r="0.6" fill="#5c3d2e"/>
+    <circle cx="31" cy="16" r="0.6" fill="#5c3d2e"/>
+    <!-- Collar ornament -->
+    <path d="M14.5 30c0 0 3.5-1.5 8-1.5s8 1.5 8 1.5" fill="none"/>
+    <circle cx="18.5" cy="29.5" r="0.7"/>
+    <circle cx="22.5" cy="28.8" r="0.7"/>
+    <circle cx="26.5" cy="29.5" r="0.7"/>
+    <!-- Body decoration -->
+    <path d="M17 26c0 0 2.5-0.5 5.5-0.5s5.5 0.5 5.5 0.5" fill="none" stroke-width="0.7"/>
+    <path d="M18 23c0 0 2-0.5 4.5-0.5s4.5 0.5 4.5 0.5" fill="none" stroke-width="0.7"/>
+  </g>
+</svg>

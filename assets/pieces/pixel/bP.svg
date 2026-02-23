@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
+  <!-- Black Pawn: single block top, wider base -->
+  <g fill="#2a2a2a" stroke="none">
+    <!-- Head dot -->
+    <rect x="18" y="9" width="9" height="3"/>
+    <rect x="15" y="12" width="15" height="3"/>
+    <rect x="18" y="15" width="9" height="3"/>
+    <!-- Neck -->
+    <rect x="18" y="18" width="9" height="3"/>
+    <!-- Body -->
+    <rect x="15" y="21" width="15" height="3"/>
+    <rect x="15" y="24" width="15" height="3"/>
+    <rect x="12" y="27" width="21" height="3"/>
+    <rect x="15" y="30" width="15" height="3"/>
+    <!-- Base -->
+    <rect x="9" y="33" width="27" height="3"/>
+    <rect x="9" y="36" width="27" height="3"/>
+    <rect x="6" y="39" width="33" height="3"/>
+  </g>
+  <g fill="#666" stroke="none">
+    <rect x="18" y="12" width="9" height="3"/>
+  </g>
+</svg>

@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#312e2b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Play chess against AI bots, solve puzzles, and analyze games">
+  <!-- Open Graph — professional link previews when sharing -->
+  <meta property="og:title" content="Grandmasters Chess">
+  <meta property="og:description" content="Play chess against AI grandmasters, solve puzzles, and analyze games">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Grandmasters Chess">
+  <meta name="twitter:description" content="Play chess against AI grandmasters, solve puzzles, and analyze games">
+  <meta name="twitter:image" content="icons/icon-512.png">
+  <title>Grandmasters</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="offline-indicator" id="offline-indicator">You are offline — some features are unavailable</div>
+  <div id="app">
+    <!-- New Game Dialog -->
+    <div id="new-game-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-new-game">
+        <h2>New Game</h2>
+        <div class="dialog-body">
+        <div class="dialog-section">
+          <label>Mode</label>
+          <div class="btn-group" data-setting="mode">
+            <button class="btn" data-value="local">Two Player</button>
+            <button class="btn active" data-value="engine">vs Computer</button>
+          </div>
+        </div>
+        <div class="dialog-section engine-only">
+          <label>Choose your opponent</label>
+          <div class="bot-picker-layout">
+            <div class="bot-picker-list" id="bot-picker-list"></div>
+            <div class="bot-picker-detail" id="bot-picker-detail"></div>
+          </div>
+        </div>
+        <div class="dialog-section engine-only">
+          <label>Play as</label>
+          <div class="btn-group" data-setting="color">
+            <button class="btn active" data-value="w">White</button>
+            <button class="btn" data-value="b">Black</button>
+            <button class="btn" data-value="random">Random</button>
+          </div>
+        </div>
+        <div class="dialog-section">
+          <label>Time Control</label>
+          <div class="time-control-grid" id="time-control-grid">
+            <div class="tc-category">
+              <span class="tc-label">None</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn active" data-time="0" data-increment="0">No Timer</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Bullet</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="60" data-increment="0">1 min</button>
+                <button class="btn btn-sm tc-btn" data-time="60" data-increment="1">1+1</button>
+                <button class="btn btn-sm tc-btn" data-time="120" data-increment="1">2+1</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Blitz</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="180" data-increment="0">3 min</button>
+                <button class="btn btn-sm tc-btn" data-time="180" data-increment="2">3+2</button>
+                <button class="btn btn-sm tc-btn" data-time="300" data-increment="0">5 min</button>
+                <button class="btn btn-sm tc-btn" data-time="300" data-increment="3">5+3</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Rapid</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="600" data-increment="0">10 min</button>
+                <button class="btn btn-sm tc-btn" data-time="900" data-increment="10">15+10</button>
+                <button class="btn btn-sm tc-btn" data-time="1800" data-increment="0">30 min</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Classical</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="3600" data-increment="0">60 min</button>
+              </div>
+            </div>
+            <div class="tc-category">
+              <span class="tc-label">Custom</span>
+              <div class="tc-buttons tc-custom">
+                <button class="btn btn-sm tc-btn" data-time="custom" data-increment="0">Custom</button>
+                <div class="tc-custom-inputs hidden" id="tc-custom-inputs">
+                  <input type="number" id="tc-custom-minutes" min="1" max="180" value="10" placeholder="min"> min
+                  <input type="number" id="tc-custom-increment" min="0" max="60" value="0" placeholder="inc"> sec
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-section engine-only">
+          <label>Game Type</label>
+          <div class="btn-group" data-setting="rated">
+            <button class="btn active" data-value="casual">Casual</button>
+            <button class="btn" data-value="rated">Rated</button>
+          </div>
+        </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-new-game">Cancel</button>
+          <button class="btn btn-primary" id="start-new-game">Start Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotion Dialog -->
+    <div id="promotion-dialog" class="dialog-overlay hidden">
+      <div class="dialog promotion-dialog">
+        <h3>Promote pawn to:</h3>
+        <div class="promotion-pieces">
+          <button class="promotion-piece" data-piece="q"><img alt="Queen"></button>
+          <button class="promotion-piece" data-piece="r"><img alt="Rook"></button>
+          <button class="promotion-piece" data-piece="b"><img alt="Bishop"></button>
+          <button class="promotion-piece" data-piece="n"><img alt="Knight"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PGN Import Dialog -->
+    <div id="pgn-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Import PGN</h2>
+        <textarea id="pgn-input" placeholder="Paste PGN here..." rows="10"></textarea>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-pgn">Cancel</button>
+          <button class="btn btn-primary" id="load-pgn">Load</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Database Browser Dialog -->
+    <div id="database-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Game Database</h2>
+        <div class="db-category-tabs" id="db-category-tabs">
+          <button class="db-tab active" data-category="all">All</button>
+        </div>
+        <div class="db-controls">
+          <input type="text" id="db-search" placeholder="Search by player, event, ECO...">
+          <select id="db-collection">
+            <option value="all">All Collections</option>
+          </select>
+        </div>
+        <div id="db-games-list" class="db-games-list"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-database">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats / Profile Dialog -->
+    <div id="stats-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Player Profile</h2>
+
+        <!-- Profile Header -->
+        <div class="profile-header" id="profile-header">
+          <div class="profile-avatar-container">
+            <img class="profile-avatar" id="profile-avatar" src="img/avatars/knight.svg" alt="Avatar">
+            <button class="btn btn-sm profile-avatar-edit" id="btn-edit-avatar">Edit</button>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="profile-name">Player</div>
+            <div class="profile-rating" id="profile-rating"></div>
+            <div class="profile-record" id="profile-record"></div>
+          </div>
+        </div>
+
+        <!-- Account Details (shown when logged in) -->
+        <div id="profile-account-details" class="profile-account-details hidden"></div>
+
+        <!-- Avatar Picker -->
+        <div class="avatar-picker hidden" id="avatar-picker"></div>
+
+        <!-- Rating Graph -->
+        <div class="profile-section" id="rating-graph-section">
+          <h3>Rating History</h3>
+          <div id="rating-graph-container"></div>
+        </div>
+
+        <!-- Stats Content -->
+        <div id="stats-content" class="stats-content"></div>
+
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-stats">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tournament Setup Dialog -->
+    <div id="tournament-setup-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>New Tournament</h2>
+        <div class="dialog-section">
+          <label>Format</label>
+          <div class="btn-group" id="tournament-format-group">
+            <button class="btn active" data-value="round-robin">Round Robin</button>
+            <button class="btn" data-value="knockout">Knockout</button>
+          </div>
+        </div>
+        <div class="dialog-section">
+          <label>Select Opponents</label>
+          <div class="tournament-opponents" id="tournament-opponents"></div>
+        </div>
+        <div class="dialog-section">
+          <label>Games per Match</label>
+          <div class="btn-group" id="tournament-games-group">
+            <button class="btn active" data-value="1">1</button>
+            <button class="btn" data-value="2">2</button>
+            <button class="btn" data-value="4">4</button>
+          </div>
+        </div>
+        <div class="dialog-section">
+          <label>Time Control</label>
+          <div class="btn-group" id="tournament-time-group">
+            <button class="btn active" data-time="0" data-increment="0">No Timer</button>
+            <button class="btn" data-time="180" data-increment="2">3+2</button>
+            <button class="btn" data-time="300" data-increment="3">5+3</button>
+            <button class="btn" data-time="600" data-increment="0">10 min</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-tournament-setup">Cancel</button>
+          <button class="btn btn-primary" id="start-tournament">Start Tournament</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tournament Progress Dialog -->
+    <div id="tournament-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2 id="tournament-title">Tournament</h2>
+        <div id="tournament-content" class="tournament-content"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-sm hidden" id="tournament-next-match">Play Next Match</button>
+          <button class="btn btn-secondary" id="tournament-close">Close</button>
+          <button class="btn btn-secondary" id="tournament-abandon">Abandon</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Dialog -->
+    <div id="admin-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Admin Panel</h2>
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="users">Users</button>
+          <button class="admin-tab" data-tab="leaderboard">Leaderboard</button>
+        </div>
+        <div id="admin-content" class="admin-content"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-admin">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth Dialog -->
+    <div id="auth-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <!-- Login Form -->
+        <div id="login-form">
+          <h2>Login</h2>
+          <div class="dialog-section">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="your@email.com">
+          </div>
+          <div class="dialog-section">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Password">
+          </div>
+          <div class="auth-error hidden" id="login-error"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="close-auth">Close</button>
+            <button class="btn btn-primary" id="btn-login">Login</button>
+          </div>
+          <div class="auth-divider"><span>or</span></div>
+          <button class="btn btn-magic-link" id="btn-magic-link">Send Magic Link (no password)</button>
+          <div class="auth-magic-status hidden" id="magic-link-status"></div>
+          <div class="auth-switch">
+            <a href="#" id="show-forgot-password">Forgot password?</a>
+          </div>
+          <div class="auth-switch">
+            Don't have an account? <a href="#" id="show-register">Register</a>
+          </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-password-form" class="hidden">
+          <h2>Reset Password</h2>
+          <p class="auth-desc">Enter your email and we'll send you a link to reset your password.</p>
+          <div class="dialog-section">
+            <label>Email</label>
+            <input type="email" id="forgot-email" placeholder="your@email.com">
+          </div>
+          <div class="auth-error hidden" id="forgot-error"></div>
+          <div class="auth-success hidden" id="forgot-success"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="back-to-login-from-forgot">Back</button>
+            <button class="btn btn-primary" id="btn-send-reset">Send Reset Link</button>
+          </div>
+        </div>
+
+        <!-- Set New Password Form (shown after PASSWORD_RECOVERY redirect) -->
+        <div id="set-new-password-form" class="hidden">
+          <h2>Set New Password</h2>
+          <p class="auth-desc">Enter your new password below.</p>
+          <div class="dialog-section">
+            <label>New Password</label>
+            <input type="password" id="new-password-input" placeholder="New password (6+ chars)">
+          </div>
+          <div class="dialog-section">
+            <label>Confirm Password</label>
+            <input type="password" id="confirm-password-input" placeholder="Confirm new password">
+          </div>
+          <div class="auth-error hidden" id="new-password-error"></div>
+          <div class="auth-success hidden" id="new-password-success"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-primary" id="btn-set-new-password">Update Password</button>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="hidden">
+          <h2>Register</h2>
+          <div class="dialog-section">
+            <label>Display Name</label>
+            <input type="text" id="register-name" placeholder="Your name">
+          </div>
+          <div class="dialog-section">
+            <label>Email</label>
+            <input type="email" id="register-email" placeholder="your@email.com">
+          </div>
+          <div class="dialog-section">
+            <label>Password</label>
+            <input type="password" id="register-password" placeholder="Password (6+ chars)">
+          </div>
+          <div class="auth-error hidden" id="register-error"></div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="back-to-login">Back</button>
+            <button class="btn btn-primary" id="btn-register">Register</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Match Dialog -->
+    <div id="bot-match-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-new-game">
+        <h2>Bot vs Bot Match</h2>
+        <div class="dialog-section">
+          <label>White</label>
+          <div class="bot-match-picker" id="bot-match-white"></div>
+        </div>
+        <div class="dialog-section">
+          <label>Black</label>
+          <div class="bot-match-picker" id="bot-match-black"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-bot-match">Cancel</button>
+          <button class="btn btn-primary" id="start-bot-match">Watch Live</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Match Progress Dialog -->
+    <div id="bot-match-progress" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Simulating Game...</h2>
+        <div class="bot-match-status" id="bot-match-status">Preparing...</div>
+        <div class="progress-bar"><div class="progress-fill" id="bot-match-progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Chess News Dialog -->
+    <div id="news-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <div class="news-header" id="news-header">
+          <h2>Chess World</h2>
+          <div class="news-tabs">
+            <button class="news-tab active" data-tab="live">Live & Upcoming</button>
+            <button class="news-tab" data-tab="follow">Follow Chess</button>
+          </div>
+        </div>
+        <div class="news-detail-header hidden" id="news-detail-header">
+          <button class="btn btn-sm" id="news-back">&larr; Back</button>
+          <span class="news-detail-title" id="news-detail-title"></span>
+        </div>
+        <div class="news-content" id="news-content">
+          <div class="news-loading">Loading broadcasts...</div>
+        </div>
+        <div class="news-detail-view hidden" id="news-detail-view">
+          <iframe id="news-iframe" class="news-iframe" sandbox="allow-scripts allow-same-origin" allowfullscreen></iframe>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-news">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music Player Dialog -->
+    <div id="music-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Music</h2>
+        <div class="music-now-playing" id="music-now-playing">
+          <div class="music-track-title">No track selected</div>
+          <div class="music-track-composer"></div>
+        </div>
+        <div class="music-controls-main">
+          <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
+          <button class="btn btn-primary" id="music-play-pause" title="Play/Pause">&#9654;</button>
+          <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
+          <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
+        </div>
+        <div class="music-volume-row">
+          <span class="music-vol-icon">&#128264;</span>
+          <input type="range" id="music-volume" min="0" max="100" value="30" class="music-volume-slider">
+          <span class="music-vol-icon">&#128266;</span>
+        </div>
+        <div class="music-filter-row">
+          <select class="music-composer-filter" id="music-composer-filter">
+            <option value="all">All Composers</option>
+          </select>
+          <span class="music-track-count" id="music-track-count"></span>
+        </div>
+        <div class="music-playlist" id="music-playlist"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-music">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout Editor Dialog -->
+    <div id="layout-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Layout Editor</h2>
+        <p class="layout-dialog-desc">Choose which elements are visible.</p>
+        <div class="layout-section">
+          <h4 class="layout-section-title">Board Area</h4>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Eval Bar</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Player Info (Top)</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Player Info (Bottom)</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Captured Pieces</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="capturedPieces"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Timers</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Opening Label</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Eval Graph</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Nav Controls</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+        <div class="layout-section">
+          <h4 class="layout-section-title">Side Panel</h4>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Status Bar</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Move List</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Advisors Tab</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Coach Tab</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Opening Explorer</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="layout-reset">Reset to Defaults</button>
+          <button class="btn btn-primary" id="close-layout-dialog">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Settings Dialog -->
+    <div id="theme-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Themes</h2>
+        <div class="theme-section">
+          <h4>Board</h4>
+          <div class="board-theme-swatches" id="board-theme-swatches"></div>
+        </div>
+        <div class="theme-section">
+          <h4>Pieces</h4>
+          <div class="piece-theme-list" id="piece-theme-list"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-theme-dialog">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-Bot Analysis Dialog -->
+    <div id="multi-analysis-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Analysis Lines</h2>
+        <p class="multi-analysis-desc">See how different grandmasters and bots would play this position.</p>
+        <div class="multi-analysis-bots" id="multi-analysis-bots"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-multi-analysis">Close</button>
+          <button class="btn btn-primary" id="run-multi-analysis">Analyze Position</button>
+        </div>
+        <div class="multi-analysis-results hidden" id="multi-analysis-results"></div>
+      </div>
+    </div>
+
+    <!-- Coach Settings Dialog -->
+    <div id="coach-settings-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Coach Settings</h2>
+        <div class="dialog-section">
+          <label>Coaching Tier</label>
+          <div class="btn-group" id="coach-tier-group">
+            <button class="btn active" data-value="1">Stockfish Tips</button>
+            <button class="btn" data-value="2">In-Browser AI</button>
+            <button class="btn" data-value="3">API Key</button>
+          </div>
+        </div>
+        <div class="dialog-section hidden" id="coach-webllm-section">
+          <label>In-Browser AI (WebLLM)</label>
+          <p class="coach-info" id="coach-webllm-info">Runs a small AI model directly in your browser. Free, no API key needed. Requires WebGPU (Chrome 113+).</p>
+          <button class="btn btn-sm" id="coach-load-webllm">Load Model</button>
+          <div class="coach-progress hidden" id="coach-webllm-progress">
+            <div class="progress-bar"><div class="progress-fill" id="coach-webllm-progress-fill"></div></div>
+            <span class="progress-text" id="coach-webllm-progress-text"></span>
+          </div>
+        </div>
+        <div class="dialog-section hidden" id="coach-api-section">
+          <label>API Configuration</label>
+          <div class="coach-api-form">
+            <div class="form-row">
+              <label>Provider</label>
+              <select id="coach-api-provider">
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>API Key</label>
+              <input type="password" id="coach-api-key" placeholder="Enter your API key">
+            </div>
+            <div class="form-row">
+              <label>Model (optional)</label>
+              <input type="text" id="coach-api-model" placeholder="e.g., gpt-4o-mini">
+            </div>
+            <button class="btn btn-sm btn-primary" id="coach-api-save">Save</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-coach-settings">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DGT Board Dialog -->
+    <div id="dgt-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>DGT Board</h2>
+        <div class="dgt-status-indicator" id="dgt-status-indicator">
+          <span class="dgt-status-dot" id="dgt-status-dot"></span>
+          <span id="dgt-status-text">Not connected</span>
+        </div>
+        <div class="dgt-connect-options" id="dgt-connect-options">
+          <button class="dgt-connect-btn" id="dgt-connect-usb">
+            <div class="dgt-connect-title">USB (Web Serial)</div>
+            <div class="dgt-connect-desc">Direct USB connection. Chrome/Edge only.</div>
+          </button>
+          <button class="dgt-connect-btn" id="dgt-connect-livechess">
+            <div class="dgt-connect-title">DGT LiveChess</div>
+            <div class="dgt-connect-desc">Connect via LiveChess 2 software (WebSocket).</div>
+          </button>
+          <button class="dgt-connect-btn" id="dgt-connect-pegasus">
+            <div class="dgt-connect-title">DGT Pegasus</div>
+            <div class="dgt-connect-desc">Connect via Bluetooth (BLE).</div>
+          </button>
+        </div>
+        <div class="dgt-engine-move hidden" id="dgt-engine-move">
+          <div class="dgt-engine-move-label">Play this move on your board:</div>
+          <div class="dgt-engine-move-san" id="dgt-engine-move-san"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary hidden" id="dgt-disconnect">Disconnect</button>
+          <button class="btn btn-secondary" id="close-dgt">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multiplayer Dialog -->
+    <div id="multiplayer-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Play Online</h2>
+        <div id="mp-login-required" class="hidden">
+          <p style="text-align:center;color:#888;padding:12px 0;">You must be logged in to play online.</p>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="mp-cancel-login">Cancel</button>
+          </div>
+        </div>
+        <div id="mp-menu">
+          <div class="dialog-section">
+            <label>Play as</label>
+            <div class="btn-group" id="mp-color-group">
+              <button class="btn active" data-value="w">White</button>
+              <button class="btn" data-value="b">Black</button>
+              <button class="btn" data-value="random">Random</button>
+            </div>
+          </div>
+          <div class="dialog-section">
+            <label>Time Control</label>
+            <div class="btn-group" id="mp-time-group">
+              <button class="btn active" data-time="0" data-increment="0">No Timer</button>
+              <button class="btn" data-time="300" data-increment="0">5 min</button>
+              <button class="btn" data-time="600" data-increment="0">10 min</button>
+              <button class="btn" data-time="300" data-increment="3">5+3</button>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button class="btn btn-primary" id="mp-create">Create Game</button>
+          </div>
+          <div class="mp-divider">&mdash; or join an existing game &mdash;</div>
+          <div class="dialog-section">
+            <label>Game Code</label>
+            <input type="text" id="mp-join-code" placeholder="Enter 6-character code" maxlength="6">
+          </div>
+          <div class="dialog-actions">
+            <button class="btn btn-primary" id="mp-join">Join Game</button>
+            <button class="btn btn-secondary" id="mp-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="mp-waiting" class="hidden">
+          <p style="text-align:center;">Waiting for opponent...</p>
+          <div class="mp-code-display" id="mp-code-display"></div>
+          <p class="mp-code-hint">Share this code with your opponent</p>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" id="mp-cancel-waiting">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draw Offer Dialog -->
+    <div id="draw-offer-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Draw Offer</h2>
+        <p style="text-align:center;">Your opponent offers a draw.</p>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="draw-decline">Decline</button>
+          <button class="btn btn-primary" id="draw-accept">Accept</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle Dialog -->
+    <div id="puzzle-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Puzzles</h2>
+        <div class="puzzle-stats-summary" id="puzzle-stats-summary"></div>
+        <div class="dialog-section">
+          <label>Theme</label>
+          <select id="puzzle-theme-filter" class="dialog-select">
+            <option value="all">All Themes</option>
+            <option value="mate">Checkmate</option>
+            <option value="fork">Fork</option>
+            <option value="pin">Pin</option>
+            <option value="skewer">Skewer</option>
+            <option value="discovery">Discovered Attack</option>
+            <option value="deflection">Deflection</option>
+            <option value="sacrifice">Sacrifice</option>
+            <option value="endgame">Endgame</option>
+            <option value="promotion">Promotion</option>
+            <option value="back-rank">Back Rank</option>
+          </select>
+        </div>
+        <div class="dialog-section">
+          <label>Difficulty</label>
+          <div class="btn-group" id="puzzle-difficulty-group">
+            <button class="btn active" data-value="all">All</button>
+            <button class="btn" data-value="beginner">Beginner</button>
+            <button class="btn" data-value="intermediate">Intermediate</button>
+            <button class="btn" data-value="advanced">Advanced</button>
+            <button class="btn" data-value="expert">Expert</button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="cancel-puzzle">Cancel</button>
+          <button class="btn" id="btn-daily-puzzle">Daily Puzzle</button>
+          <button class="btn btn-primary" id="start-puzzle">Random Puzzle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Review Dialog -->
+    <div id="review-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide review-dialog">
+        <div class="review-header" id="review-header">
+          <div class="review-result-icon" id="review-result-icon"></div>
+          <h2 id="review-result-text">Game Over</h2>
+          <div class="review-result-detail" id="review-result-detail"></div>
+        </div>
+        <div class="review-accuracy" id="review-accuracy">
+          <div class="review-accuracy-player">
+            <div class="review-accuracy-label" id="review-white-name">White</div>
+            <div class="review-accuracy-bar-container">
+              <div class="review-accuracy-bar" id="review-white-bar"></div>
+            </div>
+            <div class="review-accuracy-pct" id="review-white-pct">0%</div>
+          </div>
+          <div class="review-accuracy-player">
+            <div class="review-accuracy-label" id="review-black-name">Black</div>
+            <div class="review-accuracy-bar-container">
+              <div class="review-accuracy-bar review-accuracy-bar-black" id="review-black-bar"></div>
+            </div>
+            <div class="review-accuracy-pct" id="review-black-pct">0%</div>
+          </div>
+        </div>
+        <div class="review-breakdown" id="review-breakdown"></div>
+        <div class="review-critical" id="review-critical">
+          <h3>Key Moments</h3>
+          <div class="review-moments-list" id="review-moments-list"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="review-close">Close</button>
+          <button class="btn btn-primary" id="review-step-through">Review Moves</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move Analysis Tooltip -->
+    <div id="move-tooltip" class="move-tooltip hidden"></div>
+
+    <!-- Header -->
+    <header>
+      <div class="header-brand">
+        <img src="assets/logo.svg" alt="Grandmasters" class="header-logo">
+        <h1>Grandmasters</h1>
+      </div>
+      <nav>
+        <button class="btn" id="btn-new-game">New Game</button>
+        <button class="btn" id="btn-flip">Flip Board</button>
+        <button class="btn header-user-badge" id="btn-user-badge">
+          <img class="header-user-avatar hidden" id="header-user-avatar" src="img/avatars/knight.svg" alt="">
+          <span class="header-user-name" id="header-user-name">Login</span>
+        </button>
+        <button class="btn nav-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
+          <span class="menu-icon"></span>
+        </button>
+        <div class="nav-menu" id="nav-menu">
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">Play</span>
+            <button class="btn" id="btn-play-online">Play Online</button>
+            <button class="btn" id="btn-puzzles">Puzzles</button>
+            <button class="btn" id="btn-tournament">Tournament</button>
+            <button class="btn" id="btn-bot-match">Bot Match</button>
+          </div>
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">Tools</span>
+            <button class="btn" id="btn-database">Database</button>
+            <button class="btn" id="btn-stats">Stats</button>
+            <button class="btn" id="btn-multi-analysis">Live Advisors</button>
+            <div class="dropdown">
+              <button class="btn" id="btn-pgn-menu">PGN</button>
+              <div class="dropdown-content">
+                <button id="btn-import-pgn">Import PGN</button>
+                <button id="btn-export-pgn">Export PGN</button>
+              </div>
+            </div>
+          </div>
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">More</span>
+            <button class="btn" id="btn-news">Chess World</button>
+            <button class="btn" id="btn-music">Music</button>
+          </div>
+          <div class="nav-menu-section">
+            <span class="nav-menu-label">Settings</span>
+            <button class="btn" id="btn-themes">Themes</button>
+            <button class="btn" id="btn-eval-bar">Eval Bar</button>
+            <button class="btn" id="btn-layout">Layout</button>
+            <button class="btn" id="btn-sound" title="Toggle Sound">Sound On</button>
+            <button class="btn" id="btn-dgt">DGT Board</button>
+          </div>
+          <div class="nav-menu-section">
+            <button class="btn hidden" id="btn-admin">Admin</button>
+            <span class="auth-status hidden" id="auth-status"></span>
+            <button class="btn" id="btn-auth">Login</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Left: Board Area -->
+      <div class="board-area">
+        <!-- Top Player Info -->
+        <div class="player-info top" id="player-top">
+          <div class="player-info-left">
+            <span class="player-name">Black</span>
+            <span class="captured-pieces" id="captured-top"></span>
+            <span class="material-advantage" id="material-top"></span>
+          </div>
+          <div class="timer-group">
+            <span class="move-clock" id="move-clock-top">0s</span>
+            <span class="timer" id="timer-top">--:--</span>
+          </div>
+        </div>
+
+        <!-- Chess Board -->
+        <div id="board-container">
+          <div class="eval-bar" id="eval-bar">
+            <div class="eval-bar-white" id="eval-bar-white"></div>
+            <div class="eval-bar-label" id="eval-bar-label">0.0</div>
+          </div>
+          <div id="board" class="board"></div>
+          <!-- Coordinate labels -->
+          <div class="coords coords-files" id="coords-files"></div>
+          <div class="coords coords-ranks" id="coords-ranks"></div>
+        </div>
+
+        <!-- Bottom Player Info -->
+        <div class="player-info bottom" id="player-bottom">
+          <div class="player-info-left">
+            <span class="player-name">White</span>
+            <span class="captured-pieces" id="captured-bottom"></span>
+            <span class="material-advantage" id="material-bottom"></span>
+          </div>
+          <div class="timer-group">
+            <span class="move-clock" id="move-clock-bottom">0s</span>
+            <span class="timer" id="timer-bottom">--:--</span>
+          </div>
+        </div>
+
+        <!-- Always-visible opening name -->
+        <div class="opening-label" id="opening-label"></div>
+
+        <!-- Eval Graph (shown after analysis) -->
+        <div class="eval-graph-container hidden" id="eval-graph-container"></div>
+
+        <!-- Navigation Controls (under board) -->
+        <div class="nav-controls">
+          <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
+          <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
+          <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
+          <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
+        </div>
+
+        <!-- Puzzle Bar (shown during puzzle mode) -->
+        <div class="puzzle-bar hidden" id="puzzle-bar">
+          <div class="puzzle-info">
+            <span class="puzzle-rating-badge" id="puzzle-rating-badge"></span>
+            <span class="puzzle-theme-badge" id="puzzle-theme-badge"></span>
+            <span class="puzzle-streak" id="puzzle-streak"></span>
+          </div>
+          <div class="puzzle-controls">
+            <button class="btn btn-sm" id="btn-puzzle-hint">Hint</button>
+            <button class="btn btn-sm" id="btn-puzzle-skip">Skip</button>
+            <button class="btn btn-sm btn-primary hidden" id="btn-puzzle-next">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resize Handle -->
+      <div class="resize-handle resize-handle-v" id="resize-handle-main" title="Drag to resize"></div>
+
+      <!-- Right: Side Panel -->
+      <div class="side-panel">
+        <!-- Game Status -->
+        <div class="status-bar" id="status-bar">
+          <span id="game-status">White to move</span>
+          <span id="engine-status" class="hidden">Stockfish: Ready</span>
+          <span id="dgt-board-status" class="dgt-board-status hidden">DGT: Connected</span>
+          <button class="btn btn-sm btn-force hidden" id="btn-force-move">Force Move</button>
+          <div class="analyze-group hidden" id="analyze-group">
+            <button class="btn btn-sm btn-primary" id="btn-analyze">Analyze</button>
+            <select class="analyze-depth-select" id="analyze-depth" title="Analysis depth">
+              <option value="10">Quick (~3s/move)</option>
+              <option value="16" selected>Normal (~6s/move)</option>
+              <option value="22">Deep (~15s/move)</option>
+            </select>
+          </div>
+          <button class="btn btn-sm hidden" id="btn-resign-mp">Resign</button>
+          <button class="btn btn-sm hidden" id="btn-draw-mp">Offer Draw</button>
+          <span class="mp-opponent-status hidden" id="mp-opponent-status"></span>
+          <div class="analysis-progress hidden" id="analysis-progress">
+            <div class="progress-bar"><div class="progress-fill" id="analysis-progress-fill"></div></div>
+            <span class="progress-text" id="analysis-progress-text">Analyzing...</span>
+          </div>
+        </div>
+
+        <!-- Analysis Summary (shown after analysis) -->
+        <div class="analysis-summary hidden" id="analysis-summary"></div>
+
+        <!-- Side Panel Tabs -->
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="moves">Moves</button>
+          <button class="panel-tab" data-tab="ideas">Advisors</button>
+          <button class="panel-tab" data-tab="coach">Coach</button>
+        </div>
+
+        <!-- Moves Tab -->
+        <div class="panel-content" id="tab-moves">
+          <!-- Move History -->
+          <div class="move-history-container">
+            <div id="move-history" class="move-history"></div>
+          </div>
+          <div class="resize-handle resize-handle-h" id="resize-handle-moves" title="Drag to resize move list"></div>
+
+          <!-- Advisor Annotations (shown below current move) -->
+          <div class="advisor-annotations" id="advisor-annotations"></div>
+
+          <!-- Move Insight (shown after analysis, per-move learning feedback) -->
+          <div class="move-insight hidden" id="move-insight"></div>
+
+          <!-- Game Controls -->
+          <div class="game-controls">
+            <button class="btn btn-sm" id="btn-undo" title="Undo">Undo</button>
+            <button class="btn btn-sm" id="btn-redo" title="Redo">Redo</button>
+            <button class="btn btn-sm" id="btn-toggle-notes" title="Notes">Notes</button>
+          </div>
+
+          <!-- Per-move notebook -->
+          <div class="move-notes hidden" id="move-notes">
+            <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..." rows="2"></textarea>
+          </div>
+
+          <!-- Opening Explorer -->
+          <div class="opening-explorer">
+            <h3>Opening Explorer</h3>
+            <div id="opening-name" class="opening-name"></div>
+            <div id="explorer-moves" class="explorer-moves"></div>
+          </div>
+        </div>
+
+        <!-- Ideas Tab -->
+        <div class="panel-content hidden" id="tab-ideas">
+          <div class="ideas-panel">
+            <div class="ideas-header">
+              <button class="btn btn-sm" id="btn-pick-advisors">Choose Advisors</button>
+            </div>
+            <div class="advisor-picker hidden" id="advisor-picker"></div>
+            <div class="ideas-list" id="ideas-list">
+              <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Tab -->
+        <div class="panel-content hidden" id="tab-coach">
+          <div class="coach-panel">
+            <div class="coach-header">
+              <span class="coach-tier-badge" id="coach-tier-badge">Tier 1</span>
+              <button class="btn btn-sm" id="btn-coach-settings" title="Coach Settings">Settings</button>
+            </div>
+            <div class="coach-messages" id="coach-messages"></div>
+            <div class="coach-input">
+              <input type="text" id="coach-input" placeholder="Ask your coach...">
+              <button class="btn btn-sm btn-primary" id="btn-coach-send">Send</button>
+            </div>
+            <div class="coach-status" id="coach-status"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="lib/chess.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && !window.Capacitor) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

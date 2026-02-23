@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="32" y="52" width="16" height="14" rx="2" fill="#c8ad8e"/>
+  <!-- Casual collar/shirt -->
+  <path d="M20 80 Q40 64 60 80" fill="#4a4745"/>
+  <path d="M24 68 L34 56 L34 68 Z" fill="#4a4745"/>
+  <path d="M56 68 L46 56 L46 68 Z" fill="#4a4745"/>
+  <!-- Face - round, friendly, South Asian skin tone -->
+  <ellipse cx="40" cy="37" rx="15" ry="17.5" fill="#c8ad8e"/>
+  <!-- Dark hair - full, slightly wavy -->
+  <path d="M25 34 Q24 14 40 10 Q56 14 55 34 Q54 18 40 14 Q26 18 25 34Z" fill="#1a1410"/>
+  <path d="M25 30 Q24 24 27 18 L25 24Z" fill="#1a1410"/>
+  <path d="M55 30 Q56 24 53 18 L55 24Z" fill="#1a1410"/>
+  <path d="M24 32 L24 38 Q23 34 24 32Z" fill="#1a1410"/>
+  <path d="M56 32 L56 38 Q57 34 56 32Z" fill="#1a1410"/>
+  <!-- Slight wave on top -->
+  <path d="M32 14 Q36 11 42 12 Q38 10 32 13Z" fill="#1a1410"/>
+  <!-- Eyes - warm, round, friendly -->
+  <ellipse cx="34" cy="34" rx="3.5" ry="2.8" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.5" ry="2.8" fill="white" opacity="0.9"/>
+  <circle cx="34.2" cy="34.2" r="2" fill="#1a1410"/>
+  <circle cx="46.2" cy="34.2" r="2" fill="#1a1410"/>
+  <circle cx="34.5" cy="33.7" r="0.6" fill="#81b64c"/>
+  <circle cx="46.5" cy="33.7" r="0.6" fill="#81b64c"/>
+  <!-- Friendly eyebrows -->
+  <path d="M29 30.5 Q34 29 38 30.5" fill="none" stroke="#1a1410" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M42 30.5 Q46 29 51 30.5" fill="none" stroke="#1a1410" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="36" x2="39.5" y2="43" stroke="#b49878" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M37.5 43 Q39.5 45 41.5 43" fill="none" stroke="#b49878" stroke-width="0.7"/>
+  <!-- Warm, slight smile -->
+  <path d="M34 48 Q40 52 46 48" fill="none" stroke="#a08a6e" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M35 48 Q40 50 45 48" fill="#b49878" opacity="0.3"/>
+  <!-- Ears -->
+  <ellipse cx="25" cy="37" rx="2.5" ry="4" fill="#bc9e80"/>
+  <ellipse cx="55" cy="37" rx="2.5" ry="4" fill="#bc9e80"/>
+</svg>

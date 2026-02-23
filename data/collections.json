@@ -1,0 +1,53 @@
+{
+  "categories": [
+    {
+      "id": "classic",
+      "name": "Classic Games",
+      "collections": [
+        { "name": "Immortal Games", "file": "data/classic-games/immortal-games.pgn" },
+        { "name": "World Championships", "file": "data/classic-games/world-championships.pgn" },
+        { "name": "Brilliant Miniatures", "file": "data/classic-games/miniatures.pgn" }
+      ]
+    },
+    {
+      "id": "players",
+      "name": "Players",
+      "collections": [
+        { "name": "Bobby Fischer", "file": "data/players/fischer.pgn" },
+        { "name": "Garry Kasparov", "file": "data/players/kasparov.pgn" },
+        { "name": "Magnus Carlsen", "file": "data/players/carlsen.pgn" },
+        { "name": "Paul Morphy", "file": "data/players/morphy.pgn" },
+        { "name": "Jose Raul Capablanca", "file": "data/players/capablanca.pgn" },
+        { "name": "Alexander Alekhine", "file": "data/players/alekhine.pgn" },
+        { "name": "Mikhail Tal", "file": "data/players/tal.pgn" },
+        { "name": "Tigran Petrosian", "file": "data/players/petrosian.pgn" },
+        { "name": "Anatoly Karpov", "file": "data/players/karpov.pgn" },
+        { "name": "Viswanathan Anand", "file": "data/players/anand.pgn" },
+        { "name": "Vladimir Kramnik", "file": "data/players/kramnik.pgn" },
+        { "name": "Mikhail Botvinnik", "file": "data/players/botvinnik.pgn" }
+      ]
+    },
+    {
+      "id": "openings",
+      "name": "Openings",
+      "collections": [
+        { "name": "Sicilian Defense", "file": "data/openings/sicilian.pgn" },
+        { "name": "Ruy Lopez", "file": "data/openings/ruy-lopez.pgn" },
+        { "name": "Queen's Gambit", "file": "data/openings/queens-gambit.pgn" },
+        { "name": "King's Indian Defense", "file": "data/openings/kings-indian.pgn" },
+        { "name": "French Defense", "file": "data/openings/french.pgn" },
+        { "name": "Italian Game", "file": "data/openings/italian.pgn" }
+      ]
+    },
+    {
+      "id": "events",
+      "name": "Events",
+      "collections": [
+        { "name": "Candidates Tournaments", "file": "data/events/candidates.pgn" },
+        { "name": "Linares Super-GM", "file": "data/events/linares.pgn" },
+        { "name": "Tata Steel / Wijk aan Zee", "file": "data/events/wijk-aan-zee.pgn" },
+        { "name": "Zurich 1953", "file": "data/events/zurich-1953.pgn" }
+      ]
+    }
+  ]
+}

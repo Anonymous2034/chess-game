@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Thick neck -->
+  <rect x="30" y="52" width="20" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Heavy shoulders/shirt -->
+  <path d="M16 80 Q40 62 64 80" fill="#5a5550"/>
+  <path d="M28 60 L28 70 L52 70 L52 60" fill="#5a5550"/>
+  <!-- Brick/stone texture accent on shoulders -->
+  <line x1="22" y1="74" x2="32" y2="74" stroke="#6a6560" stroke-width="0.6"/>
+  <line x1="26" y1="76" x2="36" y2="76" stroke="#6a6560" stroke-width="0.6"/>
+  <line x1="48" y1="74" x2="58" y2="74" stroke="#6a6560" stroke-width="0.6"/>
+  <line x1="44" y1="76" x2="54" y2="76" stroke="#6a6560" stroke-width="0.6"/>
+  <!-- Face - broad, heavy jaw -->
+  <path d="M26 42 Q26 22 40 18 Q54 22 54 42 Q52 56 40 58 Q28 56 26 42Z" fill="#e0d5c7"/>
+  <!-- Shaved head - subtle stubble -->
+  <path d="M26 32 Q26 14 40 11 Q54 14 54 32 Q54 20 48 16 Q42 13 36 15 Q30 18 26 26Z" fill="#d0c5b7" opacity="0.6"/>
+  <path d="M26 32 Q26 14 40 11 Q54 14 54 32" fill="none" stroke="#b0a598" stroke-width="0.8"/>
+  <!-- Small stoic eyes -->
+  <ellipse cx="34" cy="35" rx="3" ry="2.2" fill="white"/>
+  <ellipse cx="46" cy="35" rx="3" ry="2.2" fill="white"/>
+  <circle cx="34" cy="35.2" r="1.8" fill="#1a1715"/>
+  <circle cx="46" cy="35.2" r="1.8" fill="#1a1715"/>
+  <circle cx="34.3" cy="34.8" r="0.6" fill="#81b64c"/>
+  <circle cx="46.3" cy="34.8" r="0.6" fill="#81b64c"/>
+  <!-- Heavy flat eyebrows -->
+  <line x1="28" y1="31" x2="38" y2="31.5" stroke="#8a7e70" stroke-width="2" stroke-linecap="round"/>
+  <line x1="42" y1="31.5" x2="52" y2="31" stroke="#8a7e70" stroke-width="2" stroke-linecap="round"/>
+  <!-- Broad nose -->
+  <line x1="40" y1="37" x2="40" y2="43" stroke="#c4b9ac" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M37 43 Q40 45 43 43" fill="none" stroke="#c4b9ac" stroke-width="0.8"/>
+  <!-- Impenetrable flat mouth -->
+  <line x1="35" y1="49" x2="45" y2="49" stroke="#b09e8e" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Heavy jaw lines -->
+  <line x1="27" y1="48" x2="30" y2="54" stroke="#c4b9ac" stroke-width="0.6" opacity="0.4"/>
+  <line x1="53" y1="48" x2="50" y2="54" stroke="#c4b9ac" stroke-width="0.6" opacity="0.4"/>
+  <!-- Ears -->
+  <ellipse cx="25" cy="38" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="55" cy="38" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

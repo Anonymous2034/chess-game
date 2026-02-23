@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="32" y="52" width="16" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Formal suit/collar -->
+  <path d="M20 80 Q40 64 60 80" fill="#2a2725"/>
+  <path d="M24 68 L34 56 L34 68 Z" fill="#2a2725"/>
+  <path d="M56 68 L46 56 L46 68 Z" fill="#2a2725"/>
+  <!-- White shirt collar -->
+  <path d="M34 58 L37 66 L40 60 L43 66 L46 58" fill="none" stroke="#f0ebe4" stroke-width="1.5"/>
+  <!-- Tie -->
+  <polygon points="39,60 41,60 41.5,68 38.5,68" fill="#555"/>
+  <!-- Face -->
+  <ellipse cx="40" cy="37" rx="15" ry="17" fill="#e0d5c7"/>
+  <!-- Balding with side hair -->
+  <path d="M25 34 Q25 14 40 12 Q55 14 55 34" fill="#e0d5c7"/>
+  <!-- Side hair patches -->
+  <path d="M25 30 Q24 24 27 20 L25 22 Q23 28 25 36 Z" fill="#6b6360"/>
+  <path d="M55 30 Q56 24 53 20 L55 22 Q57 28 55 36 Z" fill="#6b6360"/>
+  <path d="M25 32 L25 40 Q24 36 25 32Z" fill="#6b6360"/>
+  <path d="M55 32 L55 40 Q56 36 55 32Z" fill="#6b6360"/>
+  <!-- Round glasses - signature feature -->
+  <circle cx="34" cy="34" r="6" fill="none" stroke="#bababa" stroke-width="1.5"/>
+  <circle cx="46" cy="34" r="6" fill="none" stroke="#bababa" stroke-width="1.5"/>
+  <!-- Glasses bridge -->
+  <line x1="40" y1="33" x2="40" y2="33" stroke="#bababa" stroke-width="1.5"/>
+  <path d="M38 33 Q40 31 42 33" fill="none" stroke="#bababa" stroke-width="1"/>
+  <!-- Glasses arms -->
+  <line x1="28" y1="33" x2="25" y2="32" stroke="#bababa" stroke-width="1"/>
+  <line x1="52" y1="33" x2="55" y2="32" stroke="#bababa" stroke-width="1"/>
+  <!-- Eyes behind glasses -->
+  <ellipse cx="34" cy="34" rx="2.5" ry="2" fill="white" opacity="0.85"/>
+  <ellipse cx="46" cy="34" rx="2.5" ry="2" fill="white" opacity="0.85"/>
+  <circle cx="34" cy="34" r="1.5" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="1.5" fill="#1a1715"/>
+  <circle cx="34.3" cy="33.6" r="0.5" fill="#81b64c"/>
+  <circle cx="46.3" cy="33.6" r="0.5" fill="#81b64c"/>
+  <!-- Serious eyebrows -->
+  <line x1="30" y1="27.5" x2="38" y2="28" stroke="#5a5350" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="42" y1="28" x2="50" y2="27.5" stroke="#5a5350" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="36" x2="39.5" y2="42" stroke="#c4b9ac" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Serious/stern mouth -->
+  <line x1="36" y1="47" x2="44" y2="47" stroke="#b09e8e" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="25" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="55" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

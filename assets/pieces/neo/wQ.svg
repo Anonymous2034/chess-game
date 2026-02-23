@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
+  <g fill="#fff" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Base -->
+    <rect x="12" y="36" width="21" height="4" rx="1"/>
+    <!-- Lower platform -->
+    <rect x="14" y="32" width="17" height="4" rx="1"/>
+    <!-- Body -->
+    <polygon points="15,32 17,18 28,18 30,32"/>
+    <!-- Crown peaks -->
+    <polygon points="13,18 16,10 19,18"/>
+    <polygon points="19,18 22.5,8 26,18"/>
+    <polygon points="26,18 29,10 32,18"/>
+    <!-- Top circle -->
+    <circle cx="22.5" cy="7" r="2.5"/>
+  </g>
+</svg>

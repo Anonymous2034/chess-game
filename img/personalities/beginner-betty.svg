@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="33" y="52" width="14" height="12" rx="2" fill="#e0d5c7"/>
+  <!-- T-shirt collar -->
+  <path d="M22 80 Q40 64 58 80" fill="#81b64c"/>
+  <path d="M33 58 L33 66 L40 62 L47 66 L47 58" fill="#81b64c"/>
+  <!-- Face - soft round -->
+  <path d="M29 42 Q29 22 40 19 Q51 22 51 42 Q50 54 40 56 Q30 54 29 42Z" fill="#e0d5c7"/>
+  <!-- Ponytail band -->
+  <circle cx="54" cy="20" r="3" fill="#6b4c2a"/>
+  <!-- Ponytail -->
+  <path d="M54 17 Q62 18 60 28 Q58 34 55 32 Q57 24 54 20Z" fill="#6b4c2a"/>
+  <!-- Hair - brown, side-swept -->
+  <path d="M28 28 Q26 16 36 12 Q42 10 48 12 Q54 14 54 22 Q52 16 44 14 Q36 13 30 18 Q28 22 28 28Z" fill="#6b4c2a"/>
+  <path d="M28 28 Q27 20 30 16 Q28 14 26 18 Q24 24 26 30Z" fill="#6b4c2a"/>
+  <!-- Big curious eyes -->
+  <ellipse cx="34" cy="35" rx="5" ry="4.5" fill="white"/>
+  <ellipse cx="46" cy="35" rx="5" ry="4.5" fill="white"/>
+  <circle cx="35" cy="35" r="2.8" fill="#1a1715"/>
+  <circle cx="47" cy="35" r="2.8" fill="#1a1715"/>
+  <circle cx="35.8" cy="34" r="1" fill="white"/>
+  <circle cx="47.8" cy="34" r="1" fill="white"/>
+  <!-- Eyebrows - slightly raised (curious) -->
+  <path d="M29 29 Q34 27 38 29" fill="none" stroke="#6b4c2a" stroke-width="1" stroke-linecap="round"/>
+  <path d="M42 29 Q46 27 51 29" fill="none" stroke="#6b4c2a" stroke-width="1" stroke-linecap="round"/>
+  <!-- Small nose -->
+  <line x1="40" y1="37" x2="39.5" y2="42" stroke="#c4b9ac" stroke-width="1" stroke-linecap="round"/>
+  <!-- Nervous smile -->
+  <path d="M35 47 Q40 50 45 47" fill="none" stroke="#b09e8e" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="35" y1="47" x2="33" y2="46" stroke="#b09e8e" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Slight blush -->
+  <circle cx="30" cy="43" r="3" fill="#e8a0a0" opacity="0.2"/>
+  <circle cx="50" cy="43" r="3" fill="#e8a0a0" opacity="0.2"/>
+  <!-- Ears -->
+  <ellipse cx="27" cy="38" rx="2.5" ry="3.5" fill="#d4c9bb"/>
+  <ellipse cx="53" cy="38" rx="2.5" ry="3.5" fill="#d4c9bb"/>
+</svg>

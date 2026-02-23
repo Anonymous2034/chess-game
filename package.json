@@ -1,0 +1,35 @@
+{
+  "name": "chess-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sw.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "rm -rf www && mkdir -p www && cp -r css js lib data icons img assets index.html manifest.json sw.js www/",
+    "cap:sync": "npm run build && npx cap sync"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anonymous2034/chess-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Anonymous2034/chess-game/issues"
+  },
+  "homepage": "https://github.com/Anonymous2034/chess-game#readme",
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^6.0.2",
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/ios": "^6.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "typescript": "^5.9.3"
+  }
+}
