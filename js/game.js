@@ -298,19 +298,28 @@ export class Game {
    * Load from PGN string. Handles multi-game PGN files by loading the first game.
    */
   loadPGN(pgn) {
+    // Normalize line endings (Windows \r\n → \n)
+    const normalized = pgn.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     // Try loading as-is first
     const tempChess = new Chess();
-    let loaded = tempChess.load_pgn(pgn);
+    let loaded = tempChess.load_pgn(normalized);
 
     // If it fails, try splitting multi-game PGN and loading first game
     if (!loaded) {
-      const games = pgn.split(/\n\n(?=\[Event\s)/);
+      // Split on blank line(s) followed by [Event — handles 1+ blank lines between games
+      const games = normalized.split(/\n\s*\n(?=\[Event\s)/);
       if (games.length > 1) {
         for (const game of games) {
           const trimmed = game.trim();
           if (!trimmed) continue;
+          // Strip comments/annotations before trying
+          const clean = trimmed
+            .replace(/\{[^}]*\}/g, '')
+            .replace(/\([^)]*\)/g, '')
+            .replace(/\$\d+/g, '');
           const temp2 = new Chess();
-          if (temp2.load_pgn(trimmed)) {
+          if (temp2.load_pgn(clean)) {
             const history = temp2.history({ verbose: true });
             if (history.length > 0) {
               return this.loadFromMoves(history.map(m => m.san));
@@ -318,12 +327,11 @@ export class Game {
           }
         }
       }
-      // Also try stripping comments and variations that chess.js may not handle
-      const cleaned = pgn
-        .replace(/\{[^}]*\}/g, '')   // Remove {comments}
-        .replace(/\([^)]*\)/g, '')   // Remove (variations)
-        .replace(/\$\d+/g, '')       // Remove $NAG annotations
-        .replace(/\s+/g, ' ')        // Normalize whitespace
+      // Single game — try stripping comments/annotations
+      const cleaned = normalized
+        .replace(/\{[^}]*\}/g, '')
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\$\d+/g, '')
         .trim();
       const temp3 = new Chess();
       loaded = temp3.load_pgn(cleaned);

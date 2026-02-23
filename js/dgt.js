@@ -80,7 +80,7 @@ export class DGTBoard {
     this._startPosTimer = null;     // Timer for starting position auto-detect
     this._startPosDetected = false; // Prevents repeated callback fires
     this.debounceTimer = null;
-    this.debounceMs = 450;
+    this.debounceMs = 300;
     this._syncWarningTimer = null;
 
     // Protocol buffer
@@ -742,7 +742,7 @@ export class DGTBoard {
       (matches.length > 0 ? ' → ' + matches.map(m => m.san).join(', ') : ''));
 
     if (matches.length === 1) {
-      // Note: lastStableBoard is updated by main.js AFTER move is confirmed
+      this.lastStableBoard = [...this.dgtBoard];
       clearTimeout(this._syncWarningTimer);
       return { from: matches[0].from, to: matches[0].to, promotion: matches[0].promotion };
     }
@@ -760,6 +760,7 @@ export class DGTBoard {
           if (actualPiece) {
             const match = matches.find(m => m.promotion === actualPiece.type);
             if (match) {
+              this.lastStableBoard = [...this.dgtBoard];
               clearTimeout(this._syncWarningTimer);
               return { from: match.from, to: match.to, promotion: match.promotion };
             }
@@ -768,26 +769,29 @@ export class DGTBoard {
 
         // Pegasus or fallback: default to queen promotion
         const queenMove = matches.find(m => m.promotion === 'q') || matches[0];
+        this.lastStableBoard = [...this.dgtBoard];
         clearTimeout(this._syncWarningTimer);
         return { from: queenMove.from, to: queenMove.to, promotion: queenMove.promotion };
       }
 
       // Multiple different from/to — for Pegasus, occupancy might match multiple moves.
-      // Use lastStableBoard to disambiguate which piece actually moved.
+      // Disambiguate: find the match whose FROM square is NOW EMPTY on the physical board
+      // (was occupied before, now empty = that's the piece that actually moved)
       if (this.boardType === 'pegasus' && this.lastStableBoard) {
         const best = matches.find(m => {
           const fromIdx = this._algebraicToDgtSquare(m.from);
-          const toIdx = this._algebraicToDgtSquare(m.to);
-          return this.lastStableBoard[fromIdx] !== 0 && this.lastStableBoard[toIdx] === 0;
+          return this.lastStableBoard[fromIdx] !== 0 && this.dgtBoard[fromIdx] === 0;
         });
         if (best) {
+          this.lastStableBoard = [...this.dgtBoard];
           clearTimeout(this._syncWarningTimer);
           return { from: best.from, to: best.to, promotion: best.promotion };
         }
-        // Still ambiguous — wait for more board state changes rather than guessing
+        // Still ambiguous — wait for more board state changes
         return null;
       } else if (this.boardType === 'pegasus') {
         const nonPromo = matches.find(m => !m.promotion) || matches[0];
+        this.lastStableBoard = [...this.dgtBoard];
         clearTimeout(this._syncWarningTimer);
         return { from: nonPromo.from, to: nonPromo.to, promotion: nonPromo.promotion };
       }
@@ -945,9 +949,8 @@ export class DGTBoard {
       console.log('[DGT] Board dump: state changed');
     }
 
-    // Debounce board dumps like field updates to avoid racing
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => this._onBoardChanged(), this.debounceMs);
+    // Board dumps are reliable full snapshots — process immediately
+    this._onBoardChanged();
   }
 
   _handleFieldUpdate(payload) {
