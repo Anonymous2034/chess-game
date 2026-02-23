@@ -210,7 +210,8 @@ class ChessApp {
       // Initialize analyzer
       this.analyzer = new GameAnalyzer(this.engine);
 
-      const prefix = this.activeBot ? this.activeBot.name : 'Engine';
+      const gmPfx = this.activeBot?.tier === 'grandmaster' ? 'GM ' : '';
+      const prefix = this.activeBot ? `${gmPfx}${this.activeBot.name}` : 'Engine';
       engineStatusEl.textContent = `${prefix}: Ready`;
     } catch (err) {
       console.error('Engine init failed:', err);
@@ -554,7 +555,8 @@ class ChessApp {
     if (this.activeBot && this.game.mode === 'engine') {
       const botColor = this.game.playerColor === 'w' ? 'b' : 'w';
       const playerColor = this.game.playerColor;
-      const botLabel = `${this.activeBot.name} (${this.activeBot.peakElo})`;
+      const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
+      const botLabel = `${gmPrefix}${this.activeBot.name} (${this.activeBot.peakElo})`;
       const playerRating = this.stats?.estimateRating() || 1200;
       const playerLabel = `You (${playerRating})`;
       if (topName) topName.textContent = topColor === botColor ? botLabel : playerLabel;
@@ -2003,10 +2005,11 @@ class ChessApp {
         card.className = 'bot-list-card' + (bot.id === settings.botId ? ' selected' : '');
         card.dataset.botId = bot.id;
 
+        const gmTag = bot.tier === 'grandmaster' ? 'GM ' : '';
         card.innerHTML = `
           <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
           <div class="bot-list-info">
-            <div class="bot-list-name">${bot.name}</div>
+            <div class="bot-list-name">${gmTag}${bot.name}</div>
             <div class="bot-list-elo">${bot.peakElo}</div>
           </div>
         `;
@@ -3283,10 +3286,10 @@ class ChessApp {
       this.music.setVolume(parseInt(e.target.value) / 100);
     });
 
-    // Keep music dialog volume slider in sync
+    // Keep music dialog AND mini player in sync
     this.music.onStateChange = (state) => {
       musicCb.checked = state.playing;
-      // Also update the full music dialog UI if it exists
+      // Full music dialog
       const playBtn = document.getElementById('music-play-pause');
       if (playBtn) playBtn.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
       const nowTitle = document.querySelector('#music-dialog .music-track-title');
@@ -3296,6 +3299,22 @@ class ChessApp {
       const shuffleBtn = document.getElementById('music-shuffle');
       if (shuffleBtn) shuffleBtn.classList.toggle('active', state.shuffle);
       this._updateMusicPlaylist();
+
+      // Mini music player on main screen
+      const mini = document.getElementById('mini-music');
+      if (mini) {
+        if (state.playing) {
+          mini.classList.remove('hidden');
+        } else {
+          mini.classList.add('hidden');
+        }
+        const miniTitle = document.getElementById('mini-music-title');
+        const miniComposer = document.getElementById('mini-music-composer');
+        const miniToggle = document.getElementById('mini-music-toggle');
+        if (miniTitle) miniTitle.textContent = state.track.title;
+        if (miniComposer) miniComposer.textContent = state.track.composer;
+        if (miniToggle) miniToggle.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
+      }
     };
 
     // --- DISPLAY section ---
@@ -4345,6 +4364,8 @@ class ChessApp {
     const flashSlider = document.getElementById('dgt-flash-duration');
     const flashVal = document.getElementById('dgt-flash-duration-val');
     const resetDefaultsBtn = document.getElementById('dgt-reset-defaults');
+    const playerLedSelect = document.getElementById('dgt-player-led-mode');
+    const engineLedSelect = document.getElementById('dgt-engine-led-mode');
 
     // Show hardware settings when connected
     const origOnConnection = this.dgtBoard.onConnectionChange;
@@ -4370,13 +4391,15 @@ class ChessApp {
       }
     };
 
-    // Initialize sliders from saved settings
+    // Initialize sliders and dropdowns from saved settings
     brightnessSlider.value = this.dgtBoard.ledBrightness;
     brightnessVal.textContent = this.dgtBoard.ledBrightness;
     speedSlider.value = this.dgtBoard.ledSpeed;
     speedVal.textContent = this.dgtBoard.ledSpeed;
     flashSlider.value = this.dgtBoard.flashDuration;
     flashVal.textContent = this.dgtBoard.flashDuration;
+    playerLedSelect.value = this.dgtBoard.playerLedMode;
+    engineLedSelect.value = this.dgtBoard.engineLedMode;
 
     brightnessSlider.addEventListener('input', () => {
       const v = parseInt(brightnessSlider.value);
@@ -4396,6 +4419,14 @@ class ChessApp {
       this.dgtBoard.setHardwareSetting('flashDuration', v);
     });
 
+    playerLedSelect.addEventListener('change', () => {
+      this.dgtBoard.setHardwareSetting('playerLedMode', playerLedSelect.value);
+    });
+
+    engineLedSelect.addEventListener('change', () => {
+      this.dgtBoard.setHardwareSetting('engineLedMode', engineLedSelect.value);
+    });
+
     resetDefaultsBtn.addEventListener('click', () => {
       this.dgtBoard.resetHardwareDefaults();
       brightnessSlider.value = this.dgtBoard.ledBrightness;
@@ -4404,6 +4435,8 @@ class ChessApp {
       speedVal.textContent = this.dgtBoard.ledSpeed;
       flashSlider.value = this.dgtBoard.flashDuration;
       flashVal.textContent = this.dgtBoard.flashDuration;
+      playerLedSelect.value = this.dgtBoard.playerLedMode;
+      engineLedSelect.value = this.dgtBoard.engineLedMode;
       this.showToast('LED settings reset to defaults');
     });
   }
@@ -4729,10 +4762,11 @@ class ChessApp {
         for (const bot of tierBots) {
           const card = document.createElement('div');
           card.className = 'bot-list-card' + (settings[side] === bot.id ? ' selected' : '');
+          const gmT = bot.tier === 'grandmaster' ? 'GM ' : '';
           card.innerHTML = `
             <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
             <div class="bot-list-info">
-              <div class="bot-list-name">${bot.name}</div>
+              <div class="bot-list-name">${gmT}${bot.name}</div>
               <div class="bot-list-elo">${bot.peakElo}</div>
             </div>
           `;
@@ -4950,6 +4984,27 @@ class ChessApp {
       });
       composerFilter.addEventListener('change', () => {
         this._updateMusicPlaylist();
+      });
+    }
+
+    // Mini music player controls on main screen
+    document.getElementById('mini-music-toggle')?.addEventListener('click', () => {
+      this.music.toggle();
+    });
+    document.getElementById('mini-music-next')?.addEventListener('click', () => {
+      this.music.next();
+    });
+    document.getElementById('mini-music-prev')?.addEventListener('click', () => {
+      this.music.prev();
+    });
+    const miniVol = document.getElementById('mini-music-vol');
+    if (miniVol) {
+      miniVol.value = Math.round(this.music.audio.volume * 100);
+      miniVol.addEventListener('input', (e) => {
+        this.music.setVolume(parseInt(e.target.value) / 100);
+        // Sync the full dialog slider too
+        const dialogVol = document.getElementById('music-volume');
+        if (dialogVol) dialogVol.value = e.target.value;
       });
     }
 

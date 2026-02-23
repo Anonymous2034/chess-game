@@ -106,6 +106,8 @@ export class DGTBoard {
     ledSpeed: 3,         // 1-5 (DGT speed byte)
     flashDuration: 600,  // ms — auto-clear time for player move confirmation
     castleDelay: 2000,   // ms — delay between king and rook LED phases
+    playerLedMode: 'both',     // 'both' | 'from' | 'to' — what LEDs show for player's own moves
+    engineLedMode: 'sequential', // 'sequential' | 'both' | 'to' — what LEDs show for engine moves
   };
 
   _loadHardwareSettings() {
@@ -116,11 +118,15 @@ export class DGTBoard {
       this.ledSpeed = saved?.ledSpeed ?? defaults.ledSpeed;
       this.flashDuration = saved?.flashDuration ?? defaults.flashDuration;
       this.castleDelay = saved?.castleDelay ?? defaults.castleDelay;
+      this.playerLedMode = saved?.playerLedMode ?? defaults.playerLedMode;
+      this.engineLedMode = saved?.engineLedMode ?? defaults.engineLedMode;
     } catch {
       this.ledBrightness = defaults.ledBrightness;
       this.ledSpeed = defaults.ledSpeed;
       this.flashDuration = defaults.flashDuration;
       this.castleDelay = defaults.castleDelay;
+      this.playerLedMode = defaults.playerLedMode;
+      this.engineLedMode = defaults.engineLedMode;
     }
   }
 
@@ -131,23 +137,20 @@ export class DGTBoard {
         ledSpeed: this.ledSpeed,
         flashDuration: this.flashDuration,
         castleDelay: this.castleDelay,
+        playerLedMode: this.playerLedMode,
+        engineLedMode: this.engineLedMode,
       }));
     } catch {}
   }
 
   setHardwareSetting(key, value) {
-    if (key in DGTBoard.HARDWARE_DEFAULTS) {
-      this[key] = value;
-      this._saveHardwareSettings();
-    }
+    this[key] = value;
+    this._saveHardwareSettings();
   }
 
   resetHardwareDefaults() {
     const defaults = DGTBoard.HARDWARE_DEFAULTS;
-    this.ledBrightness = defaults.ledBrightness;
-    this.ledSpeed = defaults.ledSpeed;
-    this.flashDuration = defaults.flashDuration;
-    this.castleDelay = defaults.castleDelay;
+    Object.assign(this, { ...defaults });
     this._saveHardwareSettings();
   }
 
@@ -526,7 +529,6 @@ export class DGTBoard {
    */
   setEngineMoveToPlay(move) {
     this.pendingEngineMove = move;
-    this._engineMovePhase = 'from';
     clearTimeout(this._flashTimer); // Cancel player confirmation flash
     if (this.boardType === 'pegasus' && move.from && move.to) {
       // Detect castling: king moves 2 squares horizontally
@@ -534,8 +536,17 @@ export class DGTBoard {
       if (castleSquares) {
         this._showCastleLeds(castleSquares);
         this._engineMovePhase = null; // Castling uses its own LED sequencing
+      } else if (this.engineLedMode === 'both') {
+        // Show from + to simultaneously
+        this.setLeds(move.from, move.to);
+        this._engineMovePhase = null;
+      } else if (this.engineLedMode === 'to') {
+        // Show only destination square
+        this.setLedSingle(move.to);
+        this._engineMovePhase = null;
       } else {
-        // Phase 1: light only the FROM square
+        // 'sequential' (default) — Phase 1: FROM, Phase 2: TO after piece lifted
+        this._engineMovePhase = 'from';
         this.setLedSingle(move.from);
       }
     }
@@ -602,15 +613,24 @@ export class DGTBoard {
 
   /**
    * Brief confirmation flash on from/to squares (for player moves).
-   * Auto-clears after 1.5 seconds.
+   * Respects playerLedMode setting: 'both', 'from', 'to'.
    */
   async flashLeds(from, to) {
     if (this.connectionType !== 'pegasus') return;
     clearTimeout(this._flashTimer);
     const fromIdx = this._algebraicToDgtSquare(from);
     const toIdx = this._algebraicToDgtSquare(to);
-    const cmd = [0x60, 0x07, 0x05, this.ledSpeed, 0x01, this.ledBrightness, fromIdx, toIdx, 0x00];
-    console.log('[DGT] LED flash: ' + from + ' → ' + to);
+
+    let cmd;
+    if (this.playerLedMode === 'from') {
+      cmd = [0x60, 0x06, 0x05, this.ledSpeed, 0x01, this.ledBrightness, fromIdx, 0x00];
+    } else if (this.playerLedMode === 'to') {
+      cmd = [0x60, 0x06, 0x05, this.ledSpeed, 0x01, this.ledBrightness, toIdx, 0x00];
+    } else {
+      // 'both' — show from and to
+      cmd = [0x60, 0x07, 0x05, this.ledSpeed, 0x01, this.ledBrightness, fromIdx, toIdx, 0x00];
+    }
+    console.log('[DGT] LED flash (' + this.playerLedMode + '): ' + from + ' → ' + to);
     await this._sendPegasusBytes(cmd);
     this._flashTimer = setTimeout(() => this.clearLeds(), this.flashDuration);
   }

@@ -3055,6 +3055,70 @@ main {
   gap: 6px;
 }
 
+/* === Mini Music Player === */
+
+.mini-music {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: calc(var(--board-size) + 22px);
+  padding: 5px 10px;
+  background: var(--panel-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.mini-music-btn {
+  background: none;
+  border: none;
+  color: var(--text-color, #ccc);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.mini-music-btn:hover {
+  opacity: 1;
+  color: var(--accent, #4ecdc4);
+}
+
+.mini-music-play {
+  font-size: 0.85rem;
+}
+
+.mini-music-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mini-music-title {
+  display: block;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-color, #ddd);
+}
+
+.mini-music-composer {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-muted, #888);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-music-vol {
+  width: 50px;
+  height: 3px;
+  accent-color: var(--accent, #4ecdc4);
+}
+
 .puzzle-rating-badge {
   background: var(--accent);
   color: #fff;
@@ -3386,6 +3450,16 @@ main {
   font-family: var(--font-mono, monospace);
   font-size: 0.82rem;
   color: var(--accent, #4ecdc4);
+}
+
+.dgt-hw-select {
+  flex: 1;
+  background: var(--bg-lighter, #2a2a4a);
+  color: var(--text-color, #ddd);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.82rem;
 }
 
 #dgt-reset-defaults {

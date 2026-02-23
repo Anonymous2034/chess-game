@@ -636,6 +636,22 @@
               <input type="range" id="dgt-flash-duration" min="200" max="2000" step="100" value="600">
               <span class="dgt-hw-value" id="dgt-flash-duration-val">600</span>
             </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">My moves</span>
+              <select id="dgt-player-led-mode" class="dgt-hw-select">
+                <option value="both">From + To</option>
+                <option value="from">From only</option>
+                <option value="to">To only</option>
+              </select>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Engine moves</span>
+              <select id="dgt-engine-led-mode" class="dgt-hw-select">
+                <option value="sequential">Sequential (from, then to)</option>
+                <option value="both">From + To</option>
+                <option value="to">To only</option>
+              </select>
+            </label>
             <button class="btn btn-small btn-secondary" id="dgt-reset-defaults">Reset Defaults</button>
           </div>
         </div>
@@ -973,6 +989,18 @@
             <button class="btn btn-sm" id="btn-puzzle-skip">Skip</button>
             <button class="btn btn-sm btn-primary hidden" id="btn-puzzle-next">Next</button>
           </div>
+        </div>
+
+        <!-- Mini Music Player (shown when music is playing) -->
+        <div class="mini-music hidden" id="mini-music">
+          <button class="mini-music-btn" id="mini-music-prev" title="Previous">&#9664;&#9664;</button>
+          <button class="mini-music-btn mini-music-play" id="mini-music-toggle" title="Play/Pause">&#9654;</button>
+          <button class="mini-music-btn" id="mini-music-next" title="Next">&#9654;&#9654;</button>
+          <div class="mini-music-info">
+            <span class="mini-music-title" id="mini-music-title">-</span>
+            <span class="mini-music-composer" id="mini-music-composer">-</span>
+          </div>
+          <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
         </div>
       </div>
 

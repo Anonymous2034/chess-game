@@ -6,7 +6,40 @@ export class SoundManager {
   constructor() {
     this._ctx = null;
     this._muted = false;
+    this._voicesReady = false;
     this._load();
+    this._initVoices();
+  }
+
+  /** Preload speechSynthesis voices — Chrome loads them asynchronously. */
+  _initVoices() {
+    if (!window.speechSynthesis) return;
+
+    const checkVoices = () => {
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        this._voicesReady = true;
+        // Prefer an English voice
+        this._preferredVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+      }
+    };
+
+    checkVoices();
+    if (!this._voicesReady) {
+      speechSynthesis.addEventListener('voiceschanged', checkVoices);
+    }
+
+    // Warmup: schedule a silent utterance on first user gesture to unlock speech API
+    const warmup = () => {
+      if (!window.speechSynthesis) return;
+      const u = new SpeechSynthesisUtterance('');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+      document.removeEventListener('click', warmup);
+      document.removeEventListener('keydown', warmup);
+    };
+    document.addEventListener('click', warmup, { once: true });
+    document.addEventListener('keydown', warmup, { once: true });
   }
 
   // === Public API ===
@@ -68,9 +101,11 @@ export class SoundManager {
     // Speak directly — no setTimeout. Wrapping in setTimeout moves the call
     // out of the user-gesture context, which can block speech on some browsers.
     const utterance = new SpeechSynthesisUtterance(text);
+    if (this._preferredVoice) utterance.voice = this._preferredVoice;
     utterance.rate = 0.95;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
+    utterance.lang = 'en-US';
     speechSynthesis.speak(utterance);
   }
 
