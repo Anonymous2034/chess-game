@@ -313,6 +313,19 @@ class ChessApp {
               this.updateTimers(this.game.timers);
               this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
               this.fetchOpeningExplorer();
+
+              // DGT: show book move on board LEDs + voice
+              if (this.dgtBoard?.isConnected()) {
+                this.dgtBoard.setEngineMoveToPlay({ from: move.from, to: move.to, san: move.san });
+                const engineMoveEl = document.getElementById('dgt-engine-move');
+                const engineMoveSan = document.getElementById('dgt-engine-move-san');
+                if (engineMoveEl && engineMoveSan) {
+                  engineMoveSan.textContent = move.san;
+                  show(engineMoveEl);
+                }
+                this.dgtBoard.speakMove(move.san);
+                this.showToast(`Play ${move.san} on your DGT board`);
+              }
             }
             if (!this.game.gameOver) {
               this.board.setInteractive(true);
@@ -361,6 +374,7 @@ class ChessApp {
           engineMoveSan.textContent = move.san;
           show(engineMoveEl);
         }
+        this.dgtBoard.speakMove(move.san);
         this.showToast(`Play ${move.san} on your DGT board`);
       }
     }
@@ -3787,7 +3801,9 @@ class ChessApp {
       // Update expected board to match new game position (for sync detection)
       this.dgtBoard._expectedGameBoard = this.dgtBoard._gameToBoard(this.chess);
 
-      // Confirmation flash for player move
+      // Voice + confirmation flash for player move
+      const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
+      if (lastMove) this.dgtBoard.speakMove(lastMove.san);
       this.dgtBoard.flashLeds(detected.from, detected.to);
 
       // Failsafe: if it's now the engine's turn, ensure engine responds

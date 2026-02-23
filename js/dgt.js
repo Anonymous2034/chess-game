@@ -3,7 +3,7 @@
 //   - USB (Web Serial API) — Professional DGT e-Board with piece recognition
 //   - DGT LiveChess 2 (WebSocket) — Professional board via LiveChess software
 //   - Bluetooth (BLE) — DGT Pegasus via Nordic UART Service (occupancy only)
-console.log('[DGT] dgt.js v8 loaded (auto new game on starting position)');
+console.log('[DGT] dgt.js v9 loaded (voice + auto new game)');
 
 // BLE plugin (Capacitor community plugin, available on Android/iOS)
 const BluetoothLe = window.Capacitor?.Plugins?.BluetoothLe || null;
@@ -567,6 +567,82 @@ export class DGTBoard {
       }
     }
     return null;
+  }
+
+  /**
+   * Speak a move aloud using the Web Speech API.
+   * @param {string} san - move in Standard Algebraic Notation (e.g. "Nf3", "Bxe5+")
+   */
+  speakMove(san) {
+    if (!window.speechSynthesis) return;
+    const voiceCheckbox = document.getElementById('dgt-voice-enabled');
+    if (voiceCheckbox && !voiceCheckbox.checked) return;
+
+    const text = this._sanToSpeech(san);
+    if (!text) return;
+
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    speechSynthesis.speak(utterance);
+  }
+
+  /**
+   * Convert SAN notation to spoken English.
+   * "Nf3" → "Knight f3", "Bxe5+" → "Bishop takes e5, check", "O-O" → "Castles kingside"
+   */
+  _sanToSpeech(san) {
+    if (!san) return '';
+
+    // Castling
+    if (san.replace(/[+#]/, '').trim() === 'O-O-O') return 'Castles queenside';
+    if (san.replace(/[+#]/, '').trim() === 'O-O') return 'Castles kingside';
+
+    let s = san;
+    let suffix = '';
+
+    // Check / checkmate suffix
+    if (s.endsWith('#')) { suffix = ', checkmate'; s = s.slice(0, -1); }
+    else if (s.endsWith('+')) { suffix = ', check'; s = s.slice(0, -1); }
+
+    // Promotion: e8=Q
+    let promo = '';
+    const promoIdx = s.indexOf('=');
+    if (promoIdx !== -1) {
+      const promoNames = { Q: 'Queen', R: 'Rook', B: 'Bishop', N: 'Knight' };
+      promo = ' promotes to ' + (promoNames[s[promoIdx + 1]] || s[promoIdx + 1]);
+      s = s.slice(0, promoIdx);
+    }
+
+    // Piece name (uppercase first char)
+    const pieceNames = { K: 'King', Q: 'Queen', R: 'Rook', B: 'Bishop', N: 'Knight' };
+    let piece = '';
+    if (pieceNames[s[0]]) {
+      piece = pieceNames[s[0]];
+      s = s.slice(1);
+    }
+
+    // Capture
+    const takes = s.includes('x');
+    s = s.replace('x', '');
+
+    // Destination is last 2 chars; anything before is disambiguation
+    const dest = s.slice(-2);
+    const disambig = s.slice(0, -2);
+
+    // Build spoken text
+    let text = '';
+    if (piece) {
+      text = piece + ' ';
+    } else if (takes && disambig) {
+      // Pawn capture: "e takes d5"
+      text = disambig + ' ';
+    }
+    if (takes) text += 'takes ';
+    text += dest + promo + suffix;
+
+    return text;
   }
 
   /**

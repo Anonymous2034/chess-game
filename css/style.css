@@ -3066,6 +3066,23 @@ main {
   font-family: 'Courier New', monospace;
 }
 
+.dgt-voice-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.dgt-voice-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .dgt-board-status {
   color: var(--accent);
   font-size: 0.78rem;
