@@ -76,10 +76,11 @@ export class DGTBoard {
     this._boardSynced = false;      // True once board matches game after connect/sync
     this._flashTimer = null;        // Auto-clear timer for confirmation LED flash
     this._castleTimer = null;       // Timer for sequential castle LED animation
+    this._engineMovePhase = null;   // 'from' | 'to' | null — sequential LED guidance
     this._startPosTimer = null;     // Timer for starting position auto-detect
     this._startPosDetected = false; // Prevents repeated callback fires
     this.debounceTimer = null;
-    this.debounceMs = 300;
+    this.debounceMs = 450;
     this._syncWarningTimer = null;
 
     // Protocol buffer
@@ -470,14 +471,17 @@ export class DGTBoard {
    */
   setEngineMoveToPlay(move) {
     this.pendingEngineMove = move;
+    this._engineMovePhase = 'from';
     clearTimeout(this._flashTimer); // Cancel player confirmation flash
     if (this.boardType === 'pegasus' && move.from && move.to) {
       // Detect castling: king moves 2 squares horizontally
       const castleSquares = this._getCastleSquares(move);
       if (castleSquares) {
         this._showCastleLeds(castleSquares);
+        this._engineMovePhase = null; // Castling uses its own LED sequencing
       } else {
-        this.setLeds(move.from, move.to);
+        // Phase 1: light only the FROM square
+        this.setLedSingle(move.from);
       }
     }
   }
@@ -495,6 +499,18 @@ export class DGTBoard {
     // speed=3, blink=0 (continuous), intensity=2
     const cmd = [0x60, 0x07, 0x05, 0x03, 0x00, 0x02, fromIdx, toIdx, 0x00];
     console.log('[DGT] LEDs on: ' + from + '(' + fromIdx + '), ' + to + '(' + toIdx + ')');
+    await this._sendPegasusBytes(cmd);
+  }
+
+  /**
+   * Light up a single square on the Pegasus board.
+   * @param {string} square - algebraic square (e.g. 'e2')
+   */
+  async setLedSingle(square) {
+    if (this.connectionType !== 'pegasus') return;
+    const idx = this._algebraicToDgtSquare(square);
+    const cmd = [0x60, 0x06, 0x05, 0x03, 0x00, 0x02, idx, 0x00];
+    console.log('[DGT] LED single: ' + square + '(' + idx + ')');
     await this._sendPegasusBytes(cmd);
   }
 
@@ -651,7 +667,32 @@ export class DGTBoard {
     if (this.connectionType !== 'pegasus') return;
     clearTimeout(this._flashTimer);
     clearTimeout(this._castleTimer);
+    this._engineMovePhase = null;
     await this._sendPegasusBytes([0x60, 0x02, 0x00, 0x00]);
+  }
+
+  /**
+   * Check if engine move guidance should advance from "from" to "to" phase.
+   * Called from _onPhysicalBoardChanged when pendingEngineMove is set.
+   * Returns true if handled (caller should return early).
+   */
+  checkEngineMovePhase() {
+    if (!this.pendingEngineMove || !this._engineMovePhase) return false;
+    const move = this.pendingEngineMove;
+    const fromIdx = this._algebraicToDgtSquare(move.from);
+    const toIdx = this._algebraicToDgtSquare(move.to);
+
+    if (this._engineMovePhase === 'from') {
+      // Check if piece was lifted from the FROM square
+      if (this.dgtBoard[fromIdx] === 0) {
+        console.log('[DGT] Engine move: piece lifted from ' + move.from + ' — showing TO: ' + move.to);
+        this._engineMovePhase = 'to';
+        this.setLedSingle(move.to);
+        return true; // Handled — don't detect moves yet
+      }
+    }
+    // Phase 'to': let the normal board-match check handle completion
+    return false;
   }
 
   /**
@@ -667,6 +708,7 @@ export class DGTBoard {
     clearTimeout(this._startPosTimer);
     this._startPosTimer = null;
     this.pendingEngineMove = null;
+    this._engineMovePhase = null;
     this.clearLeds();
 
     if ((this.connectionType === 'serial' && this.writer) ||
@@ -700,7 +742,7 @@ export class DGTBoard {
       (matches.length > 0 ? ' → ' + matches.map(m => m.san).join(', ') : ''));
 
     if (matches.length === 1) {
-      this.lastStableBoard = [...this.dgtBoard];
+      // Note: lastStableBoard is updated by main.js AFTER move is confirmed
       clearTimeout(this._syncWarningTimer);
       return { from: matches[0].from, to: matches[0].to, promotion: matches[0].promotion };
     }
@@ -718,7 +760,6 @@ export class DGTBoard {
           if (actualPiece) {
             const match = matches.find(m => m.promotion === actualPiece.type);
             if (match) {
-              this.lastStableBoard = [...this.dgtBoard];
               clearTimeout(this._syncWarningTimer);
               return { from: match.from, to: match.to, promotion: match.promotion };
             }
@@ -727,7 +768,6 @@ export class DGTBoard {
 
         // Pegasus or fallback: default to queen promotion
         const queenMove = matches.find(m => m.promotion === 'q') || matches[0];
-        this.lastStableBoard = [...this.dgtBoard];
         clearTimeout(this._syncWarningTimer);
         return { from: queenMove.from, to: queenMove.to, promotion: queenMove.promotion };
       }
@@ -741,7 +781,6 @@ export class DGTBoard {
           return this.lastStableBoard[fromIdx] !== 0 && this.lastStableBoard[toIdx] === 0;
         });
         if (best) {
-          this.lastStableBoard = [...this.dgtBoard];
           clearTimeout(this._syncWarningTimer);
           return { from: best.from, to: best.to, promotion: best.promotion };
         }
@@ -749,7 +788,6 @@ export class DGTBoard {
         return null;
       } else if (this.boardType === 'pegasus') {
         const nonPromo = matches.find(m => !m.promotion) || matches[0];
-        this.lastStableBoard = [...this.dgtBoard];
         clearTimeout(this._syncWarningTimer);
         return { from: nonPromo.from, to: nonPromo.to, promotion: nonPromo.promotion };
       }
@@ -907,7 +945,9 @@ export class DGTBoard {
       console.log('[DGT] Board dump: state changed');
     }
 
-    this._onBoardChanged();
+    // Debounce board dumps like field updates to avoid racing
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => this._onBoardChanged(), this.debounceMs);
   }
 
   _handleFieldUpdate(payload) {

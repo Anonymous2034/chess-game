@@ -4084,14 +4084,25 @@ class ChessApp {
         hide(disconnectBtn);
         hide(boardStatusEl);
         hide(engineMoveEl);
+        // Re-enable screen interaction so the player can continue the game
+        if (!this.game.gameOver && !this.game.replayMode) {
+          this.board.setInteractive(true);
+        }
       }
     };
 
     // Physical board change callback — detect moves
+    let dgtProcessing = false;
     this.dgtBoard._onPhysicalBoardChanged = async () => {
+      if (dgtProcessing) return; // Prevent re-entry during move execution
       console.log('[DGT-main] Physical board changed callback fired');
 
       if (this.dgtBoard.pendingEngineMove) {
+        // Sequential LED: check if piece was lifted (from→to phase transition)
+        if (this.dgtBoard.checkEngineMovePhase()) {
+          return; // Still in intermediate phase — wait for piece placement
+        }
+        // Check if engine move is fully completed on the board
         const gameBoard = this.dgtBoard._chessJsToArray(this.chess);
         if (this.dgtBoard._boardsMatch(gameBoard, this.dgtBoard.dgtBoard)) {
           this.dgtBoard.lastStableBoard = [...this.dgtBoard.dgtBoard];
@@ -4135,19 +4146,26 @@ class ChessApp {
 
       this.dgtBoard.clearLeds();
       console.log('[DGT-main] Executing tryMove:', detected.from, detected.to);
-      await this.board.tryMove(detected.from, detected.to);
+      dgtProcessing = true;
+      try {
+        await this.board.tryMove(detected.from, detected.to);
 
-      this.dgtBoard._expectedGameBoard = this.dgtBoard._gameToBoard(this.chess);
+        // Update DGT board state AFTER move is confirmed by the game
+        this.dgtBoard.lastStableBoard = [...this.dgtBoard.dgtBoard];
+        this.dgtBoard._expectedGameBoard = this.dgtBoard._gameToBoard(this.chess);
 
-      const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
-      if (lastMove) this.dgtBoard.speakMove(lastMove.san);
-      this.dgtBoard.flashLeds(detected.from, detected.to);
+        const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
+        if (lastMove) this.dgtBoard.speakMove(lastMove.san);
+        this.dgtBoard.flashLeds(detected.from, detected.to);
 
-      if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor && !this.game.gameOver) {
-        if (!this.engine?.thinking) {
-          console.log('[DGT-main] Failsafe: triggering engine move');
-          this.requestEngineMove();
+        if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor && !this.game.gameOver) {
+          if (!this.engine?.thinking) {
+            console.log('[DGT-main] Failsafe: triggering engine move');
+            this.requestEngineMove();
+          }
         }
+      } finally {
+        dgtProcessing = false;
       }
     };
 

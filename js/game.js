@@ -295,12 +295,44 @@ export class Game {
   }
 
   /**
-   * Load from PGN string
+   * Load from PGN string. Handles multi-game PGN files by loading the first game.
    */
   loadPGN(pgn) {
+    // Try loading as-is first
     const tempChess = new Chess();
-    const loaded = tempChess.load_pgn(pgn);
-    if (!loaded) return null;
+    let loaded = tempChess.load_pgn(pgn);
+
+    // If it fails, try splitting multi-game PGN and loading first game
+    if (!loaded) {
+      const games = pgn.split(/\n\n(?=\[Event\s)/);
+      if (games.length > 1) {
+        for (const game of games) {
+          const trimmed = game.trim();
+          if (!trimmed) continue;
+          const temp2 = new Chess();
+          if (temp2.load_pgn(trimmed)) {
+            const history = temp2.history({ verbose: true });
+            if (history.length > 0) {
+              return this.loadFromMoves(history.map(m => m.san));
+            }
+          }
+        }
+      }
+      // Also try stripping comments and variations that chess.js may not handle
+      const cleaned = pgn
+        .replace(/\{[^}]*\}/g, '')   // Remove {comments}
+        .replace(/\([^)]*\)/g, '')   // Remove (variations)
+        .replace(/\$\d+/g, '')       // Remove $NAG annotations
+        .replace(/\s+/g, ' ')        // Normalize whitespace
+        .trim();
+      const temp3 = new Chess();
+      loaded = temp3.load_pgn(cleaned);
+      if (loaded) {
+        const history = temp3.history({ verbose: true });
+        return this.loadFromMoves(history.map(m => m.san));
+      }
+      return null;
+    }
 
     const history = tempChess.history({ verbose: true });
     const moves = history.map(m => m.san);
