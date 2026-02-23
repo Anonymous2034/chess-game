@@ -3,7 +3,7 @@
 //   - USB (Web Serial API) — Professional DGT e-Board with piece recognition
 //   - DGT LiveChess 2 (WebSocket) — Professional board via LiveChess software
 //   - Bluetooth (BLE) — DGT Pegasus via Nordic UART Service (occupancy only)
-console.log('[DGT] dgt.js v7 loaded (tuned LEDs + hidden sensor gap)');
+console.log('[DGT] dgt.js v8 loaded (auto new game on starting position)');
 
 // BLE plugin (Capacitor community plugin, available on Android/iOS)
 const BluetoothLe = window.Capacitor?.Plugins?.BluetoothLe || null;
@@ -76,6 +76,8 @@ export class DGTBoard {
     this._boardSynced = false;      // True once board matches game after connect/sync
     this._flashTimer = null;        // Auto-clear timer for confirmation LED flash
     this._castleTimer = null;       // Timer for sequential castle LED animation
+    this._startPosTimer = null;     // Timer for starting position auto-detect
+    this._startPosDetected = false; // Prevents repeated callback fires
     this.debounceTimer = null;
     this.debounceMs = 300;
     this._syncWarningTimer = null;
@@ -90,6 +92,7 @@ export class DGTBoard {
     this.onStatusChange = null;
     this.onConnectionChange = null;
     this._onPhysicalBoardChanged = null;
+    this.onStartingPositionDetected = null;
   }
 
   // === Public API ===
@@ -452,6 +455,9 @@ export class DGTBoard {
     this.pendingEngineMove = null;
     clearTimeout(this._flashTimer);
     clearTimeout(this._castleTimer);
+    clearTimeout(this._startPosTimer);
+    this._startPosTimer = null;
+    this._startPosDetected = false;
 
     if (this.onConnectionChange) this.onConnectionChange(false);
     this._setStatus('Disconnected');
@@ -582,6 +588,9 @@ export class DGTBoard {
     this.lastStableBoard = [...this._expectedGameBoard];
     this._sensorGaps = new Set(); // Re-detect on each sync
     this._boardSynced = false;    // Need to re-sync with physical board
+    this._startPosDetected = false;
+    clearTimeout(this._startPosTimer);
+    this._startPosTimer = null;
     this.pendingEngineMove = null;
     this.clearLeds();
 
@@ -877,7 +886,51 @@ export class DGTBoard {
 
   // === Board Change Detection ===
 
+  /**
+   * Check if the physical board matches the starting position.
+   * Pegasus: rows 0-1 (ranks 8-7) and rows 6-7 (ranks 2-1) occupied, rest empty.
+   */
+  _isStartingPosition() {
+    for (let i = 0; i < 64; i++) {
+      if (this._sensorGaps.has(i)) continue;
+      const row = Math.floor(i / 8);
+      const expected = (row <= 1 || row >= 6) ? 1 : 0;
+      if (this.dgtBoard[i] !== expected) return false;
+    }
+    return true;
+  }
+
   _onBoardChanged() {
+    // Starting position detection: if board is synced (game in progress) and pieces
+    // are reset to starting position, fire callback after 2s stable confirmation.
+    if (this._boardSynced && this.boardType === 'pegasus') {
+      if (this._isStartingPosition()) {
+        if (!this._startPosDetected) {
+          if (!this._startPosTimer) {
+            console.log('[DGT] Starting position detected — confirming (2s)...');
+            this._startPosTimer = setTimeout(() => {
+              this._startPosTimer = null;
+              if (this._isStartingPosition()) {
+                this._startPosDetected = true;
+                console.log('[DGT] Starting position confirmed — firing callback');
+                this._setStatus('Starting position — ready for new game');
+                if (this.onStartingPositionDetected) {
+                  this.onStartingPositionDetected();
+                }
+              }
+            }, 2000);
+          }
+        }
+        this.lastStableBoard = [...this.dgtBoard];
+        return;
+      } else {
+        // Board moved away from starting position — reset detection
+        clearTimeout(this._startPosTimer);
+        this._startPosTimer = null;
+        this._startPosDetected = false;
+      }
+    }
+
     // Layer 1: Initial sync check — only runs BEFORE board is synced.
     // Once synced, all board changes flow to move detection (Layers 2-3).
     // This prevents intermediate castling states from being absorbed as sensor gaps.

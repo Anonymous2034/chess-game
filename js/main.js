@@ -3800,6 +3800,24 @@ class ChessApp {
       }
     };
 
+    // Starting position detected — auto-start new game with same settings
+    this.dgtBoard.onStartingPositionDetected = () => {
+      // Only trigger if a game was actually played (has moves or is over)
+      if (this.chess.history().length === 0 && !this.game.gameOver) {
+        console.log('[DGT-main] Starting position detected but no game played — ignoring');
+        return;
+      }
+      console.log('[DGT-main] Starting position detected — auto-starting new game');
+      this._startNewGame({
+        mode: this.game.mode,
+        color: this.game.playerColor,
+        botId: this.game.botId,
+        time: this.game.timeControl,
+        increment: this.game.increment,
+        rated: this.game.rated
+      });
+    };
+
     // Button handlers
     dgtBtn.addEventListener('click', () => {
       show(dgtDialog);
