@@ -4113,6 +4113,10 @@ class ChessApp {
           console.log('[DGT-main] Engine move replayed on board');
           return;
         }
+        // Board doesn't match game yet — waiting for user to play engine move on board.
+        // Do NOT fall through to detectMove — that would try to find player moves
+        // from the wrong position (game has advanced past the physical board state).
+        return;
       }
 
       let detected;
@@ -4158,12 +4162,10 @@ class ChessApp {
         if (lastMove) this.dgtBoard.speakMove(lastMove.san);
         this.dgtBoard.flashLeds(detected.from, detected.to);
 
-        if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor && !this.game.gameOver) {
-          if (!this.engine?.thinking) {
-            console.log('[DGT-main] Failsafe: triggering engine move');
-            this.requestEngineMove();
-          }
-        }
+        // Engine move is already triggered by handleMoveMade() during tryMove.
+        // Do NOT call requestEngineMove() again here — for opening book moves,
+        // engine.thinking isn't set, so the check would pass and create a duplicate
+        // request that plays an extra move (e.g., d4 → e6 → phantom Nc3).
       } finally {
         dgtProcessing = false;
       }

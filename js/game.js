@@ -298,8 +298,8 @@ export class Game {
    * Load from PGN string. Handles multi-game PGN files by loading the first game.
    */
   loadPGN(pgn) {
-    // Normalize line endings (Windows \r\n → \n)
-    const normalized = pgn.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    // Strip BOM (clipboard paste from some editors), normalize line endings
+    const normalized = pgn.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     // Try loading as-is first
     const tempChess = new Chess();
