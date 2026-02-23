@@ -2174,15 +2174,48 @@ class ChessApp {
       const pgn = document.getElementById('pgn-input').value.trim();
       if (!pgn) return;
 
-      const moves = this.game.loadPGN(pgn);
-      if (moves) {
-        this.notation.setMoves(moves);
-        this.board.setLastMove(moves.length > 0 ? moves[moves.length - 1] : null);
-        this.board.update();
-        this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
-        hide(pgnDialog);
+      // Detect multi-game PGN: count [Event headers
+      const normalized = pgn.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      const eventCount = (normalized.match(/^\[Event\s/gm) || []).length;
+
+      if (eventCount > 1) {
+        // Multi-game PGN → import all games into the database
+        const fileInput = document.getElementById('pgn-file-input');
+        const fileName = fileInput?.files?.[0]?.name?.replace(/\.pgn$/i, '') || 'Imported';
+        const count = this.database.importAllGames(pgn, fileName);
+        if (count > 0) {
+          this.populateCategoryTabs();
+          this.populateCollectionFilter();
+          hide(pgnDialog);
+          // Open database dialog with the imported collection selected
+          this.activeCategory = 'imported';
+          this.populateCategoryTabs();
+          this.populateCollectionFilter();
+          // Select the imported collection in the dropdown
+          const select = document.getElementById('db-collection');
+          if (select) select.value = fileName;
+          this.renderDatabaseGames();
+          show(document.getElementById('database-dialog'));
+          // Highlight the Imported tab
+          document.querySelectorAll('.db-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.category === 'imported');
+          });
+          this.showToast(`Imported ${count} games into database`);
+        } else {
+          alert('No games found in PGN. Please check the format.');
+        }
       } else {
-        alert('Failed to parse PGN. Please check the format.');
+        // Single game → load for replay
+        const moves = this.game.loadPGN(pgn);
+        if (moves) {
+          this.notation.setMoves(moves);
+          this.board.setLastMove(moves.length > 0 ? moves[moves.length - 1] : null);
+          this.board.update();
+          this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+          hide(pgnDialog);
+        } else {
+          alert('Failed to parse PGN. Please check the format.');
+        }
       }
     });
 

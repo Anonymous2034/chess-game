@@ -197,4 +197,41 @@ export class Database {
   importPGN(pgnText) {
     return this.parseSingleGame(pgnText);
   }
+
+  /**
+   * Import all games from a multi-game PGN text into the database.
+   * Returns the number of games imported.
+   */
+  importAllGames(pgnText, collectionName = 'Imported') {
+    const normalized = pgnText.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const games = this.parsePGNFile(normalized);
+    if (games.length === 0) return 0;
+
+    const categoryId = 'imported';
+
+    // Ensure the "Imported" category exists
+    if (!this.categories.find(c => c.id === categoryId)) {
+      this.categories.push({ id: categoryId, name: 'Imported', collections: [] });
+    }
+
+    // Remove any existing collection with the same name (re-import replaces)
+    this.games = this.games.filter(g => g.collection !== collectionName);
+    this.collections = this.collections.filter(c => c.name !== collectionName);
+
+    // Tag and add games
+    games.forEach(g => {
+      g.collection = collectionName;
+      g.category = categoryId;
+      g.categoryName = 'Imported';
+    });
+    this.games.push(...games);
+
+    this.collections.push({
+      name: collectionName,
+      count: games.length,
+      category: categoryId
+    });
+
+    return games.length;
+  }
 }
