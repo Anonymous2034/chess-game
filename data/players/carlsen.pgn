@@ -9,16 +9,27 @@
 
 1. c4 e6 2. d4 d5 3. Nc3 c6 4. e4 dxe4 5. Nxe4 Bb4+ 6. Nc3 c5 7. a3 Ba5 8. Nf3 Nf6 9. Be3 Nc6 10. Qd3 cxd4 11. Nxd4 Ng4 12. O-O-O Nxe3 13. fxe3 Bc7 14. Nxc6 bxc6 15. Qxd8+ Bxd8 16. Be2 Ke7 17. Bf3 Bd7 18. Ne4 Bb6 19. c5 f5 20. cxb6 fxe4 21. b7 Rab8 22. Bxe4 Rxb7 23. Rhf1 Rb5 24. Rf4 g5 25. Rf3 h5 26. Rdf1 Be8 27. Bc2 Rc5 28. Rf6 h4 29. e4 a5 30. Kd2 Rb5 31. b3 Bh5 32. Kc3 Rc5+ 33. Kb2 Rd8 34. R1f2 Rd4 35. Rh6 Bd1 36. Bb1 Rb5 37. Kc3 c5 38. Rb2 e5 39. Rg6 a4 40. Rxg5 Rxb3+ 41. Rxb3 Bxb3 42. Rxe5+ Kd6 43. Rh5 Rd1 44. e5+ Kd5 45. Bh7 Rc1+ 46. Kb2 Rc2+ 47. Kb1 1-0
 
+[Event "World Championship 2013"]
+[Site "Chennai"]
+[Date "2013.11.21"]
+[Round "9"]
+[White "Carlsen, Magnus"]
+[Black "Anand, Viswanathan"]
+[Result "1-0"]
+[ECO "E25"]
+
+1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. f3 d5 5. a3 Bxc3+ 6. bxc3 c5 7. cxd5 exd5 8. e3 c4 9. Ne2 Nc6 10. g4 O-O 11. Bg2 Na5 12. O-O Nb3 13. Ra2 b5 14. Ng3 a5 15. g5 Ne8 16. e4 Nxc1 17. Qxc1 Ra6 18. e5 Nc7 19. f4 b4 20. axb4 axb4 21. Rxa6 Nxa6 22. f5 b3 23. Qf4 Nc7 24. f6 g6 25. Qh4 Ne8 26. Qh6 b2 27. Rf4 b1=Q+ 28. Nf1 Qe1 29. Rh4 Qxh4 30. Qxh4 Nxf6 31. gxf6 Bh3 32. Qg5 Bxg2 33. Kxg2 Qb2+ 34. Kh1 Qg7 35. Qxg7 1-0
+
 [Event "World Championship 2014"]
 [Site "Sochi"]
-[Date "2014.11.23"]
-[Round "11"]
-[White "Anand, Viswanathan"]
-[Black "Carlsen, Magnus"]
-[Result "0-1"]
-[ECO "C67"]
+[Date "2014.11.18"]
+[Round "6"]
+[White "Carlsen, Magnus"]
+[Black "Anand, Viswanathan"]
+[Result "1-0"]
+[ECO "C78"]
 
-1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. O-O Nxe4 5. d4 Nd6 6. Bxc6 dxc6 7. dxe5 Nf5 8. Qxd8+ Kxd8 9. h3 Bd7 10. Nc3 h6 11. b3 Kc8 12. Bb2 c5 13. Rad1 b6 14. Rfe1 Be6 15. Nd5 g5 16. c4 Kb7 17. Kh2 a5 18. a4 Ne7 19. g4 Ng6 20. Kg3 Be7 21. Nd2 Rhd8 22. Ne4 Bf8 23. Nef6 b5 24. Bc3 bxa4 25. bxa4 Kc6 26. Kf3 Rdb8 27. Ke4 Rb4 28. Bxb4 cxb4 29. Nh5 Kb7 30. f4 gxf4 31. Nhxf4 Nxf4 32. Nxf4 Bxc4 33. Rd7 Ra6 34. Nd5 Rc6 35. Rxf7 Bc5 36. Rxc7+ Rxc7 37. Nxc7 Kc6 38. Nb5 Bxb5 39. axb5+ Kxb5 40. e6 b3 41. Kd3 Be7 42. h4 a4 43. g5 hxg5 44. hxg5 a3 45. Kc3 0-1
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. d3 b5 7. Bb3 d6 8. a3 O-O 9. Nc3 Na5 10. Ba2 Be6 11. d4 Bxa2 12. Rxa2 Re8 13. Ra1 Nc4 14. Re1 Rc8 15. h3 h6 16. b3 Nb6 17. Bb2 Bf8 18. dxe5 dxe5 19. a4 c6 20. Qxd8 Rcxd8 21. axb5 axb5 22. Ne2 Bb4 23. Rec1 Nbd7 24. Ng3 g6 25. Bc3 Bxc3 26. Rxc3 Nb6 27. Nf1 Nfd7 28. Ne3 Nc4 29. Nxc4 bxc4 30. Rxc4 Nb6 31. Rc5 Rd6 32. Kf1 Re6 33. Nd2 f6 34. Nc4 Nxc4 35. bxc4 Rd6 36. Ra8+ Kf7 37. Rc8 Ke7 38. c5 Rd3 39. Ra3 Rd4 40. Rca8 Rc4 41. Ra7+ Ke6 42. R3a6 Kf5 43. Rxc6 Rxe4 44. Rc7 Re1+ 45. Kf2 Rc1 46. c6 Ke6 47. Ra6+ Kd5 48. Rd7+ Ke4 49. c7 1-0
 
 [Event "World Championship 2016"]
 [Site "New York"]
@@ -30,3 +41,234 @@
 [ECO "C65"]
 
 1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. d3 Bc5 5. c3 O-O 6. Bg5 h6 7. Bh4 Be7 8. O-O d6 9. Nbd2 Nh5 10. Bxe7 Qxe7 11. Nc4 Nf4 12. Ne3 Qf6 13. g3 Nh3+ 14. Kh1 Ne7 15. Bc4 c6 16. Bb3 Ng6 17. Qe2 a5 18. a4 Be6 19. Bxe6 fxe6 20. Nd2 d5 21. Qh5 Ng5 22. h4 Nf3 23. Nxf3 Qxf3+ 24. Qxf3 Rxf3 25. Kg2 Rf7 26. Rfe1 h5 27. Nf1 Kf8 28. Nd2 Ke7 29. Re2 Kd6 30. Nf3 Raf8 31. Ng5 Re7 32. Rae1 Rfe8 33. Nf3 Nh8 34. d4 exd4 35. Nxd4 g6 36. Re3 Nf7 37. e5+ Kd7 38. Rf3 Nh6 39. Rf6 Rg7 40. b4 axb4 41. cxb4 Ng8 42. Rf3 Nh6 43. a5 Nf5 44. Nb3 Kc7 45. Nc5 Kb8 46. Rb1 Ka7 47. Rd3 Rc7 48. Ra3 Nd4 49. Rd1 Nf5 50. Kh3 Nh6 51. f3 Rf7 52. Rd4 Nf5 53. Rd2 Rh7 54. Rb3 Ree7 55. Rdd3 Rh8 56. Rb1 Rhh7 57. b5 cxb5 58. Rxb5 d4 59. Rb6 Rc7 60. Nxe6 Rc3 61. Nf4 Rhc7 62. Nd5 Rxd3 63. Nxc7 Kb8 64. Nb5 Kc8 65. Rxg6 Rxf3 66. Kg2 Rb3 67. Nd6+ Nxd6 68. Rxd6 Re3 69. e6 Kc7 70. Rxd4 Rxe6 71. Rd5 Rh6 72. Kf3 Kb8 73. Kf4 Ka7 74. Kg5 Rh8 75. Kf6 1-0
+
+[Event "Corus Group C"]
+[Site "Wijk aan Zee"]
+[Date "2004.01.20"]
+[Round "5"]
+[White "Carlsen, Magnus"]
+[Black "Ernst, Sipke"]
+[Result "1-0"]
+[ECO "B18"]
+
+1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. h4 h6 7. Nf3 Nd7 8. h5 Bh7 9. Bd3 Bxd3 10. Qxd3 e6 11. Bf4 Ngf6 12. O-O-O Be7 13. Kb1 O-O 14. Ne5 c5 15. Qf3 Qb6 16. Nxd7 Nxd7 17. d5 exd5 18. Rxd5 Nf6 19. Rd2 Qc6 20. Qe2 Bd6 21. Bxd6 Qxd6 22. Ne4 Nxe4 23. Qxe4 Rae8 24. Qd5 Qf6 25. Rhd1 Re5 26. Qd7 Rf5 27. f3 Qe5 28. Qa4 b5 29. Qb3 Qf4 30. Re2 Rd8 31. Rde1 Rfd5 32. Re8 Qd2 33. Rxd8+ Rxd8 34. Qxf7+ Kh8 35. Qf5 b4 36. b3 Rd1+ 37. Rxd1 Qxd1+ 38. Kb2 Qd4+ 39. Ka3 Qd6+ 40. Qxd6 1-0
+
+[Event "Linares"]
+[Site "Linares"]
+[Date "2008.02.26"]
+[Round "4"]
+[White "Carlsen, Magnus"]
+[Black "Topalov, Veselin"]
+[Result "1-0"]
+[ECO "D37"]
+
+1. d4 Nf6 2. c4 e6 3. Nf3 d5 4. Nc3 Be7 5. Bf4 O-O 6. e3 Nbd7 7. a3 c5 8. cxd5 Nxd5 9. Nxd5 exd5 10. dxc5 Nxc5 11. Be5 Bf5 12. Be2 Bf6 13. Bxf6 Qxf6 14. Nd4 Bg6 15. O-O Rfe8 16. Bg4 Re4 17. f3 Re5 18. Kh1 Rd8 19. a4 Ne6 20. Nxe6 Rxe6 21. a5 a6 22. Qb3 Qd6 23. Rfd1 Rd7 24. Rd4 Bf5 25. Bxf5 Rxd4 26. exd4 Re2 27. Bg4 Rxb2 28. Qd3 g6 29. Re1 Qb4 30. Re8+ Kg7 31. Bd7 Qd2 32. Qxd2 Rxd2 33. Bc6 bxc6 34. Re7 Rd1+ 35. Kg1 Rd2 36. Rxa7 1-0
+
+[Event "Tata Steel"]
+[Site "Wijk aan Zee"]
+[Date "2012.01.22"]
+[Round "6"]
+[White "Carlsen, Magnus"]
+[Black "Aronian, Levon"]
+[Result "1-0"]
+[ECO "C77"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. d3 b5 7. Bb3 d6 8. a3 O-O 9. Nc3 Be6 10. Nd5 Bxd5 11. exd5 Na5 12. Ba2 c6 13. dxc6 Qb6 14. b4 Nc4 15. Bxc4 bxc4 16. d4 cxd3 17. Ng5 Qxc6 18. Qxd3 h6 19. Nf3 Rfc8 20. Nd2 Nd5 21. Ne4 a5 22. Be3 Nxe3 23. Qxe3 axb4 24. axb4 Rxa1 25. Rxa1 Bxb4 26. Nc5 Qe8 27. Nb7 d5 28. Na5 Ba3 29. Nb3 Rc2 30. Re1 Qd7 31. h3 Bc5 32. Nxc5 Qxc5 33. Qd3 Rc1 34. Rxc1 Qxc1+ 35. Kh2 Qc5 36. Qf3 Qa7 37. Qf5 Qe7 38. Qd3 Qe6 39. Qb5 e4 40. Qb8+ Kh7 41. Qb1 Qe5+ 42. g3 d4 43. Qb7 f5 44. Qc8 d3 45. Qc1 Qd5 46. Qa3 d2 47. Qa8 f4 48. Qe8 fxg3+ 49. fxg3 Qf3 50. Qe7 d1=Q 51. Qxg7# 1-0
+
+[Event "Linares"]
+[Site "Linares"]
+[Date "2010.02.20"]
+[Round "6"]
+[White "Carlsen, Magnus"]
+[Black "Gashimov, Vugar"]
+[Result "1-0"]
+[ECO "D85"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. cxd5 Nxd5 5. e4 Nxc3 6. bxc3 Bg7 7. Nf3 c5 8. Bb5+ Nc6 9. d5 Qa5 10. Rb1 a6 11. Bxc6+ bxc6 12. O-O Qxa2 13. dxc6 O-O 14. c4 Bg4 15. Qd6 Bxf3 16. gxf3 Rfe8 17. Bg5 Bf8 18. Qf4 Bg7 19. Rb7 e5 20. Qg3 Qa5 21. f4 exf4 22. Qxf4 Re2 23. Rb2 Rxb2 24. Qxb2 Qa4 25. Qb7 Rf8 26. Be7 Re8 27. Bd6 Bf8 28. Bxc5 Bxc5 29. c7 Qd7 30. Qb8 Rxb8 31. cxb8=Q+ Kg7 32. Qb2+ f6 33. Rd1 Qe7 34. Qd2 Bb6 35. Rd7 1-0
+
+[Event "London Chess Classic"]
+[Site "London"]
+[Date "2012.12.04"]
+[Round "3"]
+[White "Carlsen, Magnus"]
+[Black "Nakamura, Hikaru"]
+[Result "1-0"]
+[ECO "D31"]
+
+1. d4 d5 2. c4 e6 3. Nc3 Be7 4. cxd5 exd5 5. Bf4 c6 6. e3 Bf5 7. g4 Be6 8. h3 Nd7 9. Bd3 Nb6 10. Qf3 Bg5 11. Nge2 g6 12. O-O-O Ne7 13. h4 Bf6 14. g5 Bg7 15. Kb1 O-O 16. Nc1 Qd7 17. Nb3 Rfe8 18. Nc5 Qc8 19. Rc1 Bd8 20. Na4 Nxa4 21. Qxa4 Nd4 22. exd4 a5 23. Rc3 Bf5 24. Bxf5 Qxf5+ 25. Ka1 Bf6 26. Rb3 Qc2 27. Rxb7 Re1+ 28. Rxe1 Qxe1+ 29. Ka2 Qe2 30. Qb3 Bd8 31. Rb8 Rxb8 32. Qxb8 Qxf2 33. Qb5 Qxd4 34. Qxa5 Qd2 35. Kb3 d4 36. Qa8 d3 37. a4 Qd1+ 38. Ka3 Bc7+ 39. Bxc7 Qb3+ 40. Kb4 Qd5 41. Be5 d2 42. Bxd4 1-0
+
+[Event "Tata Steel"]
+[Site "Wijk aan Zee"]
+[Date "2008.01.27"]
+[Round "10"]
+[White "Carlsen, Magnus"]
+[Black "Radjabov, Teimour"]
+[Result "1-0"]
+[ECO "B33"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e5 6. Ndb5 d6 7. Bg5 a6 8. Na3 b5 9. Bxf6 gxf6 10. Nd5 f5 11. Bd3 Be6 12. O-O Bxd5 13. exd5 Ne7 14. c3 Bg7 15. Nc2 O-O 16. Qh5 e4 17. Bc2 Ng6 18. Nce3 Ne5 19. Bb3 a5 20. f4 exf3 21. Rxf3 a4 22. Bc2 f4 23. Nf5 Bxf5 24. Rxf4 Bg6 25. Qg4 Qg5 26. Qxg5 Bxc2 27. Rf5 Bg6 28. Rxe5 dxe5 29. d6 Rfc8 30. d7 Rc5 31. Rd1 f5 32. Qe7 Rd5 33. Rxd5 1-0
+
+[Event "Amber Blindfold"]
+[Site "Nice"]
+[Date "2010.03.18"]
+[Round "6"]
+[White "Carlsen, Magnus"]
+[Black "Kramnik, Vladimir"]
+[Result "1-0"]
+[ECO "E97"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O Nc6 8. d5 Ne7 9. b4 Nh5 10. Re1 f5 11. Ng5 Nf6 12. f3 f4 13. b5 h6 14. Ne6 Bxe6 15. dxe6 Nc8 16. Nd5 Nxd5 17. Qxd5 Qh4 18. Bb2 Ne7 19. Qxa8 Qf2+ 20. Kh1 Bh3 21. Rf1 Bxg2+ 22. Kxg2 Qg3+ 23. Kh1 Qh3 24. Qd5 Ng6 25. Bc1 Nf4 26. Bxf4 exf4 27. e5 Qg3 28. Qf7+ Kh8 29. Rg1 Qxh2+ 30. Kxh2 1-0
+
+[Event "Morelia-Linares"]
+[Site "Morelia/Linares"]
+[Date "2007.02.19"]
+[Round "2"]
+[White "Carlsen, Magnus"]
+[Black "Ivanchuk, Vassily"]
+[Result "1-0"]
+[ECO "B90"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be3 e5 7. Nf3 Be7 8. Bc4 O-O 9. O-O Be6 10. Bxe6 fxe6 11. Na4 Nbd7 12. c4 b5 13. cxb5 axb5 14. Nc3 b4 15. Nd5 exd5 16. exd5 Nc5 17. Nd2 Qb6 18. Ne4 Ncxe4 19. Qb3 Nd7 20. Bxb6 Nxb6 21. Qxe6+ Kh8 22. Qxd6 Nf2 23. Rxf2 Rxf2 24. Kxf2 Rf8+ 25. Ke2 Bh4 26. g3 Bg5 27. Rd1 Nc4 28. Qe6 Rf6 29. Qe8+ Rf8 30. Qd7 Rf7 31. Qc8+ Rf8 32. Qb7 Be3 33. d6 Rf7 34. Qb8+ Rf8 35. Qd8 1-0
+
+[Event "London Chess Classic"]
+[Site "London"]
+[Date "2009.12.12"]
+[Round "4"]
+[White "Carlsen, Magnus"]
+[Black "Short, Nigel"]
+[Result "1-0"]
+[ECO "D20"]
+
+1. d4 d5 2. c4 dxc4 3. e4 b5 4. a4 c6 5. axb5 cxb5 6. Nc3 a6 7. Nxb5 axb5 8. Rxa8 Bb7 9. Ra1 e6 10. Nf3 Nf6 11. e5 Nd5 12. Bd2 Nc6 13. Bxc4 bxc4 14. Qe2 Ndb4 15. Bxb4 Nxb4 16. Qxc4 Nc6 17. O-O Be7 18. Rfc1 O-O 19. d5 exd5 20. Qxd5 Qxd5 21. Rxc6 Bd8 22. Nd4 Qd7 23. Rc8 Qd5 24. Rxd8 Rxd8 25. e6 f6 26. Nc6 Qxe6 27. Nxd8 Qe1+ 28. Rxe1 1-0
+
+[Event "Biel Grandmaster"]
+[Site "Biel"]
+[Date "2012.07.26"]
+[Round "4"]
+[White "Carlsen, Magnus"]
+[Black "Wang Hao"]
+[Result "1-0"]
+[ECO "C65"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. d3 Bc5 5. Bxc6 dxc6 6. Nbd2 Be6 7. O-O Bd6 8. b3 O-O 9. Bb2 Re8 10. Nc4 Bf8 11. Nce5 Nd7 12. d4 Nxe5 13. dxe5 Qe7 14. Re1 Red8 15. Qe2 c5 16. Rad1 b6 17. Nd2 c4 18. bxc4 Bxc4 19. Nxc4 Qxc4 20. Qg4 g6 21. Rxd8 Rxd8 22. Bc1 Qc5 23. Be3 Qc6 24. Qf3 Qxf3 25. gxf3 Bg7 26. f4 c5 27. f5 gxf5 28. exf5 Kf8 29. e6 fxe6 30. fxe6 Ke7 31. Bh6 Bh8 32. Rd1 Rxd1+ 33. Kxd1 Kxe6 34. Ke2 Kd5 35. Kd3 Bg7 36. f3 Bh8 37. Bg5 1-0
+
+[Event "Corus Group B"]
+[Site "Wijk aan Zee"]
+[Date "2006.01.21"]
+[Round "7"]
+[White "Carlsen, Magnus"]
+[Black "L'Ami, Erwin"]
+[Result "1-0"]
+[ECO "B19"]
+
+1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. h4 h6 7. Nf3 Nd7 8. h5 Bh7 9. Bd3 Bxd3 10. Qxd3 e6 11. Bf4 Qa5+ 12. Bd2 Bb4 13. c3 Be7 14. c4 Qc7 15. O-O-O Ngf6 16. Kb1 O-O 17. Ne5 Rad8 18. Qf3 Nxe5 19. dxe5 Nd7 20. f4 Nb6 21. Ne4 Nd5 22. c5 a5 23. Bc1 Bc3 24. g4 Qe7 25. Nd6 a4 26. Rd3 Bb4 27. Nxb7 Rb8 28. Nd6 Bxd6 29. cxd6 Qxd6 30. Rhd1 Nb4 31. R3d2 Nc6 32. g5 hxg5 33. fxg5 Rb6 34. g6 fxg6 35. hxg6 Rb5 36. Qg4 Re5 37. Qh5 Rf5 38. Qh7+ Kf8 39. Rf1 Rxf1+ 40. Bxf1 Qa3 41. Qh8+ Ke7 42. Qxg7+ Kd8 43. Qf8+ 1-0
+
+[Event "World Championship 2021"]
+[Site "Dubai"]
+[Date "2021.12.03"]
+[Round "6"]
+[White "Nepomniachtchi, Ian"]
+[Black "Carlsen, Magnus"]
+[Result "0-1"]
+[ECO "D02"]
+
+1. d4 Nf6 2. Nf3 d5 3. g3 e6 4. Bg2 Be7 5. O-O O-O 6. b3 c5 7. dxc5 Bxc5 8. c4 dxc4 9. Qc2 Qe7 10. Nbd2 Nc6 11. Nxc4 b5 12. Nce5 Nb4 13. Qb2 Bb7 14. a3 Nc6 15. Nd3 Bb6 16. Bg5 Rfd8 17. Bxf6 Qxf6 18. Rac1 Nd4 19. Nxd4 Bxd4 20. Qa2 Bxg2 21. Kxg2 Qb6 22. Rfd1 e5 23. Rc2 Rd5 24. Qb1 Rad8 25. Nc1 b4 26. a4 Bg7 27. Ne2 e4 28. Rcd2 Rxd2 29. Rxd2 Rxd2 30. Nxd2 Qd4 31. Qc2 a5 32. Qc1 Qd3 33. Qc7 h5 34. h4 Qd5 35. Qc1 Be5 36. Qc2 Qd4 37. Qc1 Bd6 38. Qc2 Qb2 39. Qc1 Qxa4 40. Qc6 Qa1 41. Qd5 a4 42. bxa4 Qxa4 43. Qxe4 b3 44. Nxb3 Qxb3 45. Qd5 Qc3 46. Qd1 Bf8 47. Qf1 Qa3 48. e4 Bc5 49. f3 Qa2+ 50. Kh3 Qd2 51. Qf2 Qd7+ 52. Kh2 Qd3 53. Qe1 Be3 54. Qxe3 Qxe3 55. g4 hxg4 56. fxg4 Qe2+ 57. Kg1 Qe1+ 58. Kg2 Qd2+ 59. Kf3 Qd3+ 60. Kg2 Qxe4+ 61. Kf2 Qxg4 62. Kf1 Qd1+ 63. Kf2 Qd2+ 64. Kf1 g5 65. hxg5 Qd1+ 66. Kf2 Qd4+ 67. Kf1 Qd3+ 68. Kf2 Qc2+ 69. Kf1 Kg7 70. g6 fxg6 71. Ke1 Qc1+ 72. Kf2 Qd2+ 73. Kf1 Kf6 74. Ke1 Qe3+ 75. Kd1 Kf5 76. Kc2 Kf4 77. Kd1 Kf3 78. Kc2 Qe2+ 79. Kc1 Kf4 80. Kd1 Qf3+ 81. Kc2 Ke3 82. Kc1 Kd3 83. Kb2 Qe2+ 84. Ka3 Kc3 85. Ka4 Qb2 86. Ka5 Qa3+ 87. Kb6 Qb4+ 88. Kc6 Qd4 89. Kb6 g5 90. Ka5 Qa1+ 91. Kb6 Qa8 92. Kc5 Qa7+ 93. Kc6 g4 94. Kd5 g3 95. Ke4 g2 96. Kf3 Qf7+ 97. Ke3 Qf1 98. Ke4 g1=Q 99. Kd5 Qgd4+ 100. Ke6 Qff6+ 101. Kd7 Qfg6 102. Ke8 Qge4+ 103. Kd7 Qd5+ 104. Kc8 Qg6+ 105. Kb8 Qdb5+ 106. Ka8 Qe8+ 107. Ka7 Qbb7# 0-1
+
+[Event "Tata Steel"]
+[Site "Wijk aan Zee"]
+[Date "2015.01.11"]
+[Round "2"]
+[White "Carlsen, Magnus"]
+[Black "Caruana, Fabiano"]
+[Result "1-0"]
+[ECO "B51"]
+
+1. e4 c5 2. Nf3 d6 3. Bb5+ Nd7 4. d4 Ngf6 5. O-O cxd4 6. Qxd4 a6 7. Bxd7+ Bxd7 8. Bg5 e5 9. Qd3 h6 10. Bh4 Be7 11. Nc3 Qc7 12. a4 Be6 13. Nd2 O-O 14. Nc4 Rfd8 15. Ne3 Bc8 16. Bxf6 Bxf6 17. Ned5 Qd7 18. Qg3 Kh8 19. f4 exf4 20. Qxf4 Be5 21. Qf2 Qc6 22. Rf3 Be6 23. c3 Bxd5 24. Nxd5 Re8 25. Raf1 Rf8 26. Qd2 f5 27. exf5 Rxf5 28. Rxf5 Qxf5 29. Qe2 Rf8 30. Rxf5 Rxf5 31. Qe4 g6 32. b4 Kg7 33. h3 Rf1+ 34. Kh2 Rd1 35. a5 Rd2 36. Qb7+ Kf8 37. Qb8+ Kg7 38. Qe8 Bf4+ 39. g3 Be5 40. Qe7+ Kh8 41. Nf6 1-0
+
+[Event "GRENKE Chess Classic"]
+[Site "Karlsruhe/Baden-Baden"]
+[Date "2019.04.20"]
+[Round "1"]
+[White "Carlsen, Magnus"]
+[Black "Svidler, Peter"]
+[Result "1-0"]
+[ECO "A07"]
+
+1. Nf3 d5 2. g3 c6 3. Bg2 Bg4 4. c4 e6 5. O-O Nf6 6. cxd5 exd5 7. d3 Be7 8. Nbd2 O-O 9. Re1 Bf5 10. Nf1 Nbd7 11. Ne3 Bg6 12. b3 Re8 13. Bb2 a5 14. a3 Bf8 15. Rc1 Qb6 16. Nd4 Nc5 17. Qc2 Nce4 18. dxe4 dxe4 19. Red1 Nd5 20. Nxd5 cxd5 21. Qd2 Rac8 22. Rxc8 Rxc8 23. Rc1 Rxc1+ 24. Qxc1 d4 25. Qc4 Bd6 26. h4 h5 27. Bf1 Qd8 28. Bd3 Bh7 29. Be2 a4 30. b4 Bg6 31. Bd1 b5 32. Qa2 Be7 33. Bxa4 bxa4 34. Qxa4 Bd6 35. Qa8 Qxa8 36. Bxa8 1-0
+
+[Event "Gashimov Memorial"]
+[Site "Shamkir"]
+[Date "2019.04.01"]
+[Round "3"]
+[White "Carlsen, Magnus"]
+[Black "Giri, Anish"]
+[Result "1-0"]
+[ECO "A29"]
+
+1. c4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. g3 d5 5. cxd5 Nxd5 6. Bg2 Nb6 7. O-O Be7 8. d3 O-O 9. Be3 Be6 10. Rc1 f6 11. Na4 Nxa4 12. Qa4 Bd5 13. Rfd1 Qd7 14. Qb3 Nd4 15. Bxd4 exd4 16. Rc4 c5 17. b4 b6 18. bxc5 bxc5 19. Rdc1 Rab8 20. Qa4 Rb4 21. Qa6 Rxc4 22. Rxc4 Bxf3 23. Bxf3 Bd6 24. Qc6 Qe6 25. Bg2 Rc8 26. Qxe6+ fxe6 27. Rxd4 Bb4 28. a3 Ba5 29. Rd7 Rc7 30. Rxc7 Bxc7 31. Bc6 Kf7 32. e4 Ke7 33. Kf1 Kd6 34. Ba4 e5 35. Ke2 g6 36. f4 exf4 37. gxf4 Ke6 38. Bc2 Kf6 39. Kf3 h5 40. h4 Bb6 41. e5+ Ke6 42. Kg3 Bc7 43. a4 a5 44. d4 cxd4 45. Bb3+ Kd5 46. f5 gxf5 47. Kf4 Ke6 48. Kxf5 d3 49. Bc2 1-0
+
+[Event "Sinquefield Cup"]
+[Site "Saint Louis"]
+[Date "2019.08.20"]
+[Round "4"]
+[White "Carlsen, Magnus"]
+[Black "Ding Liren"]
+[Result "1-0"]
+[ECO "E60"]
+
+1. d4 Nf6 2. c4 g6 3. f3 d5 4. cxd5 Nxd5 5. e4 Nb6 6. Nc3 Bg7 7. Be3 O-O 8. Qd2 Nc6 9. O-O-O f5 10. e5 Nb4 11. Nh3 c5 12. a3 cxd4 13. Bxd4 Nc6 14. Be3 e6 15. Nf4 Qe7 16. Be2 Rd8 17. Qe1 Nd5 18. Ncxd5 exd5 19. Nxd5 Qd7 20. Bc5 Be6 21. Nf4 Bf7 22. h4 Qe7 23. Bd6 Qa3+ 24. Kb1 Rxd6 25. exd6 Qd3+ 26. Ka2 Be6 27. Rd1 Qc4+ 28. Kb1 Rd8 29. Nd3 Bd5 30. d7 Be3 31. Qe2 Qb3 32. Nf4 Bxf4 33. Qxb3+ Bxb3 34. Rd5 Kf7 35. Bc4+ Bxc4 36. Rxd8 Nd4 37. Kc1 Ke7 38. Re1+ Ne2+ 39. Rxe2+ Bxe2 40. d8=Q+ 1-0
+
+[Event "Fischer Random World Championship"]
+[Site "Hovikodden"]
+[Date "2019.11.02"]
+[Round "4"]
+[White "Carlsen, Magnus"]
+[Black "So, Wesley"]
+[Result "1-0"]
+[ECO "A00"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. d3 Be7 5. O-O d6 6. Re1 O-O 7. a4 Be6 8. Bxe6 fxe6 9. b4 d5 10. exd5 Nxd5 11. Bb2 a6 12. c4 Nf4 13. b5 axb5 14. cxb5 Na7 15. Nc3 Ng6 16. d4 e4 17. Nd2 Bf6 18. d5 exd5 19. Ndxe4 Nc6 20. bxc6 bxc6 21. Nxf6+ Rxf6 22. Re8+ Qxe8 23. Nxd5 Re6 24. Qd4 Nf4 25. Nxf4 Qe7 26. Nd5 Qe8 27. Nf6+ gxf6 28. Qxf6 Rxf6 29. Re1 1-0
+
+[Event "GRENKE Chess Classic"]
+[Site "Baden-Baden"]
+[Date "2015.02.06"]
+[Round "5"]
+[White "Carlsen, Magnus"]
+[Black "Anand, Viswanathan"]
+[Result "1-0"]
+[ECO "B51"]
+
+1. e4 c5 2. Nf3 d6 3. Bb5+ Nd7 4. c3 Ngf6 5. Qe2 a6 6. Ba4 b5 7. Bc2 e5 8. d4 Be7 9. O-O O-O 10. a4 Bb7 11. d5 b4 12. Na3 bxc3 13. bxc3 Nc4 14. Nxc4 Bxc4 15. Qd1 Nd7 16. Re1 Bg5 17. Nxg5 Qxg5 18. f3 f5 19. Be3 Qe7 20. exf5 Rxf5 21. Qe2 Bb3 22. Bxf5 Bxc2 23. Bb1 Bxb1 24. Raxb1 Nf6 25. Rb7 Qf8 26. Reb1 Nd7 27. f4 exf4 28. Bxf4 Ne5 29. Bxe5 dxe5 30. Qg4 Rd8 31. d6 Kh8 32. Qe6 Qf6 33. Re1 Qxe6 34. Rxe6 Rd7 35. Rb8+ Rd8 36. Rxd8+ 1-0
+
+[Event "Sinquefield Cup"]
+[Site "Saint Louis"]
+[Date "2018.08.21"]
+[Round "3"]
+[White "Carlsen, Magnus"]
+[Black "Aronian, Levon"]
+[Result "1-0"]
+[ECO "A05"]
+
+1. Nf3 Nf6 2. g3 b5 3. Bg2 Bb7 4. Na3 a6 5. c4 bxc4 6. Nxc4 e6 7. d4 d5 8. Nce5 Nbd7 9. O-O Be7 10. b3 O-O 11. Bb2 c5 12. e3 Qb6 13. Qe2 Rfc8 14. Rfd1 cxd4 15. exd4 Qa5 16. Ne1 Bb4 17. Nd3 Ba3 18. Nf4 Bxb2 19. Qxb2 Nxe5 20. dxe5 Nd7 21. f3 Nc5 22. Qd4 a5 23. Rac1 Nb3 24. Rxc8+ Rxc8 25. Qxa4 Qxa4 26. bxa4 Ra8 27. Bh3 Rxa4 28. Bxe6 fxe6 29. Nxe6 Bc6 30. Nc7 Nc5 31. Nxd5 Bxd5 32. Rxd5 Nxa4 33. Rd8+ Kf7 34. Ra8 Nc3 35. e6+ Kf6 36. e7 Kxe7 37. Rxa5 Rxa5 38. h4 Ne2+ 39. Kf2 Nd4 40. Ke3 Ne6 41. h5 Ra3+ 42. Kf2 Ra2+ 43. Kg1 Nc5 44. Kh1 Re2 45. h6 gxh6 46. Kg1 Kf6 47. Kf1 Re8 48. g4 Kg5 49. Kg2 Rb8 50. Kh3 Rb2 51. f4+ Kf6 52. g5+ hxg5 53. fxg5+ Kxg5 54. Kg3 h5 55. Kf3 Rb3+ 56. Ke2 Kg4 57. Kf2 h4 58. Kg2 Rb2+ 59. Kh1 Ne4 60. Kg1 h3 61. Kh1 Kf3 62. Kg1 Rg2# 0-1
+
+[Event "Norway Chess"]
+[Site "Stavanger"]
+[Date "2017.06.12"]
+[Round "5"]
+[White "Carlsen, Magnus"]
+[Black "Vachier-Lagrave, Maxime"]
+[Result "1-0"]
+[ECO "D37"]
+
+1. d4 Nf6 2. c4 e6 3. Nf3 d5 4. Nc3 Be7 5. Bf4 O-O 6. e3 Nbd7 7. c5 Nh5 8. Bd3 Nxf4 9. exf4 b6 10. b4 a5 11. a3 c6 12. O-O Qc7 13. g3 Ba6 14. Re1 Bxd3 15. Qxd3 b5 16. Nd2 Bf6 17. f5 e5 18. dxe5 Nxe5 19. Qe3 Nd7 20. f4 Rfe8 21. Qf3 Re7 22. Re2 Rae8 23. Rae1 Qd8 24. Nb3 axb4 25. axb4 Nf8 26. Na5 Rxe2 27. Rxe2 Rxe2 28. Qxe2 Be7 29. Qe5 Bf6 30. Qe8 Qxe8 31. Nxe8 Bd8 32. Na2 f6 33. Nd6 Kf8 34. Nb3 Ke7 35. Nbc5 Kd6 36. Nb7+ Kc7 37. Na5 Nd7 38. Kf2 Be7 39. Ke3 Bf8 40. Kd4 g6 41. fxg6 hxg6 42. f5 g5 43. Ke3 Kb8 44. Kf3 Ka7 45. Kg4 Ka6 46. Kh5 Be7 47. Kg6 Nf8+ 48. Kf7 Nd7 49. Ke6 Nb8 50. Kd6 1-0
+
+[Event "Biel Grandmaster"]
+[Site "Biel"]
+[Date "2018.07.31"]
+[Round "7"]
+[White "Carlsen, Magnus"]
+[Black "Mamedyarov, Shakhriyar"]
+[Result "1-0"]
+[ECO "A20"]
+
+1. c4 e5 2. g3 Nf6 3. Bg2 Bc5 4. d3 d6 5. Nf3 a5 6. O-O O-O 7. Nc3 c6 8. a3 Nbd7 9. b4 Ba7 10. Rb1 Re8 11. Bb2 axb4 12. axb4 Nf8 13. b5 Bg4 14. bxc6 bxc6 15. Ba3 Ng6 16. Nd2 Bxe2 17. Nxe2 d5 18. Nc3 d4 19. Na4 Nh5 20. Nb6 Bxb6 21. Rxb6 Ngf4 22. gxf4 Nxf4 23. Kh1 Qg5 24. Bxc6 Re6 25. Rb3 Rh6 26. Rg1 Qh4 27. Bg2 Nxg2 28. Rxg2 Qf4 29. Nf3 Rf6 30. Bb2 e4 31. Bxd4 exf3 32. Bxf6 fxg2+ 33. Kxg2 Qxf6 34. Rb7 Qd6 35. Rb5 Ra2 36. h4 Qe6 37. Rf5 f6 38. d4 Qe4 39. Rf4 Qe6 40. Kh2 Rd2 41. Kh3 Qe1 42. Rg4 Rd1 43. Rg2 Rf1 44. Kg4 h5+ 45. Kf5 Qe4+ 46. Kg5 Qf4+ 47. Kh5 1-0

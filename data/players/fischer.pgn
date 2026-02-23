@@ -1,5 +1,115 @@
-[Event "US Championship"]
-[Site "New York"]
+[Event "Rosenwald Memorial"]
+[Site "New York, USA"]
+[Date "1956.10.17"]
+[Round "8"]
+[White "Byrne, Donald"]
+[Black "Fischer, Robert James"]
+[Result "0-1"]
+[ECO "D92"]
+
+1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4 7. Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5 Na4 12. Qa3 Nxc3 13. bxc3 Nxe4 14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17. Kf1 Be6 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2 27. Kh2 Nxf2 28. Re1 Rxe1 29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4 32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+ 37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+ 41. Kc1 Ra1# 0-1
+
+[Event "World Championship 1972"]
+[Site "Reykjavik, Iceland"]
+[Date "1972.07.23"]
+[Round "6"]
+[White "Fischer, Robert James"]
+[Black "Spassky, Boris"]
+[Result "1-0"]
+[ECO "D59"]
+
+1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6 7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6 12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7 17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7 22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5 27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7 32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8 37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0
+
+[Event "World Championship 1972"]
+[Site "Reykjavik, Iceland"]
+[Date "1972.08.10"]
+[Round "13"]
+[White "Spassky, Boris"]
+[Black "Fischer, Robert James"]
+[Result "0-1"]
+[ECO "B04"]
+
+1. e4 Nf6 2. e5 Nd5 3. d4 d6 4. Nf3 g6 5. Bc4 Nb6 6. Bb3 Bg7 7. Nbd2 O-O 8. h3 a5 9. a4 dxe5 10. dxe5 Na6 11. O-O Nc5 12. Qe2 Qe8 13. Ne4 Nbxa4 14. Bxa4 Nxa4 15. Re1 Nb6 16. Bd2 a4 17. Bg5 h6 18. Bh4 Bf5 19. g4 Be6 20. Nd4 Bc4 21. Qd2 Qd7 22. Rad1 Rfe8 23. f4 Bd5 24. Nc5 Qc8 25. Qc3 e6 26. Kh2 Nd7 27. Nd3 c5 28. Nb5 Qc6 29. Nd6 Qxd6 30. exd6 Bxc3 31. bxc3 f6 32. g5 hxg5 33. fxg5 f5 34. Bg3 Kf7 35. Ne5+ Nxe5 36. Bxe5 b5 37. Rf1 Rh8 38. Bf6 a3 39. Rf4 a2 40. c4 Bxc4 41. d7 Bd5 42. Kg3 Ra3+ 43. c3 Rha8 44. Rh4 e5 45. Rh7+ Ke6 46. Re7+ Kd6 47. Rxe5 Rxc3+ 48. Kf2 Rc2+ 49. Ke1 Kxd7 50. Rexd5+ Ke6 51. Rd6+ Ke7 52. Rd7+ Ke8 53. Rb7 a1=Q 54. Rxb5 Kf8 55. Rb8+ Kg7 56. Rb7+ Kh8 57. Bg5 Rcc8 58. Bf6+ Kg8 59. Rd8+ Rxd8 60. Bxd8 Qa5+ 61. Ke2 Qa6+ 62. Kd2 Qa2+ 63. Ke3 Qc4 64. Be7 Rd8 65. Ke2 Qc2+ 66. Kf1 Qd1+ 67. Kg2 Qd5+ 68. Kh2 Qd2+ 69. Kg1 Qe1+ 70. Kg2 Rd2+ 71. Kh3 Qf1+ 72. Kh4 Qf4+ 73. Kh5 Rd5+ 74. Bg5 Qf3 0-1
+
+[Event "Candidates Final 1971"]
+[Site "Buenos Aires, Argentina"]
+[Date "1971.10.07"]
+[Round "7"]
+[White "Fischer, Robert James"]
+[Black "Petrosian, Tigran"]
+[Result "1-0"]
+[ECO "B42"]
+
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 a6 5. Bd3 Nc6 6. Nxc6 bxc6 7. O-O d5 8. c4 Nf6 9. cxd5 cxd5 10. exd5 exd5 11. Nc3 Be7 12. Qa4+ Qd7 13. Re1 Qxa4 14. Nxa4 Be6 15. Be3 O-O 16. Bc5 Rfe8 17. Bxe7 Rxe7 18. b4 Kf8 19. Nc5 Bc8 20. f3 Rea7 21. Re5 Bd7 22. Nxd7+ Rxd7 23. Rc1 Rd6 24. Rc7 Nd7 25. Re2 g6 26. Kf2 h5 27. f4 h4 28. Kf3 f5 29. Ke3 d4+ 30. Kd2 Nb6 31. Ree7 Nd5 32. Rf7+ Ke8 33. Rb7 Nxf4 34. Bc4 1-0
+
+[Event "Candidates Match 1971"]
+[Site "Denver, USA"]
+[Date "1971.07.06"]
+[Round "1"]
+[White "Fischer, Robert James"]
+[Black "Larsen, Bent"]
+[Result "1-0"]
+[ECO "C19"]
+
+1. e4 e6 2. d4 d5 3. Nc3 Bb4 4. e5 Ne7 5. a3 Bxc3+ 6. bxc3 c5 7. a4 Nbc6 8. Nf3 Bd7 9. Bd3 Qc7 10. O-O c4 11. Be2 f6 12. Re1 Ng6 13. Ba3 fxe5 14. dxe5 Ncxe5 15. Nxe5 Nxe5 16. Qd4 Ng6 17. Bf3 O-O 18. Bxf8 Rxf8 19. Qg4 e5 20. Bxd5+ Kh8 21. Qh5 Qd8 22. Bf3 Bc6 23. Re4 Bxe4 24. Bxe4 Qc7 25. Rd1 Rf6 26. Bf5 Ne7 27. Be6 Qc5 28. Rd7 Nc6 29. Bf7 Nd4 30. Qg4 Nf5 31. Bg6 1-0
+
+[Event "Candidates Match 1971"]
+[Site "Vancouver, Canada"]
+[Date "1971.05.16"]
+[Round "1"]
+[White "Fischer, Robert James"]
+[Black "Taimanov, Mark"]
+[Result "1-0"]
+[ECO "B47"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Qc7 5. Nc3 e6 6. g3 a6 7. Bg2 Nf6 8. O-O Nxd4 9. Qxd4 Bc5 10. Bf4 d6 11. Qd2 h6 12. Rad1 e5 13. Be3 Bg4 14. Bxc5 dxc5 15. f3 Be6 16. f4 Rd8 17. Nd5 Bxd5 18. exd5 e4 19. Rfe1 Rxd5 20. Rxe4+ Kf8 21. Qe2 Qd7 22. Re3 Rd4 23. Qe1 b5 24. Qc3 Rd8 25. Rd2 Qc7 26. Be4 Nd7 27. Bf3 b4 28. Qe1 Nb6 29. Re4 Rd1 30. Qg1 Na4 31. Rxd1 Rxd1+ 32. Qxd1 Nxb2 33. Qd8+ Qxd8 34. Rxd8+ Ke7 35. Ra8 Nc4 36. Rxa6 b3 37. axb3 Nd2 38. Ra3 Nxf3+ 39. Kf2 Nd4 40. Ra7+ Kf6 41. b4 cxb4 42. Rxf7+ Ke6 43. Rb7 Nc2 44. Rb6+ Kf5 45. Rf6+ Kg4 46. Rxg6+ Kf5 47. Rg8 h5 48. Rb8 b3 49. Ke3 Nd4 50. Kd3 Nf3 51. Kc3 Nd4 52. Kb4 Nf3 53. h3 Nd2 54. Kxb3 1-0
+
+[Event "World Championship 1972"]
+[Site "Reykjavik, Iceland"]
+[Date "1972.08.03"]
+[Round "10"]
+[White "Fischer, Robert James"]
+[Black "Spassky, Boris"]
+[Result "1-0"]
+[ECO "E56"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 11. Nbd2 Bb7 12. Bc2 Re8 13. Nf1 Bf8 14. Ng3 g6 15. Bg5 h6 16. Bd2 Bg7 17. a4 c5 18. d5 c4 19. Bg5 h5 20. g4 hxg4 21. hxg4 Nc5 22. Nh2 Nh7 23. Be3 a5 24. Nf3 Ba6 25. Kg2 b4 26. Rh1 Rb8 27. Qd2 bxc3 28. bxc3 Qd7 29. Nh4 Bh6 30. f3 Qe7 31. Bf2 Rec8 32. Rab1 Rxb1 33. Rxb1 Bc8 34. Be1 Bd7 35. Qc2 Ra8 36. Bc3 Ra7 37. Rb8 Qa3 38. Qb1 Nb3 39. Nf5 1-0
+
+[Event "Varna Olympiad"]
+[Site "Varna, Bulgaria"]
+[Date "1962.10.01"]
+[Round "9"]
+[White "Fischer, Robert James"]
+[Black "Najdorf, Miguel"]
+[Result "1-0"]
+[ECO "B90"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. h3 b5 7. Nd5 Bb7 8. Nxf6+ gxf6 9. c4 bxc4 10. Bxc4 Bxe4 11. O-O d5 12. Re1 e5 13. Qa4+ Nd7 14. Nb3 f5 15. Bg5 Be7 16. Bxe7 Qxe7 17. Bxd5 Bxd5 18. Nc5 Qb4 19. Qc2 Nxc5 20. Qxf5 O-O 21. Qxd5 Rfd8 22. Qc4 Qxc4 23. Rxe5 Qd4 24. Re7 Nd3 25. Rxf7 Qd5 26. Rf3 Qd4 27. b3 Rab8 28. Rd1 Qb6 29. Rfxd3 Rxd3 30. Rxd3 Qb5 31. Rd6 Qa5 32. Rxa6 Qe1+ 33. Kh2 Rb5 34. Ra8+ Kg7 35. Ra7+ Kf8 36. b4 Qe5+ 37. g3 Qf6 38. a3 Qb6 39. Kg2 Qd6 40. a4 Rb8 41. b5 1-0
+
+[Event "Buenos Aires"]
+[Site "Buenos Aires, Argentina"]
+[Date "1970.07.22"]
+[Round "3"]
+[White "Fischer, Robert James"]
+[Black "Panno, Oscar"]
+[Result "1-0"]
+[ECO "A04"]
+
+1. b3 e5 2. Bb2 Nc6 3. c4 Nf6 4. Nf3 e4 5. Nd4 Bc5 6. Nxc6 dxc6 7. e3 Bf5 8. Qc2 Qe7 9. Be2 O-O-O 10. f3 Ng4 11. g3 h5 12. h3 h4 13. hxg4 hxg3 14. Rg1 Rh1 15. Rxh1 Rh8 16. Rxh8 Qh4 17. g5 Qh1+ 18. Bf1 Qxf3 19. Qxe4 Qxe4+ 20. Kd1 1-0
+
+[Event "Sousse Interzonal"]
+[Site "Sousse, Tunisia"]
+[Date "1967.10.23"]
+[Round "8"]
+[White "Fischer, Robert James"]
+[Black "Myagmarsuren, Lhamsuren"]
+[Result "1-0"]
+[ECO "A07"]
+
+1. e4 e6 2. d3 d5 3. Nd2 Nf6 4. g3 c5 5. Bg2 Nc6 6. Ngf3 Be7 7. O-O O-O 8. e5 Nd7 9. Re1 b5 10. Nf1 b4 11. h4 a5 12. Bf4 a4 13. a3 bxa3 14. bxa3 Na5 15. Ne3 Ba6 16. Bh3 d4 17. Nf1 Nb6 18. Ng5 Nd5 19. Bd2 Bxg5 20. Bxg5 Qxg5 21. hxg5 Nb3 22. Nf1 Nxe5 23. Rxe5 Nxc1 24. Qf3 Rab8 25. Re3 f5 26. gxf6 gxf6 27. Kh2 Rf7 28. Nh2 Nxd3 29. Rxd3 Rb2 30. Kg1 Rg7 31. Nf3 Kf8 32. Bf1 Rb1 33. Rd1 Rb2 34. Ng1 Ra7 35. Nh3 Rb1 36. Rd2 Bb5 37. Nf4 Rb2 38. Rxb2 Bxf1 39. Rc2 Be2 40. Nxe2 1-0
+
+[Event "USA Championship 1963"]
+[Site "New York, USA"]
 [Date "1963.12.30"]
 [Round "11"]
 [White "Fischer, Robert James"]
@@ -7,37 +117,114 @@
 [Result "1-0"]
 [ECO "B09"]
 
-1. e4 g6 2. d4 Bg7 3. Nc3 d6 4. f4 Nf6 5. Nf3 O-O 6. Bd3 Bg4 7. h3 Bxf3 8. Qxf3 Nc6 9. Be3 e5 10. dxe5 dxe5 11. f5 gxf5 12. Qxf5 Nd4 13. Qf2 Ne8 14. O-O Nd6 15. Qg3 Kh8 16. Qg4 c6 17. Qh5 Qe8 18. Bxd4 exd4 19. Rf6 Kg8 20. e5 h6 21. Ne2 1-0
+1. e4 g6 2. d4 Bg7 3. Nc3 d6 4. f4 Nf6 5. Nf3 O-O 6. Bd3 Na6 7. O-O c5 8. d5 Nc7 9. a4 Rb8 10. a5 b5 11. axb6 axb6 12. Ne2 Bb7 13. Ng3 b5 14. f5 b4 15. fxg6 hxg6 16. Ng5 Nfe8 17. Qf3 e5 18. Qh3 Bxd5 19. exd5 e4 20. Be2 Nxd5 21. Bg4 Nef6 22. N5xe4 Nxe4 23. Nxe4 d5 24. Ng5 Qe7 25. Bf3 Rbe8 26. Bxd5 Qe2 27. Bxf7+ Kh8 28. Bd2 Qxb2 29. Be6 Nc3 30. Rf2 Qa1+ 31. Rf1 Qb2 32. Be1 Ne2+ 33. Kh1 Nc3 34. Bxc3 Qxc3 35. Ne4 Qe3 36. Bf5 Rxe4 37. Bxe4 Qxe4 38. Qf3 1-0
 
-[Event "Sousse Interzonal"]
-[Site "Sousse"]
-[Date "1967.10.15"]
-[Round "3"]
-[White "Fischer, Robert James"]
-[Black "Myagmarsuren, Lhamsuren"]
-[Result "1-0"]
-[ECO "C00"]
-
-1. e4 e6 2. d3 d5 3. Nd2 Nf6 4. g3 c5 5. Bg2 Nc6 6. Ngf3 Be7 7. O-O O-O 8. e5 Nd7 9. Re1 b5 10. Nf1 b4 11. h4 a5 12. Bf4 a4 13. a3 bxa3 14. bxa3 Na5 15. Ne3 Ba6 16. Bh3 d4 17. Nf1 Nb6 18. Ng5 Nd5 19. Bd2 Bxg5 20. Bxg5 Qd7 21. Qh5 Rfc8 22. Nd2 Nc3 23. Bf6 Qe8 24. Ne4 g6 25. Qg5 Nxe4 26. Rxe4 c4 27. h5 cxd3 28. Rh4 Ra7 29. Bg2 dxc2 30. Qh6 Qf8 31. Qxh7+ 1-0
-
-[Event "Candidates Quarterfinal"]
-[Site "Vancouver"]
-[Date "1971.05.18"]
+[Event "Stockholm Interzonal"]
+[Site "Stockholm, Sweden"]
+[Date "1962.02.12"]
 [Round "2"]
 [White "Fischer, Robert James"]
-[Black "Taimanov, Mark"]
+[Black "Bolbochan, Julio"]
 [Result "1-0"]
-[ECO "B44"]
+[ECO "B90"]
 
-1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 e6 5. Nb5 d6 6. Bf4 e5 7. Be3 Nf6 8. Bg5 Qa5+ 9. Qd2 Nxe4 10. Qxa5 Nxa5 11. Be3 Kd7 12. N1c3 Nxc3 13. Nxc3 Kd8 14. Nb5 Be6 15. O-O-O b6 16. f4 exf4 17. Bxf4 Nb7 18. Be2 Bd7 19. Rd2 Be7 20. Rhd1 Bxb5 21. Bxb5 Kc7 22. Re2 Bf6 23. Rde1 Rac8 24. Bc4 Rhf8 25. b4 a5 26. Bd5 Kb8 27. a3 Rfd8 28. Bxf7 Bc3 29. Bd2 d5 30. Rd1 d4 31. Bxc3 Rxc3 32. Kb2 d3 33. Kxc3 dxe2 34. Re1 Nd6 35. Bh5 Nb5+ 36. Kb2 axb4 37. axb4 Rd4 38. c3 Rh4 39. Bxe2 Nd6 40. Rd1 Kc7 41. h3 Rf4 42. Rf1 Re4 43. Bd3 Re5 44. Rf2 h5 45. c4 Rg5 46. Kc3 Kd7 47. Ra2 Kc8 48. Kd4 Kc7 49. Ra7+ Kd8 50. c5 bxc5+ 51. bxc5 Ne8 52. Ra2 Nc7 53. Bc4 Kd7 54. Rb2 Kc6 55. Bb3 Nb5+ 56. Ke3 Kxc5 57. Kf4 Rg6 58. Bd1 h4 59. Kf5 Rh6 60. Kg5 Nd6 61. Bc2 Nf7+ 62. Kg4 Ne5+ 63. Kf4 Kd4 64. Rb4+ Kc3 65. Rb5 Nf7 66. Rc5+ Kd4 67. Rf5 g5+ 68. Kg4 Ne5+ 69. Kxg5 Rg6+ 70. Kxh4 Rxg2 71. Bd1 Rg8 72. Bg4 Ke4 73. Kg3 Rg7 74. Rf4+ Kd5 75. Ra4 Ng6 76. Ra6 Ne5 77. Kf4 Rf7+ 78. Kg5 Rg7+ 79. Kf5 Rf7+ 80. Rf6 Rxf6+ 81. Kxf6 Ke4 82. Bc8 Kf4 83. h4 Nf3 84. h5 Ng5 85. Bf5 Nf3 86. h6 Ng5 87. Kg6 Nf3 88. h7 Ne5+ 89. Kf6 1-0
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. h3 g6 7. g4 Bg7 8. g5 Nh5 9. Be2 e5 10. Nb3 Nf4 11. Bxf4 exf4 12. Qd2 g5 13. O-O-O Nc6 14. Nd5 Be6 15. Nbc3 Bxd5 16. exd5 Ne7 17. Nd4 Nxd5 18. Nc6 Qe7 19. Nxe7 Nxe7 20. Qxd6 Rd8 21. Qb4 Rxd1+ 22. Rxd1 b5 23. a4 O-O 24. axb5 axb5 25. Qxb5 Nc6 26. Bc4 Nd4 27. Qd7 1-0
 
-[Event "World Championship 1972"]
-[Site "Reykjavik"]
-[Date "1972.08.01"]
-[Round "11"]
-[White "Spassky, Boris"]
-[Black "Fischer, Robert James"]
+[Event "Bled"]
+[Site "Bled, Yugoslavia"]
+[Date "1961.09.18"]
+[Round "8"]
+[White "Fischer, Robert James"]
+[Black "Tal, Mikhail"]
 [Result "1-0"]
-[ECO "B97"]
+[ECO "B47"]
 
-1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Bg5 e6 7. f4 Qb6 8. Qd2 Qxb2 9. Nb3 Qa3 10. Bxf6 gxf6 11. Be2 h5 12. O-O Nc6 13. Kh1 Bd7 14. Nb1 Qb4 15. Qe3 d5 16. exd5 Ne7 17. c4 Nf5 18. Qd3 h4 19. Bg4 Nd6 20. N1d2 f5 21. a3 Qb6 22. c5 Qb5 23. Qc3 fxg4 24. a4 h3 25. axb5 hxg2+ 26. Kxg2 Rh3 27. Qf6 Nf5 28. c6 Bc8 29. dxe6 fxe6 30. Rfe1 Be7 31. Rxe6 1-0
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Qc7 5. Nc3 e6 6. g3 a6 7. Bg2 Nf6 8. O-O Be7 9. Re1 d6 10. Nxc6 bxc6 11. e5 dxe5 12. Rxe5 O-O 13. Na4 Nd5 14. Bd2 Rb8 15. Bc3 Nxc3 16. Nxc3 Bb4 17. Na4 Rd8 18. Qe2 Qb7 19. Rd1 Rxd1+ 20. Qxd1 Be7 21. Qd4 1-0
+
+[Event "Zurich"]
+[Site "Zurich, Switzerland"]
+[Date "1959.05.28"]
+[Round "8"]
+[White "Fischer, Robert James"]
+[Black "Unzicker, Wolfgang"]
+[Result "1-0"]
+[ECO "B92"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be2 e5 7. Nb3 Be6 8. O-O Nbd7 9. f4 Qc7 10. f5 Bc4 11. a4 Be7 12. Be3 O-O 13. a5 b5 14. axb6 Nxb6 15. Bxb6 Qxb6+ 16. Kh1 Bxe2 17. Qxe2 a5 18. Rfd1 Rfd8 19. Rd3 d5 20. exd5 Nxd5 21. Nxd5 Rxd5 22. Rxd5 1-0
+
+[Event "USA Championship 1965"]
+[Site "New York, USA"]
+[Date "1965.12.20"]
+[Round "7"]
+[White "Fischer, Robert James"]
+[Black "Reshevsky, Samuel"]
+[Result "1-0"]
+[ECO "B35"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6 5. Nc3 Bg7 6. Be3 Nf6 7. Bc4 O-O 8. Bb3 Na5 9. e5 Ne8 10. Bxf7+ Rxf7 11. Ne6 dxe6 12. Qxd8 Nxd8 13. Nxe7+ Kf8 14. Nxc8 Rxc8 15. O-O-O Nc4 16. Bd4 b5 17. b3 Na3 18. f4 Nc7 19. Rhe1 Nd5 20. Bc5+ Kg8 21. Re4 a5 22. h4 b4 23. h5 a4 24. hxg6 hxg6 25. bxa4 1-0
+
+[Event "Bled"]
+[Site "Bled, Yugoslavia"]
+[Date "1961.09.12"]
+[Round "4"]
+[White "Fischer, Robert James"]
+[Black "Gligoric, Svetozar"]
+[Result "1-0"]
+[ECO "B99"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Bg5 e6 7. f4 Be7 8. Qf3 Qc7 9. O-O-O Nbd7 10. g4 b5 11. Bxf6 Nxf6 12. g5 Nd7 13. a3 Rb8 14. Bh3 b4 15. axb4 Rxb4 16. Bxe6 fxe6 17. Nxe6 Qa5 18. Nxg7+ Kf7 19. Nh5 Rg8 20. f5 Bb7 21. Rhf1 Nc5 22. Kb1 Kg8 23. Rd5 Nxe4 24. Nxe4 Bxd5 25. Neg3 1-0
+
+[Event "Skopje"]
+[Site "Skopje, Yugoslavia"]
+[Date "1967.09.01"]
+[Round "9"]
+[White "Fischer, Robert James"]
+[Black "Dely, Peter"]
+[Result "1-0"]
+[ECO "C52"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4 Bxb4 5. c3 Ba5 6. d4 exd4 7. O-O dxc3 8. Qb3 Qe7 9. Nxc3 Nf6 10. Nd5 Nxd5 11. exd5 Ne5 12. Nxe5 Qxe5 13. Bb2 Qg5 14. h4 Qxh4 15. Bxg7 Rg8 16. Rfe1+ Kd8 17. Qg3 Qxg3 18. fxg3 Bxe1 19. Rxe1 Rg6 20. Bf6+ Kc8 21. Bf7 Rxf6 22. Re8# 1-0
+
+[Event "Palma de Mallorca Interzonal"]
+[Site "Palma de Mallorca, Spain"]
+[Date "1970.11.22"]
+[Round "4"]
+[White "Fischer, Robert James"]
+[Black "Mecking, Henrique"]
+[Result "1-0"]
+[ECO "C69"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Bxc6 dxc6 5. O-O f6 6. d4 exd4 7. Nxd4 c5 8. Nb3 Qxd1 9. Rxd1 Bg4 10. f3 Be6 11. Nc3 Bd6 12. Be3 b6 13. a4 Ne7 14. a5 b5 15. Nd2 O-O 16. Nc4 Nc6 17. Nxd6 cxd6 18. Rxd6 Rfd8 19. Rad1 Rxd6 20. Rxd6 Nxa5 21. Rd2 Nc4 22. Rc2 Nxe3 23. Rxc5 1-0
+
+[Event "Buenos Aires"]
+[Site "Buenos Aires, Argentina"]
+[Date "1970.07.29"]
+[Round "7"]
+[White "Fischer, Robert James"]
+[Black "Gheorghiu, Florin"]
+[Result "1-0"]
+[ECO "C42"]
+
+1. e4 e5 2. Nf3 Nf6 3. Nxe5 d6 4. Nf3 Nxe4 5. Qe2 Qe7 6. d3 Nf6 7. Bg5 Qxe2+ 8. Bxe2 Be7 9. Nc3 c6 10. O-O-O Na6 11. d4 Nc7 12. Rhe1 d5 13. Bd3 Ne6 14. Bh4 h6 15. Bg3 Bd6 16. Ne5 Bxe5 17. dxe5 Nd7 18. f4 g5 19. Bf2 Nc5 20. Bb1 Ne4 21. Nxe4 dxe4 22. Be3 gxf4 23. Bxf4 Nxf4 24. Rd8+ Ke7 25. Rxh8 Ne6 26. Re8+ Kf6 27. Ba2 Nc5 28. Rf1+ Kg7 29. Rf4 f5 30. exf6+ Kxf6 31. Rxe4 1-0
+
+[Event "Candidates Match 1971"]
+[Site "Denver, USA"]
+[Date "1971.07.20"]
+[Round "6"]
+[White "Fischer, Robert James"]
+[Black "Larsen, Bent"]
+[Result "1-0"]
+[ECO "B88"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 d6 6. Bc4 e6 7. Bb3 Be7 8. Be3 O-O 9. Qe2 a6 10. O-O-O Qc7 11. g4 Nd7 12. h4 Nc5 13. g5 b5 14. f3 Bd7 15. Qg2 b4 16. Nce2 Nxb3+ 17. axb3 a5 18. g6 hxg6 19. h5 gxh5 20. Rxh5 Bf6 21. Qh3 a4 22. Rdh1 axb3 23. Nf4 bxc2 24. Nxe6 fxe6 25. Qxe6+ Kh8 26. Kxc2 1-0
+
+[Event "Siegen Olympiad"]
+[Site "Siegen, Germany"]
+[Date "1970.09.14"]
+[Round "6"]
+[White "Fischer, Robert James"]
+[Black "Andersson, Ulf"]
+[Result "1-0"]
+[ECO "B01"]
+
+1. e4 d5 2. exd5 Nf6 3. d4 Nxd5 4. c4 Nb6 5. Nf3 g6 6. Nc3 Bg7 7. Be2 O-O 8. O-O Nc6 9. Be3 Bg4 10. d5 Na5 11. Bd4 Bxf3 12. gxf3 c5 13. Bxg7 Kxg7 14. b4 cxb4 15. Qd4+ f6 16. Qxb4 Naxc4 17. Bxc4 Nxc4 18. Rac1 b5 19. Nxb5 Qa5 20. Qb3 Nb6 21. Nc3 a5 22. a4 Rac8 23. Rfd1 Rc5 24. Ne4 Rxd5 25. Rxd5 Nxd5 26. Qd3 1-0

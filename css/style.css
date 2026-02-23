@@ -502,7 +502,7 @@ main {
 
 /* === Side Panel === */
 .side-panel {
-  width: 260px;
+  width: 310px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1307,16 +1307,17 @@ main {
 
 .panel-tab {
   flex: 1;
-  padding: 6px 12px;
+  padding: 6px 6px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   color: var(--text-color);
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
+  white-space: nowrap;
   transition: color 0.15s, border-color 0.15s;
 }
 
@@ -1775,7 +1776,7 @@ main {
 }
 
 /* === GM Coach Panel === */
-.gm-coach-panel { padding: 12px; display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; }
+.gm-coach-panel { padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; height: 100%; min-height: 0; }
 .gm-coach-header {
   display: flex; justify-content: space-between; align-items: center;
 }
@@ -3964,7 +3965,7 @@ body.resizing-h {
   }
 
   .side-panel {
-    width: 200px;
+    width: 240px;
     max-height: calc(100dvh - 80px);
     overflow-y: auto;
   }
