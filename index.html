@@ -1120,10 +1120,25 @@
         </div>
 
         <!-- Opening Explorer (below board) -->
-        <div class="opening-explorer">
-          <h3>Opening Explorer</h3>
-          <div id="opening-name" class="opening-name"></div>
-          <div id="explorer-moves" class="explorer-moves"></div>
+        <div class="opening-explorer" id="opening-explorer">
+          <div class="oe-header" id="oe-header">
+            <div class="oe-header-left">
+              <span class="oe-icon">&#9670;</span>
+              <span class="oe-title">Explorer</span>
+              <span class="oe-opening-name" id="oe-opening-name"></span>
+            </div>
+            <div class="oe-header-right">
+              <span class="oe-total-badge" id="oe-total-badge"></span>
+              <button class="oe-collapse-btn" id="oe-collapse-btn"><span class="oe-chevron" id="oe-chevron">&#9660;</span></button>
+            </div>
+          </div>
+          <div class="oe-body" id="oe-body">
+            <div class="oe-moves-table" id="oe-moves-table"></div>
+            <div class="oe-context" id="oe-context">
+              <div class="oe-gm-row" id="oe-gm-row"></div>
+              <div class="oe-db-count" id="oe-db-count"></div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1202,8 +1217,6 @@
 
           <!-- Game Controls -->
           <div class="game-controls">
-            <button class="btn btn-sm" id="btn-undo" title="Undo">Undo</button>
-            <button class="btn btn-sm" id="btn-redo" title="Redo">Redo</button>
             <button class="btn btn-sm" id="btn-toggle-notes" title="Notes">Notes</button>
           </div>
 

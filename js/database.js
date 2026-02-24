@@ -6,6 +6,7 @@ export class Database {
     this.collections = [];
     this.games = [];
     this.onGameSelect = null;
+    this._explorerCache = new Map();
   }
 
   /**
@@ -181,12 +182,30 @@ export class Database {
    * Fetch opening explorer data from Lichess API
    */
   async fetchOpeningExplorer(fen) {
+    // Check in-memory cache
+    if (this._explorerCache.has(fen)) {
+      return this._explorerCache.get(fen);
+    }
+
     try {
       const url = `https://explorer.lichess.ovh/masters?fen=${encodeURIComponent(fen)}&topGames=0`;
       const resp = await fetch(url);
       if (!resp.ok) return null;
-      return await resp.json();
+      const data = await resp.json();
+
+      // Evict oldest entry when cache exceeds 200
+      if (this._explorerCache.size >= 200) {
+        const firstKey = this._explorerCache.keys().next().value;
+        this._explorerCache.delete(firstKey);
+      }
+      this._explorerCache.set(fen, data);
+
+      return data;
     } catch {
+      // Return cached result on network error (if any prior cached data exists for this FEN)
+      if (this._explorerCache.has(fen)) {
+        return this._explorerCache.get(fen);
+      }
       return null;
     }
   }

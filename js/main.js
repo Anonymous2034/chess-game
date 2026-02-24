@@ -153,6 +153,7 @@ class ChessApp {
     this.setupResizeHandles();
     this.setupPlayerNameClicks();
     this.setupNotes();
+    this.setupOpeningExplorerCollapse();
 
     // Load database in background, then restore saved imports
     this.database.loadCollections().then(async (categories) => {
@@ -727,7 +728,7 @@ class ChessApp {
   // === Game Controls ===
 
   setupGameControls() {
-    document.getElementById('btn-undo').addEventListener('click', () => {
+    document.getElementById('btn-undo')?.addEventListener('click', () => {
       if (this.game.replayMode) return;
       // Stop engine if thinking
       this._clearEngineMoveTimer();
@@ -753,7 +754,7 @@ class ChessApp {
       }
     });
 
-    document.getElementById('btn-redo').addEventListener('click', () => {
+    document.getElementById('btn-redo')?.addEventListener('click', () => {
       if (this.game.replayMode) return;
       if (this.game.redo()) {
         const idx = this.game.currentMoveIndex;
@@ -3415,6 +3416,67 @@ class ChessApp {
   // === Opening Explorer ===
 
   _explorerTimeout = null;
+  _openingToGMs = null;
+
+  _buildOpeningToGMs() {
+    if (this._openingToGMs) return;
+    this._openingToGMs = {};
+    for (const bot of BOT_PERSONALITIES) {
+      if (!bot.favoriteOpenings) continue;
+      for (const opening of bot.favoriteOpenings) {
+        const key = opening.name.toLowerCase();
+        if (!this._openingToGMs[key]) this._openingToGMs[key] = [];
+        this._openingToGMs[key].push({ gm: bot, asColor: opening.asColor });
+      }
+    }
+  }
+
+  _findGMsForOpening(openingName) {
+    if (!openingName) return [];
+    this._buildOpeningToGMs();
+    const lower = openingName.toLowerCase();
+
+    // Exact match first
+    if (this._openingToGMs[lower]) return this._openingToGMs[lower];
+
+    // Fuzzy: check if any key is a substring of the opening name or vice versa
+    const results = [];
+    for (const [key, gms] of Object.entries(this._openingToGMs)) {
+      if (lower.includes(key) || key.includes(lower)) {
+        results.push(...gms);
+      }
+    }
+    // Deduplicate by GM id
+    const seen = new Set();
+    return results.filter(r => {
+      if (seen.has(r.gm.id)) return false;
+      seen.add(r.gm.id);
+      return true;
+    });
+  }
+
+  _formatCount(n) {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+
+  setupOpeningExplorerCollapse() {
+    const header = document.getElementById('oe-header');
+    const explorer = document.getElementById('opening-explorer');
+    if (!header || !explorer) return;
+
+    // Restore collapsed state
+    if (localStorage.getItem('chess_oe_collapsed') === '1') {
+      explorer.classList.add('collapsed');
+    }
+
+    header.addEventListener('click', () => {
+      explorer.classList.toggle('collapsed');
+      localStorage.setItem('chess_oe_collapsed', explorer.classList.contains('collapsed') ? '1' : '0');
+    });
+  }
+
   async fetchOpeningExplorer() {
     // Debounce API calls
     clearTimeout(this._explorerTimeout);
@@ -3422,16 +3484,25 @@ class ChessApp {
   }
 
   async _doFetchOpeningExplorer() {
-    const nameEl = document.getElementById('opening-name');
-    const movesEl = document.getElementById('explorer-moves');
+    const nameEl = document.getElementById('oe-opening-name');
+    const badgeEl = document.getElementById('oe-total-badge');
+    const tableEl = document.getElementById('oe-moves-table');
+    const gmRowEl = document.getElementById('oe-gm-row');
+    const dbCountEl = document.getElementById('oe-db-count');
     const labelEl = document.getElementById('opening-label');
+
+    const bodyEl = document.getElementById('oe-body');
 
     const data = await this.database.fetchOpeningExplorer(this.chess.fen());
     if (!data) {
       // Keep showing last known opening name (persistence)
       if (labelEl) labelEl.textContent = this.lastOpeningName;
-      nameEl.textContent = this.lastOpeningName;
-      movesEl.innerHTML = '';
+      if (nameEl) nameEl.textContent = this.lastOpeningName;
+      if (tableEl) tableEl.innerHTML = '';
+      if (gmRowEl) gmRowEl.innerHTML = '';
+      if (dbCountEl) dbCountEl.textContent = '';
+      if (badgeEl) badgeEl.textContent = '';
+      if (bodyEl) bodyEl.style.display = 'none';
       return;
     }
 
@@ -3440,32 +3511,122 @@ class ChessApp {
     if (openingName) {
       this.lastOpeningName = openingName;
     }
-    nameEl.textContent = this.lastOpeningName;
+    if (nameEl) nameEl.textContent = this.lastOpeningName;
     if (labelEl) labelEl.textContent = this.lastOpeningName;
+    if (bodyEl) bodyEl.style.display = '';
 
-    // Top moves
-    movesEl.innerHTML = '';
-    if (data.moves && data.moves.length > 0) {
-      data.moves.slice(0, 8).forEach(m => {
-        const total = m.white + m.draws + m.black;
-        const btn = document.createElement('button');
-        btn.className = 'explorer-move';
-        const winRate = total > 0 ? Math.round((m.white / total) * 100) : 0;
-        btn.innerHTML = `<span class="move-text">${m.san}</span><span class="move-stats">${total} (${winRate}%)</span>`;
+    // Grand total across all moves
+    let grandTotal = 0;
+    if (data.moves) {
+      for (const m of data.moves) grandTotal += m.white + m.draws + m.black;
+    }
+    if (badgeEl) {
+      badgeEl.textContent = grandTotal > 0 ? this._formatCount(grandTotal) + ' games' : '';
+    }
 
-        btn.addEventListener('click', () => {
-          if (!this.game.gameOver && !this.game.replayMode) {
-            // Find from/to for this SAN move
-            const legalMoves = this.chess.moves({ verbose: true });
-            const match = legalMoves.find(lm => lm.san === m.san);
-            if (match) {
-              this.board.tryMove(match.from, match.to);
+    // Move rows with WDL bars
+    if (tableEl) {
+      tableEl.innerHTML = '';
+      if (data.moves && data.moves.length > 0) {
+        data.moves.slice(0, 5).forEach(m => {
+          const total = m.white + m.draws + m.black;
+          if (total === 0) return;
+          const wPct = Math.round((m.white / total) * 100);
+          const dPct = Math.round((m.draws / total) * 100);
+          const lPct = 100 - wPct - dPct;
+
+          const row = document.createElement('div');
+          row.className = 'oe-move-row';
+
+          // SAN
+          const san = document.createElement('span');
+          san.className = 'oe-move-san';
+          san.textContent = m.san;
+
+          // WDL bar
+          const bar = document.createElement('div');
+          bar.className = 'oe-wdl-bar';
+
+          const wSeg = document.createElement('div');
+          wSeg.className = 'oe-wdl-seg w';
+          wSeg.style.width = wPct + '%';
+          if (wPct >= 15) wSeg.innerHTML = `<span class="oe-wdl-label">${wPct}%</span>`;
+
+          const dSeg = document.createElement('div');
+          dSeg.className = 'oe-wdl-seg d';
+          dSeg.style.width = dPct + '%';
+          if (dPct >= 15) dSeg.innerHTML = `<span class="oe-wdl-label">${dPct}%</span>`;
+
+          const lSeg = document.createElement('div');
+          lSeg.className = 'oe-wdl-seg l';
+          lSeg.style.width = lPct + '%';
+          if (lPct >= 15) lSeg.innerHTML = `<span class="oe-wdl-label">${lPct}%</span>`;
+
+          bar.appendChild(wSeg);
+          bar.appendChild(dSeg);
+          bar.appendChild(lSeg);
+
+          // Game count
+          const count = document.createElement('span');
+          count.className = 'oe-move-count';
+          count.textContent = this._formatCount(total);
+
+          row.appendChild(san);
+          row.appendChild(bar);
+          row.appendChild(count);
+
+          // Click to play the move
+          row.addEventListener('click', () => {
+            if (!this.game.gameOver && !this.game.replayMode) {
+              const legalMoves = this.chess.moves({ verbose: true });
+              const match = legalMoves.find(lm => lm.san === m.san);
+              if (match) {
+                this.board.tryMove(match.from, match.to);
+              }
             }
-          }
-        });
+          });
 
-        movesEl.appendChild(btn);
+          tableEl.appendChild(row);
+        });
+      }
+    }
+
+    // GM avatars for this opening
+    if (gmRowEl) {
+      gmRowEl.innerHTML = '';
+      const gmMatches = this._findGMsForOpening(this.lastOpeningName);
+      gmMatches.slice(0, 5).forEach(({ gm, asColor }) => {
+        const img = document.createElement('img');
+        img.className = 'oe-gm-avatar';
+        img.src = `img/gm/${gm.id}.svg`;
+        img.alt = gm.name;
+        img.title = `${gm.name} plays this as ${asColor === 'w' ? 'White' : 'Black'}`;
+        img.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Open GM browser detail if available
+          const gmCard = document.querySelector(`.gm-card[data-bot-id="${gm.id}"]`);
+          if (gmCard) gmCard.click();
+        });
+        gmRowEl.appendChild(img);
       });
+    }
+
+    // DB game count — match on ECO code for exact opening match
+    if (dbCountEl) {
+      const eco = data.opening?.eco || '';
+      let dbGames = 0;
+      if (eco) {
+        dbGames = this.database.games.filter(g => g.eco === eco).length;
+      }
+      dbCountEl.textContent = dbGames > 0 ? `${dbGames} game${dbGames !== 1 ? 's' : ''} in library` : '';
+    }
+
+    // Hide context row if both children are empty
+    const contextEl = document.getElementById('oe-context');
+    if (contextEl) {
+      const hasGMs = gmRowEl && gmRowEl.children.length > 0;
+      const hasDB = dbCountEl && dbCountEl.textContent !== '';
+      contextEl.classList.toggle('hidden', !hasGMs && !hasDB);
     }
   }
 
@@ -4098,7 +4259,7 @@ class ChessApp {
       evalBar: true, playerInfoTop: true, playerInfoBottom: true,
       capturedPieces: true, timers: true, openingLabel: true,
       evalGraph: true, navControls: true, statusBar: true,
-      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
+      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: false,
       showLegalMoves: false
     };
   }
