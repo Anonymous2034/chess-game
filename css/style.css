@@ -4709,41 +4709,65 @@ main {
   transform: translateX(16px);
 }
 
+/* Panel vertical offset handle */
+.panel-offset-handle {
+  height: 10px;
+  cursor: row-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.panel-offset-handle:hover {
+  background: rgba(181,136,99,0.12);
+}
+.panel-offset-grip {
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: #444;
+  transition: background 0.15s;
+}
+.panel-offset-handle:hover .panel-offset-grip {
+  background: var(--accent, #b58863);
+}
+.panel-offset-spacer {
+  flex-shrink: 0;
+}
+
 /* === Resize Handles === */
 .resize-handle-v {
-  width: 8px;
+  width: 6px;
   cursor: col-resize;
-  background: rgba(255,255,255,0.03);
+  background: transparent;
   position: relative;
   flex-shrink: 0;
   align-self: stretch;
   z-index: 5;
   transition: background 0.2s;
-  border-left: 1px solid rgba(255,255,255,0.06);
-  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
 .resize-handle-v:hover,
 .resize-handle-v.active {
-  background: rgba(181,136,99,0.15);
+  background: var(--accent);
 }
 
 .resize-handle-v::after {
-  content: '\u2022\A\u2022\A\u2022';
-  white-space: pre;
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.5rem;
-  line-height: 0.7;
-  color: #666;
-  text-align: center;
+  width: 2px;
+  height: 32px;
+  background: var(--border-color);
+  border-radius: 1px;
 }
 
 .resize-handle-v:hover::after,
 .resize-handle-v.active::after {
-  color: var(--accent, #b58863);
+  background: #fff;
 }
 
 .resize-handle-h {
@@ -5982,73 +6006,81 @@ body.resizing-h {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+/* Composer vertical list */
 .mp-composer-grid {
   display: flex;
-  gap: 4px;
-  padding: 4px 12px 10px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 2px 0;
 }
-.mp-composer-grid::-webkit-scrollbar { height: 3px; }
+.mp-composer-grid::-webkit-scrollbar { width: 4px; }
 .mp-composer-grid::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
 
-.mp-composer-card {
+/* Era group label */
+.mp-cl-era {
+  font-size: 0.6rem;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 14px 2px;
+  font-weight: 600;
+}
+
+/* Composer list item */
+.mp-cl-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px 3px 3px;
-  border-radius: 16px;
+  gap: 10px;
+  padding: 5px 14px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-  border: 1px solid transparent;
-  white-space: nowrap;
+  transition: background 0.15s;
 }
-.mp-composer-card:hover { background: rgba(255,255,255,0.06); }
-.mp-composer-card.selected {
-  background: rgba(181,136,99,0.18);
-  border-color: var(--accent, #b58863);
+.mp-cl-item:hover { background: rgba(255,255,255,0.05); }
+.mp-cl-item.selected {
+  background: rgba(181,136,99,0.15);
 }
-.mp-cc-portrait {
-  width: 22px;
-  height: 22px;
+.mp-cl-portrait {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid #555;
+  border: 2px solid #555;
   flex-shrink: 0;
 }
-.mp-composer-card.selected .mp-cc-portrait {
+.mp-cl-item.selected .mp-cl-portrait {
   border-color: var(--accent, #b58863);
 }
-.mp-cc-icon {
-  width: 22px;
-  height: 22px;
+.mp-cl-icon {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #3a3836;
-  border: 1.5px solid #555;
+  border: 2px solid #555;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #c0b8a8;
   flex-shrink: 0;
 }
-.mp-composer-card.selected .mp-cc-icon {
+.mp-cl-item.selected .mp-cl-icon {
   border-color: var(--accent, #b58863);
   color: var(--accent, #b58863);
 }
-.mp-cc-name {
-  font-size: 0.65rem;
-  color: #b0a898;
+.mp-cl-name {
+  flex: 1;
+  font-size: 0.78rem;
+  color: #c0b8a8;
 }
-.mp-composer-card.selected .mp-cc-name {
+.mp-cl-item.selected .mp-cl-name {
   color: var(--accent, #b58863);
   font-weight: 600;
 }
-.mp-cc-count {
-  font-size: 0.55rem;
-  color: #777;
-  margin-left: -2px;
+.mp-cl-count {
+  font-size: 0.68rem;
+  color: #666;
+  flex-shrink: 0;
 }
 
 /* Music Toggle + Volume section (below composers) */

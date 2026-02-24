@@ -4276,6 +4276,24 @@ class ChessApp {
       this.sound.voiceVolume = parseInt(e.target.value) / 100;
     });
 
+    // Music on/off toggle (settings)
+    const settingsMusicToggle = document.getElementById('settings-music-toggle');
+    if (settingsMusicToggle) {
+      settingsMusicToggle.checked = this.music.playing;
+      settingsMusicToggle.addEventListener('change', () => {
+        if (settingsMusicToggle.checked) {
+          this.music.play();
+        } else {
+          this.music.pause();
+        }
+        // Sync music player toggle
+        const mpToggle = document.getElementById('mp-music-toggle');
+        const mpLabel = document.getElementById('mp-toggle-label');
+        if (mpToggle) mpToggle.checked = settingsMusicToggle.checked;
+        if (mpLabel) mpLabel.textContent = settingsMusicToggle.checked ? 'Music On' : 'Music Off';
+      });
+    }
+
     // Music Volume slider (settings)
     const volSlider = document.getElementById('settings-music-volume');
     volSlider.value = Math.round(this.music.audio.volume * 100);
@@ -4288,8 +4306,11 @@ class ChessApp {
       if (miniVol) miniVol.value = e.target.value;
     });
 
-    // Keep music dialog AND mini player in sync
+    // Keep music dialog, mini player, AND settings in sync
     this.music.onStateChange = (state) => {
+      // Settings music toggle
+      const stMusicToggle = document.getElementById('settings-music-toggle');
+      if (stMusicToggle) stMusicToggle.checked = state.playing;
       // Full music dialog
       const playBtn = document.getElementById('music-play-pause');
       if (playBtn) playBtn.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
@@ -4359,6 +4380,9 @@ class ChessApp {
     document.getElementById('settings-voice').checked = localStorage.getItem('chess_voice_enabled') !== 'false';
     // Voice volume
     document.getElementById('settings-voice-volume').value = Math.round(this.sound.voiceVolume * 100);
+    // Music toggle
+    const stMusic = document.getElementById('settings-music-toggle');
+    if (stMusic) stMusic.checked = this.music.playing;
     // Music volume
     document.getElementById('settings-music-volume').value = Math.round(this.music.audio.volume * 100);
     // Eval bar
@@ -4438,6 +4462,8 @@ class ChessApp {
   // === Resize Handles ===
 
   setupResizeHandles() {
+    // Panel vertical offset handle
+    this._setupPanelOffset();
     // Vertical handle between board-area and side-panel
     this._setupResizeV();
     // Horizontal handle for move history height
@@ -4446,6 +4472,47 @@ class ChessApp {
     this._setupResizeExplorer();
     // Load saved sizes
     this._loadResizeSizes();
+  }
+
+  _setupPanelOffset() {
+    const handle = document.getElementById('panel-offset-handle');
+    const spacer = document.getElementById('panel-offset-spacer');
+    if (!handle || !spacer) return;
+
+    let startY, startH;
+
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = clientY - startY;
+      const newH = Math.max(0, Math.min(300, startH + dy));
+      spacer.style.height = newH + 'px';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-h');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      localStorage.setItem('chess_panel_offset', spacer.style.height);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startY = clientY;
+      startH = spacer.offsetHeight;
+      document.body.classList.add('resizing', 'resizing-h');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
   }
 
   _setupResizeV() {
@@ -4624,6 +4691,11 @@ class ChessApp {
         ex.style.maxHeight = savedExplorerH;
         ex.style.flex = 'none';
       }
+    }
+    const savedOffset = localStorage.getItem('chess_panel_offset');
+    if (savedOffset) {
+      const spacer = document.getElementById('panel-offset-spacer');
+      if (spacer) spacer.style.height = savedOffset;
     }
   }
 
@@ -6323,10 +6395,10 @@ class ChessApp {
     if (!listEl) return;
     listEl.innerHTML = '';
 
-    // "All Composers" card
+    // "All Composers" option
     const allCard = document.createElement('div');
-    allCard.className = 'mp-composer-card' + (!this._selectedComposerId ? ' selected' : '');
-    allCard.innerHTML = `<div class="mp-cc-icon">&#9835;</div><span class="mp-cc-name">All</span>`;
+    allCard.className = 'mp-cl-item' + (!this._selectedComposerId ? ' selected' : '');
+    allCard.innerHTML = `<div class="mp-cl-icon">&#9835;</div><span class="mp-cl-name">All Composers</span>`;
     allCard.addEventListener('click', () => {
       this._selectedComposerId = null;
       this.music.setComposerFilter(null);
@@ -6334,17 +6406,24 @@ class ChessApp {
     });
     listEl.appendChild(allCard);
 
-    // Group by era
+    // Group by era with era labels
     for (const era of COMPOSER_ERAS) {
       const eraComposers = COMPOSER_PROFILES.filter(c => c.era === era.id);
       if (eraComposers.length === 0) continue;
 
+      const eraLabel = document.createElement('div');
+      eraLabel.className = 'mp-cl-era';
+      eraLabel.textContent = era.name;
+      listEl.appendChild(eraLabel);
+
       for (const composer of eraComposers) {
+        const trackCount = PLAYLIST.filter(t => t.composer === composer.composerKey).length;
         const card = document.createElement('div');
-        card.className = 'mp-composer-card' + (composer.id === this._selectedComposerId ? ' selected' : '');
+        card.className = 'mp-cl-item' + (composer.id === this._selectedComposerId ? ' selected' : '');
         card.innerHTML = `
-          <img class="mp-cc-portrait" src="${composer.portrait}" alt="${composer.name}">
-          <span class="mp-cc-name">${composer.name}</span>
+          <img class="mp-cl-portrait" src="${composer.portrait}" alt="${composer.name}">
+          <span class="mp-cl-name">${composer.name}</span>
+          <span class="mp-cl-count">${trackCount}</span>
         `;
         card.addEventListener('click', () => {
           this._selectedComposerId = composer.id;

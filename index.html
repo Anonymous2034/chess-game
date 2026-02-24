@@ -662,6 +662,10 @@
               <span class="music-vol-icon">&#128266;</span>
             </div>
           </div>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Background Music</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-music-toggle"><span class="toggle-slider"></span></span>
+          </label>
           <div class="settings-volume-row">
             <span class="layout-toggle-label">Music Volume</span>
             <div class="settings-volume-control">
@@ -1039,7 +1043,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v45</div>
+          <div class="nav-menu-version" id="app-version">v46</div>
         </div>
       </nav>
     </header>
@@ -1135,6 +1139,11 @@
 
       <!-- Right: Side Panel -->
       <div class="side-panel">
+        <!-- Vertical offset handle — drag down to push panel content lower -->
+        <div class="panel-offset-handle" id="panel-offset-handle" title="Drag to adjust vertical position">
+          <span class="panel-offset-grip"></span>
+        </div>
+        <div class="panel-offset-spacer" id="panel-offset-spacer"></div>
         <!-- Game Status -->
         <div class="status-bar" id="status-bar">
           <span id="game-status">White to move</span>

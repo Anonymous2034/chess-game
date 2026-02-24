@@ -132,14 +132,14 @@ export class Database {
     }
 
     if (query) {
-      const q = query.toLowerCase();
-      results = results.filter(g =>
-        g.white.toLowerCase().includes(q) ||
-        g.black.toLowerCase().includes(q) ||
-        g.event.toLowerCase().includes(q) ||
-        g.date.includes(q) ||
-        (g.eco && g.eco.toLowerCase().includes(q))
-      );
+      const q = query.toLowerCase().trim();
+      // Split into individual words so "Fischer Bobby" matches "Bobby Fischer"
+      const words = q.split(/[\s,]+/).filter(w => w.length > 0);
+      results = results.filter(g => {
+        const haystack = (g.white + ' ' + g.black + ' ' + g.event + ' ' + g.date + ' ' + (g.eco || '')).toLowerCase();
+        // All words must appear somewhere in the combined fields
+        return words.every(w => haystack.includes(w));
+      });
     }
 
     return results;
