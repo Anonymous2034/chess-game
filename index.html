@@ -464,57 +464,58 @@
       </div>
     </div>
 
-    <!-- Music Player Dialog -->
+    <!-- Music Player Dialog (Spotify-style 2-column) -->
     <div id="music-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-music-player">
-        <!-- Now Playing Section -->
-        <div class="mp-now-playing">
-          <img class="mp-portrait" id="mp-portrait" src="" alt="">
-          <div class="mp-track-title" id="mp-track-title">No track selected</div>
-          <div class="mp-track-composer" id="mp-track-composer"></div>
-          <div class="mp-progress-row">
-            <span class="mp-time" id="mp-time-current">0:00</span>
-            <input type="range" class="mp-progress-bar" id="mp-progress" min="0" max="1000" value="0">
-            <span class="mp-time" id="mp-time-total">0:00</span>
+        <div class="mp-layout">
+          <!-- Left column: Composer sidebar -->
+          <div class="mp-sidebar">
+            <div class="mp-sidebar-header">
+              <span class="mp-sidebar-title">Composers</span>
+              <button class="btn btn-sm btn-secondary" id="mp-browse-composers" title="Browse all composers">Browse All</button>
+            </div>
+            <div class="mp-sidebar-list" id="composer-picker-list"></div>
           </div>
-          <div class="mp-controls">
-            <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
-            <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
-            <button class="mp-play-btn" id="music-play-pause" title="Play/Pause">&#9654;</button>
-            <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
-            <button class="btn btn-sm" id="music-repeat" title="Repeat">&#8635;</button>
+          <!-- Right column: Now Playing + Queue -->
+          <div class="mp-main">
+            <!-- Now Playing -->
+            <div class="mp-now-playing">
+              <img class="mp-portrait" id="mp-portrait" src="" alt="">
+              <div class="mp-now-info">
+                <div class="mp-track-title" id="mp-track-title">No track selected</div>
+                <div class="mp-track-composer" id="mp-track-composer"></div>
+              </div>
+            </div>
+            <!-- Controls + Progress -->
+            <div class="mp-controls-section">
+              <div class="mp-controls">
+                <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
+                <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
+                <button class="mp-play-btn" id="music-play-pause" title="Play/Pause">&#9654;</button>
+                <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
+                <button class="btn btn-sm" id="music-repeat" title="Repeat">&#8635;</button>
+              </div>
+              <div class="mp-progress-row">
+                <span class="mp-time" id="mp-time-current">0:00</span>
+                <input type="range" class="mp-progress-bar" id="mp-progress" min="0" max="1000" value="0">
+                <span class="mp-time" id="mp-time-total">0:00</span>
+              </div>
+              <div class="mp-vol-row">
+                <span class="music-vol-icon">&#128264;</span>
+                <input type="range" id="mp-vol-slider" min="0" max="100" value="30" class="mp-volume-slider">
+                <span class="music-vol-icon">&#128266;</span>
+              </div>
+            </div>
+            <!-- Favorite Row -->
+            <div class="music-favorite-row hidden" id="music-favorite-row">
+              <span class="music-fav-label">&#9733; <strong id="music-fav-name"></strong></span>
+              <button class="btn btn-small btn-secondary" id="music-clear-favorite">Clear</button>
+            </div>
+            <!-- Track Queue -->
+            <div class="mp-queue-header">Up Next</div>
+            <div class="mp-queue" id="composer-picker-detail"></div>
           </div>
         </div>
-        <!-- Composer Picker (portrait grid) -->
-        <div class="mp-composer-section" id="mp-composer-section">
-          <div class="mp-composer-header">
-            <span class="mp-composer-label">Composer</span>
-            <button class="btn btn-sm btn-secondary" id="mp-browse-composers" title="Browse all composers">Browse All</button>
-          </div>
-          <div class="mp-composer-grid" id="composer-picker-list"></div>
-        </div>
-        <!-- Music On/Off + Volume (below composers) -->
-        <div class="mp-toggle-section">
-          <div class="mp-toggle-row">
-            <label class="mp-switch">
-              <input type="checkbox" id="mp-music-toggle">
-              <span class="mp-slider"></span>
-            </label>
-            <span class="mp-toggle-label" id="mp-toggle-label">Music Off</span>
-          </div>
-          <div class="mp-vol-row">
-            <span class="music-vol-icon">&#128264;</span>
-            <input type="range" id="mp-vol-slider" min="0" max="100" value="30" class="mp-volume-slider">
-            <span class="music-vol-icon">&#128266;</span>
-          </div>
-        </div>
-        <!-- Favorite Row -->
-        <div class="music-favorite-row hidden" id="music-favorite-row">
-          <span class="music-fav-label">&#9733; <strong id="music-fav-name"></strong></span>
-          <button class="btn btn-small btn-secondary" id="music-clear-favorite">Clear</button>
-        </div>
-        <!-- Track Queue -->
-        <div class="mp-queue" id="composer-picker-detail"></div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="close-music">Close</button>
         </div>
@@ -1042,7 +1043,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v47</div>
+          <div class="nav-menu-version" id="app-version">v48</div>
         </div>
       </nav>
     </header>

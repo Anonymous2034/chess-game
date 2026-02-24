@@ -4287,21 +4287,26 @@ class ChessApp {
       this.sound.voiceVolume = parseInt(e.target.value) / 100;
     });
 
-    // Music on/off toggle (settings)
+    // Music Player on/off toggle (settings) — controls mini player visibility + playback
     const settingsMusicToggle = document.getElementById('settings-music-toggle');
     if (settingsMusicToggle) {
-      settingsMusicToggle.checked = this.music.playing;
+      // Restore saved state (default ON)
+      const musicEnabled = localStorage.getItem('chess_music_enabled') !== 'false';
+      settingsMusicToggle.checked = musicEnabled;
+      const miniMusic = document.getElementById('mini-music');
+      if (miniMusic) miniMusic.classList.toggle('hidden', !musicEnabled);
+      if (!musicEnabled && this.music.playing) this.music.pause();
+
       settingsMusicToggle.addEventListener('change', () => {
-        if (settingsMusicToggle.checked) {
+        const on = settingsMusicToggle.checked;
+        localStorage.setItem('chess_music_enabled', on);
+        const mini = document.getElementById('mini-music');
+        if (mini) mini.classList.toggle('hidden', !on);
+        if (on) {
           this.music.play();
         } else {
           this.music.pause();
         }
-        // Sync music player toggle
-        const mpToggle = document.getElementById('mp-music-toggle');
-        const mpLabel = document.getElementById('mp-toggle-label');
-        if (mpToggle) mpToggle.checked = settingsMusicToggle.checked;
-        if (mpLabel) mpLabel.textContent = settingsMusicToggle.checked ? 'Music On' : 'Music Off';
       });
     }
 
@@ -4319,39 +4324,33 @@ class ChessApp {
 
     // Keep music dialog, mini player, AND settings in sync
     this.music.onStateChange = (state) => {
-      // Settings music toggle
+      // Settings music toggle — reflect playing state
       const stMusicToggle = document.getElementById('settings-music-toggle');
-      if (stMusicToggle) stMusicToggle.checked = state.playing;
+      if (stMusicToggle && !state.playing) {
+        // Only uncheck if user explicitly stopped; don't uncheck on track end
+      }
       // Full music dialog
       const playBtn = document.getElementById('music-play-pause');
       if (playBtn) playBtn.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
-      const nowTitle = document.querySelector('#music-dialog .music-track-title');
-      const nowComposer = document.querySelector('#music-dialog .music-track-composer');
-      if (nowTitle) nowTitle.textContent = state.track.title;
-      if (nowComposer) nowComposer.textContent = state.track.composer;
       const shuffleBtn = document.getElementById('music-shuffle');
       if (shuffleBtn) shuffleBtn.classList.toggle('active', state.shuffle);
-      // Repeat button
       const repeatBtn = document.getElementById('music-repeat');
       if (repeatBtn) repeatBtn.classList.toggle('active', !!state.repeat);
-      // Refresh composer detail track list if dialog is open
+      // Refresh music dialog if open
       const musicDialog = document.getElementById('music-dialog');
       if (musicDialog && !musicDialog.classList.contains('hidden')) {
         this._renderMusicDialog();
       }
 
-      // Mini music player on main screen — always visible
+      // Mini music player on main screen
       const miniTitle = document.getElementById('mini-music-title');
       const miniComposer = document.getElementById('mini-music-composer');
       const miniToggle = document.getElementById('mini-music-toggle');
       if (miniTitle) miniTitle.textContent = state.track.title;
       if (miniComposer) miniComposer.textContent = state.track.composer;
       if (miniToggle) miniToggle.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
-      // Update mini shuffle button state
       const miniShuffleBtn = document.getElementById('mini-music-shuffle');
-      if (miniShuffleBtn) {
-        miniShuffleBtn.classList.toggle('active', !!state.shuffle);
-      }
+      if (miniShuffleBtn) miniShuffleBtn.classList.toggle('active', !!state.shuffle);
     };
 
     // --- DISPLAY section ---
@@ -4391,9 +4390,9 @@ class ChessApp {
     document.getElementById('settings-voice').checked = localStorage.getItem('chess_voice_enabled') !== 'false';
     // Voice volume
     document.getElementById('settings-voice-volume').value = Math.round(this.sound.voiceVolume * 100);
-    // Music toggle
+    // Music Player toggle (based on saved preference, not playing state)
     const stMusic = document.getElementById('settings-music-toggle');
-    if (stMusic) stMusic.checked = this.music.playing;
+    if (stMusic) stMusic.checked = localStorage.getItem('chess_music_enabled') !== 'false';
     // Music volume
     document.getElementById('settings-music-volume').value = Math.round(this.music.audio.volume * 100);
     // Eval bar
@@ -4495,7 +4494,9 @@ class ChessApp {
     const onMove = (e) => {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = clientY - startY;
-      const newH = Math.max(0, Math.min(600, startH + dy));
+      // Allow pulling as low as viewport minus a small reserve
+      const maxOffset = Math.max(600, window.innerHeight - 120);
+      const newH = Math.max(0, Math.min(maxOffset, startH + dy));
       spacer.style.height = newH + 'px';
     };
 
@@ -6272,27 +6273,12 @@ class ChessApp {
       this._openMusicDialog();
     });
 
-    // Music on/off toggle + volume below composers
-    const mpToggle = document.getElementById('mp-music-toggle');
-    const mpToggleLabel = document.getElementById('mp-toggle-label');
+    // Volume slider in music player dialog
     const mpVolSlider = document.getElementById('mp-vol-slider');
-    if (mpToggle) {
-      mpToggle.checked = this.music.playing;
-      if (mpToggleLabel) mpToggleLabel.textContent = this.music.playing ? 'Music On' : 'Music Off';
-      mpToggle.addEventListener('change', () => {
-        if (mpToggle.checked) {
-          this.music.play();
-        } else {
-          this.music.pause();
-        }
-        if (mpToggleLabel) mpToggleLabel.textContent = mpToggle.checked ? 'Music On' : 'Music Off';
-      });
-    }
     if (mpVolSlider) {
       mpVolSlider.value = Math.round(this.music.audio.volume * 100);
       mpVolSlider.addEventListener('input', (e) => {
         this.music.setVolume(parseInt(e.target.value) / 100);
-        // Sync other volume sliders
         const miniVol = document.getElementById('mini-music-vol');
         if (miniVol) miniVol.value = e.target.value;
         const settingsVol = document.getElementById('settings-music-volume');
@@ -6383,11 +6369,7 @@ class ChessApp {
     const repeatBtn = document.getElementById('music-repeat');
     if (repeatBtn) repeatBtn.classList.toggle('active', this.music.repeat);
 
-    // Sync toggle + volume below composers
-    const mpToggle = document.getElementById('mp-music-toggle');
-    const mpToggleLabel = document.getElementById('mp-toggle-label');
-    if (mpToggle) mpToggle.checked = this.music.playing;
-    if (mpToggleLabel) mpToggleLabel.textContent = this.music.playing ? 'Music On' : 'Music Off';
+    // Sync volume slider
     const mpVolSlider = document.getElementById('mp-vol-slider');
     if (mpVolSlider) mpVolSlider.value = Math.round(this.music.audio.volume * 100);
 
