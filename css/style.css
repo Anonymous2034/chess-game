@@ -645,40 +645,47 @@ main {
   flex: 1;
 }
 
-/* === Opening Explorer === */
+/* === Opening Explorer (below board) === */
 .opening-explorer {
   background: var(--panel-bg);
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 4px 10px 6px;
   flex-shrink: 0;
+  align-self: center;
+  width: 100%;
+  max-width: calc(var(--board-size, 400px) + 22px);
+  box-sizing: border-box;
 }
 
 .opening-explorer h3 {
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   color: var(--text-light);
-  margin-bottom: 6px;
+  margin: 0 0 2px;
+  display: inline;
 }
 
 .opening-name {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--accent);
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   font-style: italic;
+  display: inline;
+  margin-left: 6px;
 }
 
 .explorer-moves {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  max-height: 80px;
+  gap: 3px;
+  max-height: 52px;
   overflow-y: auto;
 }
 
 .explorer-move {
   background: var(--btn-bg);
-  padding: 2px 6px;
+  padding: 1px 5px;
   border-radius: 3px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   cursor: pointer;
   border: none;
   color: var(--text-color);
