@@ -1791,6 +1791,8 @@ class ChessApp {
       const card = document.getElementById('gm-coach-' + gm.id);
       if (card) card.classList.remove('gm-coach-thinking');
     }
+    // Sync to panel coach area (below music player)
+    this._syncPanelCoachArea(text);
   }
 
   _getFallbackOpeningComment(t, moveIndex) {
@@ -1907,6 +1909,33 @@ class ChessApp {
         </div>`;
     }
     container.innerHTML = html;
+
+    // Mirror first coach into panel-coach-area (below music player in Moves tab)
+    this._syncPanelCoachArea();
+  }
+
+  _syncPanelCoachArea(text) {
+    const area = document.getElementById('panel-coach-area');
+    if (!area) return;
+    if (this._gmCoachBots.length === 0) {
+      area.classList.add('hidden');
+      area.innerHTML = '';
+      return;
+    }
+    const bot = this._gmCoachBots[0];
+    const profile = GM_COACH_PROFILES[bot.id];
+    if (!profile) { area.classList.add('hidden'); return; }
+
+    const commentaryText = text || document.getElementById(`gm-coach-commentary-${bot.id}`)?.textContent || 'Analyzing position\u2026';
+    area.classList.remove('hidden');
+    area.innerHTML = `
+      <div class="panel-coach-card">
+        <img class="panel-coach-portrait" src="${bot.portrait}" alt="${bot.name}">
+        <div class="panel-coach-bubble">
+          <span class="panel-coach-name">${bot.name}</span>
+          <span class="panel-coach-text">${commentaryText}</span>
+        </div>
+      </div>`;
   }
 
   async _updateGMCoachCommentary() {
@@ -1949,6 +1978,10 @@ class ChessApp {
           if (card) card.classList.remove('gm-coach-thinking');
           const commentary = document.getElementById(`gm-coach-commentary-${bot.id}`);
           if (commentary && result.text) commentary.textContent = result.text;
+          // Sync first coach to panel area
+          if (bot === this._gmCoachBots[0] && result.text) {
+            this._syncPanelCoachArea(result.text);
+          }
         } catch { /* ignore individual coach errors */ }
       });
 

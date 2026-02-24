@@ -645,11 +645,11 @@ main {
   flex: 1;
 }
 
-/* === Opening Explorer (below board) === */
+/* === Opening Explorer (compact, below board) === */
 .opening-explorer {
   background: var(--panel-bg);
   border-radius: 4px;
-  padding: 4px 10px 6px;
+  padding: 2px 10px 3px;
   flex-shrink: 0;
   align-self: center;
   width: 100%;
@@ -658,16 +658,16 @@ main {
 }
 
 .opening-explorer h3 {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-light);
-  margin: 0 0 2px;
+  margin: 0;
   display: inline;
 }
 
 .opening-name {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--accent);
-  margin-bottom: 3px;
+  margin: 0;
   font-style: italic;
   display: inline;
   margin-left: 6px;
@@ -676,9 +676,10 @@ main {
 .explorer-moves {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
-  max-height: 52px;
+  gap: 2px;
+  max-height: 22px;
   overflow-y: auto;
+  margin-top: 2px;
 }
 
 .explorer-move {
@@ -3908,6 +3909,44 @@ main {
   width: 50px;
   height: 3px;
   accent-color: var(--accent, #4ecdc4);
+}
+
+/* Panel coach area (below music player in Moves tab) */
+.panel-coach-area {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+.panel-coach-area.hidden { display: none; }
+.panel-coach-area:empty { display: none; }
+.panel-coach-card {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.panel-coach-portrait {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--accent, #b58863);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.panel-coach-bubble {
+  flex: 1;
+  min-width: 0;
+}
+.panel-coach-name {
+  display: block;
+  font-weight: 600;
+  color: var(--accent, #b58863);
+  font-size: 0.65rem;
+  margin-bottom: 1px;
+}
+.panel-coach-text {
+  font-size: 0.72rem;
+  color: var(--text-color);
+  line-height: 1.35;
 }
 
 .puzzle-rating-badge {
