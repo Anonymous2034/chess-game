@@ -446,7 +446,12 @@
           <select class="music-composer-filter" id="music-composer-filter">
             <option value="all">All Composers</option>
           </select>
+          <button class="btn btn-small btn-secondary" id="music-set-favorite" title="Set selected composer as favorite">&#9733; Favorite</button>
           <span class="music-track-count" id="music-track-count"></span>
+        </div>
+        <div class="music-favorite-row hidden" id="music-favorite-row">
+          <span class="music-fav-label">Favorite: <strong id="music-fav-name"></strong></span>
+          <button class="btn btn-small btn-secondary" id="music-clear-favorite">Clear</button>
         </div>
         <div class="music-playlist" id="music-playlist"></div>
         <div class="dialog-actions">
@@ -543,7 +548,10 @@
           </label>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Voice Announcements</span>
-            <span class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></span>
+            <span style="display:flex;align-items:center;gap:6px;">
+              <button class="btn btn-small btn-secondary" id="settings-voice-test" style="font-size:0.72rem;padding:2px 8px;">Test</button>
+              <span class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></span>
+            </span>
           </label>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Background Music</span>
@@ -659,6 +667,7 @@
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings">Done</button>
         </div>
+        <div class="app-version" id="app-version">v31</div>
       </div>
     </div>
 

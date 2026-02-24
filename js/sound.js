@@ -13,33 +13,63 @@ export class SoundManager {
 
   /** Preload speechSynthesis voices — Chrome loads them asynchronously. */
   _initVoices() {
-    if (!window.speechSynthesis) return;
+    if (!window.speechSynthesis) {
+      console.warn('[Voice] speechSynthesis not available');
+      return;
+    }
 
     const checkVoices = () => {
       const voices = speechSynthesis.getVoices();
       if (voices.length > 0) {
         this._voicesReady = true;
-        // Prefer an English voice
-        this._preferredVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+        // Prefer a high-quality English voice
+        this._preferredVoice =
+          voices.find(v => v.lang === 'en-US' && v.localService) ||
+          voices.find(v => v.lang === 'en-GB' && v.localService) ||
+          voices.find(v => v.lang.startsWith('en')) ||
+          voices[0];
+        console.log('[Voice] Ready: ' + voices.length + ' voices, using: ' +
+          (this._preferredVoice?.name || 'default'));
       }
     };
 
     checkVoices();
-    if (!this._voicesReady) {
-      speechSynthesis.addEventListener('voiceschanged', checkVoices);
-    }
+    speechSynthesis.addEventListener('voiceschanged', checkVoices);
 
-    // Warmup: schedule a silent utterance on first user gesture to unlock speech API
+    // Warmup on first user gesture — use a real word (some browsers ignore empty strings)
     const warmup = () => {
       if (!window.speechSynthesis) return;
-      const u = new SpeechSynthesisUtterance('');
-      u.volume = 0;
-      speechSynthesis.speak(u);
-      document.removeEventListener('click', warmup);
-      document.removeEventListener('keydown', warmup);
+      try {
+        const u = new SpeechSynthesisUtterance('.');
+        u.volume = 0.01; // Near-silent, not zero (zero may be ignored)
+        u.rate = 2; // Fast so it's not noticeable
+        if (this._preferredVoice) u.voice = this._preferredVoice;
+        speechSynthesis.speak(u);
+        console.log('[Voice] Warmup fired');
+      } catch (e) {
+        console.warn('[Voice] Warmup failed:', e);
+      }
     };
     document.addEventListener('click', warmup, { once: true });
-    document.addEventListener('keydown', warmup, { once: true });
+  }
+
+  /** Test voice — plays a sample announcement. Returns true if speech API is available. */
+  testVoice() {
+    if (!window.speechSynthesis) return false;
+    const voices = speechSynthesis.getVoices();
+    if (voices.length === 0) {
+      console.warn('[Voice] No voices available');
+      return false;
+    }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('Knight to f3, check');
+    if (this._preferredVoice) u.voice = this._preferredVoice;
+    u.rate = 0.95;
+    u.volume = 1.0;
+    u.lang = 'en-US';
+    u.onerror = (e) => console.error('[Voice] Test error:', e.error);
+    speechSynthesis.speak(u);
+    return true;
   }
 
   // === Public API ===
@@ -89,24 +119,27 @@ export class SoundManager {
     const text = this._sanToSpeech(san);
     if (!text) return;
 
-    // Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
-    speechSynthesis.resume();
+    try {
+      // Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
+      speechSynthesis.resume();
 
-    // Only cancel if actively speaking — calling cancel() unconditionally
-    // before speak() silently kills the new utterance in Chrome.
-    if (speechSynthesis.speaking || speechSynthesis.pending) {
-      speechSynthesis.cancel();
+      // Only cancel if actively speaking
+      if (speechSynthesis.speaking || speechSynthesis.pending) {
+        speechSynthesis.cancel();
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (this._preferredVoice) utterance.voice = this._preferredVoice;
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      utterance.lang = 'en-US';
+      utterance.onerror = (e) => console.warn('[Voice] Error:', e.error, 'for:', text);
+      speechSynthesis.speak(utterance);
+      console.log('[Voice] Speaking:', text);
+    } catch (e) {
+      console.warn('[Voice] speak failed:', e);
     }
-
-    // Speak directly — no setTimeout. Wrapping in setTimeout moves the call
-    // out of the user-gesture context, which can block speech on some browsers.
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (this._preferredVoice) utterance.voice = this._preferredVoice;
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
   }
 
   _sanToSpeech(san) {

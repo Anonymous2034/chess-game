@@ -3400,6 +3400,15 @@ main {
   font-size: 0.72rem;
 }
 
+.app-version {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted, #666);
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-color, #333);
+}
+
 .dgt-connected-actions {
   display: flex;
   gap: 8px;
@@ -4463,6 +4472,27 @@ body.resizing-h {
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+}
+
+.music-favorite-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgba(78, 205, 196, 0.1);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.music-fav-label {
+  flex: 1;
+  color: var(--accent, #4ecdc4);
+}
+
+#music-set-favorite {
+  font-size: 0.72rem;
+  padding: 2px 8px;
 }
 
 .music-composer-filter {

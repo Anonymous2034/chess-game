@@ -1093,6 +1093,203 @@ export const PLAYLIST = [
     composer: "Georg Friedrich Händel",
     duration: "3:30",
     url: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Handel_-_Suite_Vol._2_No._4_in_D_minor_HWV_437_-_4._Sarabande.oga"
+  },
+
+  // ─── BRAHMS ──────────────────────────────────────────────────
+  {
+    id: "brahms-hungarian-5",
+    title: "Hungarian Dance No. 5 in G minor",
+    composer: "Johannes Brahms",
+    duration: "3:48",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Johannes_Brahms_-_Ungarischer_Tanz_5_g-moll.ogg"
+  },
+  {
+    id: "brahms-hungarian-6",
+    title: "Hungarian Dance No. 6 in D major",
+    composer: "Johannes Brahms",
+    duration: "3:51",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/df/Johannes_Brahms_-_Ungarischer_Tanz_6_D-Dur.ogg"
+  },
+  {
+    id: "brahms-waltz-15",
+    title: "Waltz Op. 39 No. 15 in A-flat major",
+    composer: "Johannes Brahms",
+    duration: "1:28",
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/04/Brahms-waltz15.ogg"
+  },
+  {
+    id: "brahms-waltz-04",
+    title: "Waltz Op. 39 No. 4",
+    composer: "Johannes Brahms",
+    duration: "1:35",
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/2b/Brahms-waltz04.ogg"
+  },
+  {
+    id: "brahms-symphony1-2",
+    title: "Symphony No. 1 — II. Andante sostenuto",
+    composer: "Johannes Brahms",
+    duration: "8:37",
+    url: "https://upload.wikimedia.org/wikipedia/commons/1/1f/Brahms%2C_Symphony_No._1_in_C_Minor%2C_Op._68_-_II._Andante_sostenuto.ogg"
+  },
+  {
+    id: "brahms-symphony3-4",
+    title: "Symphony No. 3 — IV. Allegro",
+    composer: "Johannes Brahms",
+    duration: "8:28",
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/31/Brahms_-_Symphony_No.3_in_F_major_Op.90_-_IV._Allegro.ogg"
+  },
+  {
+    id: "brahms-symphony4-1",
+    title: "Symphony No. 4 — I. Allegro non troppo",
+    composer: "Johannes Brahms",
+    duration: "12:41",
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/79/Brahms%2C_Symphony_No._4_in_E_Minor%2C_Op._98_-_I._Allegro_Non_Troppo.ogg"
+  },
+  {
+    id: "brahms-intermezzo-117-1",
+    title: "Intermezzo Op. 117 No. 1",
+    composer: "Johannes Brahms",
+    duration: "5:39",
+    url: "https://upload.wikimedia.org/wikipedia/commons/8/8d/Brahms_-_Intermezzo%2C_Op._117%2C_No._1.ogg"
+  },
+
+  // ─── DVOŘÁK ──────────────────────────────────────────────────
+  {
+    id: "dvorak-newworld-1",
+    title: "Symphony No. 9 'New World' — I. Adagio – Allegro molto",
+    composer: "Antonín Dvořák",
+    duration: "10:05",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Antonin_Dvorak_-_symphony_no._9_in_e_minor_%27from_the_new_world%27%2C_op._95_-_i._adagio_-_allegro_molto.ogg"
+  },
+  {
+    id: "dvorak-newworld-2",
+    title: "Symphony No. 9 'New World' — II. Largo",
+    composer: "Antonín Dvořák",
+    duration: "11:34",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Antonin_Dvorak_-_symphony_no._9_in_e_minor_%27from_the_new_world%27%2C_op._95_-_ii._largo.ogg"
+  },
+  {
+    id: "dvorak-newworld-3",
+    title: "Symphony No. 9 'New World' — III. Molto vivace",
+    composer: "Antonín Dvořák",
+    duration: "8:26",
+    url: "https://upload.wikimedia.org/wikipedia/commons/b/bd/Antonin_Dvorak_-_symphony_no._9_in_e_minor_%27from_the_new_world%27%2C_op._95_-_iii._molto_vivace.ogg"
+  },
+  {
+    id: "dvorak-newworld-4",
+    title: "Symphony No. 9 'New World' — IV. Allegro con fuoco",
+    composer: "Antonín Dvořák",
+    duration: "11:43",
+    url: "https://upload.wikimedia.org/wikipedia/commons/1/17/Antonin_Dvorak_-_symphony_no._9_in_e_minor_%27from_the_new_world%27%2C_op._95_-_iv._allegro_con_fuoco.ogg"
+  },
+  {
+    id: "dvorak-humoresque-7",
+    title: "Humoresque Op. 101 No. 7",
+    composer: "Antonín Dvořák",
+    duration: "3:08",
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Dvo%C5%99%C3%A1k_-_Humoresque_Op._101_No._7.ogg"
+  },
+  {
+    id: "dvorak-symphony8-1",
+    title: "Symphony No. 8 — I. Allegro con brio",
+    composer: "Antonín Dvořák",
+    duration: "10:39",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Dvo%C5%99%C3%A1k%2C_Antonin_%E2%80%94_Symphony_No._8%2C_Op._88_%E2%80%94_1._Allegro_con_brio.ogg"
+  },
+  {
+    id: "dvorak-symphony8-2",
+    title: "Symphony No. 8 — II. Adagio",
+    composer: "Antonín Dvořák",
+    duration: "10:11",
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/fe/Dvo%C5%99%C3%A1k%2C_Antonin_%E2%80%94_Symphony_No._8%2C_Op._88_%E2%80%94_2._adagio.ogg"
+  },
+  {
+    id: "dvorak-symphony8-3",
+    title: "Symphony No. 8 — III. Allegretto grazioso",
+    composer: "Antonín Dvořák",
+    duration: "5:46",
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/93/Dvo%C5%99%C3%A1k%2C_Antonin_%E2%80%94_Symphony_No._8%2C_Op._88_%E2%80%94_3._allegretto_grazioso.ogg"
+  },
+  {
+    id: "dvorak-serenade-valse",
+    title: "String Serenade — II. Tempo di Valse",
+    composer: "Antonín Dvořák",
+    duration: "7:32",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Dvorak_String_Serenade_II_Tempo_di_Valse.ogg"
+  },
+
+  // ─── MENDELSSOHN ─────────────────────────────────────────────
+  {
+    id: "mendelssohn-violin-1",
+    title: "Violin Concerto in E minor — I. Allegro molto appassionato",
+    composer: "Felix Mendelssohn",
+    duration: "13:27",
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Felix_Mendelssohn_-_Violinkonzert_e-moll_-_1._Allegro_molto_appassionato.ogg"
+  },
+  {
+    id: "mendelssohn-violin-2",
+    title: "Violin Concerto in E minor — II. Andante",
+    composer: "Felix Mendelssohn",
+    duration: "8:03",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Felix_Mendelssohn_-_Violinkonzert_e-moll_-_2._Andante.ogg"
+  },
+  {
+    id: "mendelssohn-violin-3",
+    title: "Violin Concerto in E minor — III. Allegro molto vivace",
+    composer: "Felix Mendelssohn",
+    duration: "6:53",
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/67/Felix_Mendelssohn_-_Violinkonzert_e-moll_-_3._Allegro_molto_vivace.ogg"
+  },
+  {
+    id: "mendelssohn-wedding-march",
+    title: "Wedding March (A Midsummer Night's Dream)",
+    composer: "Felix Mendelssohn",
+    duration: "4:54",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/cb/A_Midsummer_Night%27s_Dream_Op._61_Wedding_March_%28Mendelssohn%29_European_Archive.ogg"
+  },
+  {
+    id: "mendelssohn-spinners-song",
+    title: "Songs Without Words — Spinner's Song",
+    composer: "Felix Mendelssohn",
+    duration: "2:00",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Mendelssohn_Songs_without_Words_-_Spinner%27s_Song.ogg"
+  },
+  {
+    id: "mendelssohn-spring-song",
+    title: "Songs Without Words — Spring Song, Op. 62 No. 6",
+    composer: "Felix Mendelssohn",
+    duration: "2:50",
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/fd/ROSA_Pianist_-_Mendelssohn%27s_Songs_Without_Words%2C_Book_5%2C_Op_62%2C_No._6%2C_Allegretto_grazioso_%28Spring_Song%29%2C_MWV_U_161.ogg"
+  },
+  {
+    id: "mendelssohn-hebrides",
+    title: "The Hebrides Overture (Fingal's Cave)",
+    composer: "Felix Mendelssohn",
+    duration: "11:23",
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/96/Mendelssohn_-_Hebrides_Overture_Fingal%27s_Cave.ogg"
+  },
+
+  // ─── RAVEL ───────────────────────────────────────────────────
+  {
+    id: "ravel-pavane",
+    title: "Pavane pour une infante défunte",
+    composer: "Maurice Ravel",
+    duration: "5:08",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/d6/Maurice_Ravel_-_Th%C3%A9r%C3%A8se_Dussaut_-_Pavane_pour_une_infante_d%C3%A9funte.ogg"
+  },
+  {
+    id: "ravel-bolero",
+    title: "Boléro",
+    composer: "Maurice Ravel",
+    duration: "13:26",
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/73/Bolero-Maurice_Ravel-Berlin_Symphonic_Orchestra-Ferenc_Fricsay-November_1959.ogg"
+  },
+  {
+    id: "ravel-jeux-deau",
+    title: "Jeux d'eau",
+    composer: "Maurice Ravel",
+    duration: "6:02",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Ravel%27s_Jeux_d%27eau%2C_M._30_-_Anna_Sutyagina.ogg"
   }
 ];
 

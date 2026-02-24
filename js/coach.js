@@ -7,6 +7,28 @@ import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
 
 const TIER_KEY = 'chess_coach_tier';
 
+// Universal teaching tips — actionable chess advice for each position feature.
+// These are appended to personality-based commentary to help players actually improve.
+const TEACHING_TIPS = {
+  equalPosition: 'Find your worst-placed piece and reroute it to a better square. Small improvements accumulate.',
+  advantage: 'Restrict counterplay first — cut off your opponent\'s active ideas before pushing your own.',
+  disadvantage: 'Trade pieces (not pawns) to reduce your opponent\'s attacking potential. Create counterplay on the opposite wing.',
+  isolatedPawn: 'Blockade it with a knight on the square directly in front — knights are the best blockaders.',
+  passedPawn: 'Place a rook behind the passed pawn to support its advance (Tarrasch\'s rule). Push only when well-supported.',
+  doubledPawns: 'Target the front doubled pawn — it\'s harder to defend. Aim for an endgame where the structural weakness decides.',
+  openKing: 'You typically need 3+ pieces in the attack to break through. Open more lines with pawn breaks or piece sacrifices on cover pawns.',
+  kingSafe: 'With the king secure, look for pawn breaks or piece maneuvers to create play on the opposite side.',
+  notCastled: 'Open the center immediately — pawn breaks like d4-d5 or e4-e5 punish a king stuck in the middle.',
+  castled: 'If you\'ve castled on opposite sides, consider a pawn storm (h4-h5 or a4-a5). Same-side castling calls for piece play.',
+  openFile: 'Double your rooks on the open file, then aim to infiltrate the 7th (or 2nd) rank — rooks are devastating there.',
+  cramped: 'Exchange one minor piece to create breathing room. Look for a freeing pawn break like c5 or f5.',
+  activePosition: 'Maintain piece coordination — avoid moving already well-placed pieces. Develop a plan that uses all your active pieces together.',
+  materialUp: 'Trade pieces, not pawns — each exchange simplifies toward a won endgame. Avoid unnecessary complications.',
+  materialDown: 'Avoid trades and keep the position complex. Look for tactical tricks, pins, and forks to recover material.',
+  centerControl: 'Knights in the center are especially powerful. Support central pawns with pieces, not just other pawns.',
+  endgame: 'Activate your king immediately — in endgames, the king is a fighting piece worth roughly 4 pawns. Centralize it.'
+};
+
 export class CoachManager {
   constructor(engine) {
     this.tips = new CoachTips(engine);
@@ -148,7 +170,7 @@ export class CoachManager {
         phase: 'post-game'
       };
 
-      const prompt = `The game just ended (${result}). Please give a brief post-game analysis: what went well, what could be improved, and one key lesson from this game.`;
+      const prompt = `The game just ended (${result}). Give a brief post-game analysis with: (1) What went well, (2) The most critical mistake and what the better move was, (3) One specific chess concept or technique the player should practice to improve (e.g., "Practice knight outposts", "Study rook endgames", "Work on calculating 3 moves ahead"). Be concrete and educational.`;
 
       await this.sendMessage(prompt, context);
     }
@@ -173,7 +195,7 @@ export class CoachManager {
     if (this.activeTier === 3 && this.api.isConfigured()) {
       try {
         const sectionText = sections.map(s => `${s.title}: ${s.text}`).join('\n');
-        const prompt = `Based on this position analysis, give a 2-3 sentence coaching insight in character:\n\n${sectionText}`;
+        const prompt = `Based on this position analysis, give 2-3 sentences of coaching advice in character. Include ONE specific, actionable improvement tip the player can apply right now (e.g., "move your knight to d5", "double rooks on the c-file", "push your passed pawn"). Be educational, not just observational:\n\n${sectionText}`;
         const context = { ...positionData, systemPromptOverride: profile.systemPrompt, phase: 'positional' };
         const response = await this.api.chat(prompt, context);
         return { tier: 3, text: response, moveHintIntro: profile.moveHintIntro };
@@ -183,7 +205,7 @@ export class CoachManager {
     if (this.activeTier === 2 && this.webllm.isReady()) {
       try {
         const sectionText = sections.map(s => `${s.title}: ${s.text}`).join('\n');
-        const prompt = `Based on this position analysis, give a 2-3 sentence coaching insight in character:\n\n${sectionText}`;
+        const prompt = `Based on this position analysis, give 2-3 sentences of coaching advice in character. Include ONE specific, actionable improvement tip the player can apply right now (e.g., "move your knight to d5", "double rooks on the c-file", "push your passed pawn"). Be educational, not just observational:\n\n${sectionText}`;
         const context = { ...positionData, systemPromptOverride: profile.systemPrompt, phase: 'positional' };
         const response = await this.webllm.chat(prompt, context);
         return { tier: 2, text: response, moveHintIntro: profile.moveHintIntro };
@@ -257,14 +279,28 @@ export class CoachManager {
       return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
     });
 
-    // 4) Take top 2 features
+    // 4) Take top 2 features + one teaching tip for the highest-priority match
     const seen = new Set();
+    let topTipKey = null;
     for (const match of featureMatches) {
       if (seen.has(match.key)) continue;
       seen.add(match.key);
       const template = profile.commentary[match.key];
-      if (template) lines.push(template);
+      if (template) {
+        lines.push(template);
+        if (!topTipKey) topTipKey = match.key;
+      }
       if (lines.length >= 3) break; // eval + 2 features
+    }
+
+    // 5) Append one actionable teaching tip for the most relevant feature
+    const tipKey = topTipKey || (analysis ? (
+      analysis.mate != null ? 'advantage' :
+      Math.abs((playerColor === 'b' ? -analysis.score : analysis.score) / 100) < 0.3 ? 'equalPosition' :
+      ((playerColor === 'b' ? -analysis.score : analysis.score) / 100 > 0.3) ? 'advantage' : 'disadvantage'
+    ) : null);
+    if (tipKey && TEACHING_TIPS[tipKey]) {
+      lines.push('\u{1F4A1} ' + TEACHING_TIPS[tipKey]);
     }
 
     return lines.join(' ');
@@ -319,7 +355,7 @@ export class CoachManager {
       // Tier 3: API — rich positional guidance
       try {
         const sectionText = commentary.map(s => `${s.title}: ${s.text}`).join('\n');
-        const prompt = `You are a chess coach. Based on this position analysis, describe the strategic themes and plans for both sides in 2-3 sentences. Do NOT suggest specific moves.\n\n${sectionText}`;
+        const prompt = `You are a chess coach helping a player improve. Based on this position analysis, explain: (1) The key strategic theme, (2) What plan each side should follow, (3) One specific chess principle that applies here (e.g., "rooks belong behind passed pawns", "bishops need open diagonals", "knight outposts on weak squares"). Be educational. 2-3 sentences.\n\n${sectionText}`;
         return await this.api.chat(prompt, { ...context, phase: 'positional' });
       } catch {
         return null;
@@ -330,7 +366,7 @@ export class CoachManager {
       // Tier 2: WebLLM — in-browser AI guidance
       try {
         const sectionText = commentary.map(s => `${s.title}: ${s.text}`).join('\n');
-        const prompt = `You are a chess coach. Based on this position analysis, describe the strategic themes and plans for both sides in 2-3 sentences. Do NOT suggest specific moves.\n\n${sectionText}`;
+        const prompt = `You are a chess coach helping a player improve. Based on this position analysis, explain: (1) The key strategic theme, (2) What plan each side should follow, (3) One specific chess principle that applies here (e.g., "rooks belong behind passed pawns", "bishops need open diagonals", "knight outposts on weak squares"). Be educational. 2-3 sentences.\n\n${sectionText}`;
         return await this.webllm.chat(prompt, { ...context, phase: 'positional' });
       } catch {
         return null;

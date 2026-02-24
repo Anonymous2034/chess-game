@@ -3269,6 +3269,14 @@ class ChessApp {
       localStorage.setItem('chess_voice_enabled', voiceCb.checked ? 'true' : 'false');
     });
 
+    // Voice test button
+    document.getElementById('settings-voice-test')?.addEventListener('click', () => {
+      const ok = this.sound.testVoice();
+      if (!ok) {
+        this.showToast('Voice not available in this browser');
+      }
+    });
+
     // Background Music toggle
     const musicCb = document.getElementById('settings-music');
     musicCb.addEventListener('change', () => {
@@ -4974,6 +4982,11 @@ class ChessApp {
 
     // Composer filter
     const composerFilter = document.getElementById('music-composer-filter');
+    const favRow = document.getElementById('music-favorite-row');
+    const favName = document.getElementById('music-fav-name');
+    const setFavBtn = document.getElementById('music-set-favorite');
+    const clearFavBtn = document.getElementById('music-clear-favorite');
+
     if (composerFilter) {
       const composers = [...new Set(PLAYLIST.map(t => t.composer))].sort();
       composers.forEach(c => {
@@ -4983,6 +4996,36 @@ class ChessApp {
         composerFilter.appendChild(opt);
       });
       composerFilter.addEventListener('change', () => {
+        this._updateMusicPlaylist();
+      });
+
+      // Restore favorite composer
+      const savedFav = localStorage.getItem('chess_music_favorite_composer');
+      if (savedFav && composers.includes(savedFav)) {
+        composerFilter.value = savedFav;
+        favName.textContent = savedFav;
+        favRow.classList.remove('hidden');
+        this._updateMusicPlaylist();
+      }
+
+      // Set as favorite
+      setFavBtn?.addEventListener('click', () => {
+        const selected = composerFilter.value;
+        if (selected === 'all') {
+          this.showToast('Select a composer first');
+          return;
+        }
+        localStorage.setItem('chess_music_favorite_composer', selected);
+        favName.textContent = selected;
+        favRow.classList.remove('hidden');
+        this.showToast(selected + ' set as favorite');
+      });
+
+      // Clear favorite
+      clearFavBtn?.addEventListener('click', () => {
+        localStorage.removeItem('chess_music_favorite_composer');
+        composerFilter.value = 'all';
+        favRow.classList.add('hidden');
         this._updateMusicPlaylist();
       });
     }
