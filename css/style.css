@@ -761,6 +761,45 @@ main {
   flex-wrap: wrap;
 }
 
+/* Play-as color buttons */
+.btn-group[data-setting="color"] .btn {
+  min-width: 70px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.btn-group[data-setting="color"] .btn[data-value="w"] {
+  background: #f0f0f0;
+  color: #1a1a1a;
+  border: 2px solid #ccc;
+}
+.btn-group[data-setting="color"] .btn[data-value="w"].active {
+  background: #fff;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-color);
+}
+.btn-group[data-setting="color"] .btn[data-value="b"] {
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border: 2px solid #555;
+}
+.btn-group[data-setting="color"] .btn[data-value="b"].active {
+  background: #1a1a1a;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-color);
+}
+.btn-group[data-setting="color"] .btn[data-value="random"] {
+  background: linear-gradient(135deg, #f0f0f0 50%, #2a2a2a 50%);
+  color: #888;
+  border: 2px solid #777;
+  text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 4px rgba(255,255,255,0.5);
+}
+.btn-group[data-setting="color"] .btn[data-value="random"].active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-color);
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -4788,7 +4827,7 @@ main {
 }
 
 .resize-handle-h::after {
-  content: '\u2022 \u2022 \u2022';
+  content: '\2022  \2022  \2022';
   position: absolute;
   top: 50%;
   left: 50%;

@@ -1783,6 +1783,14 @@ class ChessApp {
           <span id="ot-coach-text">${text}</span>
         </div>
       </div>`;
+
+    // Sync the same commentary text to the GM Coach tab
+    const gmCoachCommentary = document.getElementById('gm-coach-commentary-' + gm.id);
+    if (gmCoachCommentary) {
+      gmCoachCommentary.textContent = text;
+      const card = document.getElementById('gm-coach-' + gm.id);
+      if (card) card.classList.remove('gm-coach-thinking');
+    }
   }
 
   _getFallbackOpeningComment(t, moveIndex) {
@@ -1828,6 +1836,9 @@ class ChessApp {
       show(engineStatusEl);
       engineStatusEl.textContent = `${this.activeBot.name}: Ready`;
     }
+
+    // Update opponent name above the board
+    this.updateTimers(this.game.timers);
 
     this.sound.playGameStartSound();
     this.showToast(`Playing from ${t.opening.name} position vs ${t.gm.name}`);
@@ -4484,7 +4495,7 @@ class ChessApp {
     const onMove = (e) => {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = clientY - startY;
-      const newH = Math.max(0, Math.min(300, startH + dy));
+      const newH = Math.max(0, Math.min(600, startH + dy));
       spacer.style.height = newH + 'px';
     };
 

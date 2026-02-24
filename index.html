@@ -662,10 +662,13 @@
               <span class="music-vol-icon">&#128266;</span>
             </div>
           </div>
-          <label class="settings-toggle-row">
-            <span class="layout-toggle-label">Background Music</span>
-            <span class="toggle-switch"><input type="checkbox" id="settings-music-toggle"><span class="toggle-slider"></span></span>
-          </label>
+          <div class="settings-toggle-row">
+            <span class="layout-toggle-label">Music Player</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button class="btn btn-sm btn-secondary" id="btn-music-dialog">Open</button>
+              <label class="toggle-switch"><input type="checkbox" id="settings-music-toggle" checked><span class="toggle-slider"></span></label>
+            </span>
+          </div>
           <div class="settings-volume-row">
             <span class="layout-toggle-label">Music Volume</span>
             <div class="settings-volume-control">
@@ -673,10 +676,6 @@
               <input type="range" id="settings-music-volume" min="0" max="100" value="30" class="music-volume-slider">
               <span class="music-vol-icon">&#128266;</span>
             </div>
-          </div>
-          <div class="settings-toggle-row">
-            <span class="layout-toggle-label">Music Player</span>
-            <button class="btn btn-sm btn-secondary" id="btn-music-dialog">Open Player</button>
           </div>
         </div>
         <div class="dialog-actions">
@@ -1043,7 +1042,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v46</div>
+          <div class="nav-menu-version" id="app-version">v47</div>
         </div>
       </nav>
     </header>
