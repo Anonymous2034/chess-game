@@ -2207,14 +2207,9 @@ class ChessApp {
       hide(document.getElementById('gm-browse-dialog'));
       show(document.getElementById('new-game-dialog'));
       this.updateDialogVisibility('engine');
-      // Select this GM in the bot picker
+      // Select this GM in the bot picker (renderBotPicker rebuilds list with correct selection)
       const settings = { botId: gm.id, mode: 'engine' };
       this.renderBotPicker(settings);
-      this.renderBotDetail(gm);
-      // Mark the card as selected
-      document.querySelectorAll('.bot-list-card').forEach(c => {
-        c.classList.toggle('selected', c.dataset.botId === gm.id);
-      });
     });
 
     detailEl.querySelector('#gmb-browse-btn')?.addEventListener('click', () => {
@@ -2270,10 +2265,6 @@ class ChessApp {
         this.updateDialogVisibility('engine');
         const settings = { botId: gm.id, mode: 'engine' };
         this.renderBotPicker(settings);
-        this.renderBotDetail(gm);
-        document.querySelectorAll('.bot-list-card').forEach(c => {
-          c.classList.toggle('selected', c.dataset.botId === gm.id);
-        });
         this._autoSelectGMCoach(gm.id);
         this.showToast(`Play the ${opening.name} against ${gm.name}!`);
       });
@@ -2957,87 +2948,94 @@ class ChessApp {
 
   renderBotDetail(bot) {
     const detailEl = document.getElementById('bot-picker-detail');
+    const isWC = !!bot.bio?.worldChampion;
+    const coachProfile = GM_COACH_PROFILES[bot.id];
 
-    // Style bars
+    // Style bars — compact grid (reuse gmb layout)
     let stylesHtml = '';
     for (const style of GM_STYLES) {
       const val = bot.styles[style.id] || 0;
       const pct = val * 10;
       const level = val <= 4 ? 'low' : val <= 7 ? 'mid' : 'high';
       stylesHtml += `
-        <div class="bot-style">
-          <span class="bot-style-name">${style.name}</span>
-          <div class="bot-style-bar"><div class="bot-style-fill ${level}" style="width:${pct}%"></div></div>
-          <span class="bot-style-val">${val}</span>
+        <div class="gmb-style-row">
+          <span class="gmb-style-label">${style.name}</span>
+          <div class="gmb-style-bar"><div class="gmb-style-fill ${level}" style="width:${pct}%"></div></div>
+          <span class="gmb-style-val">${val}</span>
         </div>`;
     }
 
-    // Favorite openings (GM-only)
-    let openingsSectionHtml = '';
+    // Openings tags (clickable)
+    let openingsHtml = '';
     if (bot.favoriteOpenings && bot.favoriteOpenings.length > 0) {
       const tags = bot.favoriteOpenings.map((o, i) =>
-        `<span class="gm-opening-tag gm-opening-clickable" data-opening-index="${i}"><span class="eco">${o.eco}</span> ${o.name}</span>`
+        `<span class="gmb-opening gmb-opening-clickable gm-opening-clickable" data-opening-index="${i}"><span class="eco">${o.eco}</span>${o.name}</span>`
       ).join('');
-      openingsSectionHtml = `<div class="gm-detail-section"><h4>Favorite Openings</h4><div class="gm-openings-list">${tags}</div></div>`;
+      openingsHtml = `<div class="gmb-section"><div class="gmb-section-title">Signature Openings</div><div class="gmb-openings">${tags}</div></div>`;
     }
 
-    // Famous games (GM-only)
-    let gamesSectionHtml = '';
+    // Famous games (clickable)
+    let gamesHtml = '';
     if (bot.famousGames && bot.famousGames.length > 0) {
       const items = bot.famousGames.map((g, i) =>
-        `<div class="gm-famous-game gm-game-clickable" data-game-index="${i}"><div class="gm-game-name">${g.name} (${g.year})</div><div class="gm-game-desc">${g.description}</div></div>`
+        `<div class="gmb-game gmb-game-clickable gm-game-clickable" data-game-index="${i}"><span class="gmb-game-name">${g.name} (${g.year})</span> &mdash; <span class="gmb-game-desc">${g.description}</span></div>`
       ).join('');
-      gamesSectionHtml = `<div class="gm-detail-section"><h4>Famous Games</h4>${items}</div>`;
+      gamesHtml = `<div class="gmb-section"><div class="gmb-section-title">Legendary Games</div><div class="gmb-games">${items}</div></div>`;
     }
 
-    // World champion info
-    const wcHtml = bot.bio?.worldChampion
-      ? `<div class="gm-detail-wc">World Champion ${bot.bio.worldChampion}</div>`
-      : '';
+    // Life dates
+    let datesLabel = '';
+    if (bot.bio?.born) {
+      datesLabel = bot.bio.died ? `${bot.bio.born} \u2013 ${bot.bio.died}` : `Born ${bot.bio.born}`;
+    }
 
     // Elo label varies by tier
-    const eloLabel = bot.tier === 'machine' ? 'Rating' : bot.tier === 'grandmaster' ? 'Peak Elo' : 'Elo';
+    const eloLabel = bot.tier === 'machine' ? 'Rating' : bot.tier === 'grandmaster' ? 'Peak' : 'Elo';
 
-    // Life dates
-    let datesHtml = '';
-    if (bot.bio?.born) {
-      datesHtml = bot.bio.died
-        ? `<div class="gm-detail-dates">${bot.bio.born}\u2013${bot.bio.died}</div>`
-        : `<div class="gm-detail-dates">Born ${bot.bio.born}</div>`;
+    // Badges row
+    let badgesHtml = `<span class="gmb-badge gmb-badge-elo">${eloLabel} ${bot.peakElo}</span>`;
+    if (isWC) {
+      badgesHtml += `<span class="gmb-badge gmb-badge-wc">\u265A WC ${bot.bio.worldChampion}</span>`;
+    }
+    if (datesLabel) {
+      badgesHtml += `<span class="gmb-badge gmb-badge-dates">${datesLabel}</span>`;
+    }
+    if (coachProfile) {
+      badgesHtml += `<span class="gmb-badge gmb-badge-coach">${coachProfile.icon} Coach</span>`;
+    }
+
+    // Coach section
+    let coachHtml = '';
+    if (coachProfile) {
+      coachHtml = `<div class="gmb-section"><div class="gmb-section-title">As Your Coach</div><div class="gmb-coach-row"><span class="gmb-coach-icon">${coachProfile.icon}</span><em>${coachProfile.philosophy}</em></div></div>`;
     }
 
     // Browse games button (only for GMs/machines with data files)
-    const browseGamesHtml = (bot.tier === 'grandmaster' || bot.tier === 'machine')
-      ? `<button class="btn btn-sm gm-detail-browse-btn" data-gm-name="${bot.name}">Browse Games in Database</button>`
-      : '';
-
-    // Coaching profile
-    const coachProfile = GM_COACH_PROFILES[bot.id];
-    const coachHtml = coachProfile
-      ? `<div class="gm-detail-section"><h4>As Your Coach</h4><div class="gm-detail-philosophy">${coachProfile.icon} <strong>${coachProfile.coachTitle}</strong><br><em>${coachProfile.philosophy}</em></div></div>`
-      : '';
+    const hasBrowse = (bot.tier === 'grandmaster' || bot.tier === 'machine');
 
     detailEl.innerHTML = `
-      <div class="gm-detail-header">
-        <img class="gm-portrait-lg" src="${bot.portrait}" alt="${bot.name}">
-        <div class="gm-detail-info">
-          <div class="gm-detail-name">${bot.name}</div>
-          <div class="gm-detail-subtitle">${bot.subtitle}</div>
-          ${datesHtml}
-          <div class="gm-detail-elo">${eloLabel}: ${bot.peakElo}</div>
-          ${wcHtml}
+      <div class="gmb-hero">
+        <img class="gmb-portrait${isWC ? ' wc' : ''}" src="${bot.portrait}" alt="${bot.name}">
+        <div class="gmb-hero-info">
+          <div class="gmb-name">${bot.name}</div>
+          <div class="gmb-epithet">${bot.subtitle}</div>
+          <div class="gmb-meta-row">${badgesHtml}</div>
         </div>
       </div>
-      ${bot.bio?.summary ? `<div class="gm-detail-bio">${bot.bio.summary}</div>` : ''}
-      ${bot.bio?.playingStyle ? `<div class="gm-detail-section"><h4>Playing Style</h4><div class="gm-detail-bio">${bot.bio.playingStyle}</div></div>` : ''}
-      ${coachHtml}
-      <div class="gm-detail-section">
-        <h4>Style Attributes</h4>
-        <div class="bot-styles-detail">${stylesHtml}</div>
+      <div class="gmb-divider">\u2656 \u2657 \u2658 \u2659</div>
+      <div class="gmb-columns">
+        <div class="gmb-col-main">
+          ${bot.bio?.summary ? `<div class="gmb-section"><div class="gmb-section-title">Biography</div><div class="gmb-bio">${bot.bio.summary}</div></div>` : ''}
+          ${bot.bio?.playingStyle ? `<div class="gmb-section"><div class="gmb-section-title">Playing Style</div><div class="gmb-style-quote">${bot.bio.playingStyle}</div></div>` : ''}
+          ${coachHtml}
+          ${openingsHtml}
+          ${gamesHtml}
+        </div>
+        <div class="gmb-col-side">
+          <div class="gmb-section"><div class="gmb-section-title">Style Profile</div><div class="gmb-styles">${stylesHtml}</div></div>
+        </div>
       </div>
-      ${openingsSectionHtml}
-      ${gamesSectionHtml}
-      ${browseGamesHtml}
+      ${hasBrowse ? `<div class="gmb-actions"><button class="btn btn-sm btn-secondary gm-detail-browse-btn" data-gm-name="${bot.name}">Browse Games</button></div>` : ''}
     `;
 
     // Wire up "Browse Games" button
@@ -6133,6 +6131,36 @@ class ChessApp {
       this._openMusicDialog();
     });
 
+    // Music on/off toggle + volume below composers
+    const mpToggle = document.getElementById('mp-music-toggle');
+    const mpToggleLabel = document.getElementById('mp-toggle-label');
+    const mpVolSlider = document.getElementById('mp-vol-slider');
+    if (mpToggle) {
+      mpToggle.checked = this.music.playing;
+      if (mpToggleLabel) mpToggleLabel.textContent = this.music.playing ? 'Music On' : 'Music Off';
+      mpToggle.addEventListener('change', () => {
+        if (mpToggle.checked) {
+          this.music.play();
+        } else {
+          this.music.pause();
+        }
+        if (mpToggleLabel) mpToggleLabel.textContent = mpToggle.checked ? 'Music On' : 'Music Off';
+      });
+    }
+    if (mpVolSlider) {
+      mpVolSlider.value = Math.round(this.music.audio.volume * 100);
+      mpVolSlider.addEventListener('input', (e) => {
+        this.music.setVolume(parseInt(e.target.value) / 100);
+        // Sync other volume sliders
+        const dialogVol = document.getElementById('music-volume');
+        if (dialogVol) dialogVol.value = e.target.value;
+        const miniVol = document.getElementById('mini-music-vol');
+        if (miniVol) miniVol.value = e.target.value;
+        const settingsVol = document.getElementById('settings-music-volume');
+        if (settingsVol) settingsVol.value = e.target.value;
+      });
+    }
+
     // Browse All Composers button in music player → opens composer browser
     document.getElementById('mp-browse-composers')?.addEventListener('click', () => {
       this._closeMusicDialog();
@@ -6220,6 +6248,14 @@ class ChessApp {
     const volSlider = document.getElementById('music-volume');
     if (volSlider) volSlider.value = Math.round(this.music.audio.volume * 100);
 
+    // Sync toggle + volume below composers
+    const mpToggle = document.getElementById('mp-music-toggle');
+    const mpToggleLabel = document.getElementById('mp-toggle-label');
+    if (mpToggle) mpToggle.checked = this.music.playing;
+    if (mpToggleLabel) mpToggleLabel.textContent = this.music.playing ? 'Music On' : 'Music Off';
+    const mpVolSlider = document.getElementById('mp-vol-slider');
+    if (mpVolSlider) mpVolSlider.value = Math.round(this.music.audio.volume * 100);
+
     // Progress
     this._updateMusicProgress();
 
@@ -6252,13 +6288,11 @@ class ChessApp {
       if (eraComposers.length === 0) continue;
 
       for (const composer of eraComposers) {
-        const trackCount = PLAYLIST.filter(t => t.composer === composer.composerKey).length;
         const card = document.createElement('div');
         card.className = 'mp-composer-card' + (composer.id === this._selectedComposerId ? ' selected' : '');
         card.innerHTML = `
           <img class="mp-cc-portrait" src="${composer.portrait}" alt="${composer.name}">
           <span class="mp-cc-name">${composer.name}</span>
-          ${trackCount > 0 ? `<span class="mp-cc-count">${trackCount}</span>` : ''}
         `;
         card.addEventListener('click', () => {
           this._selectedComposerId = composer.id;

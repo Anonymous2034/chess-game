@@ -5714,6 +5714,8 @@ body.resizing-h {
   font-size: 0.72rem;
   color: #a0b8a0;
   min-height: 0;
+  padding: 4px 10px;
+  margin: 2px 0;
 }
 .ot-stats:empty { display: none; }
 .ot-stat-total {
@@ -5945,74 +5947,126 @@ body.resizing-h {
 
 .mp-composer-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 6px 6px 4px;
-  border-radius: 6px;
+  gap: 5px;
+  padding: 3px 8px 3px 3px;
+  border-radius: 16px;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   flex-shrink: 0;
-  min-width: 56px;
   border: 1px solid transparent;
-  position: relative;
+  white-space: nowrap;
 }
-.mp-composer-card:hover { background: rgba(255,255,255,0.05); }
+.mp-composer-card:hover { background: rgba(255,255,255,0.06); }
 .mp-composer-card.selected {
-  background: rgba(181,136,99,0.15);
+  background: rgba(181,136,99,0.18);
   border-color: var(--accent, #b58863);
 }
 .mp-cc-portrait {
-  width: 36px;
-  height: 36px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #444;
-  transition: border-color 0.15s;
+  border: 1.5px solid #555;
+  flex-shrink: 0;
 }
 .mp-composer-card.selected .mp-cc-portrait {
   border-color: var(--accent, #b58863);
 }
 .mp-cc-icon {
-  width: 36px;
-  height: 36px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #3a3836;
-  border: 2px solid #444;
+  border: 1.5px solid #555;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
   color: #c0b8a8;
+  flex-shrink: 0;
 }
 .mp-composer-card.selected .mp-cc-icon {
   border-color: var(--accent, #b58863);
   color: var(--accent, #b58863);
 }
 .mp-cc-name {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   color: #b0a898;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60px;
-  line-height: 1.15;
 }
 .mp-composer-card.selected .mp-cc-name {
   color: var(--accent, #b58863);
   font-weight: 600;
 }
 .mp-cc-count {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 0.5rem;
-  background: rgba(255,255,255,0.1);
+  font-size: 0.55rem;
+  color: #777;
+  margin-left: -2px;
+}
+
+/* Music Toggle + Volume section (below composers) */
+.mp-toggle-section {
+  padding: 8px 12px;
+  border-top: 1px solid #333;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mp-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.mp-toggle-label {
+  font-size: 0.72rem;
   color: #999;
-  padding: 0 3px;
-  border-radius: 6px;
-  line-height: 1.4;
+  white-space: nowrap;
+}
+.mp-vol-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.mp-vol-row .mp-volume-slider {
+  flex: 1;
+  min-width: 60px;
+}
+/* Toggle switch */
+.mp-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.mp-switch input { opacity: 0; width: 0; height: 0; }
+.mp-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #444;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+.mp-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: #ccc;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.mp-switch input:checked + .mp-slider {
+  background: var(--accent, #b58863);
+}
+.mp-switch input:checked + .mp-slider::before {
+  transform: translateX(16px);
 }
 
 /* Track Queue */

@@ -498,6 +498,21 @@
           </div>
           <div class="mp-composer-grid" id="composer-picker-list"></div>
         </div>
+        <!-- Music On/Off + Volume (below composers) -->
+        <div class="mp-toggle-section">
+          <div class="mp-toggle-row">
+            <label class="mp-switch">
+              <input type="checkbox" id="mp-music-toggle">
+              <span class="mp-slider"></span>
+            </label>
+            <span class="mp-toggle-label" id="mp-toggle-label">Music Off</span>
+          </div>
+          <div class="mp-vol-row">
+            <span class="music-vol-icon">&#128264;</span>
+            <input type="range" id="mp-vol-slider" min="0" max="100" value="30" class="mp-volume-slider">
+            <span class="music-vol-icon">&#128266;</span>
+          </div>
+        </div>
         <!-- Favorite Row -->
         <div class="music-favorite-row hidden" id="music-favorite-row">
           <span class="music-fav-label">&#9733; <strong id="music-fav-name"></strong></span>
@@ -1029,7 +1044,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v43</div>
+          <div class="nav-menu-version" id="app-version">v44</div>
         </div>
       </nav>
     </header>
@@ -1163,7 +1178,6 @@
           <!-- Opening Training Bar -->
           <div class="opening-training-bar hidden" id="opening-training-bar">
             <div class="ot-title" id="ot-title"></div>
-            <div class="ot-stats" id="ot-stats"></div>
             <div class="ot-actions">
               <button class="btn btn-sm" id="ot-practice">Practice This Opening</button>
               <button class="btn btn-sm" id="ot-play">Play From Here</button>
@@ -1179,6 +1193,8 @@
 
           <!-- GM Coach Commentary for Opening Training (below moves) -->
           <div class="ot-coach hidden" id="ot-coach"></div>
+          <!-- DB Stats for Opening Training (below coach) -->
+          <div class="ot-stats" id="ot-stats"></div>
 
           <!-- Advisor Annotations (shown below current move) -->
           <div class="advisor-annotations" id="advisor-annotations"></div>
