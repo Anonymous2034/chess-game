@@ -3237,6 +3237,35 @@ main {
   margin-bottom: 18px;
 }
 
+/* Settings tabs */
+.settings-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0;
+}
+.settings-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #888);
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.settings-tab:hover {
+  color: var(--text-light, #ccc);
+}
+.settings-tab.active {
+  color: var(--accent, #7c9aff);
+  border-bottom-color: var(--accent, #7c9aff);
+}
+.settings-tab-content.hidden {
+  display: none;
+}
+
 .settings-section-title {
   font-size: 0.7rem;
   text-transform: uppercase;

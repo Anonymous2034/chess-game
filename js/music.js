@@ -1301,6 +1301,7 @@ export class MusicPlayer {
     this.playing = false;
     this.currentIndex = 0;
     this.shuffle = false;
+    this.composerFilter = null; // null = all composers, string = filter by composer
     this.onStateChange = null; // callback({ playing, track })
 
     // Load preferences
@@ -1356,15 +1357,30 @@ export class MusicPlayer {
     }
   }
 
+  /** Get indices of tracks matching the current composer filter */
+  _getFilteredIndices() {
+    if (!this.composerFilter) return PLAYLIST.map((_, i) => i);
+    return PLAYLIST.map((t, i) => t.composer === this.composerFilter ? i : -1).filter(i => i >= 0);
+  }
+
+  /** Set composer filter — null for all, string for specific composer */
+  setComposerFilter(composer) {
+    this.composerFilter = composer || null;
+    this._notify();
+  }
+
   next() {
+    const indices = this._getFilteredIndices();
+    if (indices.length === 0) return;
     if (this.shuffle) {
-      let idx = Math.floor(Math.random() * PLAYLIST.length);
-      if (idx === this.currentIndex && PLAYLIST.length > 1) {
-        idx = (idx + 1) % PLAYLIST.length;
+      let pick = indices[Math.floor(Math.random() * indices.length)];
+      if (pick === this.currentIndex && indices.length > 1) {
+        pick = indices[(indices.indexOf(pick) + 1) % indices.length];
       }
-      this.currentIndex = idx;
+      this.currentIndex = pick;
     } else {
-      this.currentIndex = (this.currentIndex + 1) % PLAYLIST.length;
+      const pos = indices.indexOf(this.currentIndex);
+      this.currentIndex = pos >= 0 ? indices[(pos + 1) % indices.length] : indices[0];
     }
     this._savePrefs();
     this._loadAndPlay();
@@ -1377,7 +1393,10 @@ export class MusicPlayer {
       this.audio.currentTime = 0;
       return;
     }
-    this.currentIndex = (this.currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+    const indices = this._getFilteredIndices();
+    if (indices.length === 0) return;
+    const pos = indices.indexOf(this.currentIndex);
+    this.currentIndex = pos >= 0 ? indices[(pos - 1 + indices.length) % indices.length] : indices[0];
     this._savePrefs();
     this._loadAndPlay();
     this._notify();

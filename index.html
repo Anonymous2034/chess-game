@@ -538,21 +538,27 @@
     <div id="settings-dialog" class="dialog-overlay hidden">
       <div class="dialog settings-dialog">
         <h2>Settings</h2>
+        <div class="settings-tabs" id="settings-tabs">
+          <button class="settings-tab active" data-tab="sound">Sound</button>
+          <button class="settings-tab" data-tab="display">Display</button>
+          <button class="settings-tab" data-tab="board">Board</button>
+          <button class="settings-tab" data-tab="dgt">DGT</button>
+        </div>
 
         <!-- SOUND section -->
-        <div class="settings-section">
+        <div class="settings-section settings-tab-content" data-tab="sound">
           <h4 class="settings-section-title">Sound</h4>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Move Sounds</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-sound"><span class="toggle-slider"></span></span>
           </label>
-          <label class="settings-toggle-row">
+          <div class="settings-toggle-row">
             <span class="layout-toggle-label">Voice Announcements</span>
             <span style="display:flex;align-items:center;gap:6px;">
-              <button class="btn btn-small btn-secondary" id="settings-voice-test" style="font-size:0.72rem;padding:2px 8px;">Test</button>
+              <button class="btn btn-sm btn-secondary" id="settings-voice-test">Test</button>
               <span class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></span>
             </span>
-          </label>
+          </div>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Background Music</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-music"><span class="toggle-slider"></span></span>
@@ -568,7 +574,7 @@
         </div>
 
         <!-- DISPLAY section -->
-        <div class="settings-section">
+        <div class="settings-section settings-tab-content hidden" data-tab="display">
           <h4 class="settings-section-title">Display</h4>
           <div class="settings-subsection">
             <span class="settings-sublabel">Board Theme</span>
@@ -589,7 +595,7 @@
         </div>
 
         <!-- BOARD section -->
-        <div class="settings-section">
+        <div class="settings-section settings-tab-content hidden" data-tab="board">
           <h4 class="settings-section-title">Board</h4>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Flip Board</span>
@@ -598,7 +604,7 @@
         </div>
 
         <!-- DGT BOARD section -->
-        <div class="settings-section">
+        <div class="settings-section settings-tab-content hidden" data-tab="dgt">
           <h4 class="settings-section-title">DGT Board</h4>
           <div class="dgt-status-indicator" id="dgt-status-indicator">
             <span class="dgt-status-dot" id="dgt-status-dot"></span>
@@ -667,7 +673,7 @@
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings">Done</button>
         </div>
-        <div class="app-version" id="app-version">v31</div>
+        <div class="app-version" id="app-version">v32</div>
       </div>
     </div>
 

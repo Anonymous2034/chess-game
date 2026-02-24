@@ -3249,6 +3249,22 @@ class ChessApp {
       hide(dialog);
     });
 
+    // Settings tab navigation
+    const tabBar = document.getElementById('settings-tabs');
+    if (tabBar) {
+      tabBar.addEventListener('click', (e) => {
+        const btn = e.target.closest('.settings-tab');
+        if (!btn) return;
+        const tabId = btn.dataset.tab;
+        // Update active tab button
+        tabBar.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t === btn));
+        // Show matching content, hide others
+        dialog.querySelectorAll('.settings-tab-content').forEach(sec => {
+          sec.classList.toggle('hidden', sec.dataset.tab !== tabId);
+        });
+      });
+    }
+
     dialog.addEventListener('click', (e) => {
       if (e.target === e.currentTarget) hide(dialog);
     });
@@ -3269,8 +3285,10 @@ class ChessApp {
       localStorage.setItem('chess_voice_enabled', voiceCb.checked ? 'true' : 'false');
     });
 
-    // Voice test button
-    document.getElementById('settings-voice-test')?.addEventListener('click', () => {
+    // Voice test button (stopPropagation prevents toggling the checkbox)
+    document.getElementById('settings-voice-test')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       const ok = this.sound.testVoice();
       if (!ok) {
         this.showToast('Voice not available in this browser');
@@ -3308,13 +3326,12 @@ class ChessApp {
       if (shuffleBtn) shuffleBtn.classList.toggle('active', state.shuffle);
       this._updateMusicPlaylist();
 
-      // Mini music player on main screen
+      // Mini music player on main screen — stays visible once music has played
       const mini = document.getElementById('mini-music');
       if (mini) {
-        if (state.playing) {
+        if (state.playing) this._musicEverPlayed = true;
+        if (this._musicEverPlayed) {
           mini.classList.remove('hidden');
-        } else {
-          mini.classList.add('hidden');
         }
         const miniTitle = document.getElementById('mini-music-title');
         const miniComposer = document.getElementById('mini-music-composer');
@@ -4996,6 +5013,8 @@ class ChessApp {
         composerFilter.appendChild(opt);
       });
       composerFilter.addEventListener('change', () => {
+        const selected = composerFilter.value;
+        this.music.setComposerFilter(selected === 'all' ? null : selected);
         this._updateMusicPlaylist();
       });
 
@@ -5003,6 +5022,7 @@ class ChessApp {
       const savedFav = localStorage.getItem('chess_music_favorite_composer');
       if (savedFav && composers.includes(savedFav)) {
         composerFilter.value = savedFav;
+        this.music.setComposerFilter(savedFav);
         favName.textContent = savedFav;
         favRow.classList.remove('hidden');
         this._updateMusicPlaylist();
@@ -5025,6 +5045,7 @@ class ChessApp {
       clearFavBtn?.addEventListener('click', () => {
         localStorage.removeItem('chess_music_favorite_composer');
         composerFilter.value = 'all';
+        this.music.setComposerFilter(null);
         favRow.classList.add('hidden');
         this._updateMusicPlaylist();
       });
