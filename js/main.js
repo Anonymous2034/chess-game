@@ -909,8 +909,8 @@ class ChessApp {
   // === Multi-Bot Analysis ===
 
   setupMultiAnalysis() {
-    // "GM Coach" hamburger button opens the GM Coach tab
-    document.getElementById('btn-multi-analysis').addEventListener('click', () => {
+    // "GM Coach" hamburger button opens the GM Coach tab (button removed from menu in v33)
+    document.getElementById('btn-multi-analysis')?.addEventListener('click', () => {
       document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.panel-content').forEach(c => hide(c));
       const gmTab = document.querySelector('.panel-tab[data-tab="gm-coach"]');
