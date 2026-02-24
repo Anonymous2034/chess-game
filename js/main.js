@@ -654,6 +654,12 @@ class ChessApp {
 
     // Update advisor analysis for navigated position
     this._updateAdvisorAnalysis();
+
+    // Opening training: show DB stats and trigger GM commentary during guided replay
+    if (this._openingTraining?.phase === 'guided') {
+      this._showOpeningTrainingStats(this.chess.fen());
+      this._updateOpeningTrainingCoach();
+    }
   }
 
   setupNavigationControls() {
@@ -1553,11 +1559,26 @@ class ChessApp {
 
     // Wire up training bar buttons (use event delegation via IDs)
     this._wireOpeningTrainingButtons();
+
+    // Render initial coach card in training bar
+    const coachEl = document.getElementById('ot-coach');
+    const profile = GM_COACH_PROFILES[gm.id];
+    if (coachEl && profile) {
+      coachEl.innerHTML = `
+        <div class="ot-coach-card">
+          <img class="ot-coach-portrait" src="${gm.portrait}" alt="${gm.name}">
+          <div class="ot-coach-bubble">
+            <span class="ot-coach-name">${gm.name}</span>
+            <span id="ot-coach-text">The ${opening.name} — one of my favorite openings. Let me show you the key ideas.</span>
+          </div>
+        </div>`;
+    }
   }
 
   _wireOpeningTrainingButtons() {
     const practiceBtn = document.getElementById('ot-practice');
     const playBtn = document.getElementById('ot-play');
+    const continueBtn = document.getElementById('ot-continue');
     const exitBtn = document.getElementById('ot-exit');
 
     // Remove old listeners by cloning
@@ -1570,6 +1591,11 @@ class ChessApp {
       const np = playBtn.cloneNode(true);
       playBtn.parentNode.replaceChild(np, playBtn);
       np.addEventListener('click', () => this._playFromOpeningPosition());
+    }
+    if (continueBtn) {
+      const nc = continueBtn.cloneNode(true);
+      continueBtn.parentNode.replaceChild(nc, continueBtn);
+      nc.addEventListener('click', () => this._continuePlayingFromTraining());
     }
     if (exitBtn) {
       const ne = exitBtn.cloneNode(true);
@@ -1590,15 +1616,19 @@ class ChessApp {
 
     const practiceBtn = document.getElementById('ot-practice');
     const playBtn = document.getElementById('ot-play');
+    const continueBtn = document.getElementById('ot-continue');
 
     if (t.phase === 'guided') {
       titleEl.textContent = `${t.opening.name} — Step through with ${t.gm.name}`;
       if (practiceBtn) show(practiceBtn);
       if (playBtn) hide(playBtn);
+      if (continueBtn) hide(continueBtn);
     } else if (t.phase === 'drill') {
+      const drillComplete = t.currentStep >= t.moves.length;
       titleEl.textContent = `${t.opening.name} — Practice (${t.currentStep}/${t.moves.length} moves)`;
       if (practiceBtn) hide(practiceBtn);
       if (playBtn) show(playBtn);
+      if (continueBtn) drillComplete ? show(continueBtn) : hide(continueBtn);
     }
   }
 
@@ -1638,6 +1668,7 @@ class ChessApp {
       // Correct move
       t.currentStep++;
       this._updateOpeningTrainingBar();
+      this._showOpeningTrainingStats(this.game.chess.fen());
 
       // Auto-play opponent reply if there's a next move
       if (t.currentStep < t.moves.length) {
@@ -1655,6 +1686,8 @@ class ChessApp {
               this.board.update();
               t.currentStep++;
               this._updateOpeningTrainingBar();
+              this._showOpeningTrainingStats(this.game.chess.fen());
+              this._updateOpeningTrainingCoach();
             }
           } catch { /* skip */ }
 
@@ -1682,6 +1715,90 @@ class ChessApp {
       this.notation.setCurrentIndex(this.game.currentMoveIndex);
       this.board.update();
     }
+  }
+
+  async _showOpeningTrainingStats(fen) {
+    const statsEl = document.getElementById('ot-stats');
+    if (!statsEl) return;
+    try {
+      const data = await this.database.fetchOpeningExplorer(fen);
+      if (!data || !data.moves || data.moves.length === 0) {
+        statsEl.innerHTML = '<span class="ot-stat-empty">No games in database for this position</span>';
+        return;
+      }
+      const totalGames = data.moves.reduce((sum, m) => sum + m.white + m.draws + m.black, 0);
+      let html = `<span class="ot-stat-total">${totalGames} games</span>`;
+      data.moves.slice(0, 6).forEach(m => {
+        const t = m.white + m.draws + m.black;
+        const winPct = t > 0 ? Math.round((m.white / t) * 100) : 0;
+        html += `<span class="ot-stat-move">${m.san} <span class="ot-stat-count">${t}</span> <span class="ot-stat-pct">${winPct}%</span></span>`;
+      });
+      statsEl.innerHTML = html;
+    } catch {
+      statsEl.innerHTML = '';
+    }
+  }
+
+  async _updateOpeningTrainingCoach() {
+    const t = this._openingTraining;
+    if (!t) return;
+    const coachEl = document.getElementById('ot-coach');
+    if (!coachEl) return;
+
+    const gm = t.gm;
+    const profile = GM_COACH_PROFILES[gm.id];
+    if (!profile) return;
+
+    const fen = this.game.chess.fen();
+    // Don't comment on starting position
+    if (fen === 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') {
+      coachEl.innerHTML = '';
+      return;
+    }
+
+    // Render mini coach card with "thinking" state
+    coachEl.innerHTML = `
+      <div class="ot-coach-card">
+        <img class="ot-coach-portrait" src="${gm.portrait}" alt="${gm.name}">
+        <div class="ot-coach-bubble">
+          <span class="ot-coach-name">${gm.name}</span>
+          <span id="ot-coach-text">Analyzing\u2026</span>
+        </div>
+      </div>`;
+
+    // Try engine-based commentary if available
+    if (this.engine && this.engine.ready && this.coach) {
+      try {
+        const analysis = await this.engine.analyzePosition(fen, 12);
+        const sections = PositionCommentary.generate(this.chess, analysis);
+        const result = await this.coach.generateCoachCommentary(gm.id, {
+          chess: this.chess,
+          analysis,
+          fen,
+          sections,
+          playerColor: this.game.playerColor || 'w'
+        });
+        const textEl = document.getElementById('ot-coach-text');
+        if (textEl && result.text) textEl.textContent = result.text;
+      } catch {
+        // Fallback: simple opening commentary
+        const textEl = document.getElementById('ot-coach-text');
+        if (textEl) textEl.textContent = this._getSimpleOpeningComment(t, profile);
+      }
+    } else {
+      // Fallback: simple opening commentary without engine
+      const textEl = document.getElementById('ot-coach-text');
+      if (textEl) textEl.textContent = this._getSimpleOpeningComment(t, profile);
+    }
+  }
+
+  _getSimpleOpeningComment(t, profile) {
+    const step = t.currentStep;
+    const total = t.moves.length;
+    if (step <= 1) return `The ${t.opening.name} — one of my favorite openings. Let me show you the key ideas.`;
+    if (step < total / 2) return `Good. This is the standard continuation in the ${t.opening.name}.`;
+    if (step < total) return `We're reaching the heart of this opening. Pay attention to the pawn structure.`;
+    return `Excellent! You've completed the main line. Now the real game begins.`;
   }
 
   async _playFromOpeningPosition() {
@@ -1732,6 +1849,26 @@ class ChessApp {
     this._openingTrainingMoveHandler = null;
     const bar = document.getElementById('opening-training-bar');
     if (bar) bar.classList.add('hidden');
+    const statsEl = document.getElementById('ot-stats');
+    if (statsEl) statsEl.innerHTML = '';
+    const coachEl = document.getElementById('ot-coach');
+    if (coachEl) coachEl.innerHTML = '';
+  }
+
+  _continuePlayingFromTraining() {
+    this._openingTraining = null;
+    this._openingTrainingMoveHandler = null;
+    const bar = document.getElementById('opening-training-bar');
+    if (bar) bar.classList.add('hidden');
+    const statsEl = document.getElementById('ot-stats');
+    if (statsEl) statsEl.innerHTML = '';
+    const coachEl = document.getElementById('ot-coach');
+    if (coachEl) coachEl.innerHTML = '';
+    this.board.setInteractive(true);
+    this.game.mode = 'local';
+    this.game.replayMode = false;
+    this.game.gameOver = false;
+    this.showToast('Continue playing freely from this position');
   }
 
   _renderGMCoachCards() {
@@ -2290,6 +2427,7 @@ class ChessApp {
       </div>
       <div class="cmpb-actions">
         <button class="btn btn-sm" id="cmpb-play-btn">Play ${composer.name}</button>
+        <button class="btn btn-sm btn-secondary" id="cmpb-open-player">Open Player</button>
         <button class="btn btn-sm btn-secondary" id="cmpb-fav-btn">&#9733; Set as Favorite</button>
       </div>
     `;
@@ -2313,11 +2451,22 @@ class ChessApp {
       });
     });
 
-    // Play button — set composer filter and start playing
+    // Play button — set composer filter, start playing, and open music player
     detailEl.querySelector('#cmpb-play-btn')?.addEventListener('click', () => {
       this.music.setComposerFilter(composer.composerKey);
       if (!this.music.playing) this.music.play();
+      hide(document.getElementById('composer-browse-dialog'));
+      show(document.getElementById('music-dialog'));
+      this._renderMusicDialog();
       this.showToast('Now playing ' + composer.name);
+    });
+
+    // Open Player button — open music player with this composer filtered
+    detailEl.querySelector('#cmpb-open-player')?.addEventListener('click', () => {
+      this.music.setComposerFilter(composer.composerKey);
+      hide(document.getElementById('composer-browse-dialog'));
+      show(document.getElementById('music-dialog'));
+      this._renderMusicDialog();
     });
 
     // Favorite button
@@ -2832,8 +2981,8 @@ class ChessApp {
     // Favorite openings (GM-only)
     let openingsSectionHtml = '';
     if (bot.favoriteOpenings && bot.favoriteOpenings.length > 0) {
-      const tags = bot.favoriteOpenings.map(o =>
-        `<span class="gm-opening-tag"><span class="eco">${o.eco}</span> ${o.name}</span>`
+      const tags = bot.favoriteOpenings.map((o, i) =>
+        `<span class="gm-opening-tag gm-opening-clickable" data-opening-index="${i}"><span class="eco">${o.eco}</span> ${o.name}</span>`
       ).join('');
       openingsSectionHtml = `<div class="gm-detail-section"><h4>Favorite Openings</h4><div class="gm-openings-list">${tags}</div></div>`;
     }
@@ -2841,8 +2990,8 @@ class ChessApp {
     // Famous games (GM-only)
     let gamesSectionHtml = '';
     if (bot.famousGames && bot.famousGames.length > 0) {
-      const items = bot.famousGames.map(g =>
-        `<div class="gm-famous-game"><div class="gm-game-name">${g.name} (${g.year})</div><div class="gm-game-desc">${g.description}</div></div>`
+      const items = bot.famousGames.map((g, i) =>
+        `<div class="gm-famous-game gm-game-clickable" data-game-index="${i}"><div class="gm-game-name">${g.name} (${g.year})</div><div class="gm-game-desc">${g.description}</div></div>`
       ).join('');
       gamesSectionHtml = `<div class="gm-detail-section"><h4>Famous Games</h4>${items}</div>`;
     }
@@ -2908,6 +3057,48 @@ class ChessApp {
         this.renderDatabaseGames();
       });
     }
+
+    // Clickable famous games — search database and load for replay, auto-select GM Coach
+    detailEl.querySelectorAll('.gm-game-clickable').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.gameIndex);
+        const g = bot.famousGames[idx];
+        if (!g) return;
+        const parts = g.name.split(/\s+vs\.?\s+/i);
+        const query = parts.length >= 2 ? parts[0].trim() : g.name;
+        const results = this.database.search(query);
+        const match = results.find(r =>
+          r.date.includes(String(g.year)) &&
+          (parts.length < 2 || r.white.toLowerCase().includes(parts[0].trim().toLowerCase()) || r.black.toLowerCase().includes(parts[0].trim().toLowerCase()))
+        ) || results[0];
+        if (match) {
+          hide(document.getElementById('new-game-dialog'));
+          this.loadDatabaseGame(match);
+          this._autoSelectGMCoach(bot.id);
+          this.showToast(`${match.white} vs ${match.black}, ${match.date}`);
+        } else {
+          this.showToast('Game not found in database — try Browse Games');
+        }
+      });
+    });
+
+    // Clickable openings — start opening training if mainline available
+    detailEl.querySelectorAll('.gm-opening-clickable').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.openingIndex);
+        const opening = bot.favoriteOpenings[idx];
+        if (!opening) return;
+        hide(document.getElementById('new-game-dialog'));
+
+        if (OPENING_MAINLINES[opening.eco]) {
+          this._startOpeningTraining(bot, opening);
+          return;
+        }
+
+        // Fallback: toast
+        this.showToast(`No mainline data for ${opening.name} — start a game to explore`);
+      });
+    });
   }
 
   updateDialogVisibility(mode) {
