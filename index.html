@@ -542,7 +542,6 @@
           <button class="settings-tab active" data-tab="sound">Sound</button>
           <button class="settings-tab" data-tab="display">Display</button>
           <button class="settings-tab" data-tab="board">Board</button>
-          <button class="settings-tab" data-tab="dgt">DGT</button>
         </div>
 
         <!-- SOUND section -->
@@ -556,7 +555,7 @@
             <span class="layout-toggle-label">Voice Announcements</span>
             <span style="display:flex;align-items:center;gap:6px;">
               <button class="btn btn-sm btn-secondary" id="settings-voice-test">Test</button>
-              <span class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></span>
+              <label class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></label>
             </span>
           </div>
           <label class="settings-toggle-row">
@@ -594,18 +593,14 @@
           </div>
         </div>
 
-        <!-- BOARD section -->
+        <!-- BOARD + DGT section -->
         <div class="settings-section settings-tab-content hidden" data-tab="board">
           <h4 class="settings-section-title">Board</h4>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Flip Board</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-flip"><span class="toggle-slider"></span></span>
           </label>
-        </div>
-
-        <!-- DGT BOARD section -->
-        <div class="settings-section settings-tab-content hidden" data-tab="dgt">
-          <h4 class="settings-section-title">DGT Board</h4>
+          <h4 class="settings-section-title" style="margin-top:14px;">DGT Board</h4>
           <div class="dgt-status-indicator" id="dgt-status-indicator">
             <span class="dgt-status-dot" id="dgt-status-dot"></span>
             <span id="dgt-status-text">Not connected</span>
@@ -673,7 +668,7 @@
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings">Done</button>
         </div>
-        <div class="app-version" id="app-version">v32</div>
+        <div class="app-version" id="app-version">v33</div>
       </div>
     </div>
 
@@ -910,7 +905,6 @@
             <span class="nav-menu-label">Tools</span>
             <button class="btn" id="btn-database">Database</button>
             <button class="btn" id="btn-stats">Stats</button>
-            <button class="btn" id="btn-multi-analysis">GM Coach</button>
             <div class="dropdown">
               <button class="btn" id="btn-pgn-menu">PGN</button>
               <div class="dropdown-content">
@@ -1015,6 +1009,9 @@
             <span class="mini-music-title" id="mini-music-title">-</span>
             <span class="mini-music-composer" id="mini-music-composer">-</span>
           </div>
+          <select class="mini-music-composer-select" id="mini-music-composer-filter" title="Filter by composer">
+            <option value="all">All</option>
+          </select>
           <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
         </div>
       </div>

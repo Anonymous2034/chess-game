@@ -5015,6 +5015,9 @@ class ChessApp {
       composerFilter.addEventListener('change', () => {
         const selected = composerFilter.value;
         this.music.setComposerFilter(selected === 'all' ? null : selected);
+        // Sync mini player dropdown
+        const miniFilter = document.getElementById('mini-music-composer-filter');
+        if (miniFilter) miniFilter.value = selected;
         this._updateMusicPlaylist();
       });
 
@@ -5047,6 +5050,8 @@ class ChessApp {
         composerFilter.value = 'all';
         this.music.setComposerFilter(null);
         favRow.classList.add('hidden');
+        const miniFilter = document.getElementById('mini-music-composer-filter');
+        if (miniFilter) miniFilter.value = 'all';
         this._updateMusicPlaylist();
       });
     }
@@ -5069,6 +5074,31 @@ class ChessApp {
         // Sync the full dialog slider too
         const dialogVol = document.getElementById('music-volume');
         if (dialogVol) dialogVol.value = e.target.value;
+      });
+    }
+
+    // Mini composer filter — populate and sync with main dialog
+    const miniComposerFilter = document.getElementById('mini-music-composer-filter');
+    if (miniComposerFilter) {
+      const composers = [...new Set(PLAYLIST.map(t => t.composer))].sort();
+      composers.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        miniComposerFilter.appendChild(opt);
+      });
+      // Load saved favorite as default
+      const savedFav = localStorage.getItem('chess_music_favorite_composer');
+      if (savedFav && composers.includes(savedFav)) {
+        miniComposerFilter.value = savedFav;
+      }
+      miniComposerFilter.addEventListener('change', () => {
+        const selected = miniComposerFilter.value;
+        this.music.setComposerFilter(selected === 'all' ? null : selected);
+        // Sync full dialog dropdown
+        const dialogFilter = document.getElementById('music-composer-filter');
+        if (dialogFilter) dialogFilter.value = selected;
+        this._updateMusicPlaylist();
       });
     }
 

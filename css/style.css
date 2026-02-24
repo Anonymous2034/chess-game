@@ -3113,6 +3113,20 @@ main {
   text-overflow: ellipsis;
 }
 
+.mini-music-composer-select {
+  background: var(--input-bg, #1a1a1a);
+  color: var(--text-muted, #aaa);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  padding: 1px 2px;
+  max-width: 72px;
+  cursor: pointer;
+}
+.mini-music-composer-select:focus {
+  outline: 1px solid var(--accent, #4ecdc4);
+}
+
 .mini-music-vol {
   width: 50px;
   height: 3px;

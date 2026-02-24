@@ -61,14 +61,19 @@ export class SoundManager {
       console.warn('[Voice] No voices available');
       return false;
     }
+    // Cancel + delay — Chrome kills utterances if speak() follows cancel() immediately
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('Knight to f3, check');
-    if (this._preferredVoice) u.voice = this._preferredVoice;
-    u.rate = 0.95;
-    u.volume = 1.0;
-    u.lang = 'en-US';
-    u.onerror = (e) => console.error('[Voice] Test error:', e.error);
-    speechSynthesis.speak(u);
+    setTimeout(() => {
+      speechSynthesis.resume();
+      const u = new SpeechSynthesisUtterance('Knight to f3, check');
+      if (this._preferredVoice) u.voice = this._preferredVoice;
+      u.rate = 0.95;
+      u.volume = 1.0;
+      u.lang = 'en-US';
+      u.onerror = (e) => console.error('[Voice] Test error:', e.error);
+      speechSynthesis.speak(u);
+      console.log('[Voice] Test utterance queued');
+    }, 100);
     return true;
   }
 
@@ -123,20 +128,29 @@ export class SoundManager {
       // Chrome pauses speechSynthesis after ~15s inactivity — resume() fixes it.
       speechSynthesis.resume();
 
-      // Only cancel if actively speaking
-      if (speechSynthesis.speaking || speechSynthesis.pending) {
-        speechSynthesis.cancel();
-      }
+      // Cancel any active speech, then delay before new utterance
+      // (Chrome kills utterances if speak() follows cancel() immediately)
+      const needsCancel = speechSynthesis.speaking || speechSynthesis.pending;
+      if (needsCancel) speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      if (this._preferredVoice) utterance.voice = this._preferredVoice;
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      utterance.lang = 'en-US';
-      utterance.onerror = (e) => console.warn('[Voice] Error:', e.error, 'for:', text);
-      speechSynthesis.speak(utterance);
-      console.log('[Voice] Speaking:', text);
+      const speak = () => {
+        speechSynthesis.resume();
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (this._preferredVoice) utterance.voice = this._preferredVoice;
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        utterance.lang = 'en-US';
+        utterance.onerror = (e) => console.warn('[Voice] Error:', e.error, 'for:', text);
+        speechSynthesis.speak(utterance);
+        console.log('[Voice] Speaking:', text);
+      };
+
+      if (needsCancel) {
+        setTimeout(speak, 80);
+      } else {
+        speak();
+      }
     } catch (e) {
       console.warn('[Voice] speak failed:', e);
     }
