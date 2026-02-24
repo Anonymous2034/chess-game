@@ -6,10 +6,26 @@ export class SoundManager {
   constructor() {
     this._ctx = null;
     this._muted = false;
+    this._volume = parseFloat(localStorage.getItem('chess_sfx_volume') ?? '1');
+    this._voiceVolume = parseFloat(localStorage.getItem('chess_voice_volume') ?? '1');
     this._voicesReady = false;
     this._load();
     this._initVoices();
   }
+
+  /** Set SFX volume 0..1 */
+  setVolume(vol) {
+    this._volume = Math.max(0, Math.min(1, vol));
+    localStorage.setItem('chess_sfx_volume', String(this._volume));
+  }
+  get volume() { return this._volume; }
+
+  /** Set voice volume 0..1 */
+  set voiceVolume(vol) {
+    this._voiceVolume = Math.max(0, Math.min(1, vol));
+    localStorage.setItem('chess_voice_volume', String(this._voiceVolume));
+  }
+  get voiceVolume() { return this._voiceVolume; }
 
   /** Preload speechSynthesis voices — Chrome loads them asynchronously. */
   _initVoices() {
@@ -139,7 +155,7 @@ export class SoundManager {
         if (this._preferredVoice) utterance.voice = this._preferredVoice;
         utterance.rate = 0.95;
         utterance.pitch = 1.0;
-        utterance.volume = 1.0;
+        utterance.volume = this._voiceVolume;
         utterance.lang = 'en-US';
         utterance.onerror = (e) => console.warn('[Voice] Error:', e.error, 'for:', text);
         speechSynthesis.speak(utterance);
@@ -226,9 +242,10 @@ export class SoundManager {
     osc.type = type;
     osc.frequency.setValueAtTime(frequency, startTime);
 
+    const peak = gainPeak * this._volume;
     gain.gain.setValueAtTime(0, startTime);
-    gain.gain.linearRampToValueAtTime(gainPeak, startTime + 0.005);
-    gain.gain.setValueAtTime(gainPeak, startTime + duration - releaseTime);
+    gain.gain.linearRampToValueAtTime(peak, startTime + 0.005);
+    gain.gain.setValueAtTime(peak, startTime + duration - releaseTime);
     gain.gain.linearRampToValueAtTime(0, startTime + duration);
 
     osc.start(startTime);

@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v40';
+const CACHE_NAME = 'grandmasters-v41';
 
 const PRECACHE_URLS = [
   './',
@@ -127,14 +127,16 @@ const PRECACHE_URLS = [
   './img/personalities/tactician-tanya.svg', './img/personalities/the-wall.svg',
 
   // Portrait SVGs — composers
-  './img/composers/bach.svg', './img/composers/beethoven.svg', './img/composers/brahms.svg',
-  './img/composers/chopin.svg', './img/composers/debussy.svg', './img/composers/dvorak.svg',
-  './img/composers/grieg.svg', './img/composers/handel.svg', './img/composers/haydn.svg',
-  './img/composers/liszt.svg', './img/composers/mendelssohn.svg', './img/composers/mozart.svg',
-  './img/composers/mussorgsky.svg', './img/composers/pachelbel.svg', './img/composers/rachmaninoff.svg',
-  './img/composers/ravel.svg', './img/composers/saint-saens.svg', './img/composers/satie.svg',
-  './img/composers/schubert.svg', './img/composers/schumann.svg', './img/composers/strauss-ii.svg',
-  './img/composers/tchaikovsky.svg', './img/composers/vivaldi.svg', './img/composers/wagner.svg',
+  './img/composers/albeniz.svg', './img/composers/bach.svg', './img/composers/beethoven.svg',
+  './img/composers/brahms.svg', './img/composers/chopin.svg', './img/composers/clementi.svg',
+  './img/composers/debussy.svg', './img/composers/dvorak.svg', './img/composers/faure.svg',
+  './img/composers/gluck.svg', './img/composers/grieg.svg', './img/composers/handel.svg',
+  './img/composers/haydn.svg', './img/composers/liszt.svg', './img/composers/mendelssohn.svg',
+  './img/composers/mozart.svg', './img/composers/mussorgsky.svg', './img/composers/pachelbel.svg',
+  './img/composers/rachmaninoff.svg', './img/composers/ravel.svg', './img/composers/saint-saens.svg',
+  './img/composers/satie.svg', './img/composers/schubert.svg', './img/composers/schumann.svg',
+  './img/composers/strauss-ii.svg', './img/composers/tchaikovsky.svg', './img/composers/telemann.svg',
+  './img/composers/vivaldi.svg', './img/composers/wagner.svg',
 
   // Player avatars
   './img/avatars/king.svg', './img/avatars/queen.svg', './img/avatars/rook.svg',

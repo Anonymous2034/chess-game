@@ -327,4 +327,71 @@ export const COMPOSER_PROFILES = [
     style: 'Brilliant orchestration, precise craftsmanship, exotic colors. His music balances emotional restraint with sensuous beauty and dazzling technical invention.',
     keyWorks: ['Bolero', 'Daphnis et Chloe', 'Piano Concerto in G', 'Pavane pour une infante defunte', 'Gaspard de la nuit']
   },
+
+  // === ADDITIONAL COMPOSERS ===
+  {
+    id: 'telemann',
+    name: 'G.P. Telemann',
+    fullName: 'Georg Philipp Telemann',
+    composerKey: 'Georg Philipp Telemann',
+    portrait: 'img/composers/telemann.svg',
+    era: 'baroque',
+    born: '1681, Magdeburg, Germany',
+    died: '1767, Hamburg, Germany',
+    summary: 'The most prolific composer in history, writing over 3,000 works. Telemann was more famous than Bach in his own lifetime, holding the most prestigious musical positions in Germany.',
+    style: 'Gallant melodic charm, French-influenced elegance, effortless fluency. His music bridges the Baroque and Classical eras with a lighter, more accessible touch than his contemporaries.',
+    keyWorks: ['Tafelmusik', 'Paris Quartets', 'Viola Concerto in G', 'Trumpet Concerto in D', 'Don Quixote Suite']
+  },
+  {
+    id: 'gluck',
+    name: 'C.W. Gluck',
+    fullName: 'Christoph Willibald Gluck',
+    composerKey: 'Christoph Willibald Gluck',
+    portrait: 'img/composers/gluck.svg',
+    era: 'classical',
+    born: '1714, Erasbach, Germany',
+    died: '1787, Vienna, Austria',
+    summary: 'The great reformer of opera who stripped away artifice to create music of noble simplicity and dramatic truth. Gluck\'s reforms profoundly influenced Mozart, Berlioz, and Wagner.',
+    style: 'Noble simplicity, dramatic intensity, expressive melody. His music prioritizes emotional truth over vocal virtuosity, achieving a timeless classical beauty.',
+    keyWorks: ['Dance of the Blessed Spirits', 'Orfeo ed Euridice', 'Iphigenie en Aulide', 'Alceste', 'Melodie from Orfeo']
+  },
+  {
+    id: 'clementi',
+    name: 'M. Clementi',
+    fullName: 'Muzio Clementi',
+    composerKey: 'Muzio Clementi',
+    portrait: 'img/composers/clementi.svg',
+    era: 'classical',
+    born: '1752, Rome, Italy',
+    died: '1832, Evesham, England',
+    summary: 'The "Father of the Pianoforte" whose sonatinas and etudes have trained generations of pianists. Clementi was also a successful piano manufacturer and music publisher.',
+    style: 'Brilliant keyboard writing, classical clarity, pedagogical excellence. His music develops piano technique while maintaining musical elegance and charm.',
+    keyWorks: ['Sonatinas Op. 36', 'Gradus ad Parnassum', 'Piano Sonata Op. 33 No. 3', 'Piano Sonata Op. 25 No. 5', 'Duets Op. 14']
+  },
+  {
+    id: 'faure',
+    name: 'Gabriel Faure',
+    fullName: 'Gabriel Urbain Faure',
+    composerKey: 'Gabriel Faure',
+    portrait: 'img/composers/faure.svg',
+    era: 'romantic',
+    born: '1845, Pamiers, France',
+    died: '1924, Paris, France',
+    summary: 'The most refined voice in French music, bridging Romanticism and Modernism with exquisite subtlety. As director of the Paris Conservatoire, Faure taught Ravel and shaped French music for decades.',
+    style: 'Harmonic sophistication, understated elegance, melodic grace. His music creates an intimate, luminous world of subtle colors and restrained passion.',
+    keyWorks: ['Pavane', 'Sicilienne', 'Requiem', 'Nocturnes', 'Pelleas et Melisande', 'Apres un reve']
+  },
+  {
+    id: 'albeniz',
+    name: 'Isaac Albeniz',
+    fullName: 'Isaac Manuel Francisco Albeniz',
+    composerKey: 'Isaac Albeniz',
+    portrait: 'img/composers/albeniz.svg',
+    era: 'impressionist',
+    born: '1860, Camprodon, Spain',
+    died: '1909, Cambo-les-Bains, France',
+    summary: 'The father of Spanish piano music who captured the sounds, rhythms, and soul of Spain in his compositions. A child prodigy who ran away from home at age 12 to concertize across Latin America.',
+    style: 'Vivid Spanish color, guitar-inspired piano textures, rhythmic vitality. His music transforms Andalusian folk idioms into sophisticated concert works of fiery brilliance.',
+    keyWorks: ['Asturias (Leyenda)', 'Suite Espanola — Granada', 'Iberia', 'Tango in D', 'Cordoba']
+  },
 ];

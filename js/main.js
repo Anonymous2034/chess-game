@@ -6,7 +6,7 @@ import { Notation } from './notation.js';
 import { Database } from './database.js';
 import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS } from './bots.js';
 import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
-import { OpeningBook } from './openings.js';
+import { OpeningBook, OPENING_MAINLINES } from './openings.js';
 import { CapturedPieces } from './captured.js';
 import { GameAnalyzer } from './analysis.js';
 import { EvalGraph } from './eval-graph.js';
@@ -228,6 +228,12 @@ class ChessApp {
     // Puzzle mode interception — validate move before applying side effects
     if (this.puzzleActive) {
       this._handlePuzzleMove(move);
+      return;
+    }
+
+    // Opening training drill interception
+    if (this._openingTrainingMoveHandler) {
+      this._openingTrainingMoveHandler(move);
       return;
     }
 
@@ -970,13 +976,7 @@ class ChessApp {
   setupMultiAnalysis() {
     // "GM Coach" hamburger button opens the GM Coach tab (button removed from menu in v33)
     document.getElementById('btn-multi-analysis')?.addEventListener('click', () => {
-      document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.panel-content').forEach(c => hide(c));
-      const gmTab = document.querySelector('.panel-tab[data-tab="gm-coach"]');
-      if (gmTab) gmTab.classList.add('active');
-      show(document.getElementById('tab-gm-coach'));
-
-      this._updateGMCoachCommentary();
+      this._switchToTab('gm-coach');
     });
 
     // Keep the dialog close handler for backwards compatibility
@@ -1499,6 +1499,241 @@ class ChessApp {
     });
   }
 
+  /** Auto-select a GM as the active coach (for famous game / opening training flows) */
+  _autoSelectGMCoach(gmId) {
+    if (!GM_COACH_PROFILES[gmId]) return;
+    const bot = BOT_PERSONALITIES.find(b => b.id === gmId);
+    if (!bot) return;
+    this._gmCoachBots = [bot];
+    localStorage.setItem('chess_gm_coaches', JSON.stringify([bot.id]));
+    this._renderGMCoachCards();
+  }
+
+  // === Opening Training Mode ===
+
+  /**
+   * Start opening training: guided replay through a mainline, then drill, then play from here.
+   * @param {Object} gm - The GM bot object
+   * @param {Object} opening - { name, eco, asColor }
+   */
+  _startOpeningTraining(gm, opening) {
+    const moves = OPENING_MAINLINES[opening.eco];
+    if (!moves || moves.length === 0) return;
+
+    this._openingTraining = {
+      gm,
+      opening,
+      moves: [...moves],
+      phase: 'guided', // 'guided' | 'drill' | 'play'
+      currentStep: 0
+    };
+
+    // Load moves for guided replay
+    this.game.loadFromMoves(moves);
+    this.game.goToStart();
+    this.notation.setMoves(this.game.moveHistory);
+    this.notation.setCurrentIndex(-1);
+    this.board.setLastMove(null);
+    this.board.setInteractive(false);
+    this.board.setFlipped(false);
+    this.board.update();
+    this.captured.clear();
+    this.activeBot = null;
+    hide(document.getElementById('engine-status'));
+
+    // Auto-select GM as coach
+    this._autoSelectGMCoach(gm.id);
+
+    // Switch to Moves tab
+    this._switchToTab('moves');
+
+    // Show training bar
+    this._updateOpeningTrainingBar();
+    this.showToast(`Opening Training: ${opening.name}`);
+
+    // Wire up training bar buttons (use event delegation via IDs)
+    this._wireOpeningTrainingButtons();
+  }
+
+  _wireOpeningTrainingButtons() {
+    const practiceBtn = document.getElementById('ot-practice');
+    const playBtn = document.getElementById('ot-play');
+    const exitBtn = document.getElementById('ot-exit');
+
+    // Remove old listeners by cloning
+    if (practiceBtn) {
+      const np = practiceBtn.cloneNode(true);
+      practiceBtn.parentNode.replaceChild(np, practiceBtn);
+      np.addEventListener('click', () => this._startOpeningDrill());
+    }
+    if (playBtn) {
+      const np = playBtn.cloneNode(true);
+      playBtn.parentNode.replaceChild(np, playBtn);
+      np.addEventListener('click', () => this._playFromOpeningPosition());
+    }
+    if (exitBtn) {
+      const ne = exitBtn.cloneNode(true);
+      exitBtn.parentNode.replaceChild(ne, exitBtn);
+      ne.addEventListener('click', () => this._exitOpeningTraining());
+    }
+  }
+
+  _updateOpeningTrainingBar() {
+    const bar = document.getElementById('opening-training-bar');
+    const titleEl = document.getElementById('ot-title');
+    if (!bar || !titleEl) return;
+
+    const t = this._openingTraining;
+    if (!t) { bar.classList.add('hidden'); return; }
+
+    bar.classList.remove('hidden');
+
+    const practiceBtn = document.getElementById('ot-practice');
+    const playBtn = document.getElementById('ot-play');
+
+    if (t.phase === 'guided') {
+      titleEl.textContent = `${t.opening.name} — Step through with ${t.gm.name}`;
+      if (practiceBtn) show(practiceBtn);
+      if (playBtn) hide(playBtn);
+    } else if (t.phase === 'drill') {
+      titleEl.textContent = `${t.opening.name} — Practice (${t.currentStep}/${t.moves.length} moves)`;
+      if (practiceBtn) hide(practiceBtn);
+      if (playBtn) show(playBtn);
+    }
+  }
+
+  _startOpeningDrill() {
+    const t = this._openingTraining;
+    if (!t) return;
+
+    t.phase = 'drill';
+    t.currentStep = 0;
+
+    // Reset to start position
+    this.game.chess.reset();
+    this.game.moveHistory = [];
+    this.game.currentMoveIndex = -1;
+    this.game.fens = [this.game.chess.fen()];
+    this.game.gameOver = false;
+    this.game.replayMode = false;
+    this.game.mode = 'local';
+    this.notation.clear();
+    this.board.setLastMove(null);
+    this.board.setInteractive(true);
+    this.board.update();
+
+    this._updateOpeningTrainingBar();
+    this.showToast('Play the opening moves! Wrong moves will be corrected.');
+
+    // Override the move handler temporarily
+    this._openingTrainingMoveHandler = (move) => this._handleOpeningDrillMove(move);
+  }
+
+  _handleOpeningDrillMove(move) {
+    const t = this._openingTraining;
+    if (!t || t.phase !== 'drill') return;
+
+    const expected = t.moves[t.currentStep];
+    if (move.san === expected) {
+      // Correct move
+      t.currentStep++;
+      this._updateOpeningTrainingBar();
+
+      // Auto-play opponent reply if there's a next move
+      if (t.currentStep < t.moves.length) {
+        setTimeout(() => {
+          const reply = t.moves[t.currentStep];
+          try {
+            const m = this.game.chess.move(reply);
+            if (m) {
+              this.game.moveHistory.push(m);
+              this.game.currentMoveIndex = this.game.moveHistory.length - 1;
+              this.game.fens.push(this.game.chess.fen());
+              this.notation.setMoves(this.game.moveHistory);
+              this.notation.setCurrentIndex(this.game.currentMoveIndex);
+              this.board.setLastMove({ from: m.from, to: m.to });
+              this.board.update();
+              t.currentStep++;
+              this._updateOpeningTrainingBar();
+            }
+          } catch { /* skip */ }
+
+          // Check if drill is complete
+          if (t.currentStep >= t.moves.length) {
+            this.showToast('Opening complete! You can now play from this position.');
+            const playBtn = document.getElementById('ot-play');
+            if (playBtn) show(playBtn);
+          }
+        }, 400);
+      } else {
+        this.showToast('Opening complete! You can now play from this position.');
+        const playBtn = document.getElementById('ot-play');
+        if (playBtn) show(playBtn);
+      }
+    } else {
+      // Wrong move — undo and show hint
+      this.showToast(`Book move is ${expected}`);
+      // Undo the wrong move
+      this.game.chess.undo();
+      this.game.moveHistory.pop();
+      this.game.currentMoveIndex = this.game.moveHistory.length - 1;
+      this.game.fens.pop();
+      this.notation.setMoves(this.game.moveHistory);
+      this.notation.setCurrentIndex(this.game.currentMoveIndex);
+      this.board.update();
+    }
+  }
+
+  async _playFromOpeningPosition() {
+    const t = this._openingTraining;
+    if (!t) return;
+
+    const fen = this.game.chess.fen();
+    this._exitOpeningTraining();
+
+    // Start a new game vs the GM from the current FEN
+    await this.initEngine();
+    const bot = BOT_PERSONALITIES.find(b => b.id === t.gm.id);
+    if (bot && this.engine) {
+      this.activeBot = bot;
+      this.engine.applyPersonality(bot);
+      this.engine.newGame();
+    }
+
+    // Determine player color based on whose turn it is in the FEN
+    const turn = fen.split(' ')[1]; // 'w' or 'b'
+    const playerColor = turn; // Player plays the side that's to move
+
+    this.game.mode = 'engine';
+    this.game.playerColor = playerColor;
+    this.game.gameOver = false;
+    this.game.replayMode = false;
+    this.game.botId = t.gm.id;
+    this.board.setInteractive(true);
+    if (playerColor === 'b') this.board.setFlipped(true);
+
+    const engineStatusEl = document.getElementById('engine-status');
+    if (engineStatusEl && this.activeBot) {
+      show(engineStatusEl);
+      engineStatusEl.textContent = `${this.activeBot.name}: Ready`;
+    }
+
+    this.sound.playGameStartSound();
+    this.showToast(`Playing from ${t.opening.name} position vs ${t.gm.name}`);
+
+    // If it's the engine's turn, request a move
+    if (turn !== playerColor) {
+      this.requestEngineMove();
+    }
+  }
+
+  _exitOpeningTraining() {
+    this._openingTraining = null;
+    this._openingTrainingMoveHandler = null;
+    const bar = document.getElementById('opening-training-bar');
+    if (bar) bar.classList.add('hidden');
+  }
+
   _renderGMCoachCards() {
     const container = document.getElementById('gm-coach-cards');
     if (!container) return;
@@ -1859,7 +2094,7 @@ class ChessApp {
       this.renderDatabaseGames();
     });
 
-    // Clickable famous games — search database and load for replay
+    // Clickable famous games — search database and load for replay, auto-select GM Coach
     detailEl.querySelectorAll('.gmb-game-clickable').forEach(el => {
       el.addEventListener('click', () => {
         const idx = parseInt(el.dataset.gameIndex);
@@ -1877,6 +2112,7 @@ class ChessApp {
         if (match) {
           hide(document.getElementById('gm-browse-dialog'));
           this.loadDatabaseGame(match);
+          this._autoSelectGMCoach(gm.id);
           this.showToast(`${match.white} vs ${match.black}, ${match.date}`);
         } else {
           this.showToast('Game not found in database — try Browse Games');
@@ -1884,13 +2120,21 @@ class ChessApp {
       });
     });
 
-    // Clickable openings — open new game dialog with this GM pre-selected
+    // Clickable openings — start opening training if mainline available, else open new game dialog
     detailEl.querySelectorAll('.gmb-opening-clickable').forEach(el => {
       el.addEventListener('click', () => {
         const idx = parseInt(el.dataset.openingIndex);
         const opening = gm.favoriteOpenings[idx];
         if (!opening) return;
         hide(document.getElementById('gm-browse-dialog'));
+
+        // If we have an opening mainline, enter opening training mode
+        if (OPENING_MAINLINES[opening.eco]) {
+          this._startOpeningTraining(gm, opening);
+          return;
+        }
+
+        // Fallback: open new game dialog with this GM pre-selected
         show(document.getElementById('new-game-dialog'));
         this.updateDialogVisibility('engine');
         const settings = { botId: gm.id, mode: 'engine' };
@@ -1899,6 +2143,7 @@ class ChessApp {
         document.querySelectorAll('.bot-list-card').forEach(c => {
           c.classList.toggle('selected', c.dataset.botId === gm.id);
         });
+        this._autoSelectGMCoach(gm.id);
         this.showToast(`Play the ${opening.name} against ${gm.name}!`);
       });
     });
@@ -2270,8 +2515,51 @@ class ChessApp {
           settings.time = parseInt(timeVal);
           settings.increment = incVal;
           settings.timePeriods = null;
+          settings.delayType = 'fischer';
         }
       });
+    });
+
+    // FIDE preset dropdown
+    const FIDE_PRESETS = {
+      'classical-90-30':  { time: 90, moves: 0, time2: 0, increment: 30 },
+      'classical-40-2h':  { time: 120, moves: 40, time2: 30, increment: 30 },
+      'classical-40-90':  { time: 90, moves: 40, time2: 30, increment: 30 },
+      'rapid-15-10':      { time: 15, moves: 0, time2: 0, increment: 10 },
+      'rapid-25-10':      { time: 25, moves: 0, time2: 0, increment: 10 },
+      'blitz-3-2':        { time: 3, moves: 0, time2: 0, increment: 2 },
+      'blitz-5-3':        { time: 5, moves: 0, time2: 0, increment: 3 }
+    };
+
+    const presetSelect = document.getElementById('tc-fide-preset');
+    presetSelect?.addEventListener('change', () => {
+      const preset = FIDE_PRESETS[presetSelect.value];
+      if (!preset) return;
+      document.getElementById('tc-custom-minutes').value = preset.time;
+      document.getElementById('tc-custom-moves').value = preset.moves;
+      document.getElementById('tc-custom-minutes2').value = preset.time2 || 30;
+      document.getElementById('tc-custom-increment').value = preset.increment;
+      // Show/hide period 2
+      const period2 = document.getElementById('tc-period2');
+      if (period2) { if (preset.moves > 0) { show(period2); } else { hide(period2); } }
+      // Reset delay type to Fischer for FIDE presets
+      const delayType = document.getElementById('tc-delay-type');
+      if (delayType) delayType.value = 'fischer';
+      const incRow = document.getElementById('tc-increment-row');
+      if (incRow) show(incRow);
+      this._syncCustomTimeSettings(settings);
+    });
+
+    // Delay type dropdown
+    const delayTypeSelect = document.getElementById('tc-delay-type');
+    delayTypeSelect?.addEventListener('change', () => {
+      const incRow = document.getElementById('tc-increment-row');
+      if (delayTypeSelect.value === 'none') {
+        if (incRow) hide(incRow);
+      } else {
+        if (incRow) show(incRow);
+      }
+      this._syncCustomTimeSettings(settings);
     });
 
     // Show/hide period 2 based on moves input
@@ -2288,6 +2576,8 @@ class ChessApp {
     // Custom input changes
     ['tc-custom-minutes', 'tc-custom-increment', 'tc-custom-minutes2'].forEach(id => {
       document.getElementById(id)?.addEventListener('input', () => {
+        // Clear FIDE preset when user manually edits
+        if (presetSelect) presetSelect.value = '';
         this._syncCustomTimeSettings(settings);
       });
     });
@@ -2297,10 +2587,12 @@ class ChessApp {
     const mins = parseInt(document.getElementById('tc-custom-minutes')?.value) || 10;
     const moves = parseInt(document.getElementById('tc-custom-moves')?.value) || 0;
     const mins2 = parseInt(document.getElementById('tc-custom-minutes2')?.value) || 30;
-    const inc = parseInt(document.getElementById('tc-custom-increment')?.value) || 0;
+    const delayType = document.getElementById('tc-delay-type')?.value || 'fischer';
+    const inc = delayType === 'none' ? 0 : (parseInt(document.getElementById('tc-custom-increment')?.value) || 0);
 
     settings.time = mins * 60;
     settings.increment = inc;
+    settings.delayType = delayType;
 
     if (moves > 0) {
       settings.timePeriods = [
@@ -2372,7 +2664,8 @@ class ChessApp {
       time: settings.time,
       increment: settings.increment,
       rated: settings.rated || false,
-      timePeriods: settings.timePeriods || null
+      timePeriods: settings.timePeriods || null,
+      delayType: settings.delayType || 'fischer'
     });
 
     this.notation.clear();
@@ -2887,6 +3180,9 @@ class ChessApp {
     hide(document.getElementById('engine-status'));
 
     this.updateGameStatus(`${game.white} vs ${game.black} — ${game.event} ${game.date}`);
+
+    // Switch to Moves tab so the loaded game is immediately visible
+    this._switchToTab('moves');
   }
 
   // === Opening Explorer ===
@@ -3767,6 +4063,13 @@ class ChessApp {
       }
     });
 
+    // SFX Volume slider
+    const sfxVolSlider = document.getElementById('settings-sfx-volume');
+    sfxVolSlider.value = Math.round(this.sound.volume * 100);
+    sfxVolSlider.addEventListener('input', (e) => {
+      this.sound.setVolume(parseInt(e.target.value) / 100);
+    });
+
     // Voice Announcements toggle
     const voiceCb = document.getElementById('settings-voice');
     voiceCb.addEventListener('change', () => {
@@ -3783,14 +4086,11 @@ class ChessApp {
       }
     });
 
-    // Background Music toggle
-    const musicCb = document.getElementById('settings-music');
-    musicCb.addEventListener('change', () => {
-      if (musicCb.checked) {
-        this.music.play();
-      } else {
-        this.music.pause();
-      }
+    // Voice Volume slider
+    const voiceVolSlider = document.getElementById('settings-voice-volume');
+    voiceVolSlider.value = Math.round(this.sound.voiceVolume * 100);
+    voiceVolSlider.addEventListener('input', (e) => {
+      this.sound.voiceVolume = parseInt(e.target.value) / 100;
     });
 
     // Music Volume slider
@@ -3802,7 +4102,6 @@ class ChessApp {
 
     // Keep music dialog AND mini player in sync
     this.music.onStateChange = (state) => {
-      musicCb.checked = state.playing;
       // Full music dialog
       const playBtn = document.getElementById('music-play-pause');
       if (playBtn) playBtn.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
@@ -3812,19 +4111,13 @@ class ChessApp {
       if (nowComposer) nowComposer.textContent = state.track.composer;
       const shuffleBtn = document.getElementById('music-shuffle');
       if (shuffleBtn) shuffleBtn.classList.toggle('active', state.shuffle);
+      // Repeat button
+      const repeatBtn = document.getElementById('music-repeat');
+      if (repeatBtn) repeatBtn.classList.toggle('active', !!state.repeat);
       // Refresh composer detail track list if dialog is open
       const musicDialog = document.getElementById('music-dialog');
       if (musicDialog && !musicDialog.classList.contains('hidden')) {
-        const detailEl = document.getElementById('composer-picker-detail');
-        if (detailEl) {
-          const selectedProfile = this._selectedComposerId
-            ? COMPOSER_PROFILES.find(p => p.id === this._selectedComposerId)
-            : null;
-          const tracks = selectedProfile
-            ? PLAYLIST.filter(t => t.composer === selectedProfile.composerKey)
-            : PLAYLIST;
-          this._renderComposerTracks(tracks, detailEl);
-        }
+        this._renderMusicDialog();
       }
 
       // Mini music player on main screen — always visible
@@ -3872,10 +4165,12 @@ class ChessApp {
   _syncSettingsState() {
     // Sound
     document.getElementById('settings-sound').checked = !this.sound.muted;
+    // SFX volume
+    document.getElementById('settings-sfx-volume').value = Math.round(this.sound.volume * 100);
     // Voice
     document.getElementById('settings-voice').checked = localStorage.getItem('chess_voice_enabled') !== 'false';
-    // Music
-    document.getElementById('settings-music').checked = this.music.playing;
+    // Voice volume
+    document.getElementById('settings-voice-volume').value = Math.round(this.sound.voiceVolume * 100);
     // Music volume
     document.getElementById('settings-music-volume').value = Math.round(this.music.audio.volume * 100);
     // Eval bar
@@ -5529,22 +5824,19 @@ class ChessApp {
 
   setupMusic() {
     const dialog = document.getElementById('music-dialog');
-    const playBtn = document.getElementById('music-play-pause');
-    const volumeSlider = document.getElementById('music-volume');
-    const shuffleBtn = document.getElementById('music-shuffle');
+    this._musicProgressInterval = null;
 
-    // Open from hamburger menu
+    // Open from hamburger menu or settings
     document.getElementById('btn-music-dialog').addEventListener('click', () => {
-      this._renderMusicDialog();
-      show(dialog);
+      this._openMusicDialog();
     });
 
     document.getElementById('close-music').addEventListener('click', () => {
-      hide(dialog);
+      this._closeMusicDialog();
     });
 
     dialog.addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) hide(dialog);
+      if (e.target === e.currentTarget) this._closeMusicDialog();
     });
 
     // Clicking mini player track info opens full dialog
@@ -5552,13 +5844,12 @@ class ChessApp {
     if (miniInfo) {
       miniInfo.style.cursor = 'pointer';
       miniInfo.addEventListener('click', () => {
-        this._renderMusicDialog();
-        show(dialog);
+        this._openMusicDialog();
       });
     }
 
     // Play/Pause
-    playBtn.addEventListener('click', () => {
+    document.getElementById('music-play-pause').addEventListener('click', () => {
       this.music.toggle();
     });
 
@@ -5571,14 +5862,26 @@ class ChessApp {
     });
 
     // Shuffle
-    shuffleBtn.addEventListener('click', () => {
+    document.getElementById('music-shuffle').addEventListener('click', () => {
       this.music.toggleShuffle();
     });
 
+    // Repeat
+    document.getElementById('music-repeat').addEventListener('click', () => {
+      this.music.toggleRepeat();
+    });
+
     // Volume
+    const volumeSlider = document.getElementById('music-volume');
     volumeSlider.value = Math.round(this.music.audio.volume * 100);
     volumeSlider.addEventListener('input', (e) => {
       this.music.setVolume(parseInt(e.target.value) / 100);
+    });
+
+    // Progress bar seek
+    const progressBar = document.getElementById('mp-progress');
+    progressBar.addEventListener('input', (e) => {
+      this.music.seekTo(parseInt(e.target.value) / 1000);
     });
 
     // Favorite composer
@@ -5590,8 +5893,8 @@ class ChessApp {
     const savedFav = localStorage.getItem('chess_music_favorite_composer');
     if (savedFav) {
       this.music.setComposerFilter(savedFav);
-      favName.textContent = savedFav;
-      favRow.classList.remove('hidden');
+      if (favName) favName.textContent = savedFav;
+      if (favRow) favRow.classList.remove('hidden');
     }
 
     // Clear favorite
@@ -5599,9 +5902,8 @@ class ChessApp {
       localStorage.removeItem('chess_music_favorite_composer');
       this._selectedComposerId = null;
       this.music.setComposerFilter(null);
-      favRow.classList.add('hidden');
-      this.renderComposerPicker();
-      this.renderComposerDetail(null);
+      if (favRow) favRow.classList.add('hidden');
+      this._renderMusicDialog();
     });
 
     // Show initial track info in mini player
@@ -5628,7 +5930,6 @@ class ChessApp {
       miniVol.value = Math.round(this.music.audio.volume * 100);
       miniVol.addEventListener('input', (e) => {
         this.music.setVolume(parseInt(e.target.value) / 100);
-        // Sync the full dialog slider too
         const dialogVol = document.getElementById('music-volume');
         if (dialogVol) dialogVol.value = e.target.value;
       });
@@ -5638,191 +5939,145 @@ class ChessApp {
     document.getElementById('mini-music-shuffle')?.addEventListener('click', () => {
       this.music.toggleShuffle();
     });
-    // Set initial shuffle visual state
     if (this.music.shuffle) {
       document.getElementById('mini-music-shuffle')?.classList.add('active');
     }
 
     // Mini composers button — opens music dialog
     document.getElementById('mini-music-composers')?.addEventListener('click', () => {
-      this._renderMusicDialog();
-      show(document.getElementById('music-dialog'));
+      this._openMusicDialog();
     });
 
     // Note: onStateChange is set in setupSettings()
   }
 
-  _renderMusicDialog() {
-    this.renderComposerPicker();
-
-    // Show detail for selected or current track's composer
-    const currentTrack = this.music.currentTrack;
-    let profile = null;
-    if (this._selectedComposerId) {
-      profile = COMPOSER_PROFILES.find(p => p.id === this._selectedComposerId);
-    } else if (currentTrack) {
-      profile = COMPOSER_PROFILES.find(p => p.composerKey === currentTrack.composer);
-    }
-    this.renderComposerDetail(profile || null);
-
-    const nowTitle = document.querySelector('#music-dialog .music-track-title');
-    const nowComposer = document.querySelector('#music-dialog .music-track-composer');
-    const track = this.music.currentTrack;
-    if (nowTitle) nowTitle.textContent = track.title;
-    if (nowComposer) nowComposer.textContent = track.composer;
-
-    const playBtn = document.getElementById('music-play-pause');
-    playBtn.innerHTML = this.music.playing ? '&#9646;&#9646;' : '&#9654;';
-
-    const shuffleBtn = document.getElementById('music-shuffle');
-    shuffleBtn.classList.toggle('active', this.music.shuffle);
+  _openMusicDialog() {
+    this._renderMusicDialog();
+    show(document.getElementById('music-dialog'));
+    // Start progress bar updates
+    this._musicProgressInterval = setInterval(() => this._updateMusicProgress(), 500);
   }
 
-  renderComposerPicker() {
+  _closeMusicDialog() {
+    hide(document.getElementById('music-dialog'));
+    if (this._musicProgressInterval) {
+      clearInterval(this._musicProgressInterval);
+      this._musicProgressInterval = null;
+    }
+  }
+
+  _updateMusicProgress() {
+    const bar = document.getElementById('mp-progress');
+    const timeCur = document.getElementById('mp-time-current');
+    const timeTotal = document.getElementById('mp-time-total');
+    if (!bar) return;
+    bar.value = Math.round(this.music.getProgress() * 1000);
+    if (timeCur) timeCur.textContent = this.music.formatTime(this.music.audio.currentTime);
+    if (timeTotal) timeTotal.textContent = this.music.formatTime(this.music.audio.duration);
+  }
+
+  _renderMusicDialog() {
+    const track = this.music.currentTrack;
+    const profile = COMPOSER_PROFILES.find(p => p.composerKey === track.composer);
+
+    // Now-playing section
+    const portrait = document.getElementById('mp-portrait');
+    if (portrait) {
+      portrait.src = profile ? profile.portrait : 'img/composers/bach.svg';
+      portrait.alt = track.composer;
+    }
+    const titleEl = document.getElementById('mp-track-title');
+    if (titleEl) titleEl.textContent = track.title;
+    const composerEl = document.getElementById('mp-track-composer');
+    if (composerEl) composerEl.textContent = track.composer;
+
+    // Controls state
+    const playBtn = document.getElementById('music-play-pause');
+    if (playBtn) playBtn.innerHTML = this.music.playing ? '&#9646;&#9646;' : '&#9654;';
+    const shuffleBtn = document.getElementById('music-shuffle');
+    if (shuffleBtn) shuffleBtn.classList.toggle('active', this.music.shuffle);
+    const repeatBtn = document.getElementById('music-repeat');
+    if (repeatBtn) repeatBtn.classList.toggle('active', this.music.repeat);
+
+    // Volume
+    const volSlider = document.getElementById('music-volume');
+    if (volSlider) volSlider.value = Math.round(this.music.audio.volume * 100);
+
+    // Progress
+    this._updateMusicProgress();
+
+    // Composer chips
+    this._renderComposerChips();
+
+    // Track queue
+    this._renderTrackQueue();
+  }
+
+  _renderComposerChips() {
     const listEl = document.getElementById('composer-picker-list');
     if (!listEl) return;
     listEl.innerHTML = '';
 
-    // "All" chip at top
-    const allChip = document.createElement('div');
-    allChip.className = 'composer-chip' + (!this._selectedComposerId ? ' selected' : '');
-    allChip.innerHTML = `<span class="composer-chip-icon">&#9835;</span><span class="composer-chip-name">All</span>`;
-    allChip.title = `All Composers — ${PLAYLIST.length} tracks`;
+    // "All" chip
+    const allChip = document.createElement('span');
+    allChip.className = 'mp-chip' + (!this._selectedComposerId ? ' selected' : '');
+    allChip.textContent = 'All';
     allChip.addEventListener('click', () => {
-      listEl.querySelectorAll('.composer-chip').forEach(c => c.classList.remove('selected'));
-      allChip.classList.add('selected');
       this._selectedComposerId = null;
       this.music.setComposerFilter(null);
-      this.renderComposerDetail(null);
+      this._renderMusicDialog();
     });
     listEl.appendChild(allChip);
 
-    for (const era of COMPOSER_ERAS) {
-      const eraComposers = COMPOSER_PROFILES.filter(c => c.era === era.id);
-      if (eraComposers.length === 0) continue;
-
-      // Era separator
-      const sep = document.createElement('div');
-      sep.className = 'composer-era-sep';
-      sep.textContent = era.name;
-      listEl.appendChild(sep);
-
-      for (const composer of eraComposers) {
-        const chip = document.createElement('div');
-        chip.className = 'composer-chip' + (composer.id === this._selectedComposerId ? ' selected' : '');
-        chip.dataset.composerId = composer.id;
-        chip.innerHTML = `
-          <img class="composer-chip-portrait" src="${composer.portrait}" alt="${composer.name}">
-          <span class="composer-chip-name">${composer.name}</span>
-        `;
-        chip.title = composer.fullName;
-        chip.addEventListener('click', () => {
-          listEl.querySelectorAll('.composer-chip').forEach(c => c.classList.remove('selected'));
-          chip.classList.add('selected');
-          this._selectedComposerId = composer.id;
-          this.music.setComposerFilter(composer.composerKey);
-          this.renderComposerDetail(composer);
-        });
-        listEl.appendChild(chip);
-      }
+    for (const composer of COMPOSER_PROFILES) {
+      const chip = document.createElement('span');
+      chip.className = 'mp-chip' + (composer.id === this._selectedComposerId ? ' selected' : '');
+      chip.textContent = composer.name;
+      chip.addEventListener('click', () => {
+        this._selectedComposerId = composer.id;
+        this.music.setComposerFilter(composer.composerKey);
+        this._renderMusicDialog();
+      });
+      listEl.appendChild(chip);
     }
   }
 
-  renderComposerDetail(composer) {
+  _renderTrackQueue() {
     const detailEl = document.getElementById('composer-picker-detail');
     if (!detailEl) return;
 
-    if (!composer) {
-      // Show all tracks
-      const tracks = PLAYLIST;
-      detailEl.innerHTML = `
-        <div class="composer-detail-header">
-          <div class="composer-detail-all-icon">&#9835;</div>
-          <div class="composer-detail-info">
-            <div class="composer-detail-name">All Composers</div>
-            <div class="composer-detail-subtitle">${PLAYLIST.length} tracks from ${COMPOSER_PROFILES.length} composers</div>
-          </div>
-        </div>
-        <div class="composer-detail-section">
-          <h4>Tracks</h4>
-          <div class="composer-track-list" id="composer-track-list"></div>
-        </div>
-      `;
-      this._renderComposerTracks(tracks, detailEl);
-      return;
-    }
+    const selectedProfile = this._selectedComposerId
+      ? COMPOSER_PROFILES.find(p => p.id === this._selectedComposerId)
+      : null;
+    const tracks = selectedProfile
+      ? PLAYLIST.filter(t => t.composer === selectedProfile.composerKey)
+      : PLAYLIST;
 
-    const tracks = PLAYLIST.filter(t => t.composer === composer.composerKey);
-    const eraObj = COMPOSER_ERAS.find(e => e.id === composer.era);
-    const keyWorksHtml = composer.keyWorks.map(w => `<span class="composer-key-work">${w}</span>`).join('');
-
-    detailEl.innerHTML = `
-      <div class="composer-detail-header">
-        <img class="composer-portrait-lg" src="${composer.portrait}" alt="${composer.name}">
-        <div class="composer-detail-info">
-          <div class="composer-detail-name">${composer.fullName}</div>
-          <div class="composer-detail-era">${eraObj ? eraObj.name : ''}</div>
-          <div class="composer-detail-dates">${composer.born} &mdash; ${composer.died}</div>
-        </div>
-      </div>
-      <div class="composer-detail-bio">${composer.summary}</div>
-      <div class="composer-detail-section">
-        <h4>Musical Style</h4>
-        <div class="composer-detail-style">${composer.style}</div>
-      </div>
-      <div class="composer-detail-section">
-        <h4>Key Works</h4>
-        <div class="composer-key-works">${keyWorksHtml}</div>
-      </div>
-      <div class="composer-detail-section">
-        <div class="composer-detail-fav-row">
-          <h4>Tracks (${tracks.length})</h4>
-          <button class="btn btn-small btn-secondary composer-set-favorite" title="Set as favorite composer">&#9733; Favorite</button>
-        </div>
-        <div class="composer-track-list" id="composer-track-list"></div>
-      </div>
-    `;
-
-    // Favorite button
-    const favBtn = detailEl.querySelector('.composer-set-favorite');
-    if (favBtn) {
-      favBtn.addEventListener('click', () => {
-        localStorage.setItem('chess_music_favorite_composer', composer.composerKey);
-        const favRow = document.getElementById('music-favorite-row');
-        const favName = document.getElementById('music-fav-name');
-        if (favName) favName.textContent = composer.composerKey;
-        if (favRow) favRow.classList.remove('hidden');
-        this.showToast(composer.name + ' set as favorite');
-      });
-    }
-
-    this._renderComposerTracks(tracks, detailEl);
-  }
-
-  _renderComposerTracks(tracks, container) {
-    const listEl = container.querySelector('#composer-track-list');
-    if (!listEl) return;
-    listEl.innerHTML = '';
+    detailEl.innerHTML = '';
 
     tracks.forEach((track) => {
       const i = PLAYLIST.indexOf(track);
       const isActive = i === this.music.currentIndex;
       const el = document.createElement('div');
-      el.className = 'composer-track' + (isActive ? ' active' : '');
+      el.className = 'mp-queue-item' + (isActive ? ' active' : '');
       el.innerHTML = `
-        <span class="composer-track-play">${isActive && this.music.playing ? '&#9646;&#9646;' : '&#9654;'}</span>
-        <div class="composer-track-info">
-          <div class="composer-track-title">${track.title}</div>
-          <div class="composer-track-composer">${track.composer}</div>
+        <span class="mp-queue-play">${isActive && this.music.playing ? '&#9679;' : '&#9654;'}</span>
+        <div class="mp-queue-info">
+          <span class="mp-queue-title">${track.title}</span>
+          <span class="mp-queue-composer">${track.composer}</span>
         </div>
-        <span class="composer-track-dur">${track.duration}</span>
+        <span class="mp-queue-dur">${track.duration}</span>
       `;
       el.addEventListener('click', () => {
         this.music.setTrack(i);
         if (!this.music.playing) this.music.play();
       });
-      listEl.appendChild(el);
+      detailEl.appendChild(el);
     });
+
+    // Scroll active track into view
+    const active = detailEl.querySelector('.mp-queue-item.active');
+    if (active) active.scrollIntoView({ block: 'nearest' });
   }
 
   // === Chess News ===
@@ -6023,29 +6278,34 @@ class ChessApp {
   setupPanelTabs() {
     document.querySelectorAll('.panel-tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        const tabId = tab.dataset.tab;
-        document.querySelectorAll('.panel-content').forEach(panel => {
-          if (panel.id === `tab-${tabId}`) {
-            show(panel);
-          } else {
-            hide(panel);
-          }
-        });
-
-        // Auto-trigger advisor analysis when switching to Ideas tab
-        if (tabId === 'ideas' && this._advisorBots.length > 0) {
-          this._updateAdvisorAnalysis();
-        }
-
-        // Auto-trigger GM Coach commentary when switching to that tab
-        if (tabId === 'gm-coach') {
-          this._updateGMCoachCommentary();
-        }
+        this._switchToTab(tab.dataset.tab);
       });
     });
+  }
+
+  /** Programmatically activate a side-panel tab by its data-tab id */
+  _switchToTab(tabId) {
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+    const target = document.querySelector(`.panel-tab[data-tab="${tabId}"]`);
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('.panel-content').forEach(panel => {
+      if (panel.id === `tab-${tabId}`) {
+        show(panel);
+      } else {
+        hide(panel);
+      }
+    });
+
+    // Auto-trigger advisor analysis when switching to Ideas tab
+    if (tabId === 'ideas' && this._advisorBots.length > 0) {
+      this._updateAdvisorAnalysis();
+    }
+
+    // Auto-trigger GM Coach commentary when switching to that tab
+    if (tabId === 'gm-coach') {
+      this._updateGMCoachCommentary();
+    }
   }
 
   // === Stats ===

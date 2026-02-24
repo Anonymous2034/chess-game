@@ -114,6 +114,25 @@
             </div>
             <div class="tc-custom-inputs hidden" id="tc-custom-inputs">
               <div class="tc-custom-row">
+                <label>FIDE Preset</label>
+                <select id="tc-fide-preset" class="tc-select">
+                  <option value="">Manual</option>
+                  <optgroup label="Classical">
+                    <option value="classical-90-30">G/90 + 30s</option>
+                    <option value="classical-40-2h">40/2h + G/30 + 30s</option>
+                    <option value="classical-40-90">40/90 + G/30 + 30s</option>
+                  </optgroup>
+                  <optgroup label="Rapid">
+                    <option value="rapid-15-10">G/15 + 10s</option>
+                    <option value="rapid-25-10">G/25 + 10s</option>
+                  </optgroup>
+                  <optgroup label="Blitz">
+                    <option value="blitz-3-2">G/3 + 2s</option>
+                    <option value="blitz-5-3">G/5 + 3s</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="tc-custom-row">
                 <label>Time</label>
                 <input type="number" id="tc-custom-minutes" min="1" max="300" value="10" placeholder="min"> min
               </div>
@@ -126,6 +145,14 @@
                 <input type="number" id="tc-custom-minutes2" min="1" max="300" value="30" placeholder="min"> min
               </div>
               <div class="tc-custom-row">
+                <label>Delay Type</label>
+                <select id="tc-delay-type" class="tc-select">
+                  <option value="fischer">Fischer increment</option>
+                  <option value="bronstein">Bronstein delay</option>
+                  <option value="none">No increment</option>
+                </select>
+              </div>
+              <div class="tc-custom-row" id="tc-increment-row">
                 <label>Increment</label>
                 <input type="number" id="tc-custom-increment" min="0" max="60" value="0" placeholder="sec"> sec/move
               </div>
@@ -439,30 +466,39 @@
 
     <!-- Music Player Dialog -->
     <div id="music-dialog" class="dialog-overlay hidden">
-      <div class="dialog dialog-wide">
-        <div class="music-compact-bar">
-          <div class="music-compact-controls">
-            <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
-            <button class="btn btn-primary btn-sm" id="music-play-pause" title="Play/Pause">&#9654;</button>
-            <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
+      <div class="dialog dialog-music-player">
+        <!-- Now Playing Section -->
+        <div class="mp-now-playing">
+          <img class="mp-portrait" id="mp-portrait" src="" alt="">
+          <div class="mp-track-title" id="mp-track-title">No track selected</div>
+          <div class="mp-track-composer" id="mp-track-composer"></div>
+          <div class="mp-progress-row">
+            <span class="mp-time" id="mp-time-current">0:00</span>
+            <input type="range" class="mp-progress-bar" id="mp-progress" min="0" max="1000" value="0">
+            <span class="mp-time" id="mp-time-total">0:00</span>
+          </div>
+          <div class="mp-controls">
             <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
+            <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
+            <button class="mp-play-btn" id="music-play-pause" title="Play/Pause">&#9654;</button>
+            <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
+            <button class="btn btn-sm" id="music-repeat" title="Repeat">&#8635;</button>
           </div>
-          <div class="music-compact-info" id="music-now-playing">
-            <div class="music-track-title">No track selected</div>
-            <div class="music-track-composer"></div>
-          </div>
-          <div class="music-compact-vol">
-            <input type="range" id="music-volume" min="0" max="100" value="30" class="music-volume-slider" title="Volume">
+          <div class="mp-volume-row">
+            <span class="music-vol-icon">&#128264;</span>
+            <input type="range" id="music-volume" min="0" max="100" value="30" class="mp-volume-slider">
+            <span class="music-vol-icon">&#128266;</span>
           </div>
         </div>
+        <!-- Composer Filter Chips -->
+        <div class="mp-composer-chips" id="composer-picker-list"></div>
+        <!-- Favorite Row -->
         <div class="music-favorite-row hidden" id="music-favorite-row">
           <span class="music-fav-label">&#9733; <strong id="music-fav-name"></strong></span>
           <button class="btn btn-small btn-secondary" id="music-clear-favorite">Clear</button>
         </div>
-        <div class="composer-picker-layout">
-          <div class="composer-picker-list" id="composer-picker-list"></div>
-          <div class="composer-picker-detail" id="composer-picker-detail"></div>
-        </div>
+        <!-- Track Queue -->
+        <div class="mp-queue" id="composer-picker-detail"></div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="close-music">Close</button>
         </div>
@@ -587,17 +623,29 @@
             <span class="layout-toggle-label">Move Sounds</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-sound"><span class="toggle-slider"></span></span>
           </label>
+          <div class="settings-volume-row">
+            <span class="layout-toggle-label">Sound Effects Volume</span>
+            <div class="settings-volume-control">
+              <span class="music-vol-icon">&#128264;</span>
+              <input type="range" id="settings-sfx-volume" min="0" max="100" value="100" class="music-volume-slider">
+              <span class="music-vol-icon">&#128266;</span>
+            </div>
+          </div>
           <div class="settings-toggle-row">
-            <span class="layout-toggle-label">Voice Announcements</span>
+            <span class="layout-toggle-label">Voice Announcements <span class="label-experimental">(experimental)</span></span>
             <span style="display:flex;align-items:center;gap:6px;">
               <button class="btn btn-sm btn-secondary" id="settings-voice-test">Test</button>
               <label class="toggle-switch"><input type="checkbox" id="settings-voice"><span class="toggle-slider"></span></label>
             </span>
           </div>
-          <label class="settings-toggle-row">
-            <span class="layout-toggle-label">Background Music</span>
-            <span class="toggle-switch"><input type="checkbox" id="settings-music"><span class="toggle-slider"></span></span>
-          </label>
+          <div class="settings-volume-row">
+            <span class="layout-toggle-label">Voice Volume</span>
+            <div class="settings-volume-control">
+              <span class="music-vol-icon">&#128264;</span>
+              <input type="range" id="settings-voice-volume" min="0" max="100" value="100" class="music-volume-slider">
+              <span class="music-vol-icon">&#128266;</span>
+            </div>
+          </div>
           <div class="settings-volume-row">
             <span class="layout-toggle-label">Music Volume</span>
             <div class="settings-volume-control">
@@ -1106,6 +1154,15 @@
 
         <!-- Moves Tab -->
         <div class="panel-content" id="tab-moves">
+          <!-- Opening Training Bar -->
+          <div class="opening-training-bar hidden" id="opening-training-bar">
+            <div class="ot-title" id="ot-title"></div>
+            <div class="ot-actions">
+              <button class="btn btn-sm" id="ot-practice">Practice This Opening</button>
+              <button class="btn btn-sm" id="ot-play">Play From Here</button>
+              <button class="btn btn-sm btn-secondary" id="ot-exit">Exit Training</button>
+            </div>
+          </div>
           <!-- Move History -->
           <div class="move-history-container">
             <div id="move-history" class="move-history"></div>

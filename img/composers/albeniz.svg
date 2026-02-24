@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Body -->
+  <rect x="31" y="52" width="18" height="14" rx="2" fill="#e0d5c7"/>
+  <path d="M20 80 Q40 66 60 80" fill="#3a2a2a"/>
+  <path d="M24 68 L33 56 L33 68 Z" fill="#3a2a2a"/>
+  <path d="M56 68 L47 56 L47 68 Z" fill="#3a2a2a"/>
+  <!-- Bow tie -->
+  <path d="M36 57 L40 59 L44 57 L40 61 Z" fill="#5a2a2a"/>
+  <!-- Face — round, expressive -->
+  <path d="M26 40 Q26 20 40 17 Q54 20 54 40 L52 50 Q48 56 40 56 Q32 56 28 50 Z" fill="#e0d5c7"/>
+  <!-- Dark hair — thick, wavy -->
+  <path d="M26 34 Q24 14 40 10 Q56 14 54 34 Q53 17 40 13 Q27 17 26 34Z" fill="#2a1a0a"/>
+  <!-- Slight waves -->
+  <path d="M28 22 Q30 18 34 20" fill="none" stroke="#3a2a1a" stroke-width="0.7"/>
+  <path d="M46 20 Q50 18 52 22" fill="none" stroke="#3a2a1a" stroke-width="0.7"/>
+  <!-- Beard and mustache — full -->
+  <path d="M30 46 Q32 42 40 44 Q48 42 50 46 Q50 52 46 54 Q40 56 34 54 Q30 52 30 46Z" fill="#2a1a0a"/>
+  <!-- Mustache -->
+  <path d="M32 44 Q36 42 40 44 Q44 42 48 44" fill="#2a1a0a" stroke="#1a0a00" stroke-width="0.5"/>
+  <!-- Eyes — dark, passionate -->
+  <ellipse cx="34" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.8" fill="#2a1a0a"/>
+  <circle cx="46" cy="34" r="1.8" fill="#2a1a0a"/>
+  <circle cx="34" cy="34" r="1" fill="#0a0a0a"/>
+  <circle cx="46" cy="34" r="1" fill="#0a0a0a"/>
+  <!-- Thick eyebrows -->
+  <path d="M28 30 Q34 27.5 38 30" fill="none" stroke="#2a1a0a" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M42 30 Q46 27.5 52 30" fill="none" stroke="#2a1a0a" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="36" x2="40" y2="42" stroke="#c4b9ac" stroke-width="1" stroke-linecap="round"/>
+  <path d="M37 42 Q40 44 43 42" fill="none" stroke="#c4b9ac" stroke-width="0.7"/>
+  <!-- Ears -->
+  <ellipse cx="24" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="56" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

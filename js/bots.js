@@ -635,6 +635,295 @@ export const BOT_PERSONALITIES = [
     searchDepth: 20,
     moveTime: null,
   },
+  {
+    id: 'spassky',
+    name: 'Boris Spassky',
+    subtitle: 'The Creative Champion',
+    tier: 'grandmaster',
+    peakElo: 2690,
+    stockfishElo: 1600,
+    portrait: 'img/gm/spassky.svg',
+    bio: {
+      born: '1937, Leningrad, USSR',
+      died: '2023',
+      worldChampion: '1969\u20131972',
+      summary: 'The 10th World Chess Champion. A versatile and creative player who could adapt to any style. Best remembered for his 1972 World Championship match against Bobby Fischer in Reykjavik \u2014 "The Match of the Century" \u2014 which captivated the world during the Cold War.',
+      playingStyle: 'Universal player with a creative flair who felt equally comfortable in sharp tactical battles and quiet positional maneuvering. Combined natural talent with a warm, sportsmanlike temperament. Excelled at finding unexpected resources in all types of positions.'
+    },
+    favoriteOpenings: [
+      { name: "King's Gambit", eco: 'C30', asColor: 'w' },
+      { name: 'Ruy Lopez (Closed)', eco: 'C84', asColor: 'w' },
+      { name: "King's Indian Defense", eco: 'E60', asColor: 'b' },
+      { name: 'Tarrasch Defense', eco: 'D32', asColor: 'b' },
+    ],
+    famousGames: [
+      { name: 'Spassky vs Fischer, 1972 WCh Game 6', year: 1972, description: 'The legendary match game where Fischer played 1.c4 for the first time; Spassky applauded' },
+      { name: 'Spassky vs Bronstein, USSR Ch 1960', year: 1960, description: 'Beautiful King\u2019s Gambit miniature showcasing Spassky\u2019s romantic attacking style' },
+      { name: 'Spassky vs Petrosian, 1969 WCh Game 19', year: 1969, description: 'Decisive game in the world championship match that won him the title' },
+    ],
+    openingLines: {
+      white: [
+        { moves: ['e4'], weight: 70 },
+        { moves: ['d4'], weight: 30 },
+      ],
+      black: {
+        'e4': [
+          { moves: ['e5'], weight: 50 },
+          { moves: ['c5'], weight: 30 },
+          { moves: ['e6'], weight: 20 },
+        ],
+        'd4': [
+          { moves: ['Nf6'], weight: 60 },
+          { moves: ['d5'], weight: 40 },
+        ]
+      }
+    },
+    styles: { material: 5, positional: 6, aggression: 7, defense: 5, kingSafety: 5, pawnStructure: 5, pieceActivity: 7, tactical: 7, endgame: 6, drawContempt: 7 },
+    uci: { 'Skill Level': 8, 'Contempt': 50 },
+    searchDepth: 10,
+    moveTime: null,
+  },
+  {
+    id: 'lasker',
+    name: 'Emanuel Lasker',
+    subtitle: 'The Philosopher Champion',
+    tier: 'grandmaster',
+    peakElo: 2720,
+    stockfishElo: 1600,
+    portrait: 'img/gm/lasker.svg',
+    bio: {
+      born: '1868, Berlinchen, Germany',
+      died: '1941',
+      worldChampion: '1894\u20131921',
+      summary: 'The 2nd World Chess Champion, holding the title for 27 years \u2014 the longest reign in history. Also a distinguished mathematician and philosopher. Fled Nazi Germany in 1933 and spent his final years in New York.',
+      playingStyle: 'A profoundly pragmatic and psychologically astute player who tailored his approach to exploit each opponent\u2019s specific weaknesses. Deliberately chose positions that were uncomfortable for his adversary rather than objectively best. Possessed remarkable resilience, frequently saving difficult positions.'
+    },
+    favoriteOpenings: [
+      { name: 'Ruy Lopez', eco: 'C60', asColor: 'w' },
+      { name: "Queen's Gambit Declined", eco: 'D30', asColor: 'b' },
+      { name: 'French Defense', eco: 'C00', asColor: 'b' },
+      { name: "Queen's Gambit", eco: 'D06', asColor: 'w' },
+    ],
+    famousGames: [
+      { name: 'Lasker vs Capablanca, St Petersburg 1914', year: 1914, description: 'Defeated Capablanca in their only decisive classical game before the 1921 title match' },
+      { name: 'Lasker vs Steinitz, 1894 WCh', year: 1894, description: 'Won the world championship at age 25 by defeating the aging Steinitz decisively' },
+      { name: 'Lasker vs Napier, Cambridge Springs 1904', year: 1904, description: 'Spectacular combination with a famous queen sacrifice' },
+    ],
+    openingLines: {
+      white: [
+        { moves: ['d4'], weight: 50 },
+        { moves: ['e4'], weight: 50 },
+      ],
+      black: {
+        'e4': [
+          { moves: ['e5'], weight: 55 },
+          { moves: ['e6'], weight: 30 },
+          { moves: ['c5'], weight: 15 },
+        ],
+        'd4': [
+          { moves: ['d5'], weight: 65 },
+          { moves: ['Nf6'], weight: 35 },
+        ]
+      }
+    },
+    styles: { material: 6, positional: 7, aggression: 5, defense: 7, kingSafety: 6, pawnStructure: 6, pieceActivity: 7, tactical: 7, endgame: 9, drawContempt: 7 },
+    uci: { 'Skill Level': 8, 'Contempt': 30 },
+    searchDepth: 10,
+    moveTime: null,
+  },
+  {
+    id: 'steinitz',
+    name: 'Wilhelm Steinitz',
+    subtitle: 'The Father of Modern Chess',
+    tier: 'grandmaster',
+    peakElo: 2600,
+    stockfishElo: 1600,
+    portrait: 'img/gm/steinitz.svg',
+    bio: {
+      born: '1836, Prague, Austrian Empire',
+      died: '1900',
+      worldChampion: '1886\u20131894',
+      summary: 'The 1st official World Chess Champion. Revolutionized chess by developing the principles of positional play, replacing the romantic attacking style that dominated 19th-century chess. His theoretical contributions laid the foundation for modern chess strategy.',
+      playingStyle: 'Pioneer of strategic, positional chess who proved that sound positional play trumps speculative attacks. Advocated accumulating small advantages before launching an attack. In his younger years was a sharp attacker, but later became the architect of closed, maneuvering play.'
+    },
+    favoriteOpenings: [
+      { name: 'Vienna Game', eco: 'C25', asColor: 'w' },
+      { name: 'Ruy Lopez (Steinitz Def.)', eco: 'C62', asColor: 'b' },
+      { name: "Queen's Gambit", eco: 'D06', asColor: 'w' },
+      { name: 'French Defense', eco: 'C00', asColor: 'b' },
+    ],
+    famousGames: [
+      { name: 'Steinitz vs Zukertort, 1886 WCh', year: 1886, description: 'First official World Championship match in history, which Steinitz won decisively' },
+      { name: 'Steinitz vs von Bardeleben, Hastings 1895', year: 1895, description: 'One of the most brilliant combinations in chess history; von Bardeleben left without resigning' },
+      { name: 'Steinitz vs Chigorin, 1892 WCh', year: 1892, description: 'Defended his title by demonstrating positional superiority over romantic play' },
+    ],
+    openingLines: {
+      white: [
+        { moves: ['e4'], weight: 60 },
+        { moves: ['d4'], weight: 40 },
+      ],
+      black: {
+        'e4': [
+          { moves: ['e5'], weight: 65 },
+          { moves: ['e6'], weight: 25 },
+          { moves: ['c5'], weight: 10 },
+        ],
+        'd4': [
+          { moves: ['d5'], weight: 70 },
+          { moves: ['Nf6'], weight: 30 },
+        ]
+      }
+    },
+    styles: { material: 7, positional: 9, aggression: 3, defense: 8, kingSafety: 7, pawnStructure: 8, pieceActivity: 5, tactical: 5, endgame: 7, drawContempt: 5 },
+    uci: { 'Skill Level': 8, 'Contempt': -20 },
+    searchDepth: 10,
+    moveTime: null,
+  },
+  {
+    id: 'kramnik',
+    name: 'Vladimir Kramnik',
+    subtitle: 'The Berlin Wall',
+    tier: 'grandmaster',
+    peakElo: 2817,
+    stockfishElo: 1600,
+    portrait: 'img/gm/kramnik.svg',
+    bio: {
+      born: '1975, Tuapse, Russia',
+      died: null,
+      worldChampion: '2000\u20132007',
+      summary: 'The 14th World Chess Champion. Dethroned Garry Kasparov in 2000 without losing a single game. Revived the Berlin Defense in the Ruy Lopez, turning it into a major weapon at the highest level. A student of Botvinnik\u2019s chess school.',
+      playingStyle: 'Deep positional player with exceptional endgame technique and an unbreakable defensive style. Famous for his ability to neutralize aggressive opponents and grind out wins from minimal advantages. Combined strategic depth with precise calculation.'
+    },
+    favoriteOpenings: [
+      { name: 'Ruy Lopez / Berlin', eco: 'C65', asColor: 'b' },
+      { name: 'Catalan Opening', eco: 'E00', asColor: 'w' },
+      { name: 'Petroff Defense', eco: 'C42', asColor: 'b' },
+      { name: "Queen's Gambit", eco: 'D06', asColor: 'w' },
+    ],
+    famousGames: [
+      { name: 'Kramnik vs Kasparov, 2000 WCh Game 2', year: 2000, description: 'The Berlin Wall game that shocked the chess world and neutralized Kasparov\u2019s preparation' },
+      { name: 'Kramnik vs Topalov, 2006 WCh Game 10', year: 2006, description: 'Critical game in a controversial match that reunified the world title' },
+      { name: 'Kramnik vs Aronian, Candidates 2018', year: 2018, description: 'Classic Kramnik positional masterpiece in his final Candidates tournament' },
+    ],
+    openingLines: {
+      white: [
+        { moves: ['d4'], weight: 55 },
+        { moves: ['Nf3'], weight: 25 },
+        { moves: ['e4'], weight: 20 },
+      ],
+      black: {
+        'e4': [
+          { moves: ['e5'], weight: 60 },
+          { moves: ['c5'], weight: 25 },
+          { moves: ['e6'], weight: 15 },
+        ],
+        'd4': [
+          { moves: ['Nf6'], weight: 55 },
+          { moves: ['d5'], weight: 45 },
+        ]
+      }
+    },
+    styles: { material: 6, positional: 9, aggression: 3, defense: 9, kingSafety: 8, pawnStructure: 9, pieceActivity: 7, tactical: 6, endgame: 9, drawContempt: 4 },
+    uci: { 'Skill Level': 8, 'Contempt': -30 },
+    searchDepth: 10,
+    moveTime: null,
+  },
+  {
+    id: 'morphy',
+    name: 'Paul Morphy',
+    subtitle: 'The Pride and Sorrow of Chess',
+    tier: 'grandmaster',
+    peakElo: 2690,
+    stockfishElo: 1600,
+    portrait: 'img/gm/morphy.svg',
+    bio: {
+      born: '1837, New Orleans, USA',
+      died: '1884',
+      summary: 'Widely regarded as the greatest natural chess talent in history. Dominated every opponent he faced during his brief career (1857\u20131859), defeating the strongest European masters with ease. Retired from chess at just 22 and never returned to competitive play.',
+      playingStyle: 'Breathtaking attacking player who was decades ahead of his time. Emphasized rapid piece development, open lines, and initiative \u2014 principles that would only become standard much later. His games remain models of clarity and elegance in open positions.'
+    },
+    favoriteOpenings: [
+      { name: "King's Gambit", eco: 'C30', asColor: 'w' },
+      { name: 'Evans Gambit', eco: 'C51', asColor: 'w' },
+      { name: 'Philidor Defense', eco: 'C41', asColor: 'b' },
+      { name: 'Ruy Lopez', eco: 'C60', asColor: 'w' },
+    ],
+    famousGames: [
+      { name: 'Morphy vs Duke of Brunswick & Count Isouard, Paris 1858', year: 1858, description: 'The most famous chess game ever played \u2014 a brilliant opera box miniature' },
+      { name: 'Paulsen vs Morphy, New York 1857', year: 1857, description: 'Stunning queen sacrifice and mating attack at the First American Chess Congress' },
+      { name: 'Morphy vs Anderssen, Paris 1858', year: 1858, description: 'Victory over the strongest European player of the era, establishing Morphy\u2019s supremacy' },
+    ],
+    openingLines: {
+      white: [
+        { moves: ['e4'], weight: 95 },
+        { moves: ['d4'], weight: 5 },
+      ],
+      black: {
+        'e4': [
+          { moves: ['e5'], weight: 80 },
+          { moves: ['c5'], weight: 15 },
+          { moves: ['e6'], weight: 5 },
+        ],
+        'd4': [
+          { moves: ['d5'], weight: 60 },
+          { moves: ['Nf6'], weight: 40 },
+        ]
+      }
+    },
+    styles: { material: 4, positional: 5, aggression: 9, defense: 3, kingSafety: 4, pawnStructure: 4, pieceActivity: 10, tactical: 9, endgame: 5, drawContempt: 10 },
+    uci: { 'Skill Level': 8, 'Contempt': 80 },
+    searchDepth: 10,
+    moveTime: null,
+  },
+  {
+    id: 'smyslov',
+    name: 'Vasily Smyslov',
+    subtitle: 'The Harmonist',
+    tier: 'grandmaster',
+    peakElo: 2620,
+    stockfishElo: 1600,
+    portrait: 'img/gm/smyslov.svg',
+    bio: {
+      born: '1921, Moscow, USSR',
+      died: '2010',
+      worldChampion: '1957\u20131958',
+      summary: 'The 7th World Chess Champion. Also a talented operatic baritone who nearly pursued a career in music. Remained competitive at the highest level for decades, reaching the Candidates final at age 62. A true artist of the chessboard.',
+      playingStyle: 'Smooth, harmonious positional player with supreme endgame technique. Possessed an extraordinary intuitive feel for piece placement and coordination. His moves seemed effortless and natural, guided by a deep sense of harmony rather than brute calculation.'
+    },
+    favoriteOpenings: [
+      { name: 'Ruy Lopez', eco: 'C60', asColor: 'w' },
+      { name: "English Opening", eco: 'A10', asColor: 'w' },
+      { name: "Grunfeld Defense", eco: 'D70', asColor: 'b' },
+      { name: 'Slav Defense', eco: 'D10', asColor: 'b' },
+    ],
+    famousGames: [
+      { name: 'Smyslov vs Botvinnik, 1957 WCh Game 10', year: 1957, description: 'Superb endgame technique in a critical game of the title-winning match' },
+      { name: 'Smyslov vs Ribli, Candidates 1983', year: 1983, description: 'At age 62, outplayed a top GM to reach the Candidates final' },
+      { name: 'Smyslov vs Reshevsky, Zurich 1953', year: 1953, description: 'A model game of smooth positional play and endgame conversion' },
+    ],
+    openingLines: {
+      white: [
+        { moves: ['e4'], weight: 45 },
+        { moves: ['d4'], weight: 35 },
+        { moves: ['c4'], weight: 20 },
+      ],
+      black: {
+        'e4': [
+          { moves: ['e5'], weight: 50 },
+          { moves: ['c5'], weight: 30 },
+          { moves: ['e6'], weight: 20 },
+        ],
+        'd4': [
+          { moves: ['Nf6'], weight: 55 },
+          { moves: ['d5'], weight: 45 },
+        ]
+      }
+    },
+    styles: { material: 6, positional: 8, aggression: 3, defense: 7, kingSafety: 7, pawnStructure: 7, pieceActivity: 8, tactical: 5, endgame: 10, drawContempt: 4 },
+    uci: { 'Skill Level': 8, 'Contempt': -10 },
+    searchDepth: 10,
+    moveTime: null,
+  },
   // === Tier 3: Chess Machines ===
   {
     id: 'komodo',

@@ -38,9 +38,17 @@ export class Game {
     this.botId = options.botId || null;
     this.timeControl = options.time || 0;
     this.increment = options.increment || 0;
+    this.delayType = options.delayType || 'fischer'; // 'fischer' | 'bronstein' | 'none'
     this.rated = options.rated || false;
     this.gameOver = false;
     this.replayMode = false;
+
+    // Multi-period time control: [{ time, moves }, { time, moves: 0 }]
+    this.timePeriods = options.timePeriods || null;
+    this.currentPeriod = { w: 0, b: 0 }; // current period index per color
+
+    // Track move start time for Bronstein delay
+    this._moveStartTime = Date.now();
 
     this.chess.reset();
     this.moveHistory = [];
@@ -49,7 +57,10 @@ export class Game {
 
     // Timers
     this.stopTimer();
-    if (this.timeControl > 0) {
+    if (this.timePeriods) {
+      // Use first period's time
+      this.timers = { w: this.timePeriods[0].time, b: this.timePeriods[0].time };
+    } else if (this.timeControl > 0) {
       this.timers = { w: this.timeControl, b: this.timeControl };
     } else {
       this.timers = { w: 0, b: 0 };
@@ -199,19 +210,45 @@ export class Game {
 
   // Timer management
   handleTimer() {
-    if (this.timeControl <= 0) return;
+    if (this.timeControl <= 0 && !this.timePeriods) return;
 
     this.stopTimer();
     if (this.gameOver) return;
 
+    // Check for period transition (multi-period time controls)
+    if (this.timePeriods && this.moveHistory.length > 0) {
+      const lastMoveColor = this.moveHistory[this.moveHistory.length - 1].color;
+      const periodIdx = this.currentPeriod[lastMoveColor];
+      const period = this.timePeriods[periodIdx];
+      if (period && period.moves > 0) {
+        // Count moves by this color
+        const colorMoves = this.moveHistory.filter(m => m.color === lastMoveColor).length;
+        if (colorMoves >= period.moves && periodIdx + 1 < this.timePeriods.length) {
+          // Advance to next period — add its time to remaining
+          this.currentPeriod[lastMoveColor] = periodIdx + 1;
+          this.timers[lastMoveColor] += this.timePeriods[periodIdx + 1].time;
+        }
+      }
+    }
+
     // Add increment to the player who just moved
     if (this.increment > 0 && this.moveHistory.length > 0) {
       const lastMoveColor = this.moveHistory[this.moveHistory.length - 1].color;
-      this.timers[lastMoveColor] += this.increment;
+      if (this.delayType === 'bronstein') {
+        // Bronstein delay: add back min(increment, thinkingTime)
+        const thinkingTime = Math.round((Date.now() - (this._moveStartTime || Date.now())) / 1000);
+        this.timers[lastMoveColor] += Math.min(this.increment, thinkingTime);
+      } else if (this.delayType !== 'none') {
+        // Fischer increment: add full increment
+        this.timers[lastMoveColor] += this.increment;
+      }
       if (this.onTimerUpdate) {
         this.onTimerUpdate(this.timers);
       }
     }
+
+    // Record move start time for next move (Bronstein delay)
+    this._moveStartTime = Date.now();
 
     this.timerInterval = setInterval(() => {
       const turn = this.chess.turn();

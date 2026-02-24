@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Body -->
+  <rect x="31" y="52" width="18" height="14" rx="2" fill="#e0d5c7"/>
+  <path d="M20 80 Q40 66 60 80" fill="#4a5a4a"/>
+  <path d="M24 68 L33 56 L33 68 Z" fill="#4a5a4a"/>
+  <path d="M56 68 L47 56 L47 68 Z" fill="#4a5a4a"/>
+  <!-- Collar / cravat -->
+  <path d="M36 57 L40 63 L44 57" fill="#e8e2da" stroke="#d0c5b7" stroke-width="0.5"/>
+  <!-- Face — elegant Italian features -->
+  <path d="M27 39 Q27 20 40 17 Q53 20 53 39 L51 49 Q47 55 40 55 Q33 55 29 49 Z" fill="#e0d5c7"/>
+  <!-- Classical wig — neat, tied back -->
+  <path d="M27 34 Q25 16 40 12 Q55 16 53 34 Q52 18 40 15 Q28 18 27 34Z" fill="#8a7a6a"/>
+  <!-- Small side curls -->
+  <path d="M25 31 Q22 33 23 36 Q24 38 25 37 Z" fill="#8a7a6a"/>
+  <path d="M55 31 Q58 33 57 36 Q56 38 55 37 Z" fill="#8a7a6a"/>
+  <!-- Eyes — warm, pedagogical -->
+  <ellipse cx="34" cy="34" rx="3" ry="2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3" ry="2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.7" fill="#5a4a2a"/>
+  <circle cx="46" cy="34" r="1.7" fill="#5a4a2a"/>
+  <circle cx="34" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="0.9" fill="#1a1715"/>
+  <!-- Eyebrows -->
+  <path d="M29 30 Q34 29 38 30.5" fill="none" stroke="#5a4a3a" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M42 30.5 Q46 29 51 30" fill="none" stroke="#5a4a3a" stroke-width="1.1" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="36" x2="40" y2="42" stroke="#c4b9ac" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M38 42 Q40 43.5 42 42" fill="none" stroke="#c4b9ac" stroke-width="0.6"/>
+  <!-- Gentle smile -->
+  <path d="M35 47 Q40 49.5 45 47" fill="none" stroke="#b09e8e" stroke-width="1.1" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="25" cy="36" rx="2.5" ry="3.5" fill="#d4c9bb"/>
+  <ellipse cx="55" cy="36" rx="2.5" ry="3.5" fill="#d4c9bb"/>
+</svg>

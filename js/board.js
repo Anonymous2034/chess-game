@@ -13,6 +13,10 @@ export class Board {
     this.dragStartSquare = null;
     this.interactive = true;
 
+    // Pre-move state
+    this.premove = null;         // { from, to, promotion } or null
+    this.premoveAllowed = false; // true when engine is thinking
+
     // Promotion state
     this.pendingPromotion = null;
     this.promotionResolve = null;
@@ -96,7 +100,7 @@ export class Board {
   applyHighlights() {
     // Clear all highlights
     Object.values(this.squares).forEach(sq => {
-      sq.classList.remove('highlighted', 'selected', 'check');
+      sq.classList.remove('highlighted', 'selected', 'check', 'premove');
       const dot = sq.querySelector('.legal-dot, .legal-capture');
       if (dot) dot.remove();
     });
@@ -148,10 +152,25 @@ export class Board {
         }
       }
     }
+
+    // Pre-move highlight
+    if (this.premove) {
+      const fromDiv = this.squares[this.premove.from];
+      const toDiv = this.squares[this.premove.to];
+      if (fromDiv) fromDiv.classList.add('premove');
+      if (toDiv) toDiv.classList.add('premove');
+    }
   }
 
   onSquareClick(sq) {
-    if (!this.interactive) return;
+    // Allow pre-move interaction when engine is thinking
+    if (!this.interactive && !this.premoveAllowed) return;
+
+    // If engine is thinking, handle pre-move input
+    if (!this.interactive && this.premoveAllowed) {
+      this._handlePremoveClick(sq);
+      return;
+    }
 
     if (this.selectedSquare) {
       // Try to make a move
@@ -208,6 +227,65 @@ export class Board {
   clearSelection() {
     this.selectedSquare = null;
     this.legalMoves = [];
+    this.applyHighlights();
+  }
+
+  // --- Pre-move helpers ---
+
+  _handlePremoveClick(sq) {
+    if (this.selectedSquare) {
+      // Second click — set pre-move target
+      const piece = this.game.chess.get(this.selectedSquare);
+      if (piece && piece.color === this.game.playerColor) {
+        // Check if clicking same square → cancel
+        if (sq === this.selectedSquare) {
+          this.clearPremove();
+          this.selectedSquare = null;
+          this.legalMoves = [];
+          this.applyHighlights();
+          return;
+        }
+        // Check if clicking another own piece → reselect
+        const target = this.game.chess.get(sq);
+        if (target && target.color === this.game.playerColor) {
+          this._selectPremoveSquare(sq);
+          return;
+        }
+        // Set the pre-move
+        const isPromotion = piece.type === 'p' &&
+          ((piece.color === 'w' && sq[1] === '8') || (piece.color === 'b' && sq[1] === '1'));
+        this.setPremove(this.selectedSquare, sq, isPromotion ? 'q' : undefined);
+        this.selectedSquare = null;
+        this.legalMoves = [];
+        this.applyHighlights();
+      }
+    } else {
+      // First click — select own piece for pre-move
+      this._selectPremoveSquare(sq);
+    }
+  }
+
+  _selectPremoveSquare(sq) {
+    const piece = this.game.chess.get(sq);
+    if (piece && piece.color === this.game.playerColor) {
+      this.selectedSquare = sq;
+      this.legalMoves = []; // Don't show legal moves for pre-moves
+      this.clearPremove();  // Clear any existing pre-move
+      this.applyHighlights();
+    } else {
+      this.selectedSquare = null;
+      this.legalMoves = [];
+      this.applyHighlights();
+    }
+  }
+
+  setPremove(from, to, promotion) {
+    this.premove = { from, to, promotion };
+    this.applyHighlights();
+  }
+
+  clearPremove() {
+    this.premove = null;
     this.applyHighlights();
   }
 
@@ -276,7 +354,7 @@ export class Board {
     };
 
     const onPointerDown = (e) => {
-      if (!this.interactive) return;
+      if (!this.interactive && !this.premoveAllowed) return;
 
       // Always clean up any previous drag first
       cleanupDrag();
@@ -286,10 +364,16 @@ export class Board {
 
       const sq = squareDiv.dataset.square;
       const piece = this.game.chess.get(sq);
-      if (!piece || piece.color !== this.game.chess.turn() || !this.game.canPlayerMove(piece.color)) return;
 
-      // Select the square to show legal moves
-      this.selectSquare(sq);
+      // Pre-move drag: allow dragging own pieces while engine thinks
+      if (!this.interactive && this.premoveAllowed) {
+        if (!piece || piece.color !== this.game.playerColor) return;
+        this._selectPremoveSquare(sq);
+      } else {
+        if (!piece || piece.color !== this.game.chess.turn() || !this.game.canPlayerMove(piece.color)) return;
+        // Select the square to show legal moves
+        this.selectSquare(sq);
+      }
 
       const pieceImg = squareDiv.querySelector('.piece');
       if (!pieceImg) return;
@@ -336,6 +420,20 @@ export class Board {
       if (squareDiv && savedStart) {
         const toSq = squareDiv.dataset.square;
         if (toSq !== savedStart) {
+          // Pre-move drag drop
+          if (!this.interactive && this.premoveAllowed) {
+            const piece = this.game.chess.get(savedStart);
+            if (piece && piece.color === this.game.playerColor) {
+              const isPromotion = piece.type === 'p' &&
+                ((piece.color === 'w' && toSq[1] === '8') || (piece.color === 'b' && toSq[1] === '1'));
+              this.setPremove(savedStart, toSq, isPromotion ? 'q' : undefined);
+              this.selectedSquare = null;
+              this.legalMoves = [];
+              this.render();
+              return;
+            }
+          }
+          // Normal move
           const legalMove = this.legalMoves.find(m => m.to === toSq);
           if (legalMove) {
             this.tryMove(savedStart, toSq);
@@ -382,6 +480,14 @@ export class Board {
 
   setInteractive(interactive) {
     this.interactive = interactive;
+    // When board becomes interactive again, pre-move mode ends
+    if (interactive) {
+      this.premoveAllowed = false;
+    }
+  }
+
+  setPremoveAllowed(allowed) {
+    this.premoveAllowed = allowed;
   }
 
   setLastMove(move) {

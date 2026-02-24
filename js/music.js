@@ -1419,6 +1419,128 @@ export const PLAYLIST = [
     composer: "Modest Mussorgsky",
     duration: "11:07",
     url: "https://upload.wikimedia.org/wikipedia/commons/5/53/Modest_Mussorgsky_-_Night_on_Bald_Mountain_%28orchestrated_by_Nikolai_Rimsky-Korsakov%29.ogg"
+  },
+
+  // === Georg Philipp Telemann ===
+  {
+    id: "telemann-tafelmusik-allegro",
+    title: "Tafelmusik — Overture-Suite in E minor: Allegro",
+    composer: "Georg Philipp Telemann",
+    duration: "2:30",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/55/Georg_Philipp_Telemann_-_Tafelmusik_-_Production_2_-_Ouverture-Suite_in_D_major_TWV_55_D1_-_I._Ouverture.ogg"
+  },
+  {
+    id: "telemann-viola-concerto-1",
+    title: "Viola Concerto in G — 1st Movement",
+    composer: "Georg Philipp Telemann",
+    duration: "3:45",
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Telemann_-_Viola_Concerto_in_G_Major_TWV_51-G9_-_1._Largo.ogg"
+  },
+  {
+    id: "telemann-viola-concerto-3",
+    title: "Viola Concerto in G — 3rd Movement",
+    composer: "Georg Philipp Telemann",
+    duration: "2:55",
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Telemann_-_Viola_Concerto_in_G_Major_TWV_51-G9_-_3._Andante.ogg"
+  },
+
+  // === Christoph Willibald Gluck ===
+  {
+    id: "gluck-blessed-spirits",
+    title: "Dance of the Blessed Spirits",
+    composer: "Christoph Willibald Gluck",
+    duration: "7:15",
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Gluck_-_Dance_of_the_Blessed_Spirits_%28from_Orfeo_ed_Euridice%29.ogg"
+  },
+  {
+    id: "gluck-melodie",
+    title: "Melodie from Orfeo ed Euridice",
+    composer: "Christoph Willibald Gluck",
+    duration: "4:50",
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/67/Gluck_-_Orfeo_ed_Euridice_-_Melodie.ogg"
+  },
+  {
+    id: "gluck-iphigenie-overture",
+    title: "Iphigenie en Aulide — Overture",
+    composer: "Christoph Willibald Gluck",
+    duration: "6:30",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/55/Gluck_Iphig%C3%A9nie_en_Aulide_Overture.ogg"
+  },
+
+  // === Muzio Clementi ===
+  {
+    id: "clementi-sonatina-36-1-1",
+    title: "Sonatina Op. 36 No. 1 — Allegro",
+    composer: "Muzio Clementi",
+    duration: "1:30",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/db/Clementi_-_Sonatina_Op._36_No._1_-_I._Allegro.ogg"
+  },
+  {
+    id: "clementi-sonatina-36-3-1",
+    title: "Sonatina Op. 36 No. 3 — Spiritoso",
+    composer: "Muzio Clementi",
+    duration: "2:30",
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/38/Clementi_-_Sonatina_Op._36_No._3_in_C_major_-_I._Spiritoso.ogg"
+  },
+  {
+    id: "clementi-sonatina-36-4-1",
+    title: "Sonatina Op. 36 No. 4 — Con spirito",
+    composer: "Muzio Clementi",
+    duration: "3:00",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Clementi_-_Sonatina_Op._36_No._4_-_Allegro_con_spirito.ogg"
+  },
+
+  // === Gabriel Faure ===
+  {
+    id: "faure-pavane",
+    title: "Pavane, Op. 50",
+    composer: "Gabriel Faure",
+    duration: "6:02",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Faur%C3%A9_-_Pavane%2C_Op._50.ogg"
+  },
+  {
+    id: "faure-sicilienne",
+    title: "Sicilienne, Op. 78",
+    composer: "Gabriel Faure",
+    duration: "3:45",
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/69/Faur%C3%A9_-_Sicilienne%2C_Op._78.ogg"
+  },
+  {
+    id: "faure-apres-un-reve",
+    title: "Apres un reve",
+    composer: "Gabriel Faure",
+    duration: "2:55",
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/46/Apr%C3%A8s_un_R%C3%AAve.ogg"
+  },
+  {
+    id: "faure-berceuse",
+    title: "Berceuse, Op. 16",
+    composer: "Gabriel Faure",
+    duration: "4:00",
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/00/Faure_Berceuse.ogg"
+  },
+
+  // === Isaac Albeniz ===
+  {
+    id: "albeniz-asturias",
+    title: "Asturias (Leyenda)",
+    composer: "Isaac Albeniz",
+    duration: "6:15",
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Isaac_Alb%C3%A9niz_-_Suite_espa%C3%B1ola_No._1_-_5._Asturias_%28Leyenda%29.ogg"
+  },
+  {
+    id: "albeniz-granada",
+    title: "Suite Espanola — Granada",
+    composer: "Isaac Albeniz",
+    duration: "4:30",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Isaac_Alb%C3%A9niz_-_Suite_espa%C3%B1ola_No._1_-_1._Granada_%28Serenata%29.ogg"
+  },
+  {
+    id: "albeniz-tango",
+    title: "Tango in D, Op. 165 No. 2",
+    composer: "Isaac Albeniz",
+    duration: "3:00",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a3/Tango_%28Alb%C3%A9niz%29.ogg"
   }
 ];
 
@@ -1430,6 +1552,7 @@ export class MusicPlayer {
     this.playing = false;
     this.currentIndex = 0;
     this.shuffle = false;
+    this.repeat = false;
     this.composerFilter = null; // null = all composers, string = filter by composer
     this.onStateChange = null; // callback({ playing, track })
 
@@ -1437,6 +1560,7 @@ export class MusicPlayer {
     const prefs = JSON.parse(localStorage.getItem('chess_music_prefs') || '{}');
     this.audio.volume = prefs.volume ?? 0.3;
     this.shuffle = prefs.shuffle ?? false;
+    this.repeat = prefs.repeat ?? false;
 
     // Default to Chopin if no saved preference
     if (prefs.trackIndex != null) {
@@ -1447,9 +1571,14 @@ export class MusicPlayer {
       this.composerFilter = 'Frédéric Chopin';
     }
 
-    // Auto-advance to next track when current ends
+    // Auto-advance to next track when current ends (respect repeat)
     this.audio.addEventListener('ended', () => {
-      this.next();
+      if (this.repeat) {
+        this.audio.currentTime = 0;
+        this.audio.play().catch(() => {});
+      } else {
+        this.next();
+      }
     });
 
     // Handle load errors gracefully
@@ -1566,22 +1695,44 @@ export class MusicPlayer {
     this._notify();
   }
 
+  toggleRepeat() {
+    this.repeat = !this.repeat;
+    this._savePrefs();
+    this._notify();
+  }
+
+  /** Seek to a fraction 0..1 of the current track */
+  seekTo(fraction) {
+    if (this.audio.duration) {
+      this.audio.currentTime = Math.max(0, Math.min(1, fraction)) * this.audio.duration;
+    }
+  }
+
   getProgress() {
     if (!this.audio.duration) return 0;
     return this.audio.currentTime / this.audio.duration;
+  }
+
+  /** Format seconds as m:ss */
+  formatTime(seconds) {
+    if (!seconds || !isFinite(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   _savePrefs() {
     localStorage.setItem('chess_music_prefs', JSON.stringify({
       volume: this.audio.volume,
       trackIndex: this.currentIndex,
-      shuffle: this.shuffle
+      shuffle: this.shuffle,
+      repeat: this.repeat
     }));
   }
 
   _notify() {
     if (this.onStateChange) {
-      this.onStateChange({ playing: this.playing, track: this.currentTrack, shuffle: this.shuffle });
+      this.onStateChange({ playing: this.playing, track: this.currentTrack, shuffle: this.shuffle, repeat: this.repeat });
     }
   }
 

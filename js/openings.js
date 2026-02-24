@@ -1,3 +1,49 @@
+// Opening mainlines — maps ECO codes to SAN move arrays for training mode.
+// Each entry is a standard mainline of 5-10 moves (half-moves interleaved: W B W B ...).
+export const OPENING_MAINLINES = {
+  // === A — Flank Openings ===
+  'A10': ['c4', 'e5'],                                                        // English Opening
+  'A60': ['d4', 'Nf6', 'c4', 'c5', 'd5', 'e6', 'Nc3', 'exd5', 'cxd5', 'd6'], // Modern Benoni
+
+  // === B — Semi-Open Games ===
+  'B02': ['e4', 'Nf6', 'e5', 'Nd5', 'd4', 'd6', 'Nf3', 'Bg4'],              // Alekhine's Defence
+  'B10': ['e4', 'c6', 'd4', 'd5', 'Nc3', 'dxe4', 'Nxe4', 'Bf5'],            // Caro-Kann
+  'B17': ['e4', 'c6', 'd4', 'd5', 'Nc3', 'dxe4', 'Nxe4', 'Nd7', 'Nf3', 'Ngf6', 'Nxf6+', 'Nxf6'], // Caro-Kann Karpov Var.
+  'B30': ['e4', 'c5', 'Nf3', 'Nc6', 'Nc3', 'Nf6', 'd4', 'cxd4', 'Nxd4', 'e5'], // Sicilian Sveshnikov
+  'B80': ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'e6'], // Sicilian Scheveningen
+  'B90': ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'a6'], // Sicilian Najdorf
+
+  // === C — Open Games ===
+  'C00': ['e4', 'e6', 'd4', 'd5'],                                            // French Defense
+  'C15': ['e4', 'e6', 'd4', 'd5', 'Nc3', 'Bb4', 'e5', 'c5', 'a3', 'Bxc3+', 'bxc3'], // French Winawer
+  'C25': ['e4', 'e5', 'Nc3', 'Nf6', 'f4'],                                    // Vienna Game
+  'C30': ['e4', 'e5', 'f4', 'exf4', 'Nf3', 'd6', 'd4', 'g5', 'h4', 'g4'],   // King's Gambit
+  'C41': ['e4', 'e5', 'Nf3', 'd6', 'd4', 'Nf6', 'Nc3', 'Nbd7'],             // Philidor Defense
+  'C42': ['e4', 'e5', 'Nf3', 'Nf6', 'Nxe5', 'd6', 'Nf3', 'Nxe4', 'd4', 'd5'], // Petroff Defense
+  'C44': ['e4', 'e5', 'Nf3', 'Nc6', 'd4', 'exd4', 'Nxd4'],                   // Scotch Game
+  'C47': ['e4', 'e5', 'Nf3', 'Nc6', 'Nc3', 'Nf6', 'd4', 'exd4', 'Nxd4'],    // Four Knights
+  'C51': ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5', 'b4', 'Bxb4', 'c3', 'Ba5'], // Evans Gambit
+  'C60': ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Ba4', 'Nf6', 'O-O', 'Be7'], // Ruy Lopez
+  'C62': ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'd6'],                            // Ruy Lopez Steinitz Def.
+  'C65': ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'Nf6', 'O-O', 'Nxe4', 'd4', 'Nd6', 'Bxc6', 'dxc6', 'dxe5', 'Nf5'], // Ruy Lopez Berlin
+  'C84': ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Ba4', 'Nf6', 'O-O', 'Be7', 'Re1', 'b5', 'Bb3', 'd6'], // Ruy Lopez Closed
+
+  // === D — Closed/Queen's Pawn Games ===
+  'D00': ['d4', 'd5', 'Bf4', 'Nf6', 'e3', 'e6', 'Nf3', 'c5'],               // London System
+  'D06': ['d4', 'd5', 'c4'],                                                  // Queen's Gambit
+  'D10': ['d4', 'd5', 'c4', 'c6', 'Nc3', 'Nf6', 'Nf3', 'dxc4', 'a4', 'Bf5'], // Slav Defense
+  'D30': ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O', 'Nf3', 'Nbd7'], // QGD
+  'D32': ['d4', 'd5', 'c4', 'e6', 'Nc3', 'c5', 'cxd5', 'exd5', 'Nf3', 'Nc6'], // Tarrasch Defense
+  'D69': ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O', 'Nf3', 'Nbd7', 'Rc1', 'c6', 'Bd3', 'dxc4', 'Bxc4', 'Nd5'], // QGD Capablanca
+  'D70': ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'd5', 'cxd5', 'Nxd5', 'e4', 'Nxc3', 'bxc3', 'Bg7'], // Grunfeld
+
+  // === E — Indian Defenses ===
+  'E00': ['d4', 'Nf6', 'c4', 'e6', 'g3', 'd5', 'Bg2', 'Be7', 'Nf3', 'O-O'], // Catalan Opening
+  'E12': ['d4', 'Nf6', 'c4', 'e6', 'Nf3', 'b6', 'g3', 'Bb7', 'Bg2', 'Be7'], // Queen's Indian
+  'E20': ['d4', 'Nf6', 'c4', 'e6', 'Nc3', 'Bb4', 'e3', 'O-O', 'Bd3', 'd5'], // Nimzo-Indian
+  'E60': ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'Bg7', 'e4', 'd6', 'Nf3', 'O-O'], // King's Indian
+};
+
 // Per-GM opening book system
 // Matches the current move history against a GM's preferred opening lines
 // and returns a book move if found, or null to fall back to Stockfish.
