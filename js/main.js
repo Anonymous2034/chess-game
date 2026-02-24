@@ -4674,6 +4674,10 @@ class ChessApp {
     this._setupResizeH();
     // Horizontal handle for opening explorer height
     this._setupResizeExplorer();
+    // Horizontal handle for notes textarea height
+    this._setupResizeNotes();
+    // Horizontal handle for GM coach cards height
+    this._setupResizeCoach();
     // Load saved sizes
     this._loadResizeSizes();
   }
@@ -4869,6 +4873,93 @@ class ChessApp {
     handle.addEventListener('touchstart', onStart, { passive: false });
   }
 
+  _setupResizeNotes() {
+    const handle = document.getElementById('resize-handle-notes');
+    if (!handle) return;
+
+    let startY, startH;
+    const notes = document.getElementById('move-notes');
+    if (!notes) return;
+
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = clientY - startY;
+      const newH = Math.max(40, Math.min(400, startH + dy));
+      notes.style.minHeight = newH + 'px';
+      notes.style.maxHeight = newH + 'px';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-h');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      localStorage.setItem('chess_notes_height', notes.style.minHeight);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startY = clientY;
+      startH = notes.offsetHeight;
+      document.body.classList.add('resizing', 'resizing-h');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  _setupResizeCoach() {
+    const handle = document.getElementById('resize-handle-coach');
+    if (!handle) return;
+
+    let startY, startH;
+    const cards = document.getElementById('gm-coach-cards');
+    if (!cards) return;
+
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = clientY - startY;
+      const newH = Math.max(40, Math.min(600, startH + dy));
+      cards.style.minHeight = newH + 'px';
+      cards.style.maxHeight = newH + 'px';
+      cards.style.flex = 'none';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-h');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      localStorage.setItem('chess_coach_height', cards.style.minHeight);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startY = clientY;
+      startH = cards.offsetHeight;
+      document.body.classList.add('resizing', 'resizing-h');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
   _loadResizeSizes() {
     const savedBoardSize = localStorage.getItem('chess_board_size');
     const savedPanelW = localStorage.getItem('chess_panel_width');
@@ -4902,6 +4993,23 @@ class ChessApp {
     if (savedOffset) {
       const spacer = document.getElementById('panel-offset-spacer');
       if (spacer) spacer.style.height = savedOffset;
+    }
+    const savedNotesH = localStorage.getItem('chess_notes_height');
+    if (savedNotesH) {
+      const notes = document.getElementById('move-notes');
+      if (notes) {
+        notes.style.minHeight = savedNotesH;
+        notes.style.maxHeight = savedNotesH;
+      }
+    }
+    const savedCoachH = localStorage.getItem('chess_coach_height');
+    if (savedCoachH) {
+      const cards = document.getElementById('gm-coach-cards');
+      if (cards) {
+        cards.style.minHeight = savedCoachH;
+        cards.style.maxHeight = savedCoachH;
+        cards.style.flex = 'none';
+      }
     }
   }
 
