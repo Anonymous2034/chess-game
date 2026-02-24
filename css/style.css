@@ -523,7 +523,6 @@ main {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(var(--board-size) + 100px);
   overflow: hidden;
 }
 
@@ -4980,37 +4979,35 @@ main {
 }
 
 .resize-handle-h {
-  height: 10px;
+  height: 6px;
   cursor: row-resize;
-  background: rgba(255,255,255,0.03);
+  background: transparent;
   position: relative;
   flex-shrink: 0;
   z-index: 5;
   transition: background 0.2s;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .resize-handle-h:hover,
 .resize-handle-h.active {
-  background: rgba(181,136,99,0.15);
+  background: var(--accent);
 }
 
 .resize-handle-h::after {
-  content: '\2022  \2022  \2022';
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.55rem;
-  letter-spacing: 2px;
-  color: #666;
-  line-height: 1;
+  width: 32px;
+  height: 2px;
+  background: var(--border-color);
+  border-radius: 1px;
 }
 
 .resize-handle-h:hover::after,
 .resize-handle-h.active::after {
-  color: var(--accent, #b58863);
+  background: #fff;
 }
 
 /* When resizing, prevent text selection */
