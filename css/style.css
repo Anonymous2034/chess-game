@@ -5733,33 +5733,41 @@ body.resizing-h {
 .ot-stat-pct { color: #aaa; font-size: 0.68rem; }
 .ot-stat-empty { color: #888; font-style: italic; }
 .ot-coach {
-  width: 100%;
+  background: linear-gradient(135deg, #2a3328 0%, #252e24 100%);
+  border: 1px solid #3a5a3a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 6px 0;
 }
+.ot-coach.hidden { display: none; }
 .ot-coach:empty { display: none; }
 .ot-coach-card {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-start;
-  padding: 6px 0;
 }
 .ot-coach-portrait {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 1px solid #5a7a5a;
+  border: 2px solid #5a7a5a;
   flex-shrink: 0;
 }
 .ot-coach-bubble {
-  font-size: 0.75rem;
+  flex: 1;
+  font-size: 0.78rem;
   color: #c0d8c0;
-  line-height: 1.35;
-  font-style: italic;
+  line-height: 1.4;
 }
 .ot-coach-name {
+  display: block;
   font-weight: 600;
-  font-style: normal;
   color: #d4af37;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  margin-bottom: 2px;
+}
+#ot-coach-text {
+  font-style: italic;
 }
 .ot-actions {
   display: flex;
@@ -5806,6 +5814,12 @@ body.resizing-h {
   color: #a0968a;
   text-align: center;
   margin-bottom: 16px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.mp-track-composer:hover {
+  color: var(--accent, #b58863);
+  text-decoration: underline;
 }
 
 .mp-progress-row {
@@ -5900,35 +5914,105 @@ body.resizing-h {
   cursor: pointer;
 }
 
-/* Composer Chips */
-.mp-composer-chips {
-  display: flex;
-  gap: 6px;
-  padding: 10px 12px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* Composer Section in Music Player */
+.mp-composer-section {
   border-top: 1px solid #333;
   border-bottom: 1px solid #333;
   background: #252320;
 }
-.mp-composer-chips::-webkit-scrollbar { height: 3px; }
-.mp-composer-chips::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
-
-.mp-chip {
-  padding: 4px 10px;
-  border-radius: 14px;
-  font-size: 0.72rem;
-  white-space: nowrap;
-  background: #3a3836;
-  color: #c0b8a8;
-  cursor: pointer;
-  transition: background 0.15s;
-  flex-shrink: 0;
+.mp-composer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 4px;
 }
-.mp-chip:hover { background: #4a4846; }
-.mp-chip.selected {
-  background: var(--accent, #b58863);
-  color: #fff;
+.mp-composer-label {
+  font-size: 0.7rem;
+  color: #888;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mp-composer-grid {
+  display: flex;
+  gap: 4px;
+  padding: 4px 12px 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mp-composer-grid::-webkit-scrollbar { height: 3px; }
+.mp-composer-grid::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+
+.mp-composer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  min-width: 56px;
+  border: 1px solid transparent;
+  position: relative;
+}
+.mp-composer-card:hover { background: rgba(255,255,255,0.05); }
+.mp-composer-card.selected {
+  background: rgba(181,136,99,0.15);
+  border-color: var(--accent, #b58863);
+}
+.mp-cc-portrait {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #444;
+  transition: border-color 0.15s;
+}
+.mp-composer-card.selected .mp-cc-portrait {
+  border-color: var(--accent, #b58863);
+}
+.mp-cc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #3a3836;
+  border: 2px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #c0b8a8;
+}
+.mp-composer-card.selected .mp-cc-icon {
+  border-color: var(--accent, #b58863);
+  color: var(--accent, #b58863);
+}
+.mp-cc-name {
+  font-size: 0.6rem;
+  color: #b0a898;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
+  line-height: 1.15;
+}
+.mp-composer-card.selected .mp-cc-name {
+  color: var(--accent, #b58863);
+  font-weight: 600;
+}
+.mp-cc-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.5rem;
+  background: rgba(255,255,255,0.1);
+  color: #999;
+  padding: 0 3px;
+  border-radius: 6px;
+  line-height: 1.4;
 }
 
 /* Track Queue */

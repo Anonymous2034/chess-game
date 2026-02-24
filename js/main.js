@@ -6,7 +6,7 @@ import { Notation } from './notation.js';
 import { Database } from './database.js';
 import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS } from './bots.js';
 import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
-import { OpeningBook, OPENING_MAINLINES } from './openings.js';
+import { OpeningBook, OPENING_MAINLINES, OPENING_COMMENTARY } from './openings.js';
 import { CapturedPieces } from './captured.js';
 import { GameAnalyzer } from './analysis.js';
 import { EvalGraph } from './eval-graph.js';
@@ -655,10 +655,11 @@ class ChessApp {
     // Update advisor analysis for navigated position
     this._updateAdvisorAnalysis();
 
-    // Opening training: show DB stats and trigger GM commentary during guided replay
+    // Opening training: show DB stats, GM commentary, and update buttons during guided replay
     if (this._openingTraining?.phase === 'guided') {
       this._showOpeningTrainingStats(this.chess.fen());
       this._updateOpeningTrainingCoach();
+      this._updateOpeningTrainingBar();
     }
   }
 
@@ -1560,16 +1561,17 @@ class ChessApp {
     // Wire up training bar buttons (use event delegation via IDs)
     this._wireOpeningTrainingButtons();
 
-    // Render initial coach card in training bar
+    // Show initial coach card below the moves
     const coachEl = document.getElementById('ot-coach');
     const profile = GM_COACH_PROFILES[gm.id];
     if (coachEl && profile) {
+      coachEl.classList.remove('hidden');
       coachEl.innerHTML = `
         <div class="ot-coach-card">
           <img class="ot-coach-portrait" src="${gm.portrait}" alt="${gm.name}">
           <div class="ot-coach-bubble">
             <span class="ot-coach-name">${gm.name}</span>
-            <span id="ot-coach-text">The ${opening.name} — one of my favorite openings. Let me show you the key ideas.</span>
+            <span id="ot-coach-text">Welcome to the ${opening.name}. Step through the moves and I'll explain each one.</span>
           </div>
         </div>`;
     }
@@ -1619,10 +1621,11 @@ class ChessApp {
     const continueBtn = document.getElementById('ot-continue');
 
     if (t.phase === 'guided') {
+      const atEnd = this.notation.currentIndex >= t.moves.length - 1;
       titleEl.textContent = `${t.opening.name} — Step through with ${t.gm.name}`;
       if (practiceBtn) show(practiceBtn);
-      if (playBtn) hide(playBtn);
-      if (continueBtn) hide(continueBtn);
+      if (playBtn) atEnd ? show(playBtn) : hide(playBtn);
+      if (continueBtn) atEnd ? show(continueBtn) : hide(continueBtn);
     } else if (t.phase === 'drill') {
       const drillComplete = t.currentStep >= t.moves.length;
       titleEl.textContent = `${t.opening.name} — Practice (${t.currentStep}/${t.moves.length} moves)`;
@@ -1739,7 +1742,7 @@ class ChessApp {
     }
   }
 
-  async _updateOpeningTrainingCoach() {
+  _updateOpeningTrainingCoach() {
     const t = this._openingTraining;
     if (!t) return;
     const coachEl = document.getElementById('ot-coach');
@@ -1747,58 +1750,49 @@ class ChessApp {
 
     const gm = t.gm;
     const profile = GM_COACH_PROFILES[gm.id];
-    if (!profile) return;
+    if (!profile) { coachEl.classList.add('hidden'); return; }
 
-    const fen = this.game.chess.fen();
-    // Don't comment on starting position
-    if (fen === 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') {
-      coachEl.innerHTML = '';
+    // Determine the move index to comment on
+    // In guided phase: use the notation current index
+    // In drill phase: use currentStep - 1 (last completed move)
+    let moveIndex = -1;
+    if (t.phase === 'guided') {
+      moveIndex = this.notation.currentIndex;
+    } else if (t.phase === 'drill') {
+      moveIndex = t.currentStep - 1;
+    }
+
+    // Don't show at starting position
+    if (moveIndex < 0) {
+      coachEl.classList.add('hidden');
       return;
     }
 
-    // Render mini coach card with "thinking" state
+    // Get opening-specific commentary
+    const commentary = OPENING_COMMENTARY[t.opening.eco];
+    const text = commentary && commentary[moveIndex]
+      ? commentary[moveIndex]
+      : this._getFallbackOpeningComment(t, moveIndex);
+
+    coachEl.classList.remove('hidden');
     coachEl.innerHTML = `
       <div class="ot-coach-card">
         <img class="ot-coach-portrait" src="${gm.portrait}" alt="${gm.name}">
         <div class="ot-coach-bubble">
           <span class="ot-coach-name">${gm.name}</span>
-          <span id="ot-coach-text">Analyzing\u2026</span>
+          <span id="ot-coach-text">${text}</span>
         </div>
       </div>`;
-
-    // Try engine-based commentary if available
-    if (this.engine && this.engine.ready && this.coach) {
-      try {
-        const analysis = await this.engine.analyzePosition(fen, 12);
-        const sections = PositionCommentary.generate(this.chess, analysis);
-        const result = await this.coach.generateCoachCommentary(gm.id, {
-          chess: this.chess,
-          analysis,
-          fen,
-          sections,
-          playerColor: this.game.playerColor || 'w'
-        });
-        const textEl = document.getElementById('ot-coach-text');
-        if (textEl && result.text) textEl.textContent = result.text;
-      } catch {
-        // Fallback: simple opening commentary
-        const textEl = document.getElementById('ot-coach-text');
-        if (textEl) textEl.textContent = this._getSimpleOpeningComment(t, profile);
-      }
-    } else {
-      // Fallback: simple opening commentary without engine
-      const textEl = document.getElementById('ot-coach-text');
-      if (textEl) textEl.textContent = this._getSimpleOpeningComment(t, profile);
-    }
   }
 
-  _getSimpleOpeningComment(t, profile) {
-    const step = t.currentStep;
+  _getFallbackOpeningComment(t, moveIndex) {
     const total = t.moves.length;
-    if (step <= 1) return `The ${t.opening.name} — one of my favorite openings. Let me show you the key ideas.`;
-    if (step < total / 2) return `Good. This is the standard continuation in the ${t.opening.name}.`;
-    if (step < total) return `We're reaching the heart of this opening. Pay attention to the pawn structure.`;
-    return `Excellent! You've completed the main line. Now the real game begins.`;
+    const move = t.moves[moveIndex] || '';
+    const isWhite = moveIndex % 2 === 0;
+    const moveNum = Math.floor(moveIndex / 2) + 1;
+    if (moveIndex === 0) return `The ${t.opening.name} begins. Let me guide you through the key ideas.`;
+    if (moveIndex >= total - 1) return `The main line is complete. You now have a solid foundation in the ${t.opening.name}.`;
+    return `${moveNum}${isWhite ? '.' : '...'} ${move} — a standard move in the ${t.opening.name}.`;
   }
 
   async _playFromOpeningPosition() {
@@ -1852,7 +1846,7 @@ class ChessApp {
     const statsEl = document.getElementById('ot-stats');
     if (statsEl) statsEl.innerHTML = '';
     const coachEl = document.getElementById('ot-coach');
-    if (coachEl) coachEl.innerHTML = '';
+    if (coachEl) { coachEl.innerHTML = ''; coachEl.classList.add('hidden'); }
   }
 
   _continuePlayingFromTraining() {
@@ -1863,7 +1857,7 @@ class ChessApp {
     const statsEl = document.getElementById('ot-stats');
     if (statsEl) statsEl.innerHTML = '';
     const coachEl = document.getElementById('ot-coach');
-    if (coachEl) coachEl.innerHTML = '';
+    if (coachEl) { coachEl.innerHTML = ''; coachEl.classList.add('hidden'); }
     this.board.setInteractive(true);
     this.game.mode = 'local';
     this.game.replayMode = false;
@@ -6139,6 +6133,38 @@ class ChessApp {
       this._openMusicDialog();
     });
 
+    // Browse All Composers button in music player → opens composer browser
+    document.getElementById('mp-browse-composers')?.addEventListener('click', () => {
+      this._closeMusicDialog();
+      show(document.getElementById('composer-browse-dialog'));
+      this._renderComposerBrowser();
+    });
+
+    // Composer name in now-playing section → opens composer browser for that composer
+    const mpComposerEl = document.getElementById('mp-track-composer');
+    if (mpComposerEl) {
+      mpComposerEl.style.cursor = 'pointer';
+      mpComposerEl.addEventListener('click', () => {
+        this._closeMusicDialog();
+        show(document.getElementById('composer-browse-dialog'));
+        this._renderComposerBrowser();
+        // Select the current composer in the browser
+        const track = this.music.currentTrack;
+        if (track) {
+          const profile = COMPOSER_PROFILES.find(p => p.composerKey === track.composer);
+          if (profile) {
+            const detailEl = document.getElementById('composer-browse-detail');
+            if (detailEl) this._renderComposerBrowserDetail(profile, detailEl);
+            // Highlight in list
+            const cards = document.querySelectorAll('#composer-browse-list .cmp-list-card');
+            cards.forEach(c => {
+              c.classList.toggle('selected', c.dataset.composerId === profile.id);
+            });
+          }
+        }
+      });
+    }
+
     // Note: onStateChange is set in setupSettings()
   }
 
@@ -6209,27 +6235,38 @@ class ChessApp {
     if (!listEl) return;
     listEl.innerHTML = '';
 
-    // "All" chip
-    const allChip = document.createElement('span');
-    allChip.className = 'mp-chip' + (!this._selectedComposerId ? ' selected' : '');
-    allChip.textContent = 'All';
-    allChip.addEventListener('click', () => {
+    // "All Composers" card
+    const allCard = document.createElement('div');
+    allCard.className = 'mp-composer-card' + (!this._selectedComposerId ? ' selected' : '');
+    allCard.innerHTML = `<div class="mp-cc-icon">&#9835;</div><span class="mp-cc-name">All</span>`;
+    allCard.addEventListener('click', () => {
       this._selectedComposerId = null;
       this.music.setComposerFilter(null);
       this._renderMusicDialog();
     });
-    listEl.appendChild(allChip);
+    listEl.appendChild(allCard);
 
-    for (const composer of COMPOSER_PROFILES) {
-      const chip = document.createElement('span');
-      chip.className = 'mp-chip' + (composer.id === this._selectedComposerId ? ' selected' : '');
-      chip.textContent = composer.name;
-      chip.addEventListener('click', () => {
-        this._selectedComposerId = composer.id;
-        this.music.setComposerFilter(composer.composerKey);
-        this._renderMusicDialog();
-      });
-      listEl.appendChild(chip);
+    // Group by era
+    for (const era of COMPOSER_ERAS) {
+      const eraComposers = COMPOSER_PROFILES.filter(c => c.era === era.id);
+      if (eraComposers.length === 0) continue;
+
+      for (const composer of eraComposers) {
+        const trackCount = PLAYLIST.filter(t => t.composer === composer.composerKey).length;
+        const card = document.createElement('div');
+        card.className = 'mp-composer-card' + (composer.id === this._selectedComposerId ? ' selected' : '');
+        card.innerHTML = `
+          <img class="mp-cc-portrait" src="${composer.portrait}" alt="${composer.name}">
+          <span class="mp-cc-name">${composer.name}</span>
+          ${trackCount > 0 ? `<span class="mp-cc-count">${trackCount}</span>` : ''}
+        `;
+        card.addEventListener('click', () => {
+          this._selectedComposerId = composer.id;
+          this.music.setComposerFilter(composer.composerKey);
+          this._renderMusicDialog();
+        });
+        listEl.appendChild(card);
+      }
     }
   }
 

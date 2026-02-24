@@ -490,8 +490,14 @@
             <span class="music-vol-icon">&#128266;</span>
           </div>
         </div>
-        <!-- Composer Filter Chips -->
-        <div class="mp-composer-chips" id="composer-picker-list"></div>
+        <!-- Composer Picker (portrait grid) -->
+        <div class="mp-composer-section" id="mp-composer-section">
+          <div class="mp-composer-header">
+            <span class="mp-composer-label">Composer</span>
+            <button class="btn btn-sm btn-secondary" id="mp-browse-composers" title="Browse all composers">Browse All</button>
+          </div>
+          <div class="mp-composer-grid" id="composer-picker-list"></div>
+        </div>
         <!-- Favorite Row -->
         <div class="music-favorite-row hidden" id="music-favorite-row">
           <span class="music-fav-label">&#9733; <strong id="music-fav-name"></strong></span>
@@ -1023,7 +1029,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v42</div>
+          <div class="nav-menu-version" id="app-version">v43</div>
         </div>
       </nav>
     </header>
@@ -1158,7 +1164,6 @@
           <div class="opening-training-bar hidden" id="opening-training-bar">
             <div class="ot-title" id="ot-title"></div>
             <div class="ot-stats" id="ot-stats"></div>
-            <div class="ot-coach" id="ot-coach"></div>
             <div class="ot-actions">
               <button class="btn btn-sm" id="ot-practice">Practice This Opening</button>
               <button class="btn btn-sm" id="ot-play">Play From Here</button>
@@ -1171,6 +1176,9 @@
             <div id="move-history" class="move-history"></div>
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-moves" title="Drag to resize move list"></div>
+
+          <!-- GM Coach Commentary for Opening Training (below moves) -->
+          <div class="ot-coach hidden" id="ot-coach"></div>
 
           <!-- Advisor Annotations (shown below current move) -->
           <div class="advisor-annotations" id="advisor-annotations"></div>
