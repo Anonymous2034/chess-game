@@ -2084,8 +2084,11 @@ main {
   flex: 1;
   min-height: 0;
   gap: 8px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+.panel-content::-webkit-scrollbar { width: 4px; }
+.panel-content::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
 
 /* === Advisor Annotations in Moves Tab === */
 .advisor-annotations {
@@ -4708,68 +4711,73 @@ main {
 
 /* === Resize Handles === */
 .resize-handle-v {
-  width: 6px;
+  width: 8px;
   cursor: col-resize;
-  background: transparent;
+  background: rgba(255,255,255,0.03);
   position: relative;
   flex-shrink: 0;
   align-self: stretch;
   z-index: 5;
   transition: background 0.2s;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
 .resize-handle-v:hover,
 .resize-handle-v.active {
-  background: var(--accent);
+  background: rgba(181,136,99,0.15);
 }
 
 .resize-handle-v::after {
-  content: '';
+  content: '\u2022\A\u2022\A\u2022';
+  white-space: pre;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 2px;
-  height: 32px;
-  background: var(--border-color);
-  border-radius: 1px;
+  font-size: 0.5rem;
+  line-height: 0.7;
+  color: #666;
+  text-align: center;
 }
 
 .resize-handle-v:hover::after,
 .resize-handle-v.active::after {
-  background: #fff;
+  color: var(--accent, #b58863);
 }
 
 .resize-handle-h {
-  height: 6px;
+  height: 10px;
   cursor: row-resize;
-  background: transparent;
+  background: rgba(255,255,255,0.03);
   position: relative;
   flex-shrink: 0;
   z-index: 5;
   transition: background 0.2s;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .resize-handle-h:hover,
 .resize-handle-h.active {
-  background: var(--accent);
+  background: rgba(181,136,99,0.15);
 }
 
 .resize-handle-h::after {
-  content: '';
+  content: '\u2022 \u2022 \u2022';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 32px;
-  height: 2px;
-  background: var(--border-color);
-  border-radius: 1px;
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  color: #666;
+  line-height: 1;
 }
 
 .resize-handle-h:hover::after,
 .resize-handle-h.active::after {
-  background: #fff;
+  color: var(--accent, #b58863);
 }
 
 /* When resizing, prevent text selection */
@@ -5775,6 +5783,45 @@ body.resizing-h {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+/* Opening training buttons — styled for green background */
+.ot-btn {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  color: #d0e8d0 !important;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ot-btn:hover {
+  background: rgba(255,255,255,0.15) !important;
+  border-color: rgba(255,255,255,0.25) !important;
+}
+.ot-btn-primary {
+  background: rgba(90,160,90,0.35) !important;
+  border-color: #5a9a5a !important;
+  color: #e0ffe0 !important;
+}
+.ot-btn-primary:hover {
+  background: rgba(90,160,90,0.5) !important;
+}
+.ot-btn-accent {
+  background: rgba(181,136,99,0.3) !important;
+  border-color: var(--accent, #b58863) !important;
+  color: #ffe0c0 !important;
+}
+.ot-btn-accent:hover {
+  background: rgba(181,136,99,0.45) !important;
+}
+.ot-btn-exit {
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: #999 !important;
+}
+.ot-btn-exit:hover {
+  background: rgba(255,100,100,0.12) !important;
+  color: #e88 !important;
+  border-color: rgba(255,100,100,0.25) !important;
 }
 
 /* === Modern Music Player Dialog === */

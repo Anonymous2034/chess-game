@@ -4276,11 +4276,16 @@ class ChessApp {
       this.sound.voiceVolume = parseInt(e.target.value) / 100;
     });
 
-    // Music Volume slider
+    // Music Volume slider (settings)
     const volSlider = document.getElementById('settings-music-volume');
     volSlider.value = Math.round(this.music.audio.volume * 100);
     volSlider.addEventListener('input', (e) => {
       this.music.setVolume(parseInt(e.target.value) / 100);
+      // Sync other volume sliders
+      const mpVol = document.getElementById('mp-vol-slider');
+      if (mpVol) mpVol.value = e.target.value;
+      const miniVol = document.getElementById('mini-music-vol');
+      if (miniVol) miniVol.value = e.target.value;
     });
 
     // Keep music dialog AND mini player in sync
@@ -4390,10 +4395,13 @@ class ChessApp {
     if (this.game.mode === 'engine') {
       this.updateDialogVisibility('engine');
       if (this.activeBot) {
+        // Rebuild the bot picker so the detail panel shows full info
+        const settings = { botId: this.activeBot.id, mode: 'engine' };
+        this.renderBotPicker(settings);
+        // Scroll the selected card into view
         const currentCard = document.querySelector(`.bot-list-card[data-bot-id="${this.activeBot.id}"]`);
         if (currentCard) {
           currentCard.scrollIntoView({ block: 'nearest' });
-          currentCard.classList.add('selected');
         }
       }
     }
@@ -4434,6 +4442,8 @@ class ChessApp {
     this._setupResizeV();
     // Horizontal handle for move history height
     this._setupResizeH();
+    // Horizontal handle for opening explorer height
+    this._setupResizeExplorer();
     // Load saved sizes
     this._loadResizeSizes();
   }
@@ -4507,7 +4517,7 @@ class ChessApp {
     const onMove = (e) => {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = clientY - startY;
-      const newH = Math.max(60, Math.min(500, startH + dy));
+      const newH = Math.max(60, Math.min(900, startH + dy));
       moveContainer.style.minHeight = newH + 'px';
       moveContainer.style.maxHeight = newH + 'px';
       moveContainer.style.flex = 'none';
@@ -4542,6 +4552,50 @@ class ChessApp {
     handle.addEventListener('touchstart', onStart, { passive: false });
   }
 
+  _setupResizeExplorer() {
+    const handle = document.getElementById('resize-handle-explorer');
+    if (!handle) return;
+
+    let startY, startH;
+    const explorer = document.querySelector('.opening-explorer');
+    if (!explorer) return;
+
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = clientY - startY;
+      const newH = Math.max(40, Math.min(600, startH + dy));
+      explorer.style.minHeight = newH + 'px';
+      explorer.style.maxHeight = newH + 'px';
+      explorer.style.flex = 'none';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-h');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      localStorage.setItem('chess_explorer_height', explorer.style.minHeight);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startY = clientY;
+      startH = explorer.offsetHeight;
+      document.body.classList.add('resizing', 'resizing-h');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
   _loadResizeSizes() {
     const savedBoardSize = localStorage.getItem('chess_board_size');
     const savedPanelW = localStorage.getItem('chess_panel_width');
@@ -4560,6 +4614,15 @@ class ChessApp {
         mc.style.minHeight = savedMovesH;
         mc.style.maxHeight = savedMovesH;
         mc.style.flex = 'none';
+      }
+    }
+    const savedExplorerH = localStorage.getItem('chess_explorer_height');
+    if (savedExplorerH) {
+      const ex = document.querySelector('.opening-explorer');
+      if (ex) {
+        ex.style.minHeight = savedExplorerH;
+        ex.style.maxHeight = savedExplorerH;
+        ex.style.flex = 'none';
       }
     }
   }
@@ -6054,13 +6117,6 @@ class ChessApp {
       this.music.toggleRepeat();
     });
 
-    // Volume
-    const volumeSlider = document.getElementById('music-volume');
-    volumeSlider.value = Math.round(this.music.audio.volume * 100);
-    volumeSlider.addEventListener('input', (e) => {
-      this.music.setVolume(parseInt(e.target.value) / 100);
-    });
-
     // Progress bar seek
     const progressBar = document.getElementById('mp-progress');
     progressBar.addEventListener('input', (e) => {
@@ -6113,8 +6169,10 @@ class ChessApp {
       miniVol.value = Math.round(this.music.audio.volume * 100);
       miniVol.addEventListener('input', (e) => {
         this.music.setVolume(parseInt(e.target.value) / 100);
-        const dialogVol = document.getElementById('music-volume');
+        const dialogVol = document.getElementById('mp-vol-slider');
         if (dialogVol) dialogVol.value = e.target.value;
+        const settingsVol = document.getElementById('settings-music-volume');
+        if (settingsVol) settingsVol.value = e.target.value;
       });
     }
 
@@ -6152,8 +6210,6 @@ class ChessApp {
       mpVolSlider.addEventListener('input', (e) => {
         this.music.setVolume(parseInt(e.target.value) / 100);
         // Sync other volume sliders
-        const dialogVol = document.getElementById('music-volume');
-        if (dialogVol) dialogVol.value = e.target.value;
         const miniVol = document.getElementById('mini-music-vol');
         if (miniVol) miniVol.value = e.target.value;
         const settingsVol = document.getElementById('settings-music-volume');
@@ -6243,10 +6299,6 @@ class ChessApp {
     if (shuffleBtn) shuffleBtn.classList.toggle('active', this.music.shuffle);
     const repeatBtn = document.getElementById('music-repeat');
     if (repeatBtn) repeatBtn.classList.toggle('active', this.music.repeat);
-
-    // Volume
-    const volSlider = document.getElementById('music-volume');
-    if (volSlider) volSlider.value = Math.round(this.music.audio.volume * 100);
 
     // Sync toggle + volume below composers
     const mpToggle = document.getElementById('mp-music-toggle');

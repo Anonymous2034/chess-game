@@ -484,11 +484,6 @@
             <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
             <button class="btn btn-sm" id="music-repeat" title="Repeat">&#8635;</button>
           </div>
-          <div class="mp-volume-row">
-            <span class="music-vol-icon">&#128264;</span>
-            <input type="range" id="music-volume" min="0" max="100" value="30" class="mp-volume-slider">
-            <span class="music-vol-icon">&#128266;</span>
-          </div>
         </div>
         <!-- Composer Picker (portrait grid) -->
         <div class="mp-composer-section" id="mp-composer-section">
@@ -1044,7 +1039,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v44</div>
+          <div class="nav-menu-version" id="app-version">v45</div>
         </div>
       </nav>
     </header>
@@ -1179,10 +1174,10 @@
           <div class="opening-training-bar hidden" id="opening-training-bar">
             <div class="ot-title" id="ot-title"></div>
             <div class="ot-actions">
-              <button class="btn btn-sm" id="ot-practice">Practice This Opening</button>
-              <button class="btn btn-sm" id="ot-play">Play From Here</button>
-              <button class="btn btn-sm" id="ot-continue">Continue This Game</button>
-              <button class="btn btn-sm btn-secondary" id="ot-exit">Exit Training</button>
+              <button class="btn btn-sm ot-btn ot-btn-primary" id="ot-practice">Practice Moves</button>
+              <button class="btn btn-sm ot-btn ot-btn-accent" id="ot-play">Play vs GM</button>
+              <button class="btn btn-sm ot-btn" id="ot-continue">Free Play</button>
+              <button class="btn btn-sm ot-btn ot-btn-exit" id="ot-exit">Exit</button>
             </div>
           </div>
           <!-- Move History -->
@@ -1214,6 +1209,8 @@
             <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..." rows="2"></textarea>
           </div>
 
+          <!-- Resize handle for opening explorer -->
+          <div class="resize-handle resize-handle-h" id="resize-handle-explorer" title="Drag to resize explorer"></div>
           <!-- Opening Explorer -->
           <div class="opening-explorer">
             <h3>Opening Explorer</h3>
