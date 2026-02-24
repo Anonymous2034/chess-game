@@ -1290,6 +1290,135 @@ export const PLAYLIST = [
     composer: "Maurice Ravel",
     duration: "6:02",
     url: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Ravel%27s_Jeux_d%27eau%2C_M._30_-_Anna_Sutyagina.ogg"
+  },
+
+  // ─── HAYDN ───────────────────────────────────────────────────
+  {
+    id: "haydn-surprise-2",
+    title: "Symphony No. 94 'Surprise' — II. Andante",
+    composer: "Joseph Haydn",
+    duration: "5:56",
+    url: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Joseph_Haydn_-_Symphony_No._94_%27Surprise%27_-_II._Andante.ogg"
+  },
+  {
+    id: "haydn-trumpet-3",
+    title: "Trumpet Concerto — III. Allegro",
+    composer: "Joseph Haydn",
+    duration: "4:24",
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/ce/Haydn_-_Trumpet_Concerto_-_III._Allegro.ogg"
+  },
+  {
+    id: "haydn-cello1-1",
+    title: "Cello Concerto No. 1 — I. Moderato",
+    composer: "Joseph Haydn",
+    duration: "8:57",
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Haydn_Cello_Concerto_No._1%2C_1st_mov.ogg"
+  },
+  {
+    id: "haydn-quartet-emperor-2",
+    title: "String Quartet Op. 76 No. 3 'Emperor' — II. Poco adagio",
+    composer: "Joseph Haydn",
+    duration: "7:20",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a3/Haydn_-_String_Quartet_in_C_major%2C_Op._76%2C_No._3_-_II._Poco_adagio%3B_cantabile.ogg"
+  },
+
+  // ─── PACHELBEL ─────────────────────────────────────────────────
+  {
+    id: "pachelbel-canon",
+    title: "Canon in D major",
+    composer: "Johann Pachelbel",
+    duration: "4:43",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/da/Canon_and_Gigue_in_D_-_1_Canon.ogg"
+  },
+  {
+    id: "pachelbel-gigue",
+    title: "Gigue in D major (from Canon and Gigue)",
+    composer: "Johann Pachelbel",
+    duration: "1:06",
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/48/Canon_and_Gigue_in_D_-_2_Gigue.ogg"
+  },
+  {
+    id: "pachelbel-chaconne-fmin",
+    title: "Chaconne in F minor",
+    composer: "Johann Pachelbel",
+    duration: "5:17",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/de/Johann_Pachelbel_-_Chaconne_in_F_minor.ogg"
+  },
+
+  // ─── WAGNER ──────────────────────────────────────────────────
+  {
+    id: "wagner-valkyries",
+    title: "Ride of the Valkyries",
+    composer: "Richard Wagner",
+    duration: "5:12",
+    url: "https://upload.wikimedia.org/wikipedia/commons/e/e3/Richard_Wagner_-_Ride_of_the_Valkyries.ogg"
+  },
+  {
+    id: "wagner-lohengrin-prelude",
+    title: "Lohengrin — Prelude to Act 1",
+    composer: "Richard Wagner",
+    duration: "9:31",
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/9c/Richard_Wagner_-_Lohengrin_-_Prelude.ogg"
+  },
+  {
+    id: "wagner-tannhauser-overture",
+    title: "Tannhäuser — Overture",
+    composer: "Richard Wagner",
+    duration: "14:38",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Richard_Wagner_-_Tannh%C3%A4user_overture.ogg"
+  },
+
+  // ─── SAINT-SAËNS ─────────────────────────────────────────────
+  {
+    id: "saint-saens-danse-macabre",
+    title: "Danse Macabre, Op. 40",
+    composer: "Camille Saint-Saëns",
+    duration: "7:12",
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/41/Camille_Saint-Sa%C3%ABns_-_Danse_macabre%2C_Op._40.ogg"
+  },
+  {
+    id: "saint-saens-swan",
+    title: "The Swan (from Carnival of the Animals)",
+    composer: "Camille Saint-Saëns",
+    duration: "3:07",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/51/Saint-Sa%C3%ABns_-_The_Swan.ogg"
+  },
+  {
+    id: "saint-saens-intro-rondo",
+    title: "Introduction and Rondo Capriccioso, Op. 28",
+    composer: "Camille Saint-Saëns",
+    duration: "9:31",
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/41/Saint-Sa%C3%ABns_-_Introduction_and_Rondo_capriccioso_in_A_minor_Op._28.ogg"
+  },
+
+  // ─── MUSSORGSKY ──────────────────────────────────────────────
+  {
+    id: "mussorgsky-pictures-promenade",
+    title: "Pictures at an Exhibition — Promenade",
+    composer: "Modest Mussorgsky",
+    duration: "1:30",
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/f4/Mussorgsky_-_Pictures_at_an_Exhibition_-_01_-_Promenade_1.ogg"
+  },
+  {
+    id: "mussorgsky-pictures-gnome",
+    title: "Pictures at an Exhibition — The Gnome",
+    composer: "Modest Mussorgsky",
+    duration: "2:39",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Mussorgsky_-_Pictures_at_an_Exhibition_-_02_-_The_Gnome.ogg"
+  },
+  {
+    id: "mussorgsky-pictures-great-gate",
+    title: "Pictures at an Exhibition — The Great Gate of Kiev",
+    composer: "Modest Mussorgsky",
+    duration: "5:24",
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Mussorgsky_-_Pictures_at_an_Exhibition_-_16_-_The_Great_Gate_of_Kiev.ogg"
+  },
+  {
+    id: "mussorgsky-night-bald-mountain",
+    title: "Night on Bald Mountain",
+    composer: "Modest Mussorgsky",
+    duration: "11:07",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/53/Modest_Mussorgsky_-_Night_on_Bald_Mountain_%28orchestrated_by_Nikolai_Rimsky-Korsakov%29.ogg"
   }
 ];
 
@@ -1307,8 +1436,16 @@ export class MusicPlayer {
     // Load preferences
     const prefs = JSON.parse(localStorage.getItem('chess_music_prefs') || '{}');
     this.audio.volume = prefs.volume ?? 0.3;
-    this.currentIndex = prefs.trackIndex ?? 0;
     this.shuffle = prefs.shuffle ?? false;
+
+    // Default to Chopin if no saved preference
+    if (prefs.trackIndex != null) {
+      this.currentIndex = prefs.trackIndex;
+    } else {
+      const chopinIdx = PLAYLIST.findIndex(t => t.composer === 'Frédéric Chopin');
+      this.currentIndex = chopinIdx >= 0 ? chopinIdx : 0;
+      this.composerFilter = 'Frédéric Chopin';
+    }
 
     // Auto-advance to next track when current ends
     this.audio.addEventListener('ended', () => {

@@ -37,12 +37,28 @@
     <div id="new-game-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-new-game">
         <h2>New Game</h2>
-        <div class="dialog-body">
-        <div class="dialog-section">
-          <label>Mode</label>
-          <div class="btn-group" data-setting="mode">
-            <button class="btn active" data-value="engine">vs Computer</button>
-            <button class="btn" data-value="local">Two Player</button>
+        <div class="new-game-top-row">
+          <div class="new-game-top-item">
+            <label>Mode</label>
+            <div class="btn-group" data-setting="mode">
+              <button class="btn active" data-value="engine">vs Computer</button>
+              <button class="btn" data-value="local">Two Player</button>
+            </div>
+          </div>
+          <div class="new-game-top-item engine-only">
+            <label>Play as</label>
+            <div class="btn-group" data-setting="color">
+              <button class="btn active" data-value="w">White</button>
+              <button class="btn" data-value="b">Black</button>
+              <button class="btn" data-value="random">Random</button>
+            </div>
+          </div>
+          <div class="new-game-top-item engine-only">
+            <label>Game Type</label>
+            <div class="btn-group" data-setting="rated">
+              <button class="btn active" data-value="casual">Casual</button>
+              <button class="btn" data-value="rated">Rated</button>
+            </div>
           </div>
         </div>
         <div class="dialog-section engine-only">
@@ -52,25 +68,11 @@
             <div class="bot-picker-detail" id="bot-picker-detail"></div>
           </div>
         </div>
-        <div class="dialog-section engine-only">
-          <label>Play as</label>
-          <div class="btn-group" data-setting="color">
-            <button class="btn active" data-value="w">White</button>
-            <button class="btn" data-value="b">Black</button>
-            <button class="btn" data-value="random">Random</button>
-          </div>
-        </div>
         <div class="dialog-section">
           <label>Time Control</label>
           <div class="time-control-grid" id="time-control-grid">
             <div class="tc-category">
-              <span class="tc-label">None</span>
-              <div class="tc-buttons">
-                <button class="btn btn-sm tc-btn active" data-time="0" data-increment="0">No Timer</button>
-              </div>
-            </div>
-            <div class="tc-category">
-              <span class="tc-label">Bullet</span>
+              <span class="tc-label tc-label-bullet">&#9889; Bullet</span>
               <div class="tc-buttons">
                 <button class="btn btn-sm tc-btn" data-time="60" data-increment="0">1 min</button>
                 <button class="btn btn-sm tc-btn" data-time="60" data-increment="1">1+1</button>
@@ -78,7 +80,7 @@
               </div>
             </div>
             <div class="tc-category">
-              <span class="tc-label">Blitz</span>
+              <span class="tc-label tc-label-blitz">&#128293; Blitz</span>
               <div class="tc-buttons">
                 <button class="btn btn-sm tc-btn" data-time="180" data-increment="0">3 min</button>
                 <button class="btn btn-sm tc-btn" data-time="180" data-increment="2">3+2</button>
@@ -87,38 +89,48 @@
               </div>
             </div>
             <div class="tc-category">
-              <span class="tc-label">Rapid</span>
+              <span class="tc-label tc-label-rapid">&#9201; Rapid</span>
               <div class="tc-buttons">
                 <button class="btn btn-sm tc-btn" data-time="600" data-increment="0">10 min</button>
                 <button class="btn btn-sm tc-btn" data-time="900" data-increment="10">15+10</button>
-                <button class="btn btn-sm tc-btn" data-time="1800" data-increment="0">30 min</button>
+                <button class="btn btn-sm tc-btn" data-time="1500" data-increment="10">25+10</button>
               </div>
             </div>
             <div class="tc-category">
-              <span class="tc-label">Classical</span>
+              <span class="tc-label tc-label-classical">&#9812; Classical</span>
               <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn" data-time="1800" data-increment="0">30 min</button>
+                <button class="btn btn-sm tc-btn" data-time="2700" data-increment="15">45+15</button>
                 <button class="btn btn-sm tc-btn" data-time="3600" data-increment="0">60 min</button>
+                <button class="btn btn-sm tc-btn" data-time="5400" data-increment="30">90+30</button>
               </div>
             </div>
             <div class="tc-category">
-              <span class="tc-label">Custom</span>
-              <div class="tc-buttons tc-custom">
-                <button class="btn btn-sm tc-btn" data-time="custom" data-increment="0">Custom</button>
-                <div class="tc-custom-inputs hidden" id="tc-custom-inputs">
-                  <input type="number" id="tc-custom-minutes" min="1" max="180" value="10" placeholder="min"> min
-                  <input type="number" id="tc-custom-increment" min="0" max="60" value="0" placeholder="inc"> sec
-                </div>
+              <span class="tc-label tc-label-custom">&#9881; Other</span>
+              <div class="tc-buttons">
+                <button class="btn btn-sm tc-btn active" data-time="0" data-increment="0">None</button>
+                <button class="btn btn-sm tc-btn" data-time="custom" data-increment="0">Custom...</button>
+              </div>
+            </div>
+            <div class="tc-custom-inputs hidden" id="tc-custom-inputs">
+              <div class="tc-custom-row">
+                <label>Time</label>
+                <input type="number" id="tc-custom-minutes" min="1" max="300" value="10" placeholder="min"> min
+              </div>
+              <div class="tc-custom-row">
+                <label>For first</label>
+                <input type="number" id="tc-custom-moves" min="0" max="80" value="0" placeholder="moves"> moves <span class="tc-hint">(0 = all)</span>
+              </div>
+              <div class="tc-custom-row tc-period2 hidden" id="tc-period2">
+                <label>Then</label>
+                <input type="number" id="tc-custom-minutes2" min="1" max="300" value="30" placeholder="min"> min
+              </div>
+              <div class="tc-custom-row">
+                <label>Increment</label>
+                <input type="number" id="tc-custom-increment" min="0" max="60" value="0" placeholder="sec"> sec/move
               </div>
             </div>
           </div>
-        </div>
-        <div class="dialog-section engine-only">
-          <label>Game Type</label>
-          <div class="btn-group" data-setting="rated">
-            <button class="btn active" data-value="casual">Casual</button>
-            <button class="btn" data-value="rated">Rated</button>
-          </div>
-        </div>
         </div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="cancel-new-game">Cancel</button>
@@ -143,12 +155,13 @@
     <!-- PGN Import Dialog -->
     <div id="pgn-dialog" class="dialog-overlay hidden">
       <div class="dialog">
-        <h2>Import PGN</h2>
+        <h2>PGN Import / Export</h2>
         <div class="pgn-file-row"><label class="btn btn-secondary pgn-file-label" for="pgn-file-input">Choose .pgn file</label><input type="file" id="pgn-file-input" accept=".pgn,.txt" hidden><span id="pgn-file-name" class="pgn-file-name"></span></div>
         <textarea id="pgn-input" placeholder="Paste PGN here or choose a file above..." rows="10"></textarea>
         <div class="dialog-actions">
+          <button class="btn btn-secondary" id="btn-export-pgn">Export Current Game</button>
           <button class="btn btn-secondary" id="cancel-pgn">Cancel</button>
-          <button class="btn btn-primary" id="load-pgn">Load</button>
+          <button class="btn btn-primary" id="load-pgn">Import</button>
         </div>
       </div>
     </div>
@@ -165,6 +178,7 @@
           <select id="db-collection">
             <option value="all">All Collections</option>
           </select>
+          <button class="btn btn-sm" id="db-import-pgn" title="Import PGN file">+ Import</button>
         </div>
         <div id="db-results-summary" class="db-results-summary"></div>
         <div id="db-games-list" class="db-games-list"></div>
@@ -425,37 +439,66 @@
 
     <!-- Music Player Dialog -->
     <div id="music-dialog" class="dialog-overlay hidden">
-      <div class="dialog">
-        <h2>Music</h2>
-        <div class="music-now-playing" id="music-now-playing">
-          <div class="music-track-title">No track selected</div>
-          <div class="music-track-composer"></div>
-        </div>
-        <div class="music-controls-main">
-          <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
-          <button class="btn btn-primary" id="music-play-pause" title="Play/Pause">&#9654;</button>
-          <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
-          <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
-        </div>
-        <div class="music-volume-row">
-          <span class="music-vol-icon">&#128264;</span>
-          <input type="range" id="music-volume" min="0" max="100" value="30" class="music-volume-slider">
-          <span class="music-vol-icon">&#128266;</span>
-        </div>
-        <div class="music-filter-row">
-          <select class="music-composer-filter" id="music-composer-filter">
-            <option value="all">All Composers</option>
-          </select>
-          <button class="btn btn-small btn-secondary" id="music-set-favorite" title="Set selected composer as favorite">&#9733; Favorite</button>
-          <span class="music-track-count" id="music-track-count"></span>
+      <div class="dialog dialog-wide">
+        <div class="music-compact-bar">
+          <div class="music-compact-controls">
+            <button class="btn btn-sm" id="music-prev" title="Previous">&#9664;&#9664;</button>
+            <button class="btn btn-primary btn-sm" id="music-play-pause" title="Play/Pause">&#9654;</button>
+            <button class="btn btn-sm" id="music-next" title="Next">&#9654;&#9654;</button>
+            <button class="btn btn-sm" id="music-shuffle" title="Shuffle">&#8645;</button>
+          </div>
+          <div class="music-compact-info" id="music-now-playing">
+            <div class="music-track-title">No track selected</div>
+            <div class="music-track-composer"></div>
+          </div>
+          <div class="music-compact-vol">
+            <input type="range" id="music-volume" min="0" max="100" value="30" class="music-volume-slider" title="Volume">
+          </div>
         </div>
         <div class="music-favorite-row hidden" id="music-favorite-row">
-          <span class="music-fav-label">Favorite: <strong id="music-fav-name"></strong></span>
+          <span class="music-fav-label">&#9733; <strong id="music-fav-name"></strong></span>
           <button class="btn btn-small btn-secondary" id="music-clear-favorite">Clear</button>
         </div>
-        <div class="music-playlist" id="music-playlist"></div>
+        <div class="composer-picker-layout">
+          <div class="composer-picker-list" id="composer-picker-list"></div>
+          <div class="composer-picker-detail" id="composer-picker-detail"></div>
+        </div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="close-music">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GM Browse Dialog -->
+    <div id="gm-browse-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Hall of Champions</h2>
+        <div class="gm-browse-subtitle">The legendary grandmasters who shaped the royal game</div>
+        <div class="gm-browse-layout">
+          <div class="gm-browse-list" id="gm-browse-list"></div>
+          <div class="gm-browse-detail" id="gm-browse-detail"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-gm-browse">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Composer Browse Dialog -->
+    <div id="composer-browse-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>The Great Composers</h2>
+        <div class="composer-browse-subtitle">Masters of melody who inspire the royal game</div>
+        <div class="cmpb-search-row">
+          <span class="cmpb-search-icon">&#128269;</span>
+          <input type="text" id="composer-search" class="cmpb-search" placeholder="Search composers...">
+        </div>
+        <div class="composer-browse-layout">
+          <div class="composer-browse-list" id="composer-browse-list"></div>
+          <div class="composer-browse-detail" id="composer-browse-detail"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-composer-browse">Close</button>
         </div>
       </div>
     </div>
@@ -535,18 +578,11 @@
     </div>
 
     <!-- Settings Dialog -->
-    <div id="settings-dialog" class="dialog-overlay hidden">
+    <!-- Settings: Sound Dialog -->
+    <div id="settings-sound-dialog" class="dialog-overlay hidden">
       <div class="dialog settings-dialog">
-        <h2>Settings</h2>
-        <div class="settings-tabs" id="settings-tabs">
-          <button class="settings-tab active" data-tab="sound">Sound</button>
-          <button class="settings-tab" data-tab="display">Display</button>
-          <button class="settings-tab" data-tab="board">Board</button>
-        </div>
-
-        <!-- SOUND section -->
-        <div class="settings-section settings-tab-content" data-tab="sound">
-          <h4 class="settings-section-title">Sound</h4>
+        <h2>Sound & Music</h2>
+        <div class="settings-section">
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Move Sounds</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-sound"><span class="toggle-slider"></span></span>
@@ -570,11 +606,22 @@
               <span class="music-vol-icon">&#128266;</span>
             </div>
           </div>
+          <div class="settings-toggle-row">
+            <span class="layout-toggle-label">Music Player</span>
+            <button class="btn btn-sm btn-secondary" id="btn-music-dialog">Open Player</button>
+          </div>
         </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="close-settings-sound">Done</button>
+        </div>
+      </div>
+    </div>
 
-        <!-- DISPLAY section -->
-        <div class="settings-section settings-tab-content hidden" data-tab="display">
-          <h4 class="settings-section-title">Display</h4>
+    <!-- Settings: Display Dialog -->
+    <div id="settings-display-dialog" class="dialog-overlay hidden">
+      <div class="dialog settings-dialog">
+        <h2>Display</h2>
+        <div class="settings-section">
           <div class="settings-subsection">
             <span class="settings-sublabel">Board Theme</span>
             <div class="board-theme-swatches" id="board-theme-swatches"></div>
@@ -592,10 +639,17 @@
             <button class="btn btn-sm" id="settings-open-layout">Open</button>
           </div>
         </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="close-settings-display">Done</button>
+        </div>
+      </div>
+    </div>
 
-        <!-- BOARD + DGT section -->
-        <div class="settings-section settings-tab-content hidden" data-tab="board">
-          <h4 class="settings-section-title">Board</h4>
+    <!-- Settings: Board Dialog -->
+    <div id="settings-board-dialog" class="dialog-overlay hidden">
+      <div class="dialog settings-dialog">
+        <h2>Board</h2>
+        <div class="settings-section">
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Flip Board</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-flip"><span class="toggle-slider"></span></span>
@@ -627,7 +681,6 @@
             <button class="btn btn-secondary" id="dgt-disconnect">Disconnect</button>
             <button class="btn btn-secondary" id="dgt-reset-board">Reset Board</button>
           </div>
-          <!-- DGT Hardware Settings -->
           <div class="dgt-hardware-settings hidden" id="dgt-hardware-settings">
             <h5 class="dgt-hw-title">LED Settings</h5>
             <label class="dgt-hw-row">
@@ -664,11 +717,9 @@
             <button class="btn btn-small btn-secondary" id="dgt-reset-defaults">Reset Defaults</button>
           </div>
         </div>
-
         <div class="dialog-actions">
-          <button class="btn btn-primary" id="close-settings">Done</button>
+          <button class="btn btn-primary" id="close-settings-board">Done</button>
         </div>
-        <div class="app-version" id="app-version">v34</div>
       </div>
     </div>
 
@@ -905,27 +956,26 @@
             <span class="nav-menu-label">Tools</span>
             <button class="btn" id="btn-database">Database</button>
             <button class="btn" id="btn-stats">Stats</button>
-            <div class="dropdown">
-              <button class="btn" id="btn-pgn-menu">PGN</button>
-              <div class="dropdown-content">
-                <button id="btn-import-pgn">Import PGN</button>
-                <button id="btn-export-pgn">Export PGN</button>
-              </div>
-            </div>
+            <button class="btn" id="btn-import-pgn">PGN Import/Export</button>
           </div>
           <div class="nav-menu-section">
-            <span class="nav-menu-label">More</span>
+            <span class="nav-menu-label">Discover</span>
             <button class="btn" id="btn-news">Chess World</button>
+            <button class="btn" id="btn-gm-browse">Grandmasters</button>
+            <button class="btn" id="btn-composers-browse">Composers</button>
           </div>
           <div class="nav-menu-section">
             <span class="nav-menu-label">Settings</span>
-            <button class="btn" id="btn-settings">Settings</button>
+            <button class="btn" id="btn-settings-sound">Sound & Music</button>
+            <button class="btn" id="btn-settings-display">Display</button>
+            <button class="btn" id="btn-settings-board">Board</button>
           </div>
           <div class="nav-menu-section">
             <button class="btn hidden" id="btn-admin">Admin</button>
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
+          <div class="nav-menu-version" id="app-version">v39</div>
         </div>
       </nav>
     </header>
@@ -980,6 +1030,7 @@
 
         <!-- Navigation Controls (under board) -->
         <div class="nav-controls">
+          <button class="btn btn-sm" id="btn-flip-shortcut" title="Flip board">&#8693;</button>
           <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
           <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
           <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
@@ -1001,7 +1052,7 @@
         </div>
 
         <!-- Mini Music Player (shown when music is playing) -->
-        <div class="mini-music hidden" id="mini-music">
+        <div class="mini-music" id="mini-music">
           <button class="mini-music-btn" id="mini-music-prev" title="Previous">&#9664;&#9664;</button>
           <button class="mini-music-btn mini-music-play" id="mini-music-toggle" title="Play/Pause">&#9654;</button>
           <button class="mini-music-btn" id="mini-music-next" title="Next">&#9654;&#9654;</button>
@@ -1009,9 +1060,8 @@
             <span class="mini-music-title" id="mini-music-title">-</span>
             <span class="mini-music-composer" id="mini-music-composer">-</span>
           </div>
-          <select class="mini-music-composer-select" id="mini-music-composer-filter" title="Filter by composer">
-            <option value="all">All</option>
-          </select>
+          <button class="mini-music-btn mini-music-shuffle-btn" id="mini-music-shuffle" title="Shuffle">&#8645;</button>
+          <button class="mini-music-btn mini-music-composers-btn" id="mini-music-composers" title="Browse composers">&#9835;</button>
           <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
         </div>
       </div>
@@ -1105,12 +1155,12 @@
         <div class="panel-content hidden" id="tab-gm-coach">
           <div class="gm-coach-panel">
             <div class="gm-coach-header">
-              <button class="btn btn-sm" id="btn-pick-coaches">Choose Coaches</button>
+              <button class="btn btn-sm" id="btn-pick-coaches">Choose Coach</button>
               <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
             </div>
             <div class="gm-coach-picker hidden" id="gm-coach-picker"></div>
             <div class="gm-coach-cards" id="gm-coach-cards">
-              <div class="gm-coach-empty">Pick 1&#x2013;2 grandmasters or engines to receive personalized coaching.</div>
+              <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
             </div>
             <div class="gm-coach-chat">
               <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>

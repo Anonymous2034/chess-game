@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v34';
+const CACHE_NAME = 'grandmasters-v40';
 
 const PRECACHE_URLS = [
   './',
@@ -35,12 +35,15 @@ const PRECACHE_URLS = [
   './js/puzzle.js',
   './js/rating-graph.js',
   './js/sound.js',
+  './js/music.js',
+  './js/chess-news.js',
   './js/stats.js',
   './js/supabase-config.js',
   './js/themes.js',
   './js/tournament.js',
   './js/position-commentary.js',
   './js/utils.js',
+  './js/composer-profiles.js',
 
   // Stockfish engine
   './lib/stockfish/stockfish.js',
@@ -108,7 +111,9 @@ const PRECACHE_URLS = [
   // Portrait SVGs — grandmasters
   './img/gm/alekhine.svg', './img/gm/anand.svg', './img/gm/botvinnik.svg',
   './img/gm/capablanca.svg', './img/gm/carlsen.svg', './img/gm/fischer.svg',
-  './img/gm/karpov.svg', './img/gm/kasparov.svg', './img/gm/petrosian.svg',
+  './img/gm/karpov.svg', './img/gm/kasparov.svg', './img/gm/kramnik.svg',
+  './img/gm/lasker.svg', './img/gm/morphy.svg', './img/gm/petrosian.svg',
+  './img/gm/smyslov.svg', './img/gm/spassky.svg', './img/gm/steinitz.svg',
   './img/gm/tal.svg',
 
   // Portrait SVGs — machines
@@ -120,6 +125,16 @@ const PRECACHE_URLS = [
   './img/personalities/casual-carl.svg', './img/personalities/club-charlie.svg',
   './img/personalities/positional-pat.svg', './img/personalities/speed-demon.svg',
   './img/personalities/tactician-tanya.svg', './img/personalities/the-wall.svg',
+
+  // Portrait SVGs — composers
+  './img/composers/bach.svg', './img/composers/beethoven.svg', './img/composers/brahms.svg',
+  './img/composers/chopin.svg', './img/composers/debussy.svg', './img/composers/dvorak.svg',
+  './img/composers/grieg.svg', './img/composers/handel.svg', './img/composers/haydn.svg',
+  './img/composers/liszt.svg', './img/composers/mendelssohn.svg', './img/composers/mozart.svg',
+  './img/composers/mussorgsky.svg', './img/composers/pachelbel.svg', './img/composers/rachmaninoff.svg',
+  './img/composers/ravel.svg', './img/composers/saint-saens.svg', './img/composers/satie.svg',
+  './img/composers/schubert.svg', './img/composers/schumann.svg', './img/composers/strauss-ii.svg',
+  './img/composers/tchaikovsky.svg', './img/composers/vivaldi.svg', './img/composers/wagner.svg',
 
   // Player avatars
   './img/avatars/king.svg', './img/avatars/queen.svg', './img/avatars/rook.svg',

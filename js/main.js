@@ -27,6 +27,7 @@ import { PuzzleManager } from './puzzle.js';
 import { PlayerProfile } from './profile.js';
 import { RatingGraph } from './rating-graph.js';
 import { MusicPlayer, PLAYLIST } from './music.js';
+import { COMPOSER_PROFILES, COMPOSER_ERAS } from './composer-profiles.js';
 import { ChessNews } from './chess-news.js';
 import { PositionCommentary } from './position-commentary.js';
 
@@ -145,10 +146,12 @@ class ChessApp {
     this.setupOfflineIndicator();
     this.setupMusic();
     this.setupNews();
+    this.setupBrowseDialogs();
     this.setupEvalBar();
     this.setupLayoutEditor();
     this.setupSettings();
     this.setupResizeHandles();
+    this.setupPlayerNameClicks();
     this.setupNotes();
 
     // Load database in background, then restore saved imports
@@ -292,6 +295,7 @@ class ChessApp {
     if (!this.engine || !this.engine.ready) return;
 
     this.board.setInteractive(false);
+    this.board.setPremoveAllowed(true); // Allow pre-move input while engine thinks
     this._setEngineThinking(true);
     this._startEngineMoveTimer();
 
@@ -339,8 +343,21 @@ class ChessApp {
               }
             }
             if (!this.game.gameOver) {
+              // Check for queued pre-move
+              const premove = this.board.premove;
+              this.board.clearPremove();
+              this.board.setPremoveAllowed(false);
               this.board.setInteractive(true);
+              if (premove) {
+                const legalMoves = this.chess.moves({ verbose: true });
+                const pmMatch = legalMoves.find(m => m.from === premove.from && m.to === premove.to);
+                if (pmMatch) {
+                  setTimeout(() => this.board.tryMove(premove.from, premove.to), 50);
+                }
+              }
             } else {
+              this.board.clearPremove();
+              this.board.setPremoveAllowed(false);
               this._onGameEnd();
             }
           } else {
@@ -388,17 +405,42 @@ class ChessApp {
     }
 
     if (!this.game.gameOver) {
+      // Check for queued pre-move
+      const premove = this.board.premove;
+      this.board.clearPremove();
+      this.board.setPremoveAllowed(false);
       this.board.setInteractive(true);
-      // Start move clock for player's turn
-      this._startMoveClock(this.chess.turn());
-      // Update advisor analysis and eval bar after engine move
-      this._updateAdvisorAnalysis();
-      this._updateEvalBar();
-      // Update GM Coach if visible
-      if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
-        this._updateGMCoachCommentary();
+
+      if (premove) {
+        // Try to execute the pre-move
+        const legalMoves = this.chess.moves({ verbose: true });
+        const match = legalMoves.find(m => m.from === premove.from && m.to === premove.to);
+        if (match) {
+          // Execute pre-move with a short delay for visual feedback
+          setTimeout(() => {
+            this.board.tryMove(premove.from, premove.to);
+          }, 50);
+        } else {
+          // Pre-move is illegal in new position — just discard it
+          this._startMoveClock(this.chess.turn());
+          this._updateAdvisorAnalysis();
+          this._updateEvalBar();
+          if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
+            this._updateGMCoachCommentary();
+          }
+        }
+      } else {
+        // No pre-move — normal flow
+        this._startMoveClock(this.chess.turn());
+        this._updateAdvisorAnalysis();
+        this._updateEvalBar();
+        if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
+          this._updateGMCoachCommentary();
+        }
       }
     } else {
+      this.board.clearPremove();
+      this.board.setPremoveAllowed(false);
       this._stopMoveClock();
       this._onGameEnd();
     }
@@ -609,6 +651,14 @@ class ChessApp {
   }
 
   setupNavigationControls() {
+    // Flip board shortcut
+    document.getElementById('btn-flip-shortcut').addEventListener('click', () => {
+      this._flipBoard();
+      // Sync settings checkbox if open
+      const flipCb = document.getElementById('settings-flip');
+      if (flipCb) flipCb.checked = this.board.flipped;
+    });
+
     document.getElementById('btn-first').addEventListener('click', () => {
       this.navigateToMove(-1);
     });
@@ -647,6 +697,15 @@ class ChessApp {
         case 'End':
           e.preventDefault();
           document.getElementById('btn-last').click();
+          break;
+        case 'Escape':
+          // Cancel queued pre-move
+          if (this.board.premove) {
+            this.board.clearPremove();
+            this.board.selectedSquare = null;
+            this.board.legalMoves = [];
+            this.board.applyHighlights();
+          }
           break;
       }
     });
@@ -1353,7 +1412,8 @@ class ChessApp {
       const saved = localStorage.getItem('chess_gm_coaches');
       if (saved) {
         const ids = JSON.parse(saved);
-        this._gmCoachBots = ids.map(id => BOT_PERSONALITIES.find(b => b.id === id)).filter(Boolean);
+        const bots = ids.map(id => BOT_PERSONALITIES.find(b => b.id === id)).filter(Boolean);
+        this._gmCoachBots = bots.slice(0, 1); // Single coach only
       }
     } catch { /* ignore */ }
 
@@ -1396,7 +1456,7 @@ class ChessApp {
 
   _renderGMCoachPicker() {
     const picker = document.getElementById('gm-coach-picker');
-    const selectedIds = this._gmCoachBots.map(b => b.id);
+    const selectedId = this._gmCoachBots.length > 0 ? this._gmCoachBots[0].id : null;
     let html = '';
 
     for (const tier of BOT_TIERS.filter(t => t.id === 'grandmaster' || t.id === 'machine')) {
@@ -1405,10 +1465,10 @@ class ChessApp {
 
       html += `<div class="gm-coach-picker-tier">${tier.name}</div>`;
       for (const bot of tierBots) {
-        const checked = selectedIds.includes(bot.id) ? 'checked' : '';
+        const checked = bot.id === selectedId ? 'checked' : '';
         html += `
           <label>
-            <input type="checkbox" value="${bot.id}" ${checked}>
+            <input type="radio" name="gm-coach-pick" value="${bot.id}" ${checked}>
             <img src="${bot.portrait}" alt="${bot.name}">
             <span>${bot.name}</span>
             <span class="gm-coach-pick-elo">${bot.peakElo}</span>
@@ -1418,17 +1478,15 @@ class ChessApp {
 
     picker.innerHTML = html;
 
-    picker.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const checked = picker.querySelectorAll('input[type="checkbox"]:checked');
-        if (checked.length > 2) {
-          cb.checked = false;
-          this.showToast('Maximum 2 coaches');
-          return;
+    picker.querySelectorAll('input[type="radio"]').forEach(rb => {
+      rb.addEventListener('change', () => {
+        const selected = picker.querySelector('input[type="radio"]:checked');
+        if (selected) {
+          const bot = BOT_PERSONALITIES.find(b => b.id === selected.value);
+          this._gmCoachBots = bot ? [bot] : [];
+        } else {
+          this._gmCoachBots = [];
         }
-        this._gmCoachBots = Array.from(checked).map(c =>
-          BOT_PERSONALITIES.find(b => b.id === c.value)
-        ).filter(Boolean);
 
         localStorage.setItem('chess_gm_coaches', JSON.stringify(this._gmCoachBots.map(b => b.id)));
 
@@ -1446,7 +1504,7 @@ class ChessApp {
     if (!container) return;
 
     if (this._gmCoachBots.length === 0) {
-      container.innerHTML = '<div class="gm-coach-empty">Pick 1\u20132 grandmasters or engines to receive personalized coaching.</div>';
+      container.innerHTML = '<div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>';
       return;
     }
 
@@ -1629,6 +1687,405 @@ class ChessApp {
     if (statusEl) statusEl.textContent = '';
   }
 
+  // === Browse Dialogs (Grandmasters & Composers) ===
+
+  setupBrowseDialogs() {
+    // Grandmasters browse
+    const gmDialog = document.getElementById('gm-browse-dialog');
+    document.getElementById('btn-gm-browse').addEventListener('click', () => {
+      this._renderGMBrowser();
+      show(gmDialog);
+    });
+    document.getElementById('close-gm-browse').addEventListener('click', () => hide(gmDialog));
+    gmDialog.addEventListener('click', (e) => { if (e.target === e.currentTarget) hide(gmDialog); });
+
+    // Composers browse — dedicated dialog
+    const cmpDialog = document.getElementById('composer-browse-dialog');
+    document.getElementById('btn-composers-browse').addEventListener('click', () => {
+      this._renderComposerBrowser();
+      show(cmpDialog);
+    });
+    document.getElementById('close-composer-browse').addEventListener('click', () => hide(cmpDialog));
+    cmpDialog.addEventListener('click', (e) => { if (e.target === e.currentTarget) hide(cmpDialog); });
+  }
+
+  _renderGMBrowser() {
+    const listEl = document.getElementById('gm-browse-list');
+    const detailEl = document.getElementById('gm-browse-detail');
+    listEl.innerHTML = '';
+
+    // Only show grandmasters — no bots/personalities/machines
+    const grandmasters = BOT_PERSONALITIES.filter(b => b.tier === 'grandmaster');
+
+    for (const gm of grandmasters) {
+      const isWC = !!gm.bio?.worldChampion;
+      const card = document.createElement('div');
+      card.className = 'gm-list-card' + (isWC ? ' wc' : '');
+      card.dataset.botId = gm.id;
+      card.innerHTML = `
+        <img class="gm-list-portrait" src="${gm.portrait}" alt="${gm.name}">
+        <div class="gm-list-info">
+          <div class="gm-list-name">${gm.name}</div>
+          <div class="gm-list-meta">
+            <span class="gm-list-elo">${gm.peakElo}</span>
+            ${isWC ? '<span class="gm-list-crown">\u265A</span>' : ''}
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        listEl.querySelectorAll('.gm-list-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        this._renderGMBrowserDetail(gm, detailEl);
+      });
+      listEl.appendChild(card);
+    }
+
+    // Select first GM by default
+    if (grandmasters.length > 0) {
+      const firstCard = listEl.querySelector('.gm-list-card');
+      if (firstCard) firstCard.classList.add('selected');
+      this._renderGMBrowserDetail(grandmasters[0], detailEl);
+    }
+  }
+
+  _renderGMBrowserDetail(gm, detailEl) {
+    const isWC = !!gm.bio?.worldChampion;
+    const coachProfile = GM_COACH_PROFILES[gm.id];
+
+    // Style bars — compact grid
+    let stylesHtml = '';
+    for (const style of GM_STYLES) {
+      const val = gm.styles[style.id] || 0;
+      const pct = val * 10;
+      const level = val <= 4 ? 'low' : val <= 7 ? 'mid' : 'high';
+      stylesHtml += `
+        <div class="gmb-style-row">
+          <span class="gmb-style-label">${style.name}</span>
+          <div class="gmb-style-bar"><div class="gmb-style-fill ${level}" style="width:${pct}%"></div></div>
+          <span class="gmb-style-val">${val}</span>
+        </div>`;
+    }
+
+    // Openings tags
+    let openingsHtml = '';
+    if (gm.favoriteOpenings && gm.favoriteOpenings.length > 0) {
+      const tags = gm.favoriteOpenings.map((o, i) =>
+        `<span class="gmb-opening gmb-opening-clickable" data-opening-index="${i}"><span class="eco">${o.eco}</span>${o.name}</span>`
+      ).join('');
+      openingsHtml = `<div class="gmb-section"><div class="gmb-section-title">Signature Openings</div><div class="gmb-openings">${tags}</div></div>`;
+    }
+
+    // Famous games
+    let gamesHtml = '';
+    if (gm.famousGames && gm.famousGames.length > 0) {
+      const items = gm.famousGames.map((g, i) =>
+        `<div class="gmb-game gmb-game-clickable" data-game-index="${i}"><span class="gmb-game-name">${g.name} (${g.year})</span> &mdash; <span class="gmb-game-desc">${g.description}</span></div>`
+      ).join('');
+      gamesHtml = `<div class="gmb-section"><div class="gmb-section-title">Legendary Games</div><div class="gmb-games">${items}</div></div>`;
+    }
+
+    // Life dates
+    let datesLabel = '';
+    if (gm.bio?.born) {
+      datesLabel = gm.bio.died ? `${gm.bio.born} \u2013 ${gm.bio.died}` : `Born ${gm.bio.born}`;
+    }
+
+    // Badges row
+    let badgesHtml = `<span class="gmb-badge gmb-badge-elo">Peak ${gm.peakElo}</span>`;
+    if (isWC) {
+      badgesHtml += `<span class="gmb-badge gmb-badge-wc">\u265A WC ${gm.bio.worldChampion}</span>`;
+    }
+    if (datesLabel) {
+      badgesHtml += `<span class="gmb-badge gmb-badge-dates">${datesLabel}</span>`;
+    }
+    if (coachProfile) {
+      badgesHtml += `<span class="gmb-badge gmb-badge-coach">${coachProfile.icon} Coach</span>`;
+    }
+
+    // Coach section
+    let coachHtml = '';
+    if (coachProfile) {
+      coachHtml = `<div class="gmb-section"><div class="gmb-section-title">As Your Coach</div><div class="gmb-coach-row"><span class="gmb-coach-icon">${coachProfile.icon}</span><em>${coachProfile.philosophy}</em></div></div>`;
+    }
+
+    detailEl.innerHTML = `
+      <div class="gmb-hero">
+        <img class="gmb-portrait${isWC ? ' wc' : ''}" src="${gm.portrait}" alt="${gm.name}">
+        <div class="gmb-hero-info">
+          <div class="gmb-name">${gm.name}</div>
+          <div class="gmb-epithet">${gm.subtitle}</div>
+          <div class="gmb-meta-row">${badgesHtml}</div>
+        </div>
+      </div>
+      <div class="gmb-divider">\u2656 \u2657 \u2658 \u2659</div>
+      <div class="gmb-columns">
+        <div class="gmb-col-main">
+          ${gm.bio?.summary ? `<div class="gmb-section"><div class="gmb-section-title">Biography</div><div class="gmb-bio">${gm.bio.summary}</div></div>` : ''}
+          ${gm.bio?.playingStyle ? `<div class="gmb-section"><div class="gmb-section-title">Playing Style</div><div class="gmb-style-quote">${gm.bio.playingStyle}</div></div>` : ''}
+          ${coachHtml}
+          ${openingsHtml}
+          ${gamesHtml}
+        </div>
+        <div class="gmb-col-side">
+          <div class="gmb-section"><div class="gmb-section-title">Style Profile</div><div class="gmb-styles">${stylesHtml}</div></div>
+        </div>
+      </div>
+      <div class="gmb-actions">
+        <button class="btn btn-sm" data-gm-name="${gm.name}" id="gmb-play-btn">Play Against ${gm.name.split(' ').pop()}</button>
+        <button class="btn btn-sm btn-secondary" data-gm-name="${gm.name}" id="gmb-browse-btn">Browse Games</button>
+      </div>
+    `;
+
+    // Wire up action buttons
+    detailEl.querySelector('#gmb-play-btn')?.addEventListener('click', () => {
+      hide(document.getElementById('gm-browse-dialog'));
+      show(document.getElementById('new-game-dialog'));
+      this.updateDialogVisibility('engine');
+      // Select this GM in the bot picker
+      const settings = { botId: gm.id, mode: 'engine' };
+      this.renderBotPicker(settings);
+      this.renderBotDetail(gm);
+      // Mark the card as selected
+      document.querySelectorAll('.bot-list-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.botId === gm.id);
+      });
+    });
+
+    detailEl.querySelector('#gmb-browse-btn')?.addEventListener('click', () => {
+      hide(document.getElementById('gm-browse-dialog'));
+      const searchEl = document.getElementById('db-search');
+      if (searchEl) searchEl.value = gm.name;
+      show(document.getElementById('database-dialog'));
+      this.renderDatabaseGames();
+    });
+
+    // Clickable famous games — search database and load for replay
+    detailEl.querySelectorAll('.gmb-game-clickable').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.gameIndex);
+        const g = gm.famousGames[idx];
+        if (!g) return;
+        // Search by the game name (typically "Player vs Player")
+        const parts = g.name.split(/\s+vs\.?\s+/i);
+        const query = parts.length >= 2 ? parts[0].trim() : g.name;
+        const results = this.database.search(query);
+        // Try to find a match including the year
+        const match = results.find(r =>
+          r.date.includes(String(g.year)) &&
+          (parts.length < 2 || r.white.toLowerCase().includes(parts[0].trim().toLowerCase()) || r.black.toLowerCase().includes(parts[0].trim().toLowerCase()))
+        ) || results[0];
+        if (match) {
+          hide(document.getElementById('gm-browse-dialog'));
+          this.loadDatabaseGame(match);
+          this.showToast(`${match.white} vs ${match.black}, ${match.date}`);
+        } else {
+          this.showToast('Game not found in database — try Browse Games');
+        }
+      });
+    });
+
+    // Clickable openings — open new game dialog with this GM pre-selected
+    detailEl.querySelectorAll('.gmb-opening-clickable').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.openingIndex);
+        const opening = gm.favoriteOpenings[idx];
+        if (!opening) return;
+        hide(document.getElementById('gm-browse-dialog'));
+        show(document.getElementById('new-game-dialog'));
+        this.updateDialogVisibility('engine');
+        const settings = { botId: gm.id, mode: 'engine' };
+        this.renderBotPicker(settings);
+        this.renderBotDetail(gm);
+        document.querySelectorAll('.bot-list-card').forEach(c => {
+          c.classList.toggle('selected', c.dataset.botId === gm.id);
+        });
+        this.showToast(`Play the ${opening.name} against ${gm.name}!`);
+      });
+    });
+  }
+
+  _renderComposerBrowser() {
+    const listEl = document.getElementById('composer-browse-list');
+    const detailEl = document.getElementById('composer-browse-detail');
+    const searchEl = document.getElementById('composer-search');
+
+    const createCard = (composer) => {
+      const card = document.createElement('div');
+      card.className = 'cmp-list-card';
+      card.dataset.composerId = composer.id;
+      const dates = composer.born.split(',')[0] + '\u2013' + (composer.died ? composer.died.split(',')[0] : '');
+      card.innerHTML = `
+        <img class="cmp-list-portrait" src="${composer.portrait}" alt="${composer.name}">
+        <div class="cmp-list-info">
+          <div class="cmp-list-name">${composer.name}</div>
+          <div class="cmp-list-meta">${dates}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        listEl.querySelectorAll('.cmp-list-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        this._renderComposerBrowserDetail(composer, detailEl);
+      });
+      return card;
+    };
+
+    const renderList = (filter = '') => {
+      listEl.innerHTML = '';
+      const q = filter.toLowerCase().trim();
+      let first = null;
+
+      if (q) {
+        // Flat filtered list (no era headers)
+        const matches = COMPOSER_PROFILES.filter(c =>
+          c.name.toLowerCase().includes(q) ||
+          c.fullName.toLowerCase().includes(q) ||
+          c.era.toLowerCase().includes(q)
+        );
+        for (const composer of matches) {
+          if (!first) first = composer;
+          listEl.appendChild(createCard(composer));
+        }
+      } else {
+        // Grouped by era
+        for (const era of COMPOSER_ERAS) {
+          const eraComposers = COMPOSER_PROFILES.filter(c => c.era === era.id);
+          if (eraComposers.length === 0) continue;
+          const label = document.createElement('div');
+          label.className = 'cmp-era-label';
+          label.textContent = era.name;
+          listEl.appendChild(label);
+          for (const composer of eraComposers) {
+            if (!first) first = composer;
+            listEl.appendChild(createCard(composer));
+          }
+        }
+      }
+
+      if (first) {
+        const firstCard = listEl.querySelector('.cmp-list-card');
+        if (firstCard) firstCard.classList.add('selected');
+        this._renderComposerBrowserDetail(first, detailEl);
+      }
+    };
+
+    renderList();
+
+    // Wire search with debounce
+    if (searchEl) {
+      searchEl.value = '';
+      searchEl.addEventListener('input', debounce(() => {
+        renderList(searchEl.value);
+      }, 200));
+    }
+  }
+
+  _renderComposerBrowserDetail(composer, detailEl) {
+    const eraObj = COMPOSER_ERAS.find(e => e.id === composer.era);
+
+    // Key works tags — match against PLAYLIST for clickable works
+    const composerTracks = PLAYLIST.filter(t => t.composer === composer.composerKey);
+    const worksHtml = composer.keyWorks.map(w => {
+      const wLower = w.toLowerCase();
+      // Fuzzy match: check if any track title contains significant words from the work name
+      const matchIdx = PLAYLIST.findIndex(t =>
+        t.composer === composer.composerKey &&
+        (t.title.toLowerCase().includes(wLower) ||
+         wLower.split(/[\s,—\-]+/).filter(p => p.length > 3).some(part => t.title.toLowerCase().includes(part)))
+      );
+      if (matchIdx >= 0) {
+        return `<span class="cmpb-work-tag cmpb-work-playable" data-track-index="${matchIdx}">&#9654; ${w}</span>`;
+      }
+      return `<span class="cmpb-work-tag cmpb-work-unavailable">${w}</span>`;
+    }).join('');
+
+    // Tracks by this composer
+    const tracks = PLAYLIST.filter(t => t.composer === composer.composerKey);
+    let tracksHtml = '';
+    if (tracks.length > 0) {
+      const items = tracks.map(track => {
+        const i = PLAYLIST.indexOf(track);
+        const isActive = i === this.music.currentIndex;
+        return `<div class="cmpb-track${isActive ? ' active' : ''}" data-track-index="${i}">
+          <span class="cmpb-track-play">${isActive && this.music.playing ? '&#9646;&#9646;' : '&#9654;'}</span>
+          <span class="cmpb-track-title">${track.title}</span>
+          <span class="cmpb-track-dur">${track.duration}</span>
+        </div>`;
+      }).join('');
+      tracksHtml = `<div class="cmpb-section"><div class="cmpb-section-title">Available Tracks (${tracks.length})</div><div class="cmpb-tracks">${items}</div></div>`;
+    }
+
+    // Dates
+    let datesLabel = '';
+    if (composer.born) {
+      datesLabel = composer.died ? `${composer.born} \u2014 ${composer.died}` : `Born ${composer.born}`;
+    }
+
+    // Badges
+    let badgesHtml = '';
+    if (eraObj) badgesHtml += `<span class="cmpb-badge cmpb-badge-era">${eraObj.name}</span>`;
+    if (datesLabel) badgesHtml += `<span class="cmpb-badge cmpb-badge-dates">${datesLabel}</span>`;
+
+    detailEl.innerHTML = `
+      <div class="cmpb-hero">
+        <img class="cmpb-portrait" src="${composer.portrait}" alt="${composer.name}">
+        <div class="cmpb-hero-info">
+          <div class="cmpb-name">${composer.fullName}</div>
+          <div class="cmpb-meta-row">${badgesHtml}</div>
+        </div>
+      </div>
+      <div class="cmpb-columns">
+        <div class="cmpb-col-main">
+          <div class="cmpb-section"><div class="cmpb-section-title">Biography</div><div class="cmpb-bio">${composer.summary}</div></div>
+          <div class="cmpb-section"><div class="cmpb-section-title">Musical Style</div><div class="cmpb-style-quote">${composer.style}</div></div>
+          ${tracksHtml}
+        </div>
+        <div class="cmpb-col-side">
+          <div class="cmpb-section"><div class="cmpb-section-title">Key Works</div><div class="cmpb-key-works">${worksHtml}</div></div>
+        </div>
+      </div>
+      <div class="cmpb-actions">
+        <button class="btn btn-sm" id="cmpb-play-btn">Play ${composer.name}</button>
+        <button class="btn btn-sm btn-secondary" id="cmpb-fav-btn">&#9733; Set as Favorite</button>
+      </div>
+    `;
+
+    // Wire track clicks
+    detailEl.querySelectorAll('.cmpb-track').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.trackIndex);
+        this.music.setTrack(idx);
+        if (!this.music.playing) this.music.play();
+      });
+    });
+
+    // Wire clickable key works
+    detailEl.querySelectorAll('.cmpb-work-playable').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.trackIndex);
+        this.music.setTrack(idx);
+        if (!this.music.playing) this.music.play();
+        this.showToast('Now playing: ' + PLAYLIST[idx].title);
+      });
+    });
+
+    // Play button — set composer filter and start playing
+    detailEl.querySelector('#cmpb-play-btn')?.addEventListener('click', () => {
+      this.music.setComposerFilter(composer.composerKey);
+      if (!this.music.playing) this.music.play();
+      this.showToast('Now playing ' + composer.name);
+    });
+
+    // Favorite button
+    detailEl.querySelector('#cmpb-fav-btn')?.addEventListener('click', () => {
+      localStorage.setItem('chess_music_favorite_composer', composer.composerKey);
+      const favRow = document.getElementById('music-favorite-row');
+      const favName = document.getElementById('music-fav-name');
+      if (favName) favName.textContent = composer.composerKey;
+      if (favRow) favRow.classList.remove('hidden');
+      this.showToast(composer.name + ' set as favorite');
+    });
+  }
+
   // === Eval Bar ===
 
   setupEvalBar() {
@@ -1783,6 +2240,11 @@ class ChessApp {
     this._setupTimeControlGrid(settings);
 
     document.getElementById('start-new-game').addEventListener('click', async () => {
+      // Rated games require a time control
+      if (settings.rated && settings.time === 0) {
+        this.showToast('Rated games require a time control');
+        return;
+      }
       hide(dialog);
       await this._startNewGame(settings);
     });
@@ -1802,29 +2264,51 @@ class ChessApp {
 
         if (timeVal === 'custom') {
           show(customInputs);
-          const mins = parseInt(document.getElementById('tc-custom-minutes').value) || 10;
-          settings.time = mins * 60;
-          settings.increment = parseInt(document.getElementById('tc-custom-increment').value) || 0;
+          this._syncCustomTimeSettings(settings);
         } else {
           hide(customInputs);
           settings.time = parseInt(timeVal);
           settings.increment = incVal;
+          settings.timePeriods = null;
         }
       });
     });
 
-    // Custom input changes
-    const customMins = document.getElementById('tc-custom-minutes');
-    const customInc = document.getElementById('tc-custom-increment');
-    if (customMins) {
-      customMins.addEventListener('input', () => {
-        settings.time = (parseInt(customMins.value) || 10) * 60;
+    // Show/hide period 2 based on moves input
+    const movesInput = document.getElementById('tc-custom-moves');
+    const period2 = document.getElementById('tc-period2');
+    if (movesInput && period2) {
+      movesInput.addEventListener('input', () => {
+        const moves = parseInt(movesInput.value) || 0;
+        if (moves > 0) { show(period2); } else { hide(period2); }
+        this._syncCustomTimeSettings(settings);
       });
     }
-    if (customInc) {
-      customInc.addEventListener('input', () => {
-        settings.increment = parseInt(customInc.value) || 0;
+
+    // Custom input changes
+    ['tc-custom-minutes', 'tc-custom-increment', 'tc-custom-minutes2'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', () => {
+        this._syncCustomTimeSettings(settings);
       });
+    });
+  }
+
+  _syncCustomTimeSettings(settings) {
+    const mins = parseInt(document.getElementById('tc-custom-minutes')?.value) || 10;
+    const moves = parseInt(document.getElementById('tc-custom-moves')?.value) || 0;
+    const mins2 = parseInt(document.getElementById('tc-custom-minutes2')?.value) || 30;
+    const inc = parseInt(document.getElementById('tc-custom-increment')?.value) || 0;
+
+    settings.time = mins * 60;
+    settings.increment = inc;
+
+    if (moves > 0) {
+      settings.timePeriods = [
+        { time: mins * 60, moves },
+        { time: mins2 * 60, moves: 0 }
+      ];
+    } else {
+      settings.timePeriods = null;
     }
   }
 
@@ -1856,6 +2340,10 @@ class ChessApp {
     if (this.engine && this.engine.thinking) {
       this.engine.stop();
     }
+    // Clear any queued pre-move
+    this.board.clearPremove();
+    this.board.setPremoveAllowed(false);
+
     // Restore canonical handler in case analysis left it null
     if (this.engine) {
       this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
@@ -1883,7 +2371,8 @@ class ChessApp {
       botId: settings.botId,
       time: settings.time,
       increment: settings.increment,
-      rated: settings.rated || false
+      rated: settings.rated || false,
+      timePeriods: settings.timePeriods || null
     });
 
     this.notation.clear();
@@ -2233,14 +2722,12 @@ class ChessApp {
         Event: eventName
       });
 
-      // Copy to clipboard
+      // Put PGN in the textarea and copy to clipboard
+      document.getElementById('pgn-input').value = pgn;
       navigator.clipboard.writeText(pgn).then(() => {
         this.showToast('PGN copied to clipboard');
       }).catch(() => {
-        // Fallback: show in dialog
-        const pgnDialog = document.getElementById('pgn-dialog');
-        document.getElementById('pgn-input').value = pgn;
-        show(pgnDialog);
+        this.showToast('PGN exported to text area');
       });
     });
   }
@@ -2292,6 +2779,12 @@ class ChessApp {
 
       this.populateCollectionFilter();
       this.renderDatabaseGames();
+    });
+
+    // Import PGN button inside database dialog
+    document.getElementById('db-import-pgn')?.addEventListener('click', () => {
+      hide(dialog);
+      document.getElementById('btn-import-pgn').click();
     });
   }
 
@@ -3233,41 +3726,36 @@ class ChessApp {
     });
   }
 
-  // === Unified Settings Dialog ===
+  // === Settings Dialogs (Sound / Display / Board) ===
 
   setupSettings() {
-    const dialog = document.getElementById('settings-dialog');
+    // Sound dialog
+    const soundDialog = document.getElementById('settings-sound-dialog');
+    document.getElementById('btn-settings-sound').addEventListener('click', () => {
+      this._syncSettingsState();
+      show(soundDialog);
+    });
+    document.getElementById('close-settings-sound').addEventListener('click', () => hide(soundDialog));
+    soundDialog.addEventListener('click', (e) => { if (e.target === e.currentTarget) hide(soundDialog); });
 
-    // Open / close
-    document.getElementById('btn-settings').addEventListener('click', () => {
+    // Display dialog
+    const displayDialog = document.getElementById('settings-display-dialog');
+    document.getElementById('btn-settings-display').addEventListener('click', () => {
       this._syncSettingsState();
       this._renderThemeDialog();
-      show(dialog);
+      show(displayDialog);
     });
+    document.getElementById('close-settings-display').addEventListener('click', () => hide(displayDialog));
+    displayDialog.addEventListener('click', (e) => { if (e.target === e.currentTarget) hide(displayDialog); });
 
-    document.getElementById('close-settings').addEventListener('click', () => {
-      hide(dialog);
+    // Board dialog
+    const boardDialog = document.getElementById('settings-board-dialog');
+    document.getElementById('btn-settings-board').addEventListener('click', () => {
+      this._syncSettingsState();
+      show(boardDialog);
     });
-
-    // Settings tab navigation
-    const tabBar = document.getElementById('settings-tabs');
-    if (tabBar) {
-      tabBar.addEventListener('click', (e) => {
-        const btn = e.target.closest('.settings-tab');
-        if (!btn) return;
-        const tabId = btn.dataset.tab;
-        // Update active tab button
-        tabBar.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t === btn));
-        // Show matching content, hide others
-        dialog.querySelectorAll('.settings-tab-content').forEach(sec => {
-          sec.classList.toggle('hidden', sec.dataset.tab !== tabId);
-        });
-      });
-    }
-
-    dialog.addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) hide(dialog);
-    });
+    document.getElementById('close-settings-board').addEventListener('click', () => hide(boardDialog));
+    boardDialog.addEventListener('click', (e) => { if (e.target === e.currentTarget) hide(boardDialog); });
 
     // --- SOUND section ---
 
@@ -3324,21 +3812,32 @@ class ChessApp {
       if (nowComposer) nowComposer.textContent = state.track.composer;
       const shuffleBtn = document.getElementById('music-shuffle');
       if (shuffleBtn) shuffleBtn.classList.toggle('active', state.shuffle);
-      this._updateMusicPlaylist();
-
-      // Mini music player on main screen — stays visible once music has played
-      const mini = document.getElementById('mini-music');
-      if (mini) {
-        if (state.playing) this._musicEverPlayed = true;
-        if (this._musicEverPlayed) {
-          mini.classList.remove('hidden');
+      // Refresh composer detail track list if dialog is open
+      const musicDialog = document.getElementById('music-dialog');
+      if (musicDialog && !musicDialog.classList.contains('hidden')) {
+        const detailEl = document.getElementById('composer-picker-detail');
+        if (detailEl) {
+          const selectedProfile = this._selectedComposerId
+            ? COMPOSER_PROFILES.find(p => p.id === this._selectedComposerId)
+            : null;
+          const tracks = selectedProfile
+            ? PLAYLIST.filter(t => t.composer === selectedProfile.composerKey)
+            : PLAYLIST;
+          this._renderComposerTracks(tracks, detailEl);
         }
-        const miniTitle = document.getElementById('mini-music-title');
-        const miniComposer = document.getElementById('mini-music-composer');
-        const miniToggle = document.getElementById('mini-music-toggle');
-        if (miniTitle) miniTitle.textContent = state.track.title;
-        if (miniComposer) miniComposer.textContent = state.track.composer;
-        if (miniToggle) miniToggle.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
+      }
+
+      // Mini music player on main screen — always visible
+      const miniTitle = document.getElementById('mini-music-title');
+      const miniComposer = document.getElementById('mini-music-composer');
+      const miniToggle = document.getElementById('mini-music-toggle');
+      if (miniTitle) miniTitle.textContent = state.track.title;
+      if (miniComposer) miniComposer.textContent = state.track.composer;
+      if (miniToggle) miniToggle.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
+      // Update mini shuffle button state
+      const miniShuffleBtn = document.getElementById('mini-music-shuffle');
+      if (miniShuffleBtn) {
+        miniShuffleBtn.classList.toggle('active', !!state.shuffle);
       }
     };
 
@@ -3383,6 +3882,71 @@ class ChessApp {
     document.getElementById('settings-eval-bar').checked = this._evalBarEnabled;
     // Flip
     document.getElementById('settings-flip').checked = this.board.flipped;
+  }
+
+  // === Clickable Player Names ===
+
+  setupPlayerNameClicks() {
+    const topName = document.querySelector('#player-top .player-name');
+    const bottomName = document.querySelector('#player-bottom .player-name');
+
+    // Style as clickable
+    [topName, bottomName].forEach(el => {
+      if (!el) return;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => this._onPlayerNameClick(el));
+    });
+
+    // Make status bar clickable to change opponent
+    const gameStatus = document.getElementById('game-status');
+    const engineStatus = document.getElementById('engine-status');
+    [gameStatus, engineStatus].forEach(el => {
+      if (!el) return;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => this._openNewGameDialog());
+    });
+  }
+
+  _openNewGameDialog() {
+    show(document.getElementById('new-game-dialog'));
+    if (this.game.mode === 'engine') {
+      this.updateDialogVisibility('engine');
+      if (this.activeBot) {
+        const currentCard = document.querySelector(`.bot-list-card[data-bot-id="${this.activeBot.id}"]`);
+        if (currentCard) {
+          currentCard.scrollIntoView({ block: 'nearest' });
+          currentCard.classList.add('selected');
+        }
+      }
+    }
+  }
+
+  _onPlayerNameClick(nameEl) {
+    const isTop = nameEl.closest('#player-top') !== null;
+    const flipped = this.board.flipped;
+
+    // In engine mode: top is opponent when not flipped (bot=black),
+    // bottom is player when not flipped
+    if (this.game.mode === 'engine' && this.activeBot) {
+      const botColor = this.game.playerColor === 'w' ? 'b' : 'w';
+      const topColor = flipped ? 'w' : 'b';
+      const clickedIsBotSide = (isTop && topColor === botColor) || (!isTop && topColor !== botColor);
+
+      if (clickedIsBotSide) {
+        // Opponent clicked — open new game dialog
+        this._openNewGameDialog();
+      } else {
+        // Own name clicked — open new game dialog (can change player side or opponent)
+        this._openNewGameDialog();
+      }
+    } else if (this.game.mode === 'local' || !this.game.mode) {
+      // Two-player or default: open new game dialog to start a game vs bot
+      this._openNewGameDialog();
+    } else {
+      // Multiplayer or other modes — open stats
+      this._renderStats();
+      show(document.getElementById('stats-dialog'));
+    }
   }
 
   // === Resize Handles ===
@@ -4969,9 +5533,29 @@ class ChessApp {
     const volumeSlider = document.getElementById('music-volume');
     const shuffleBtn = document.getElementById('music-shuffle');
 
+    // Open from hamburger menu
+    document.getElementById('btn-music-dialog').addEventListener('click', () => {
+      this._renderMusicDialog();
+      show(dialog);
+    });
+
     document.getElementById('close-music').addEventListener('click', () => {
       hide(dialog);
     });
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) hide(dialog);
+    });
+
+    // Clicking mini player track info opens full dialog
+    const miniInfo = document.querySelector('.mini-music-info');
+    if (miniInfo) {
+      miniInfo.style.cursor = 'pointer';
+      miniInfo.addEventListener('click', () => {
+        this._renderMusicDialog();
+        show(dialog);
+      });
+    }
 
     // Play/Pause
     playBtn.addEventListener('click', () => {
@@ -4997,63 +5581,36 @@ class ChessApp {
       this.music.setVolume(parseInt(e.target.value) / 100);
     });
 
-    // Composer filter
-    const composerFilter = document.getElementById('music-composer-filter');
+    // Favorite composer
     const favRow = document.getElementById('music-favorite-row');
     const favName = document.getElementById('music-fav-name');
-    const setFavBtn = document.getElementById('music-set-favorite');
     const clearFavBtn = document.getElementById('music-clear-favorite');
 
-    if (composerFilter) {
-      const composers = [...new Set(PLAYLIST.map(t => t.composer))].sort();
-      composers.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        composerFilter.appendChild(opt);
-      });
-      composerFilter.addEventListener('change', () => {
-        const selected = composerFilter.value;
-        this.music.setComposerFilter(selected === 'all' ? null : selected);
-        // Sync mini player dropdown
-        const miniFilter = document.getElementById('mini-music-composer-filter');
-        if (miniFilter) miniFilter.value = selected;
-        this._updateMusicPlaylist();
-      });
+    // Restore favorite composer
+    const savedFav = localStorage.getItem('chess_music_favorite_composer');
+    if (savedFav) {
+      this.music.setComposerFilter(savedFav);
+      favName.textContent = savedFav;
+      favRow.classList.remove('hidden');
+    }
 
-      // Restore favorite composer
-      const savedFav = localStorage.getItem('chess_music_favorite_composer');
-      if (savedFav && composers.includes(savedFav)) {
-        composerFilter.value = savedFav;
-        this.music.setComposerFilter(savedFav);
-        favName.textContent = savedFav;
-        favRow.classList.remove('hidden');
-        this._updateMusicPlaylist();
-      }
+    // Clear favorite
+    clearFavBtn?.addEventListener('click', () => {
+      localStorage.removeItem('chess_music_favorite_composer');
+      this._selectedComposerId = null;
+      this.music.setComposerFilter(null);
+      favRow.classList.add('hidden');
+      this.renderComposerPicker();
+      this.renderComposerDetail(null);
+    });
 
-      // Set as favorite
-      setFavBtn?.addEventListener('click', () => {
-        const selected = composerFilter.value;
-        if (selected === 'all') {
-          this.showToast('Select a composer first');
-          return;
-        }
-        localStorage.setItem('chess_music_favorite_composer', selected);
-        favName.textContent = selected;
-        favRow.classList.remove('hidden');
-        this.showToast(selected + ' set as favorite');
-      });
-
-      // Clear favorite
-      clearFavBtn?.addEventListener('click', () => {
-        localStorage.removeItem('chess_music_favorite_composer');
-        composerFilter.value = 'all';
-        this.music.setComposerFilter(null);
-        favRow.classList.add('hidden');
-        const miniFilter = document.getElementById('mini-music-composer-filter');
-        if (miniFilter) miniFilter.value = 'all';
-        this._updateMusicPlaylist();
-      });
+    // Show initial track info in mini player
+    const initTrack = this.music.currentTrack;
+    if (initTrack) {
+      const mt = document.getElementById('mini-music-title');
+      const mc = document.getElementById('mini-music-composer');
+      if (mt) mt.textContent = initTrack.title;
+      if (mc) mc.textContent = initTrack.composer;
     }
 
     // Mini music player controls on main screen
@@ -5077,41 +5634,42 @@ class ChessApp {
       });
     }
 
-    // Mini composer filter — populate and sync with main dialog
-    const miniComposerFilter = document.getElementById('mini-music-composer-filter');
-    if (miniComposerFilter) {
-      const composers = [...new Set(PLAYLIST.map(t => t.composer))].sort();
-      composers.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        miniComposerFilter.appendChild(opt);
-      });
-      // Load saved favorite as default
-      const savedFav = localStorage.getItem('chess_music_favorite_composer');
-      if (savedFav && composers.includes(savedFav)) {
-        miniComposerFilter.value = savedFav;
-      }
-      miniComposerFilter.addEventListener('change', () => {
-        const selected = miniComposerFilter.value;
-        this.music.setComposerFilter(selected === 'all' ? null : selected);
-        // Sync full dialog dropdown
-        const dialogFilter = document.getElementById('music-composer-filter');
-        if (dialogFilter) dialogFilter.value = selected;
-        this._updateMusicPlaylist();
-      });
+    // Mini shuffle button
+    document.getElementById('mini-music-shuffle')?.addEventListener('click', () => {
+      this.music.toggleShuffle();
+    });
+    // Set initial shuffle visual state
+    if (this.music.shuffle) {
+      document.getElementById('mini-music-shuffle')?.classList.add('active');
     }
+
+    // Mini composers button — opens music dialog
+    document.getElementById('mini-music-composers')?.addEventListener('click', () => {
+      this._renderMusicDialog();
+      show(document.getElementById('music-dialog'));
+    });
 
     // Note: onStateChange is set in setupSettings()
   }
 
   _renderMusicDialog() {
-    this._updateMusicPlaylist();
+    this.renderComposerPicker();
+
+    // Show detail for selected or current track's composer
+    const currentTrack = this.music.currentTrack;
+    let profile = null;
+    if (this._selectedComposerId) {
+      profile = COMPOSER_PROFILES.find(p => p.id === this._selectedComposerId);
+    } else if (currentTrack) {
+      profile = COMPOSER_PROFILES.find(p => p.composerKey === currentTrack.composer);
+    }
+    this.renderComposerDetail(profile || null);
+
     const nowTitle = document.querySelector('#music-dialog .music-track-title');
     const nowComposer = document.querySelector('#music-dialog .music-track-composer');
     const track = this.music.currentTrack;
-    nowTitle.textContent = track.title;
-    nowComposer.textContent = track.composer;
+    if (nowTitle) nowTitle.textContent = track.title;
+    if (nowComposer) nowComposer.textContent = track.composer;
 
     const playBtn = document.getElementById('music-play-pause');
     playBtn.innerHTML = this.music.playing ? '&#9646;&#9646;' : '&#9654;';
@@ -5120,32 +5678,150 @@ class ChessApp {
     shuffleBtn.classList.toggle('active', this.music.shuffle);
   }
 
-  _updateMusicPlaylist() {
-    const filterValue = document.getElementById('music-composer-filter')?.value || 'all';
-    const filteredTracks = filterValue === 'all' ? PLAYLIST : PLAYLIST.filter(t => t.composer === filterValue);
-    const countEl = document.getElementById('music-track-count');
-    if (countEl) countEl.textContent = `${filteredTracks.length} tracks`;
+  renderComposerPicker() {
+    const listEl = document.getElementById('composer-picker-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
 
-    const playlistEl = document.getElementById('music-playlist');
-    playlistEl.innerHTML = '';
+    // "All" chip at top
+    const allChip = document.createElement('div');
+    allChip.className = 'composer-chip' + (!this._selectedComposerId ? ' selected' : '');
+    allChip.innerHTML = `<span class="composer-chip-icon">&#9835;</span><span class="composer-chip-name">All</span>`;
+    allChip.title = `All Composers — ${PLAYLIST.length} tracks`;
+    allChip.addEventListener('click', () => {
+      listEl.querySelectorAll('.composer-chip').forEach(c => c.classList.remove('selected'));
+      allChip.classList.add('selected');
+      this._selectedComposerId = null;
+      this.music.setComposerFilter(null);
+      this.renderComposerDetail(null);
+    });
+    listEl.appendChild(allChip);
 
-    filteredTracks.forEach((track) => {
-      const i = PLAYLIST.indexOf(track);
-      const el = document.createElement('div');
-      el.className = 'music-track' + (i === this.music.currentIndex ? ' active' : '');
-      el.innerHTML = `
-        <span class="music-track-num">${i + 1}</span>
-        <div class="music-track-details">
-          <div class="music-track-details-title">${track.title}</div>
-          <div class="music-track-details-composer">${track.composer}</div>
+    for (const era of COMPOSER_ERAS) {
+      const eraComposers = COMPOSER_PROFILES.filter(c => c.era === era.id);
+      if (eraComposers.length === 0) continue;
+
+      // Era separator
+      const sep = document.createElement('div');
+      sep.className = 'composer-era-sep';
+      sep.textContent = era.name;
+      listEl.appendChild(sep);
+
+      for (const composer of eraComposers) {
+        const chip = document.createElement('div');
+        chip.className = 'composer-chip' + (composer.id === this._selectedComposerId ? ' selected' : '');
+        chip.dataset.composerId = composer.id;
+        chip.innerHTML = `
+          <img class="composer-chip-portrait" src="${composer.portrait}" alt="${composer.name}">
+          <span class="composer-chip-name">${composer.name}</span>
+        `;
+        chip.title = composer.fullName;
+        chip.addEventListener('click', () => {
+          listEl.querySelectorAll('.composer-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          this._selectedComposerId = composer.id;
+          this.music.setComposerFilter(composer.composerKey);
+          this.renderComposerDetail(composer);
+        });
+        listEl.appendChild(chip);
+      }
+    }
+  }
+
+  renderComposerDetail(composer) {
+    const detailEl = document.getElementById('composer-picker-detail');
+    if (!detailEl) return;
+
+    if (!composer) {
+      // Show all tracks
+      const tracks = PLAYLIST;
+      detailEl.innerHTML = `
+        <div class="composer-detail-header">
+          <div class="composer-detail-all-icon">&#9835;</div>
+          <div class="composer-detail-info">
+            <div class="composer-detail-name">All Composers</div>
+            <div class="composer-detail-subtitle">${PLAYLIST.length} tracks from ${COMPOSER_PROFILES.length} composers</div>
+          </div>
         </div>
-        <span class="music-track-dur">${track.duration}</span>
+        <div class="composer-detail-section">
+          <h4>Tracks</h4>
+          <div class="composer-track-list" id="composer-track-list"></div>
+        </div>
+      `;
+      this._renderComposerTracks(tracks, detailEl);
+      return;
+    }
+
+    const tracks = PLAYLIST.filter(t => t.composer === composer.composerKey);
+    const eraObj = COMPOSER_ERAS.find(e => e.id === composer.era);
+    const keyWorksHtml = composer.keyWorks.map(w => `<span class="composer-key-work">${w}</span>`).join('');
+
+    detailEl.innerHTML = `
+      <div class="composer-detail-header">
+        <img class="composer-portrait-lg" src="${composer.portrait}" alt="${composer.name}">
+        <div class="composer-detail-info">
+          <div class="composer-detail-name">${composer.fullName}</div>
+          <div class="composer-detail-era">${eraObj ? eraObj.name : ''}</div>
+          <div class="composer-detail-dates">${composer.born} &mdash; ${composer.died}</div>
+        </div>
+      </div>
+      <div class="composer-detail-bio">${composer.summary}</div>
+      <div class="composer-detail-section">
+        <h4>Musical Style</h4>
+        <div class="composer-detail-style">${composer.style}</div>
+      </div>
+      <div class="composer-detail-section">
+        <h4>Key Works</h4>
+        <div class="composer-key-works">${keyWorksHtml}</div>
+      </div>
+      <div class="composer-detail-section">
+        <div class="composer-detail-fav-row">
+          <h4>Tracks (${tracks.length})</h4>
+          <button class="btn btn-small btn-secondary composer-set-favorite" title="Set as favorite composer">&#9733; Favorite</button>
+        </div>
+        <div class="composer-track-list" id="composer-track-list"></div>
+      </div>
+    `;
+
+    // Favorite button
+    const favBtn = detailEl.querySelector('.composer-set-favorite');
+    if (favBtn) {
+      favBtn.addEventListener('click', () => {
+        localStorage.setItem('chess_music_favorite_composer', composer.composerKey);
+        const favRow = document.getElementById('music-favorite-row');
+        const favName = document.getElementById('music-fav-name');
+        if (favName) favName.textContent = composer.composerKey;
+        if (favRow) favRow.classList.remove('hidden');
+        this.showToast(composer.name + ' set as favorite');
+      });
+    }
+
+    this._renderComposerTracks(tracks, detailEl);
+  }
+
+  _renderComposerTracks(tracks, container) {
+    const listEl = container.querySelector('#composer-track-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    tracks.forEach((track) => {
+      const i = PLAYLIST.indexOf(track);
+      const isActive = i === this.music.currentIndex;
+      const el = document.createElement('div');
+      el.className = 'composer-track' + (isActive ? ' active' : '');
+      el.innerHTML = `
+        <span class="composer-track-play">${isActive && this.music.playing ? '&#9646;&#9646;' : '&#9654;'}</span>
+        <div class="composer-track-info">
+          <div class="composer-track-title">${track.title}</div>
+          <div class="composer-track-composer">${track.composer}</div>
+        </div>
+        <span class="composer-track-dur">${track.duration}</span>
       `;
       el.addEventListener('click', () => {
         this.music.setTrack(i);
         if (!this.music.playing) this.music.play();
       });
-      playlistEl.appendChild(el);
+      listEl.appendChild(el);
     });
   }
 
