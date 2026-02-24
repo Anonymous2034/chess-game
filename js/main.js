@@ -149,7 +149,9 @@ class ChessApp {
     this.setupBrowseDialogs();
     this.setupEvalBar();
     this.setupLayoutEditor();
+    this.setupDragLayout();
     this.setupSettings();
+    this._loadClockTheme();
     this.setupResizeHandles();
     this.setupPlayerNameClicks();
     this.setupNotes();
@@ -614,6 +616,8 @@ class ChessApp {
       if (topName) topName.textContent = topColor === 'w' ? 'White' : 'Black';
       if (bottomName) bottomName.textContent = bottomColor === 'w' ? 'White' : 'Black';
     }
+
+    this._syncFloatingClock();
   }
 
   // === Navigation ===
@@ -775,13 +779,8 @@ class ChessApp {
   setupNotes() {
     this._gameNotes = {}; // moveIndex -> text
 
-    document.getElementById('btn-toggle-notes').addEventListener('click', () => {
-      const el = document.getElementById('move-notes');
-      el.classList.toggle('hidden');
-      if (!el.classList.contains('hidden')) {
-        this._loadNoteForCurrentMove();
-      }
-    });
+    // Notes always visible — load initial placeholder
+    this._loadNoteForCurrentMove();
 
     document.getElementById('move-notes-input').addEventListener('input', (e) => {
       const idx = this.notation.currentIndex;
@@ -1159,16 +1158,12 @@ class ChessApp {
 
     // No default advisors — user must explicitly choose them via the picker
 
-    // "Choose Advisors" button
-    document.getElementById('btn-pick-advisors').addEventListener('click', () => {
-      const picker = document.getElementById('advisor-picker');
-      if (picker.classList.contains('hidden')) {
-        this._renderAdvisorPicker();
-        show(picker);
-      } else {
-        hide(picker);
-      }
-    });
+    // Render picker and show it (collapse if already have selection)
+    this._renderAdvisorPicker();
+    if (this._advisorBots.length > 0) {
+      hide(document.getElementById('advisor-picker'));
+      show(document.getElementById('advisor-change-btn'));
+    }
 
     // Render initial state and start analyzing if advisors already selected
     if (this._advisorBots.length > 0) {
@@ -1181,7 +1176,7 @@ class ChessApp {
   _renderAdvisorPicker() {
     const picker = document.getElementById('advisor-picker');
     const selectedIds = this._advisorBots.map(b => b.id);
-    let html = '';
+    let html = '<div class="picker-scroll">';
 
     for (const tier of BOT_TIERS.filter(t => t.id === 'grandmaster' || t.id === 'machine')) {
       const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
@@ -1200,7 +1195,30 @@ class ChessApp {
       }
     }
 
+    html += '</div>';
+    html += `<button class="btn btn-sm picker-done-btn" id="advisor-picker-done">Done</button>`;
     picker.innerHTML = html;
+
+    // "Done" button collapses picker
+    picker.querySelector('#advisor-picker-done').addEventListener('click', () => {
+      hide(picker);
+      show(document.getElementById('advisor-change-btn'));
+    });
+
+    // "Change" button (rendered once in ideas-list area)
+    let changeBtn = document.getElementById('advisor-change-btn');
+    if (!changeBtn) {
+      changeBtn = document.createElement('button');
+      changeBtn.id = 'advisor-change-btn';
+      changeBtn.className = 'btn btn-sm picker-change-btn hidden';
+      changeBtn.textContent = 'Change Advisors';
+      changeBtn.addEventListener('click', () => {
+        this._renderAdvisorPicker();
+        show(picker);
+        hide(changeBtn);
+      });
+      picker.parentNode.insertBefore(changeBtn, picker);
+    }
 
     // Listen for changes
     picker.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1425,16 +1443,12 @@ class ChessApp {
       }
     } catch { /* ignore */ }
 
-    // Choose Coaches button
-    document.getElementById('btn-pick-coaches')?.addEventListener('click', () => {
-      const picker = document.getElementById('gm-coach-picker');
-      if (picker.classList.contains('hidden')) {
-        this._renderGMCoachPicker();
-        show(picker);
-      } else {
-        hide(picker);
-      }
-    });
+    // Render picker (collapse if already have selection)
+    this._renderGMCoachPicker();
+    if (this._gmCoachBots.length > 0) {
+      hide(document.getElementById('gm-coach-picker'));
+      show(document.getElementById('coach-change-btn'));
+    }
 
     // Chat input
     document.getElementById('btn-gm-coach-send')?.addEventListener('click', () => {
@@ -1465,7 +1479,7 @@ class ChessApp {
   _renderGMCoachPicker() {
     const picker = document.getElementById('gm-coach-picker');
     const selectedId = this._gmCoachBots.length > 0 ? this._gmCoachBots[0].id : null;
-    let html = '';
+    let html = '<div class="picker-scroll">';
 
     for (const tier of BOT_TIERS.filter(t => t.id === 'grandmaster' || t.id === 'machine')) {
       const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
@@ -1484,7 +1498,30 @@ class ChessApp {
       }
     }
 
+    html += '</div>';
+    html += `<button class="btn btn-sm picker-done-btn" id="coach-picker-done">Done</button>`;
     picker.innerHTML = html;
+
+    // "Done" button collapses picker
+    picker.querySelector('#coach-picker-done').addEventListener('click', () => {
+      hide(picker);
+      show(document.getElementById('coach-change-btn'));
+    });
+
+    // "Change" button (rendered once)
+    let changeBtn = document.getElementById('coach-change-btn');
+    if (!changeBtn) {
+      changeBtn = document.createElement('button');
+      changeBtn.id = 'coach-change-btn';
+      changeBtn.className = 'btn btn-sm picker-change-btn hidden';
+      changeBtn.textContent = 'Change Coach';
+      changeBtn.addEventListener('click', () => {
+        this._renderGMCoachPicker();
+        show(picker);
+        hide(changeBtn);
+      });
+      picker.parentNode.insertBefore(changeBtn, picker);
+    }
 
     picker.querySelectorAll('input[type="radio"]').forEach(rb => {
       rb.addEventListener('change', () => {
@@ -1498,8 +1535,9 @@ class ChessApp {
 
         localStorage.setItem('chess_gm_coaches', JSON.stringify(this._gmCoachBots.map(b => b.id)));
 
-        // Auto-close picker after selection
+        // Auto-collapse picker after selection
         hide(picker);
+        show(document.getElementById('coach-change-btn'));
 
         this._renderGMCoachCards();
         this._updateGMCoachCommentary();
@@ -4273,6 +4311,17 @@ class ChessApp {
       show(document.getElementById('layout-dialog'));
     });
 
+    // Direct menu item for Layout Editor
+    const layoutMenuBtn = document.getElementById('btn-settings-layout');
+    if (layoutMenuBtn) {
+      layoutMenuBtn.addEventListener('click', () => {
+        this._syncLayoutCheckboxes();
+        const t = document.getElementById('layout-drag-toggle');
+        if (t) t.checked = this._dragLayout?.enabled || false;
+        show(document.getElementById('layout-dialog'));
+      });
+    }
+
     document.getElementById('close-layout-dialog').addEventListener('click', () => {
       hide(document.getElementById('layout-dialog'));
     });
@@ -4408,6 +4457,296 @@ class ChessApp {
     document.querySelectorAll('#layout-dialog [data-layout-key]').forEach(cb => {
       cb.checked = this._layout[cb.dataset.layoutKey] !== false;
     });
+  }
+
+  // === Drag & Drop Layout Reorder ===
+
+  static get _DRAG_LAYOUT_DEFAULTS() {
+    return {
+      enabled: false,
+      boardArea: ['board', 'nav', 'music', 'explorer'],
+      sidePanel: ['status', 'tabs', 'coach-area', 'notes']
+    };
+  }
+
+  setupDragLayout() {
+    this._loadDragLayout();
+    this._applyDragOrder();
+
+    const toggle = document.getElementById('layout-drag-toggle');
+    if (toggle) {
+      toggle.checked = this._dragLayout.enabled;
+      toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          this._dragLayout.enabled = true;
+          this._saveDragLayout();
+          this._enterDragMode();
+        } else {
+          this._exitDragMode();
+        }
+      });
+    }
+
+    const resetBtn = document.getElementById('layout-drag-reset');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        this._dragLayout = { ...ChessApp._DRAG_LAYOUT_DEFAULTS };
+        this._saveDragLayout();
+        this._applyDragOrder();
+        if (document.body.classList.contains('drag-mode')) {
+          this._exitDragMode();
+        }
+        const t = document.getElementById('layout-drag-toggle');
+        if (t) t.checked = false;
+      });
+    }
+  }
+
+  _loadDragLayout() {
+    const defaults = ChessApp._DRAG_LAYOUT_DEFAULTS;
+    try {
+      const saved = localStorage.getItem('chess_drag_layout');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this._dragLayout = {
+          enabled: false, // always start with drag mode off
+          boardArea: Array.isArray(parsed.boardArea) ? parsed.boardArea : [...defaults.boardArea],
+          sidePanel: Array.isArray(parsed.sidePanel) ? parsed.sidePanel : [...defaults.sidePanel]
+        };
+      } else {
+        this._dragLayout = { ...defaults, boardArea: [...defaults.boardArea], sidePanel: [...defaults.sidePanel] };
+      }
+    } catch {
+      this._dragLayout = { ...defaults, boardArea: [...defaults.boardArea], sidePanel: [...defaults.sidePanel] };
+    }
+  }
+
+  _saveDragLayout() {
+    localStorage.setItem('chess_drag_layout', JSON.stringify(this._dragLayout));
+  }
+
+  _applyDragOrder() {
+    const boardArea = document.querySelector('.board-area');
+    const sidePanel = document.querySelector('.side-panel');
+    if (!boardArea || !sidePanel) return;
+
+    // Move drag-groups into their saved containers in order
+    for (const id of this._dragLayout.boardArea) {
+      const g = document.querySelector(`[data-drag-id="${id}"]`);
+      if (g) boardArea.appendChild(g);
+    }
+    for (const id of this._dragLayout.sidePanel) {
+      const g = document.querySelector(`[data-drag-id="${id}"]`);
+      if (g) sidePanel.appendChild(g);
+    }
+
+    // Keep #analysis-summary at top of side-panel (not draggable)
+    const summary = document.getElementById('analysis-summary');
+    if (summary && sidePanel.contains(summary)) {
+      sidePanel.prepend(summary);
+    }
+  }
+
+  _rebuildDragOrder() {
+    const boardArea = document.querySelector('.board-area');
+    const sidePanel = document.querySelector('.side-panel');
+    this._dragLayout.boardArea = [...boardArea.querySelectorAll(':scope > .drag-group')].map(g => g.dataset.dragId);
+    this._dragLayout.sidePanel = [...sidePanel.querySelectorAll(':scope > .drag-group')].map(g => g.dataset.dragId);
+    this._saveDragLayout();
+  }
+
+  _enterDragMode() {
+    // Close layout dialog
+    hide(document.getElementById('layout-dialog'));
+
+    document.body.classList.add('drag-mode');
+
+    // Create drop indicator
+    this._dragIndicator = document.createElement('div');
+    this._dragIndicator.className = 'drag-drop-indicator';
+
+    // Create floating Done button
+    this._dragDoneBtn = document.createElement('button');
+    this._dragDoneBtn.className = 'drag-done-btn';
+    this._dragDoneBtn.textContent = 'Done Rearranging';
+    this._dragDoneBtn.addEventListener('click', () => this._exitDragMode());
+    document.body.appendChild(this._dragDoneBtn);
+
+    // Attach pointer listeners to drag groups
+    this._dragGroupHandlers = new Map();
+    document.querySelectorAll('.drag-group').forEach(group => {
+      const handler = (e) => this._onDragGroupPointerDown(e, group);
+      group.addEventListener('pointerdown', handler);
+      this._dragGroupHandlers.set(group, handler);
+    });
+  }
+
+  _exitDragMode() {
+    document.body.classList.remove('drag-mode');
+
+    // Remove indicator
+    if (this._dragIndicator && this._dragIndicator.parentNode) {
+      this._dragIndicator.remove();
+    }
+    this._dragIndicator = null;
+
+    // Remove done button
+    if (this._dragDoneBtn) {
+      this._dragDoneBtn.remove();
+      this._dragDoneBtn = null;
+    }
+
+    // Detach pointer listeners
+    if (this._dragGroupHandlers) {
+      this._dragGroupHandlers.forEach((handler, group) => {
+        group.removeEventListener('pointerdown', handler);
+      });
+      this._dragGroupHandlers = null;
+    }
+
+    // Remove drag-over highlights
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+    this._dragLayout.enabled = false;
+    this._saveDragLayout();
+
+    const t = document.getElementById('layout-drag-toggle');
+    if (t) t.checked = false;
+  }
+
+  _onDragGroupPointerDown(e, group) {
+    // Only primary button
+    if (e.button !== 0) return;
+    e.preventDefault();
+    group.setPointerCapture(e.pointerId);
+
+    const rect = group.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+
+    // Create floating clone
+    const clone = group.cloneNode(true);
+    clone.className = 'drag-clone';
+    clone.style.width = rect.width + 'px';
+    clone.style.transform = `translate(${e.clientX - offsetX}px, ${e.clientY - offsetY}px) scale(0.95)`;
+    document.body.appendChild(clone);
+
+    group.classList.add('dragging');
+
+    const boardArea = document.querySelector('.board-area');
+    const sidePanel = document.querySelector('.side-panel');
+
+    let lastX = e.clientX, lastY = e.clientY;
+    let rafId = 0;
+    let lastTarget = null;
+
+    const updatePosition = () => {
+      clone.style.transform = `translate(${lastX - offsetX}px, ${lastY - offsetY}px) scale(0.95)`;
+
+      const target = this._findDropTarget(lastX, lastY, group);
+      if (target) {
+        boardArea.classList.toggle('drag-over', target.container === boardArea);
+        sidePanel.classList.toggle('drag-over', target.container === sidePanel);
+
+        if (target.beforeElement) {
+          target.container.insertBefore(this._dragIndicator, target.beforeElement);
+        } else {
+          target.container.appendChild(this._dragIndicator);
+        }
+        lastTarget = target;
+      } else {
+        if (this._dragIndicator.parentNode) this._dragIndicator.remove();
+        boardArea.classList.remove('drag-over');
+        sidePanel.classList.remove('drag-over');
+        lastTarget = null;
+      }
+      rafId = 0;
+    };
+
+    const onPointerMove = (ev) => {
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      if (!rafId) rafId = requestAnimationFrame(updatePosition);
+    };
+
+    const onPointerUp = () => {
+      group.removeEventListener('pointermove', onPointerMove);
+      group.removeEventListener('pointerup', onPointerUp);
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+
+      clone.remove();
+      group.classList.remove('dragging');
+      if (this._dragIndicator.parentNode) this._dragIndicator.remove();
+      boardArea.classList.remove('drag-over');
+      sidePanel.classList.remove('drag-over');
+
+      // Use the last known target from pointermove (avoids stale recalculation)
+      if (lastTarget) {
+        this._performDrop(group, lastTarget);
+      }
+    };
+
+    group.addEventListener('pointermove', onPointerMove);
+    group.addEventListener('pointerup', onPointerUp);
+  }
+
+  _findDropTarget(clientX, clientY, draggedGroup) {
+    const boardArea = document.querySelector('.board-area');
+    const sidePanel = document.querySelector('.side-panel');
+    const dragId = draggedGroup.dataset.dragId;
+
+    // Determine which container the cursor is over
+    const bRect = boardArea.getBoundingClientRect();
+    const sRect = sidePanel.getBoundingClientRect();
+
+    let container = null;
+    if (clientX >= bRect.left && clientX <= bRect.right && clientY >= bRect.top && clientY <= bRect.bottom) {
+      container = boardArea;
+    } else if (clientX >= sRect.left && clientX <= sRect.right && clientY >= sRect.top && clientY <= sRect.bottom) {
+      container = sidePanel;
+    }
+
+    if (!container) return null;
+
+    // Constraint: 'board' must stay in board-area
+    if (dragId === 'board' && container !== boardArea) return null;
+
+    // Find insertion point based on Y midpoint
+    const groups = [...container.querySelectorAll('.drag-group:not(.dragging)')];
+    let beforeElement = null;
+    for (const g of groups) {
+      const r = g.getBoundingClientRect();
+      const midY = r.top + r.height / 2;
+      if (clientY < midY) {
+        beforeElement = g;
+        break;
+      }
+    }
+
+    return { container, beforeElement };
+  }
+
+  _performDrop(group, target) {
+    if (target.beforeElement) {
+      target.container.insertBefore(group, target.beforeElement);
+    } else {
+      target.container.appendChild(group);
+    }
+
+    // Brief settle flash
+    group.classList.add('drag-settling');
+    group.style.opacity = '0.6';
+    requestAnimationFrame(() => { group.style.opacity = ''; });
+    setTimeout(() => group.classList.remove('drag-settling'), 200);
+
+    // Keep analysis-summary at top of side-panel
+    const sidePanel = document.querySelector('.side-panel');
+    const summary = document.getElementById('analysis-summary');
+    if (summary && sidePanel.contains(summary)) {
+      sidePanel.prepend(summary);
+    }
+
+    this._rebuildDragOrder();
   }
 
   // === Settings Dialogs (Sound / Display / Board) ===
@@ -6912,6 +7251,24 @@ class ChessApp {
     // Theme rendering is handled by setupSettings(); this is kept for init ordering.
   }
 
+  static get _CLOCK_THEMES() {
+    return [
+      { id: 'default',    name: 'Default',    font: "'Courier New', monospace", bg: '#3a3633', color: '#ddd' },
+      { id: 'led',        name: 'LED',        font: "'Courier New', monospace", bg: '#111',    color: '#ff3333' },
+      { id: 'neon',       name: 'Neon',       font: "'Courier New', monospace", bg: '#0a0a1a', color: '#0ff' },
+      { id: 'wood',       name: 'Wooden',     font: "Georgia, serif",           bg: '#3d2b1f', color: '#f0d9b5' },
+      { id: 'minimal',    name: 'Minimal',    font: "sans-serif",               bg: 'transparent', color: '#aaa' },
+      { id: 'bold',       name: 'Bold',       font: "'Arial Black', sans-serif", bg: '#3a3633', color: '#ddd' },
+      { id: 'tournament', name: 'Tournament', font: "'Courier New', monospace", bg: '#1a2e1a', color: '#66ff66' },
+      { id: 'gold',       name: 'Gold',       font: "Georgia, serif",           bg: '#2a2218', color: '#d4a843' },
+      { id: 'hacker',     name: 'Hacker',     font: "'Courier New', monospace", bg: '#000',    color: '#00ff41' },
+      { id: 'classic',    name: 'Classic',    font: "Georgia, serif",           bg: '#3d2b1f', color: '#f5f0e1', floating: true },
+      { id: 'dgt',        name: 'DGT',        font: "'Courier New', monospace", bg: '#1a1a1a', color: '#ff3333', floating: true },
+      { id: 'retro',      name: 'Retro',      font: "'Courier New', monospace", bg: '#c8c0a8', color: '#1a2e1a', floating: true },
+      { id: 'modern',     name: 'Modern',     font: "sans-serif",               bg: '#2a2a2e', color: '#fff',    floating: true },
+    ];
+  }
+
   _renderThemeDialog() {
     // Board themes
     const swatchesEl = document.getElementById('board-theme-swatches');
@@ -6958,6 +7315,204 @@ class ChessApp {
         this.themes.setPieceTheme(theme.id);
       });
       piecesEl.appendChild(btn);
+    }
+
+    // Clock themes
+    const clockEl = document.getElementById('clock-theme-list');
+    if (clockEl) {
+      clockEl.innerHTML = '';
+      const currentClock = this._clockTheme || 'default';
+      for (const theme of ChessApp._CLOCK_THEMES) {
+        const btn = document.createElement('button');
+        btn.className = 'clock-theme-option' + (theme.id === currentClock ? ' active' : '');
+        btn.innerHTML = `
+          <div class="clock-preview" style="font-family:${theme.font};background:${theme.bg};color:${theme.color}">5:00${theme.floating ? '<span class="fc-badge">\u231B</span>' : ''}</div>
+          <span class="clock-theme-label">${theme.name}</span>
+        `;
+        btn.addEventListener('click', () => {
+          clockEl.querySelectorAll('.clock-theme-option').forEach(s => s.classList.remove('active'));
+          btn.classList.add('active');
+          this._applyClockTheme(theme.id);
+        });
+        clockEl.appendChild(btn);
+      }
+    }
+  }
+
+  _applyClockTheme(id) {
+    // Remove old clock-* class
+    document.body.classList.forEach(c => {
+      if (c.startsWith('clock-')) document.body.classList.remove(c);
+    });
+    if (id !== 'default') {
+      document.body.classList.add('clock-' + id);
+    }
+    this._clockTheme = id;
+    localStorage.setItem('chess_clock_theme', id);
+
+    // Handle floating clock
+    const theme = ChessApp._CLOCK_THEMES.find(t => t.id === id);
+    if (theme && theme.floating) {
+      document.body.classList.add('floating-clock-active');
+      this._initFloatingClock();
+    } else {
+      document.body.classList.remove('floating-clock-active');
+      const fc = document.getElementById('floating-clock');
+      if (fc) fc.style.display = 'none';
+    }
+  }
+
+  _loadClockTheme() {
+    const saved = localStorage.getItem('chess_clock_theme') || 'default';
+    this._clockTheme = saved;
+    this._applyClockTheme(saved);
+  }
+
+  _initFloatingClock() {
+    let fc = document.getElementById('floating-clock');
+    if (!fc) {
+      fc = document.createElement('div');
+      fc.id = 'floating-clock';
+      fc.className = 'floating-clock';
+      fc.innerHTML = `
+        <div class="fc-housing">
+          <div class="fc-display fc-display-left">
+            <span class="fc-time" id="fc-time-left">--:--</span>
+            <span class="fc-move-time" id="fc-move-left"></span>
+          </div>
+          <div class="fc-divider"></div>
+          <div class="fc-display fc-display-right">
+            <span class="fc-time" id="fc-time-right">--:--</span>
+            <span class="fc-move-time" id="fc-move-right"></span>
+          </div>
+          <div class="fc-labels">
+            <span class="fc-label" id="fc-label-left">White</span>
+            <span class="fc-label" id="fc-label-right">Black</span>
+          </div>
+        </div>`;
+      const boardArea = document.querySelector('.board-area');
+      if (boardArea) boardArea.appendChild(fc);
+      this._setupFloatingClockDrag(fc);
+    }
+    fc.style.display = '';
+
+    // Restore saved position
+    const pos = localStorage.getItem('chess_floating_clock_pos');
+    if (pos) {
+      try {
+        const { left, top } = JSON.parse(pos);
+        fc.style.left = left + 'px';
+        fc.style.top = top + 'px';
+      } catch(e) { /* ignore */ }
+    }
+
+    this._syncFloatingClock();
+  }
+
+  _setupFloatingClockDrag(el) {
+    let dragging = false, startX, startY, origLeft, origTop;
+
+    el.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      el.setPointerCapture(e.pointerId);
+      const rect = el.getBoundingClientRect();
+      const parentRect = el.parentElement.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      origLeft = rect.left - parentRect.left;
+      origTop = rect.top - parentRect.top;
+      el.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      el.style.left = (origLeft + dx) + 'px';
+      el.style.top = (origTop + dy) + 'px';
+    });
+
+    const endDrag = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      el.style.cursor = '';
+      localStorage.setItem('chess_floating_clock_pos', JSON.stringify({
+        left: parseInt(el.style.left) || 0,
+        top: parseInt(el.style.top) || 0
+      }));
+    };
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+  }
+
+  _syncFloatingClock() {
+    const fc = document.getElementById('floating-clock');
+    if (!fc || fc.style.display === 'none') return;
+
+    const flipped = this.board.flipped;
+    const turn = this.chess.turn();
+    const isOver = this.game.gameOver;
+    const timers = this.game.timers;
+
+    // Left = White, Right = Black (always)
+    const leftColor = 'w';
+    const rightColor = 'b';
+
+    const fcTimeLeft = document.getElementById('fc-time-left');
+    const fcTimeRight = document.getElementById('fc-time-right');
+    const fcMoveLeft = document.getElementById('fc-move-left');
+    const fcMoveRight = document.getElementById('fc-move-right');
+    const fcLabelLeft = document.getElementById('fc-label-left');
+    const fcLabelRight = document.getElementById('fc-label-right');
+    const fcDisplayLeft = fc.querySelector('.fc-display-left');
+    const fcDisplayRight = fc.querySelector('.fc-display-right');
+
+    if (this.game.timeControl > 0) {
+      fcTimeLeft.textContent = this.game.getTimerDisplay(leftColor);
+      fcTimeRight.textContent = this.game.getTimerDisplay(rightColor);
+    } else {
+      fcTimeLeft.textContent = (turn === leftColor && !isOver) ? '\u25CF' : '--:--';
+      fcTimeRight.textContent = (turn === rightColor && !isOver) ? '\u25CF' : '--:--';
+    }
+
+    // Active / low states
+    fcDisplayLeft.classList.toggle('active', turn === leftColor && !isOver);
+    fcDisplayRight.classList.toggle('active', turn === rightColor && !isOver);
+    fcDisplayLeft.classList.toggle('low', timers[leftColor] <= 30 && timers[leftColor] > 0 && this.game.timeControl > 0);
+    fcDisplayRight.classList.toggle('low', timers[rightColor] <= 30 && timers[rightColor] > 0 && this.game.timeControl > 0);
+
+    // Sync move clock
+    if (this._moveClockColor) {
+      const elapsed = (Date.now() - this._moveClockStart) / 1000;
+      let moveText;
+      if (elapsed < 60) {
+        moveText = `${Math.floor(elapsed)}s`;
+      } else {
+        moveText = `${Math.floor(elapsed / 60)}:${Math.floor(elapsed % 60).toString().padStart(2, '0')}`;
+      }
+      if (this._moveClockColor === leftColor) {
+        fcMoveLeft.textContent = moveText;
+        fcMoveRight.textContent = '';
+      } else {
+        fcMoveRight.textContent = moveText;
+        fcMoveLeft.textContent = '';
+      }
+    } else {
+      fcMoveLeft.textContent = '';
+      fcMoveRight.textContent = '';
+    }
+
+    // Labels
+    if (this.activeBot && this.game.mode === 'engine') {
+      const botColor = this.game.playerColor === 'w' ? 'b' : 'w';
+      const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
+      const botLabel = `${gmPrefix}${this.activeBot.name}`;
+      fcLabelLeft.textContent = leftColor === botColor ? botLabel : 'You';
+      fcLabelRight.textContent = rightColor === botColor ? botLabel : 'You';
+    } else {
+      fcLabelLeft.textContent = 'White';
+      fcLabelRight.textContent = 'Black';
     }
   }
 
