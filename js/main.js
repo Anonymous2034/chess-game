@@ -4306,7 +4306,8 @@ class ChessApp {
     this._loadLayoutSettings();
     this._applyAllLayoutSettings();
 
-    document.getElementById('settings-open-layout').addEventListener('click', () => {
+    const openLayoutBtn = document.getElementById('settings-open-layout');
+    if (openLayoutBtn) openLayoutBtn.addEventListener('click', () => {
       this._syncLayoutCheckboxes();
       show(document.getElementById('layout-dialog'));
     });
@@ -7341,7 +7342,7 @@ class ChessApp {
 
   _applyClockTheme(id) {
     // Remove old clock-* class
-    document.body.classList.forEach(c => {
+    [...document.body.classList].forEach(c => {
       if (c.startsWith('clock-')) document.body.classList.remove(c);
     });
     if (id !== 'default') {
@@ -7449,6 +7450,7 @@ class ChessApp {
   _syncFloatingClock() {
     const fc = document.getElementById('floating-clock');
     if (!fc || fc.style.display === 'none') return;
+    if (!this.board || !this.chess || !this.game) return;
 
     const flipped = this.board.flipped;
     const turn = this.chess.turn();
