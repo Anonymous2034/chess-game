@@ -37,7 +37,7 @@ class ChessApp {
     this.board = null;
     this.engine = null;
     this.notation = null;
-    this.database = new Database(Chess);
+    this.database = new Database();
     this.engineInitialized = false;
     this.activeBot = null;
     this.activeCategory = 'all';
@@ -3736,20 +3736,24 @@ class ChessApp {
 
     if (ply === 0) return;
 
-    // Cancel any previous in-flight async computation
-    this._dbCountId = (this._dbCountId || 0) + 1;
-    const myId = this._dbCountId;
+    // Cancel any pending computation
+    if (this._dbCountRAF) cancelAnimationFrame(this._dbCountRAF);
 
-    // Non-blocking: async chunked computation
-    this.database.countByPositionAsync(fen).then(count => {
-      // Guard: position changed while we were computing
-      if (this._dbCountId !== myId) return;
-      if (count > 0) {
-        labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
-        labelEl.style.cursor = 'pointer';
-        labelEl.onclick = () => this._openDBByPosition();
+    // Defer until after the current frame renders (board updates first)
+    this._dbCountRAF = requestAnimationFrame(() => {
+      // Position may have changed since we scheduled this
+      if (this.chess.fen() !== fen) return;
+      try {
+        const count = this.database.countByPosition(fen);
+        if (count > 0) {
+          labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
+          labelEl.style.cursor = 'pointer';
+          labelEl.onclick = () => this._openDBByPosition();
+        }
+      } catch (err) {
+        console.warn('[DB] position count error:', err);
       }
-    }).catch(err => console.warn('[DB] position count error:', err));
+    });
   }
 
   /** Open DB dialog showing only games that match the current board position */
