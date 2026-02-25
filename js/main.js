@@ -3725,8 +3725,8 @@ class ChessApp {
   _updateDBMatchCount() {
     const labelEl = document.getElementById('opening-label');
     if (!labelEl) return;
-    const moves = this.game.moveHistory.map(m => m.san);
-    const count = this.database.countByMovePrefix(moves);
+    const fen = this.chess.fen();
+    const count = this.database.countByPosition(fen);
     const name = this.lastOpeningName || '';
     if (count > 0) {
       labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
@@ -3741,8 +3741,8 @@ class ChessApp {
 
   /** Open DB dialog showing only games that match the current board position */
   _openDBByPosition() {
-    const moves = this.game.moveHistory.map(m => m.san);
-    const games = this.database.filterByMovePrefix(moves);
+    const fen = this.chess.fen();
+    const games = this.database.filterByPosition(fen);
     if (games.length === 0) return;
 
     const show = el => el?.classList.remove('hidden');
@@ -3759,7 +3759,8 @@ class ChessApp {
     const summaryEl = document.getElementById('db-results-summary');
     listEl.innerHTML = '';
 
-    const title = this.lastOpeningName || `Position after ${moves.length} moves`;
+    const plyCount = this.game.moveHistory.length;
+    const title = this.lastOpeningName || `Position after ${Math.ceil(plyCount / 2)} move${plyCount > 2 ? 's' : ''}`;
     if (summaryEl) summaryEl.textContent = `${games.length} game${games.length !== 1 ? 's' : ''} matching this position`;
 
     const header = document.createElement('div');

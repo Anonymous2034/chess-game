@@ -95,10 +95,11 @@ export class Database {
     } while (moveText !== prev);
     moveText = moveText.replace(/\d+\.\.\./g, '');
 
-    // Extract individual moves
+    // Extract individual moves, strip annotation glyphs (!, ?, !!, ??, !?, ?!, $1-$255)
     const moveTokens = moveText
       .split(/\s+/)
-      .filter(t => t && !t.match(/^\d+\.?$/) && !t.match(/^(1-0|0-1|1\/2-1\/2|\*)$/));
+      .filter(t => t && !t.match(/^\d+\.?$/) && !t.match(/^(1-0|0-1|1\/2-1\/2|\*)$/) && !t.match(/^\$\d+$/))
+      .map(t => t.replace(/[!?]+$/, ''));
 
     if (!headers.White && !headers.Event) return null;
 
@@ -300,25 +301,59 @@ export class Database {
   }
 
   /**
-   * Count how many DB games start with the given move prefix
+   * Count DB games that reach the given board position (FEN-based).
+   * Handles transpositions — different move orders reaching the same position.
    */
-  countByMovePrefix(moves) {
-    if (!moves || moves.length === 0) return 0;
-    return this.filterByMovePrefix(moves).length;
+  countByPosition(targetFen) {
+    return this.filterByPosition(targetFen).length;
   }
 
   /**
-   * Return all DB games whose moves start with the given prefix
+   * Return all DB games that pass through the given position.
+   * Replays each game's moves up to the target ply and compares FEN.
+   * Results are cached by position key.
    */
-  filterByMovePrefix(moves) {
-    if (!moves || moves.length === 0) return this.games;
-    return this.games.filter(game => {
-      if (game.moves.length < moves.length) return false;
-      for (let i = 0; i < moves.length; i++) {
-        if (game.moves[i] !== moves[i]) return false;
+  filterByPosition(targetFen) {
+    // Position key: piece placement + active color + castling + en passant
+    const posKey = targetFen.split(' ').slice(0, 4).join(' ');
+
+    if (!this._positionCache) this._positionCache = new Map();
+    if (this._positionCache.has(posKey)) return this._positionCache.get(posKey);
+
+    // Determine ply from FEN
+    const fenParts = targetFen.split(' ');
+    const activeColor = fenParts[1];
+    const fullmove = parseInt(fenParts[5]) || 1;
+    const ply = (fullmove - 1) * 2 + (activeColor === 'b' ? 1 : 0);
+
+    if (ply === 0) return this.games;
+
+    const results = [];
+    const temp = new Chess();
+
+    for (const game of this.games) {
+      if (game.moves.length < ply) continue;
+
+      temp.reset();
+      let valid = true;
+      for (let i = 0; i < ply; i++) {
+        try {
+          if (!temp.move(game.moves[i])) { valid = false; break; }
+        } catch { valid = false; break; }
       }
-      return true;
-    });
+      if (!valid) continue;
+
+      const gamePosKey = temp.fen().split(' ').slice(0, 4).join(' ');
+      if (gamePosKey === posKey) results.push(game);
+    }
+
+    // Cache with eviction
+    if (this._positionCache.size >= 200) {
+      const first = this._positionCache.keys().next().value;
+      this._positionCache.delete(first);
+    }
+    this._positionCache.set(posKey, results);
+    return results;
   }
 
   /**
