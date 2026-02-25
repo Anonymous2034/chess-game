@@ -3727,10 +3727,11 @@ class ChessApp {
     if (!labelEl) return;
     const moves = this.game.moveHistory.map(m => m.san);
     const count = this.database.countByMovePrefix(moves);
-    if (count > 0 && this.lastOpeningName) {
-      labelEl.innerHTML = `${this.lastOpeningName} <span class="db-match-count">\u00b7 ${count.toLocaleString()} in DB</span>`;
+    const name = this.lastOpeningName || '';
+    if (count > 0) {
+      labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
     } else {
-      labelEl.textContent = this.lastOpeningName || '';
+      labelEl.textContent = name;
     }
   }
 

@@ -856,8 +856,8 @@ main {
 
 .dialog-wide {
   min-width: 500px;
-  width: 780px;
-  max-height: 85vh;
+  width: 860px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -989,9 +989,9 @@ main {
 
 /* === Bot Picker — Two-Panel Layout === */
 .dialog-new-game {
-  width: 780px;
+  width: 860px;
   max-width: 95vw;
-  max-height: 85vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2105,8 +2105,9 @@ main {
 
 .db-match-count {
   font-style: normal;
-  color: #888;
-  font-size: 0.72rem;
+  color: #d4af37;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .pgn-file-row {
