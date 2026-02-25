@@ -164,7 +164,13 @@ class ChessApp {
       if (restored > 0) {
         console.log('[DB] Restored ' + restored + ' imported games from IndexedDB');
       }
-      if (categories.length > 0 || restored > 0) {
+
+      // Auto-import bundled PGN files if IndexedDB was empty
+      if (restored === 0) {
+        await this._autoImportBundledPGN();
+      }
+
+      if (categories.length > 0 || restored > 0 || this.database.games.length > 0) {
         this.populateCategoryTabs();
         this.populateCollectionFilter();
       }
@@ -222,6 +228,35 @@ class ChessApp {
     } catch (err) {
       console.error('Engine init failed:', err);
       engineStatusEl.textContent = 'Engine: Failed to load';
+    }
+  }
+
+  async _autoImportBundledPGN() {
+    try {
+      const resp = await fetch('data/imports/manifest.json');
+      if (!resp.ok) return;
+      const files = await resp.json();
+      if (!Array.isArray(files) || files.length === 0) return;
+
+      let totalGames = 0;
+      for (const file of files) {
+        try {
+          const r = await fetch('data/imports/' + encodeURIComponent(file));
+          if (!r.ok) continue;
+          const pgn = await r.text();
+          const name = file.replace(/\.pgn$/i, '');
+          const count = this.database.importAllGames(pgn, name);
+          totalGames += count;
+        } catch (e) { /* skip failed file */ }
+      }
+
+      if (totalGames > 0) {
+        console.log(`[DB] Auto-imported ${totalGames} games from ${files.length} bundled PGN files`);
+        this.populateCategoryTabs();
+        this.populateCollectionFilter();
+      }
+    } catch (e) {
+      // manifest.json not available — skip silently
     }
   }
 
