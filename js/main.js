@@ -3727,18 +3727,29 @@ class ChessApp {
     if (!labelEl) return;
     const fen = this.chess.fen();
     const ply = this.game.moveHistory.length;
-    // Don't show count at starting position — every game matches
-    const count = ply > 0 ? this.database.countByPosition(fen) : 0;
     const name = this.lastOpeningName || '';
-    if (count > 0) {
-      labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
-      labelEl.style.cursor = 'pointer';
-      labelEl.onclick = () => this._openDBByPosition();
-    } else {
-      labelEl.textContent = name;
-      labelEl.style.cursor = '';
-      labelEl.onclick = null;
-    }
+
+    // Show opening name immediately (no blocking)
+    labelEl.textContent = name;
+    labelEl.style.cursor = '';
+    labelEl.onclick = null;
+
+    if (ply === 0) return;
+
+    // Cancel any pending DB count computation
+    if (this._dbCountTimer) clearTimeout(this._dbCountTimer);
+
+    // Defer the expensive position-matching off the current call stack
+    this._dbCountTimer = setTimeout(() => {
+      const count = this.database.countByPosition(fen);
+      // Guard: position may have changed while we waited
+      if (this.chess.fen() !== fen) return;
+      if (count > 0) {
+        labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
+        labelEl.style.cursor = 'pointer';
+        labelEl.onclick = () => this._openDBByPosition();
+      }
+    }, 50);
   }
 
   /** Open DB dialog showing only games that match the current board position */
