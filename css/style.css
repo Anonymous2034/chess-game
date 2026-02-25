@@ -726,7 +726,7 @@ main {
 }
 .oe-move-row {
   display: grid;
-  grid-template-columns: 32px 1fr 38px 32px;
+  grid-template-columns: 32px 1fr 44px;
   align-items: center;
   gap: 4px;
   padding: 1px 2px;
@@ -735,8 +735,24 @@ main {
   font-size: 0.65rem;
   line-height: 1.1;
 }
-.oe-move-row:hover {
+.oe-header-row {
+  cursor: default;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1px;
+}
+.oe-header-row:hover {
+  background: none;
+}
+.oe-move-row:not(.oe-header-row):hover {
   background: rgba(255,255,255,0.06);
+}
+.oe-col-label {
+  font-size: 0.55rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 .oe-move-san {
   font-family: monospace;
@@ -744,18 +760,21 @@ main {
   color: var(--text-light);
   font-size: 0.65rem;
 }
-.oe-move-count {
-  text-align: right;
-  color: #888;
-  font-size: 0.55rem;
-  white-space: nowrap;
-}
 .oe-move-db {
   text-align: right;
   color: var(--accent);
   font-size: 0.55rem;
   white-space: nowrap;
   font-weight: 600;
+}
+.oe-move-db-link {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+.oe-move-db-link:hover {
+  color: #d4af37;
 }
 
 /* WDL color bar */

@@ -3553,6 +3553,49 @@ class ChessApp {
     return String(n);
   }
 
+  _ecoToName(eco) {
+    if (!eco) return '';
+    // ECO range → opening name (covers all major codes)
+    const ranges = [
+      ['A00','A00','Polish / Uncommon'],['A01','A01','Larsen Opening'],
+      ['A02','A03','Bird Opening'],['A04','A09','Reti Opening'],
+      ['A10','A39','English Opening'],['A40','A44','Queen\'s Pawn Game'],
+      ['A45','A45','Trompowsky'],['A46','A46','Queen\'s Pawn Game'],
+      ['A47','A47','Queen\'s Indian'],['A48','A49','London System'],
+      ['A50','A50','Queen\'s Pawn Game'],['A51','A52','Budapest Gambit'],
+      ['A53','A55','Old Indian Defense'],['A56','A56','Benoni Defense'],
+      ['A57','A59','Benko Gambit'],['A60','A79','Modern Benoni'],
+      ['A80','A99','Dutch Defense'],
+      ['B00','B00','Uncommon King\'s Pawn'],['B01','B01','Scandinavian Defense'],
+      ['B02','B05','Alekhine\'s Defense'],['B06','B06','Modern Defense'],
+      ['B07','B09','Pirc Defense'],['B10','B19','Caro-Kann Defense'],
+      ['B20','B99','Sicilian Defense'],
+      ['C00','C19','French Defense'],['C20','C20','King\'s Pawn Game'],
+      ['C21','C22','Center Game'],['C23','C24','Bishop\'s Opening'],
+      ['C25','C29','Vienna Game'],['C30','C39','King\'s Gambit'],
+      ['C40','C40','King\'s Knight Opening'],['C41','C41','Philidor Defense'],
+      ['C42','C43','Petrov Defense'],['C44','C44','Scotch Game'],
+      ['C45','C45','Scotch Game'],['C46','C46','Three Knights'],
+      ['C47','C49','Four Knights'],['C50','C50','Italian Game'],
+      ['C51','C52','Evans Gambit'],['C53','C54','Italian Game (Giuoco Piano)'],
+      ['C55','C59','Two Knights Defense'],
+      ['C60','C99','Ruy Lopez'],
+      ['D00','D00','Queen\'s Pawn Game'],['D01','D01','Richter-Veresov'],
+      ['D02','D02','London / Queen\'s Pawn'],['D03','D03','Torre Attack'],
+      ['D04','D05','Queen\'s Pawn Game'],['D06','D06','Queen\'s Gambit'],
+      ['D07','D09','Chigorin Defense'],['D10','D19','Slav Defense'],
+      ['D20','D29','Queen\'s Gambit Accepted'],['D30','D69','Queen\'s Gambit Declined'],
+      ['D70','D79','Grunfeld Defense'],['D80','D99','Grunfeld Defense'],
+      ['E00','E09','Catalan Opening'],['E10','E10','Queen\'s Pawn Game'],
+      ['E11','E11','Bogo-Indian Defense'],['E12','E19','Queen\'s Indian Defense'],
+      ['E20','E59','Nimzo-Indian Defense'],['E60','E99','King\'s Indian Defense'],
+    ];
+    for (const [lo, hi, name] of ranges) {
+      if (eco >= lo && eco <= hi) return name;
+    }
+    return '';
+  }
+
   setupOpeningExplorerCollapse() {
     // Explorer is now a side-panel tab — no collapse needed
   }
@@ -3571,32 +3614,60 @@ class ChessApp {
     const ply = this.game.moveHistory.length;
     const myMoves = this.game.moveHistory.map(m => m.san);
 
-    // Count DB games matching current move sequence
+    // Single pass: count matching games, tally next moves, find most common ECO
+    const nextMoveCounts = new Map();
+    const ecoCounts = new Map();
     let dbTotal = 0;
-    if (ply > 0) {
-      for (const game of this.database.games) {
-        if (game.moves.length < ply) continue;
-        let match = true;
-        for (let i = 0; i < ply; i++) {
-          if (game.moves[i] !== myMoves[i]) { match = false; break; }
+
+    for (const game of this.database.games) {
+      if (game.moves.length < ply) continue;
+      let match = true;
+      for (let i = 0; i < ply; i++) {
+        if (game.moves[i] !== myMoves[i]) { match = false; break; }
+      }
+      if (!match) continue;
+      dbTotal++;
+
+      // Track ECO codes for opening name
+      if (game.eco) {
+        ecoCounts.set(game.eco, (ecoCounts.get(game.eco) || 0) + 1);
+      }
+
+      // Tally next move
+      if (game.moves.length > ply) {
+        const nextSan = game.moves[ply];
+        const entry = nextMoveCounts.get(nextSan);
+        if (entry) {
+          entry.count++;
+          if (game.result === '1-0') entry.white++;
+          else if (game.result === '0-1') entry.black++;
+          else entry.draws++;
+        } else {
+          nextMoveCounts.set(nextSan, {
+            count: 1,
+            white: game.result === '1-0' ? 1 : 0,
+            black: game.result === '0-1' ? 1 : 0,
+            draws: game.result === '1/2-1/2' ? 1 : 0
+          });
         }
-        if (match) dbTotal++;
       }
     }
 
-    // Fetch Lichess masters data
-    const data = await this.database.fetchOpeningExplorer(this.chess.fen());
-
-    // Update opening name
-    if (data) {
-      const openingName = data.opening?.name || '';
-      if (openingName) this.lastOpeningName = openingName;
+    // Derive opening name from most common ECO among matching games
+    if (ply > 0 && ecoCounts.size > 0) {
+      let bestEco = '', bestCount = 0;
+      for (const [eco, count] of ecoCounts) {
+        if (count > bestCount) { bestEco = eco; bestCount = count; }
+      }
+      const ecoName = this._ecoToName(bestEco);
+      if (ecoName) this.lastOpeningName = ecoName;
+      else if (bestEco) this.lastOpeningName = bestEco;
     }
     const name = this.lastOpeningName || '';
 
-    // Opening label — single source: name + DB count
+    // Opening label: name + DB count
     if (labelEl) {
-      if (dbTotal > 0) {
+      if (ply > 0 && dbTotal > 0) {
         labelEl.innerHTML = (name ? `${name} &middot; ` : '') + `<span class="db-match-count">${dbTotal.toLocaleString()} game${dbTotal !== 1 ? 's' : ''}</span>`;
         labelEl.style.cursor = 'pointer';
         labelEl.onclick = () => this._openDBByPosition();
@@ -3607,7 +3678,7 @@ class ChessApp {
       }
     }
 
-    // GM avatars for this opening
+    // GM avatars
     if (gmRowEl) {
       gmRowEl.innerHTML = '';
       const gmMatches = this._findGMsForOpening(name);
@@ -3626,95 +3697,40 @@ class ChessApp {
       });
     }
 
-    // Build move table — combine Lichess stats + local DB counts
+    // Build move table from local DB
     if (!tableEl) return;
     tableEl.innerHTML = '';
 
-    // Count next moves from local DB
-    const dbMoveCounts = new Map();
-    if (ply >= 0) {
-      for (const game of this.database.games) {
-        if (game.moves.length <= ply) continue;
-        let match = true;
-        for (let i = 0; i < ply; i++) {
-          if (game.moves[i] !== myMoves[i]) { match = false; break; }
-        }
-        if (!match) continue;
-        const nextSan = game.moves[ply];
-        const entry = dbMoveCounts.get(nextSan);
-        if (entry) {
-          entry.count++;
-          if (game.result === '1-0') entry.white++;
-          else if (game.result === '0-1') entry.black++;
-          else entry.draws++;
-        } else {
-          dbMoveCounts.set(nextSan, {
-            count: 1,
-            white: game.result === '1-0' ? 1 : 0,
-            black: game.result === '0-1' ? 1 : 0,
-            draws: (game.result === '1/2-1/2') ? 1 : 0
-          });
-        }
-      }
-    }
-
-    // Build merged move list: Lichess moves enriched with DB, then DB-only moves
-    const lichessMoves = (data?.moves || []).slice(0, 8);
-    const seenSans = new Set();
-    const mergedMoves = [];
-
-    // Lichess moves first
-    for (const m of lichessMoves) {
-      const mastersTotal = m.white + m.draws + m.black;
-      if (mastersTotal === 0) continue;
-      seenSans.add(m.san);
-      const db = dbMoveCounts.get(m.san);
-      mergedMoves.push({
-        san: m.san,
-        mastersTotal,
-        mastersW: m.white, mastersD: m.draws, mastersL: m.black,
-        dbCount: db ? db.count : 0,
-        dbW: db ? db.white : 0, dbD: db ? db.draws : 0, dbL: db ? db.black : 0
-      });
-    }
-
-    // DB-only moves (not in Lichess)
-    const dbOnly = [...dbMoveCounts.entries()]
-      .filter(([san]) => !seenSans.has(san))
+    const sortedMoves = [...nextMoveCounts.entries()]
       .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 8);
-    for (const [san, db] of dbOnly) {
-      mergedMoves.push({
-        san,
-        mastersTotal: 0,
-        mastersW: 0, mastersD: 0, mastersL: 0,
-        dbCount: db.count,
-        dbW: db.white, dbD: db.draws, dbL: db.black
-      });
-    }
+      .slice(0, 10);
 
-    if (mergedMoves.length === 0) return;
+    if (sortedMoves.length === 0) return;
+
+    // Column headers
+    const headerRow = document.createElement('div');
+    headerRow.className = 'oe-move-row oe-header-row';
+    headerRow.innerHTML = `<span class="oe-col-label">Move</span><span class="oe-col-label">White / Draw / Black</span><span class="oe-col-label oe-move-db" title="${this.database.games.length.toLocaleString()} games in your collection">Games</span>`;
+    tableEl.appendChild(headerRow);
 
     // Render rows
-    mergedMoves.forEach(m => {
-      // Use masters WDL if available, otherwise DB WDL
-      const hasM = m.mastersTotal > 0;
-      const wdlTotal = hasM ? m.mastersTotal : (m.dbW + m.dbD + m.dbL);
-      const wPct = wdlTotal > 0 ? Math.round(((hasM ? m.mastersW : m.dbW) / wdlTotal) * 100) : 0;
-      const dPct = wdlTotal > 0 ? Math.round(((hasM ? m.mastersD : m.dbD) / wdlTotal) * 100) : 0;
-      const lPct = wdlTotal > 0 ? (100 - wPct - dPct) : 0;
+    for (const [san, m] of sortedMoves) {
+      const total = m.white + m.draws + m.black;
+      const wPct = total > 0 ? Math.round((m.white / total) * 100) : 0;
+      const dPct = total > 0 ? Math.round((m.draws / total) * 100) : 0;
+      const lPct = total > 0 ? (100 - wPct - dPct) : 0;
 
       const row = document.createElement('div');
       row.className = 'oe-move-row';
 
-      const san = document.createElement('span');
-      san.className = 'oe-move-san';
-      san.textContent = m.san;
+      const sanEl = document.createElement('span');
+      sanEl.className = 'oe-move-san';
+      sanEl.textContent = san;
 
       // WDL bar
       const bar = document.createElement('div');
       bar.className = 'oe-wdl-bar';
-      if (wdlTotal > 0) {
+      if (total > 0) {
         const wSeg = document.createElement('div');
         wSeg.className = 'oe-wdl-seg w';
         wSeg.style.width = wPct + '%';
@@ -3732,25 +3748,24 @@ class ChessApp {
         bar.appendChild(lSeg);
       }
 
-      // Masters count
-      const mastersCol = document.createElement('span');
-      mastersCol.className = 'oe-move-count';
-      mastersCol.textContent = m.mastersTotal > 0 ? this._formatCount(m.mastersTotal) : '–';
+      // Game count — clickable
+      const countEl = document.createElement('span');
+      countEl.className = 'oe-move-db oe-move-db-link';
+      countEl.textContent = this._formatCount(m.count);
+      countEl.title = `Browse ${m.count.toLocaleString()} games with ${san}`;
+      countEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._openDBByMoveSequence([...myMoves, san]);
+      });
 
-      // DB count
-      const dbCol = document.createElement('span');
-      dbCol.className = 'oe-move-db';
-      dbCol.textContent = m.dbCount > 0 ? this._formatCount(m.dbCount) : '–';
-
-      row.appendChild(san);
+      row.appendChild(sanEl);
       row.appendChild(bar);
-      row.appendChild(mastersCol);
-      row.appendChild(dbCol);
+      row.appendChild(countEl);
 
       row.addEventListener('click', () => {
         if (!this.game.gameOver && !this.game.replayMode) {
           const legalMoves = this.chess.moves({ verbose: true });
-          const match = legalMoves.find(lm => lm.san === m.san);
+          const match = legalMoves.find(lm => lm.san === san);
           if (match) {
             this.board.tryMove(match.from, match.to);
           }
@@ -3758,7 +3773,7 @@ class ChessApp {
       });
 
       tableEl.appendChild(row);
-    });
+    }
   }
 
   _updateDBMatchCount() {
@@ -3771,11 +3786,17 @@ class ChessApp {
   _openDBByPosition() {
     const ply = this.game.moveHistory.length;
     if (ply < 1) return;
-    const myMoves = this.game.moveHistory.map(m => m.san);
+    this._openDBByMoveSequence(this.game.moveHistory.map(m => m.san));
+  }
+
+  /** Open DB dialog filtered to games matching a specific move sequence */
+  _openDBByMoveSequence(moves) {
+    const ply = moves.length;
+    if (ply < 1) return;
     const games = this.database.games.filter(game => {
       if (game.moves.length < ply) return false;
       for (let i = 0; i < ply; i++) {
-        if (game.moves[i] !== myMoves[i]) return false;
+        if (game.moves[i] !== moves[i]) return false;
       }
       return true;
     });
@@ -3784,20 +3805,18 @@ class ChessApp {
     const show = el => el?.classList.remove('hidden');
     show(document.getElementById('database-dialog'));
 
-    // Clear search/filter so they don't interfere
     const searchEl = document.getElementById('db-search');
     if (searchEl) searchEl.value = '';
     const colEl = document.getElementById('db-collection');
     if (colEl) colEl.value = 'all';
 
-    // Render the filtered games directly
     const listEl = document.getElementById('db-games-list');
     const summaryEl = document.getElementById('db-results-summary');
     listEl.innerHTML = '';
 
-    const plyCount = this.game.moveHistory.length;
-    const title = this.lastOpeningName || `Position after ${Math.ceil(plyCount / 2)} move${plyCount > 2 ? 's' : ''}`;
-    if (summaryEl) summaryEl.textContent = `${games.length} game${games.length !== 1 ? 's' : ''} matching this position`;
+    const moveStr = moves.map((m, i) => i % 2 === 0 ? `${Math.floor(i/2)+1}.${m}` : m).join(' ');
+    const title = this.lastOpeningName || moveStr;
+    if (summaryEl) summaryEl.textContent = `${games.length.toLocaleString()} game${games.length !== 1 ? 's' : ''} with ${moveStr}`;
 
     const header = document.createElement('div');
     header.className = 'db-header-stats';
