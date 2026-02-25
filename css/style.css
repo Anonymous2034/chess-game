@@ -5143,7 +5143,8 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   color: var(--accent, #4ecdc4);
 }
 
-.dgt-hw-select {
+.dgt-hw-select,
+.dgt-hw-input {
   flex: 1;
   background: var(--bg-lighter, #2a2a4a);
   color: var(--text-color, #ddd);

@@ -798,6 +798,63 @@
               <span class="dgt-hw-label">Auto new game</span>
               <input type="checkbox" id="dgt-auto-new-game" checked>
             </label>
+            <h5 class="dgt-hw-title" style="margin-top:12px">Sync & Detection</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Sync tolerance (squares)</span>
+              <input type="range" id="dgt-sync-tolerance" min="0" max="6" step="1" value="2">
+              <span class="dgt-hw-value" id="dgt-sync-tolerance-val">2</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Out-of-sync threshold</span>
+              <input type="range" id="dgt-oos-threshold" min="2" max="10" step="1" value="4">
+              <span class="dgt-hw-value" id="dgt-oos-threshold-val">4</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Sync warning delay (ms)</span>
+              <input type="range" id="dgt-sync-warning" min="1000" max="15000" step="500" value="5000">
+              <span class="dgt-hw-value" id="dgt-sync-warning-val">5000</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Init delay (ms)</span>
+              <input type="range" id="dgt-init-delay" min="50" max="1000" step="50" value="200">
+              <span class="dgt-hw-value" id="dgt-init-delay-val">200</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Board dump wait (ms)</span>
+              <input type="range" id="dgt-dump-wait" min="200" max="2000" step="100" value="500">
+              <span class="dgt-hw-value" id="dgt-dump-wait-val">500</span>
+            </label>
+            <h5 class="dgt-hw-title" style="margin-top:12px">Connection</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">LiveChess URL</span>
+              <input type="text" id="dgt-livechess-url" class="dgt-hw-input" value="ws://localhost:1982/api/v1.0">
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">LiveChess timeout (ms)</span>
+              <input type="range" id="dgt-livechess-timeout" min="1000" max="15000" step="500" value="5000">
+              <span class="dgt-hw-value" id="dgt-livechess-timeout-val">5000</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">BLE timeout (ms)</span>
+              <input type="range" id="dgt-ble-timeout" min="3000" max="30000" step="1000" value="10000">
+              <span class="dgt-hw-value" id="dgt-ble-timeout-val">10000</span>
+            </label>
+            <h5 class="dgt-hw-title" style="margin-top:12px">Voice</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Speech rate</span>
+              <input type="range" id="dgt-speech-rate" min="0.5" max="2.0" step="0.05" value="0.95">
+              <span class="dgt-hw-value" id="dgt-speech-rate-val">0.95</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Speech pitch</span>
+              <input type="range" id="dgt-speech-pitch" min="0.5" max="2.0" step="0.1" value="1.0">
+              <span class="dgt-hw-value" id="dgt-speech-pitch-val">1.0</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Speech volume</span>
+              <input type="range" id="dgt-speech-volume" min="0" max="1.0" step="0.1" value="1.0">
+              <span class="dgt-hw-value" id="dgt-speech-volume-val">1.0</span>
+            </label>
             <button class="btn btn-small btn-secondary" id="dgt-reset-defaults">Reset Defaults</button>
           </div>
         </div>

@@ -101,18 +101,36 @@ export class DGTBoard {
   // === Hardware Settings ===
 
   static HARDWARE_DEFAULTS = {
+    // LED
     ledBrightness: 2,   // 1-5 (DGT intensity byte)
     ledSpeed: 3,         // 1-5 (DGT speed byte)
     flashDuration: 600,  // ms — auto-clear time for player move confirmation
     castleDelay: 2000,   // ms — delay between king and rook LED phases
     playerLedMode: 'both',     // 'both' | 'from' | 'to' — what LEDs show for player's own moves
     engineLedMode: 'sequential', // 'sequential' | 'both' | 'to' — what LEDs show for engine moves
+    // Timing
     debounceMs: 300,     // ms — wait before processing board changes (stability filter)
     pollInterval: 500,   // ms — how often Pegasus board state is polled via BLE
     moveCooldown: 800,   // ms — ignore board changes after a move is executed
+    startPosDelay: 2000, // ms — how long starting position must be stable before triggering
+    // Behavior
     voiceEnabled: true,  // Speak moves aloud via speech synthesis
     autoNewGame: true,   // Auto-start new game when starting position detected
-    startPosDelay: 2000, // ms — how long starting position must be stable before triggering
+    // Sync & detection
+    syncTolerance: 2,          // max mismatched squares that still count as "synced"
+    outOfSyncThreshold: 4,     // above this many diffs = board out of sync
+    syncWarningDelay: 5000,    // ms — delay before "board doesn't match" warning
+    // Pegasus init delays
+    pegasusInitDelay: 200,     // ms — wait after dev key / reset commands
+    pegasusBoardDumpWait: 500, // ms — wait for board dump response after connect
+    // Connection
+    liveChessUrl: 'ws://localhost:1982/api/v1.0',
+    liveChessTimeout: 5000,    // ms — LiveChess WebSocket connection timeout
+    bleTimeout: 10000,         // ms — Bluetooth BLE connection timeout
+    // Voice
+    speechRate: 0.95,
+    speechPitch: 1.0,
+    speechVolume: 1.0,
   };
 
   _loadHardwareSettings() {
@@ -209,7 +227,7 @@ export class DGTBoard {
   async connectLiveChess() {
     return new Promise((resolve) => {
       try {
-        this.ws = new WebSocket('ws://localhost:1982/api/v1.0');
+        this.ws = new WebSocket(this.liveChessUrl);
 
         this.ws.onopen = () => {
           this.connected = true;
@@ -257,7 +275,7 @@ export class DGTBoard {
             this._setStatus('LiveChess connection timed out. Is it running on port 1982?');
             resolve(false);
           }
-        }, 5000);
+        }, this.liveChessTimeout);
       } catch (err) {
         this._setStatus('Failed to connect: ' + err.message);
         resolve(false);
@@ -341,13 +359,13 @@ export class DGTBoard {
       // IMPORTANT: must complete BEFORE onConnectionChange fires,
       // because syncToPosition sends 0x42 and would get 0x7F garbage pre-auth.
       await this._sendPegasusBytes([99, 7, 190, 245, 174, 221, 169, 95, 0]);
-      await this._delay(200);
+      await this._delay(this.pegasusInitDelay);
       await this._sendCommand(0x40); // CMD_RESET
-      await this._delay(200);
+      await this._delay(this.pegasusInitDelay);
       await this._sendCommand(DGT_SEND_BRD);
-      await this._delay(500); // Wait for board dump response
+      await this._delay(this.pegasusBoardDumpWait);
       await this._sendCommand(DGT_SEND_UPDATE_BRD);
-      await this._delay(200);
+      await this._delay(this.pegasusInitDelay);
 
       // Now notify the app — board is authenticated and ready
       this._setStatus('Connected via Bluetooth — ' + (device.name || 'DGT Pegasus'));
@@ -404,7 +422,7 @@ export class DGTBoard {
       });
       this._bleListeners.push(disconnectHandle);
 
-      await BluetoothLe.connect({ deviceId: this._bleDeviceId, timeout: 10000 });
+      await BluetoothLe.connect({ deviceId: this._bleDeviceId, timeout: this.bleTimeout });
 
       const notifKey = `notification|${this._bleDeviceId}|${NUS_SERVICE}|${NUS_TX_CHAR}`;
       const notifHandle = await BluetoothLe.addListener(notifKey, (event) => {
@@ -431,13 +449,13 @@ export class DGTBoard {
 
       // Full Pegasus init: dev key → reset → board dump → enable updates
       await this._sendPegasusBytes([99, 7, 190, 245, 174, 221, 169, 95, 0]);
-      await this._delay(200);
+      await this._delay(this.pegasusInitDelay);
       await this._sendCommand(0x40); // CMD_RESET
-      await this._delay(200);
+      await this._delay(this.pegasusInitDelay);
       await this._sendCommand(DGT_SEND_BRD);
-      await this._delay(500);
+      await this._delay(this.pegasusBoardDumpWait);
       await this._sendCommand(DGT_SEND_UPDATE_BRD);
-      await this._delay(200);
+      await this._delay(this.pegasusInitDelay);
 
       // Now notify the app — board is authenticated and ready
       this._setStatus('Connected via Bluetooth — ' + (device.name || 'DGT Pegasus'));
@@ -674,9 +692,9 @@ export class DGTBoard {
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
+    utterance.rate = this.speechRate;
+    utterance.pitch = this.speechPitch;
+    utterance.volume = this.speechVolume;
     speechSynthesis.speak(utterance);
   }
 
@@ -1180,7 +1198,7 @@ export class DGTBoard {
           gaps.add(i);
         }
       }
-      if (mismatches <= 2) {
+      if (mismatches <= this.syncTolerance) {
         // Close enough — record any mismatching squares as sensor gaps
         this._sensorGaps = gaps;
         this._boardSynced = true;
@@ -1212,9 +1230,9 @@ export class DGTBoard {
       }
     }
 
-    // Large diff (>4 squares) = board is out of sync with game, not a move in progress.
+    // Large diff = board is out of sync with game, not a move in progress.
     // A normal move changes 1-2 squares, castling changes 4.
-    if (diffCount > 4) {
+    if (diffCount > this.outOfSyncThreshold) {
       const actual = this.dgtBoard.filter(v => v !== 0).length;
       console.log('[DGT] Board out of sync (' + diffCount + ' squares differ, ' + actual + ' pieces)');
       this.lastStableBoard = [...this.dgtBoard];
@@ -1232,7 +1250,7 @@ export class DGTBoard {
     clearTimeout(this._syncWarningTimer);
     this._syncWarningTimer = setTimeout(() => {
       this._setStatus('Board doesn\'t match game. Please correct your board.');
-    }, 5000);
+    }, this.syncWarningDelay);
   }
 
   // === Helpers ===

@@ -6430,6 +6430,27 @@ class ChessApp {
     const startPosDelayVal = document.getElementById('dgt-start-pos-delay-val');
     const voiceCheckbox = document.getElementById('dgt-voice-enabled');
     const autoNewGameCheckbox = document.getElementById('dgt-auto-new-game');
+    const syncToleranceSlider = document.getElementById('dgt-sync-tolerance');
+    const syncToleranceVal = document.getElementById('dgt-sync-tolerance-val');
+    const oosThresholdSlider = document.getElementById('dgt-oos-threshold');
+    const oosThresholdVal = document.getElementById('dgt-oos-threshold-val');
+    const syncWarningSlider = document.getElementById('dgt-sync-warning');
+    const syncWarningVal = document.getElementById('dgt-sync-warning-val');
+    const initDelaySlider = document.getElementById('dgt-init-delay');
+    const initDelayVal = document.getElementById('dgt-init-delay-val');
+    const dumpWaitSlider = document.getElementById('dgt-dump-wait');
+    const dumpWaitVal = document.getElementById('dgt-dump-wait-val');
+    const liveChessUrlInput = document.getElementById('dgt-livechess-url');
+    const liveChessTimeoutSlider = document.getElementById('dgt-livechess-timeout');
+    const liveChessTimeoutVal = document.getElementById('dgt-livechess-timeout-val');
+    const bleTimeoutSlider = document.getElementById('dgt-ble-timeout');
+    const bleTimeoutVal = document.getElementById('dgt-ble-timeout-val');
+    const speechRateSlider = document.getElementById('dgt-speech-rate');
+    const speechRateVal = document.getElementById('dgt-speech-rate-val');
+    const speechPitchSlider = document.getElementById('dgt-speech-pitch');
+    const speechPitchVal = document.getElementById('dgt-speech-pitch-val');
+    const speechVolumeSlider = document.getElementById('dgt-speech-volume');
+    const speechVolumeVal = document.getElementById('dgt-speech-volume-val');
 
     // Show hardware settings when connected
     const origOnConnection = this.dgtBoard.onConnectionChange;
@@ -6476,6 +6497,27 @@ class ChessApp {
     startPosDelayVal.textContent = this.dgtBoard.startPosDelay;
     voiceCheckbox.checked = this.dgtBoard.voiceEnabled;
     autoNewGameCheckbox.checked = this.dgtBoard.autoNewGame;
+    syncToleranceSlider.value = this.dgtBoard.syncTolerance;
+    syncToleranceVal.textContent = this.dgtBoard.syncTolerance;
+    oosThresholdSlider.value = this.dgtBoard.outOfSyncThreshold;
+    oosThresholdVal.textContent = this.dgtBoard.outOfSyncThreshold;
+    syncWarningSlider.value = this.dgtBoard.syncWarningDelay;
+    syncWarningVal.textContent = this.dgtBoard.syncWarningDelay;
+    initDelaySlider.value = this.dgtBoard.pegasusInitDelay;
+    initDelayVal.textContent = this.dgtBoard.pegasusInitDelay;
+    dumpWaitSlider.value = this.dgtBoard.pegasusBoardDumpWait;
+    dumpWaitVal.textContent = this.dgtBoard.pegasusBoardDumpWait;
+    liveChessUrlInput.value = this.dgtBoard.liveChessUrl;
+    liveChessTimeoutSlider.value = this.dgtBoard.liveChessTimeout;
+    liveChessTimeoutVal.textContent = this.dgtBoard.liveChessTimeout;
+    bleTimeoutSlider.value = this.dgtBoard.bleTimeout;
+    bleTimeoutVal.textContent = this.dgtBoard.bleTimeout;
+    speechRateSlider.value = this.dgtBoard.speechRate;
+    speechRateVal.textContent = this.dgtBoard.speechRate;
+    speechPitchSlider.value = this.dgtBoard.speechPitch;
+    speechPitchVal.textContent = this.dgtBoard.speechPitch;
+    speechVolumeSlider.value = this.dgtBoard.speechVolume;
+    speechVolumeVal.textContent = this.dgtBoard.speechVolume;
 
     brightnessSlider.addEventListener('input', () => {
       const v = parseInt(brightnessSlider.value);
@@ -6545,6 +6587,70 @@ class ChessApp {
       this.dgtBoard.setHardwareSetting('autoNewGame', autoNewGameCheckbox.checked);
     });
 
+    syncToleranceSlider.addEventListener('input', () => {
+      const v = parseInt(syncToleranceSlider.value);
+      syncToleranceVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('syncTolerance', v);
+    });
+
+    oosThresholdSlider.addEventListener('input', () => {
+      const v = parseInt(oosThresholdSlider.value);
+      oosThresholdVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('outOfSyncThreshold', v);
+    });
+
+    syncWarningSlider.addEventListener('input', () => {
+      const v = parseInt(syncWarningSlider.value);
+      syncWarningVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('syncWarningDelay', v);
+    });
+
+    initDelaySlider.addEventListener('input', () => {
+      const v = parseInt(initDelaySlider.value);
+      initDelayVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('pegasusInitDelay', v);
+    });
+
+    dumpWaitSlider.addEventListener('input', () => {
+      const v = parseInt(dumpWaitSlider.value);
+      dumpWaitVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('pegasusBoardDumpWait', v);
+    });
+
+    liveChessUrlInput.addEventListener('change', () => {
+      this.dgtBoard.setHardwareSetting('liveChessUrl', liveChessUrlInput.value.trim());
+    });
+
+    liveChessTimeoutSlider.addEventListener('input', () => {
+      const v = parseInt(liveChessTimeoutSlider.value);
+      liveChessTimeoutVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('liveChessTimeout', v);
+    });
+
+    bleTimeoutSlider.addEventListener('input', () => {
+      const v = parseInt(bleTimeoutSlider.value);
+      bleTimeoutVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('bleTimeout', v);
+    });
+
+    speechRateSlider.addEventListener('input', () => {
+      const v = parseFloat(speechRateSlider.value);
+      speechRateVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('speechRate', v);
+    });
+
+    speechPitchSlider.addEventListener('input', () => {
+      const v = parseFloat(speechPitchSlider.value);
+      speechPitchVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('speechPitch', v);
+    });
+
+    speechVolumeSlider.addEventListener('input', () => {
+      const v = parseFloat(speechVolumeSlider.value);
+      speechVolumeVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('speechVolume', v);
+    });
+
     resetDefaultsBtn.addEventListener('click', () => {
       this.dgtBoard.resetHardwareDefaults();
       brightnessSlider.value = this.dgtBoard.ledBrightness;
@@ -6567,6 +6673,27 @@ class ChessApp {
       startPosDelayVal.textContent = this.dgtBoard.startPosDelay;
       voiceCheckbox.checked = this.dgtBoard.voiceEnabled;
       autoNewGameCheckbox.checked = this.dgtBoard.autoNewGame;
+      syncToleranceSlider.value = this.dgtBoard.syncTolerance;
+      syncToleranceVal.textContent = this.dgtBoard.syncTolerance;
+      oosThresholdSlider.value = this.dgtBoard.outOfSyncThreshold;
+      oosThresholdVal.textContent = this.dgtBoard.outOfSyncThreshold;
+      syncWarningSlider.value = this.dgtBoard.syncWarningDelay;
+      syncWarningVal.textContent = this.dgtBoard.syncWarningDelay;
+      initDelaySlider.value = this.dgtBoard.pegasusInitDelay;
+      initDelayVal.textContent = this.dgtBoard.pegasusInitDelay;
+      dumpWaitSlider.value = this.dgtBoard.pegasusBoardDumpWait;
+      dumpWaitVal.textContent = this.dgtBoard.pegasusBoardDumpWait;
+      liveChessUrlInput.value = this.dgtBoard.liveChessUrl;
+      liveChessTimeoutSlider.value = this.dgtBoard.liveChessTimeout;
+      liveChessTimeoutVal.textContent = this.dgtBoard.liveChessTimeout;
+      bleTimeoutSlider.value = this.dgtBoard.bleTimeout;
+      bleTimeoutVal.textContent = this.dgtBoard.bleTimeout;
+      speechRateSlider.value = this.dgtBoard.speechRate;
+      speechRateVal.textContent = this.dgtBoard.speechRate;
+      speechPitchSlider.value = this.dgtBoard.speechPitch;
+      speechPitchVal.textContent = this.dgtBoard.speechPitch;
+      speechVolumeSlider.value = this.dgtBoard.speechVolume;
+      speechVolumeVal.textContent = this.dgtBoard.speechVolume;
       // Restart polling with default interval if connected
       if (this.dgtBoard.isPegasus() && this.dgtBoard.isConnected()) {
         this.dgtBoard._startPegasusPolling();
