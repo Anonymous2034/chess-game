@@ -310,39 +310,49 @@ export class Database {
 
   /**
    * Return all DB games that pass through the given position.
-   * Replays each game's moves up to the target ply and compares FEN.
-   * Results are cached by position key.
+   * Uses cache; if not cached, computes synchronously.
+   * For non-blocking use, call countByPositionAsync instead.
    */
   filterByPosition(targetFen) {
-    // Position key: piece placement + active color + castling + en passant
     const posKey = targetFen.split(' ').slice(0, 4).join(' ');
-
     if (!this._positionCache) this._positionCache = new Map();
     if (this._positionCache.has(posKey)) return this._positionCache.get(posKey);
+    return this._doPositionMatch(targetFen);
+  }
 
-    // Determine ply from FEN
+  /**
+   * Non-blocking position count — processes in small chunks via setTimeout.
+   */
+  countByPositionAsync(targetFen) {
+    const posKey = targetFen.split(' ').slice(0, 4).join(' ');
+    if (!this._positionCache) this._positionCache = new Map();
+    if (this._positionCache.has(posKey)) {
+      return Promise.resolve(this._positionCache.get(posKey).length);
+    }
+    return this._doPositionMatchAsync(targetFen).then(r => r.length);
+  }
+
+  /** Sync position matching (used by click-to-open-DB) */
+  _doPositionMatch(targetFen) {
+    const posKey = targetFen.split(' ').slice(0, 4).join(' ');
     const fenParts = targetFen.split(' ');
     const activeColor = fenParts[1];
     const fullmove = parseInt(fenParts[5]) || 1;
     const ply = (fullmove - 1) * 2 + (activeColor === 'b' ? 1 : 0);
-
     if (ply === 0) return this.games;
 
     const results = [];
     const temp = new Chess();
-
     for (const game of this.games) {
       if (game.moves.length < ply) continue;
       temp.reset();
       let valid = true;
       for (let i = 0; i < ply; i++) {
-        try {
-          if (!temp.move(game.moves[i])) { valid = false; break; }
-        } catch { valid = false; break; }
+        try { if (!temp.move(game.moves[i])) { valid = false; break; } }
+        catch { valid = false; break; }
       }
       if (!valid) continue;
-      const gamePosKey = temp.fen().split(' ').slice(0, 4).join(' ');
-      if (gamePosKey === posKey) results.push(game);
+      if (temp.fen().split(' ').slice(0, 4).join(' ') === posKey) results.push(game);
     }
 
     if (!this._positionCache) this._positionCache = new Map();
@@ -352,6 +362,53 @@ export class Database {
     }
     this._positionCache.set(posKey, results);
     return results;
+  }
+
+  /** Async chunked position matching — yields to browser between batches */
+  _doPositionMatchAsync(targetFen) {
+    return new Promise(resolve => {
+      const posKey = targetFen.split(' ').slice(0, 4).join(' ');
+      const fenParts = targetFen.split(' ');
+      const activeColor = fenParts[1];
+      const fullmove = parseInt(fenParts[5]) || 1;
+      const ply = (fullmove - 1) * 2 + (activeColor === 'b' ? 1 : 0);
+      if (ply === 0) { resolve(this.games); return; }
+
+      const results = [];
+      const temp = new Chess();
+      const games = this.games;
+      const CHUNK = 50;
+      let idx = 0;
+
+      const processChunk = () => {
+        const end = Math.min(idx + CHUNK, games.length);
+        for (; idx < end; idx++) {
+          const game = games[idx];
+          if (game.moves.length < ply) continue;
+          temp.reset();
+          let valid = true;
+          for (let i = 0; i < ply; i++) {
+            try { if (!temp.move(game.moves[i])) { valid = false; break; } }
+            catch { valid = false; break; }
+          }
+          if (!valid) continue;
+          if (temp.fen().split(' ').slice(0, 4).join(' ') === posKey) results.push(game);
+        }
+        if (idx < games.length) {
+          setTimeout(processChunk, 0);
+        } else {
+          // Cache
+          if (!this._positionCache) this._positionCache = new Map();
+          if (this._positionCache.size >= 200) {
+            const first = this._positionCache.keys().next().value;
+            this._positionCache.delete(first);
+          }
+          this._positionCache.set(posKey, results);
+          resolve(results);
+        }
+      };
+      processChunk();
+    });
   }
 
   /**
