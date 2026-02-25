@@ -56,25 +56,25 @@
   },
   {
     "id": "eg006",
-    "fen": "8/8/8/8/8/k7/p7/K7 w - - 0 1",
+    "fen": "8/8/8/8/k7/p7/8/K7 w - - 0 1",
     "category": "king-pawn",
     "subcategory": "stalemate",
     "title": "Stalemate Defense: Rook Pawn",
-    "description": "Black has a rook pawn but White can draw with correct defense — stalemate trap.",
-    "objective": "Draw by reaching the corner. Rook pawns with wrong-side king draw.",
+    "description": "Black has a rook pawn but White can draw with correct defense — stalemate trap in the corner.",
+    "objective": "Draw by reaching the a1 corner. When the pawn reaches a2, White is stalemated.",
     "difficulty": 2,
-    "solution_moves": ["a1b1", "a3b3", "b1a1", "a2a1q"]
+    "solution_moves": ["a1b1", "a4b3", "b1a1", "a3a2"]
   },
   {
     "id": "eg007",
-    "fen": "8/8/8/8/8/2k5/2p5/2K5 w - - 0 1",
+    "fen": "8/8/8/2k5/8/2p5/8/2K5 w - - 0 1",
     "category": "king-pawn",
     "subcategory": "opposition",
     "title": "Defending with Opposition",
     "description": "White defends a lost-looking position by keeping opposition on the pawn's file.",
     "objective": "Draw by maintaining opposition directly in front of the pawn.",
     "difficulty": 2,
-    "solution_moves": ["c1d1", "c3d3", "d1c1", "d3e2", "c1c2"]
+    "solution_moves": ["c1c2", "c5c4", "c2c1", "c4d3", "c1d1"]
   },
   {
     "id": "eg008",
@@ -474,7 +474,7 @@
   },
   {
     "id": "eg072",
-    "fen": "8/pp6/8/8/8/8/PP6/8 w - - 0 1",
+    "fen": "8/pp3k2/8/8/8/8/PP3K2/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "pawn-race",
     "title": "Pawn Race — Counting Tempi",

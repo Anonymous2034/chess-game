@@ -5874,6 +5874,7 @@ class ChessApp {
 
     // Correct move
     this.sound.playMoveSound(move);
+    this.notation.addMove(move);
     this.board.setLastMove(move);
     this.board.update();
     this.board.flashSquare(move.to, 'puzzle-correct');
@@ -5904,6 +5905,7 @@ class ChessApp {
         const m = this.game.makeMove(opponentMove.from, opponentMove.to, opponentMove.promotion);
         if (m) {
           this.sound.playMoveSound(m);
+          this.notation.addMove(m);
           this.board.setLastMove(m);
         }
         this.board.update();
@@ -6220,13 +6222,17 @@ class ChessApp {
 
     // Correct move
     this.sound.playMoveSound(move);
+    this.notation.addMove(move);
     this.board.setLastMove(move);
     this.board.update();
     this.board.flashSquare(move.to, 'puzzle-correct');
     this.board.clearHints();
 
-    // Check for game-ending conditions
-    if (this.game.chess.isGameOver()) {
+    // In endgame mode, always allow continuation (reset gameOver flag set by checkGameOver)
+    this.game.gameOver = false;
+
+    // Check for game-ending conditions (checkmate or stalemate only, not insufficient material)
+    if (this.game.chess.in_checkmate() || this.game.chess.in_stalemate()) {
       this._endgameComplete(move);
       return;
     }
@@ -6241,6 +6247,11 @@ class ChessApp {
 
     // If player has made enough correct moves (at least 4) and eval is decisive, mark complete
     this.endgameTrainer.moveIndex++;
+    // For insufficient material positions (K+B vs K, K+N vs K), complete after a few demonstration moves
+    if (this.endgameTrainer.moveIndex >= 3 && this.game.chess.insufficient_material()) {
+      this._endgameComplete(move);
+      return;
+    }
     if (this.endgameTrainer.moveIndex >= 4 && (playerEval > 500 || evalResult.mate !== null && ((playerColor === 'w' && evalResult.mate > 0) || (playerColor === 'b' && evalResult.mate < 0)))) {
       this._endgameComplete(move);
       return;
@@ -6260,17 +6271,22 @@ class ChessApp {
         const promo = opponentAnalysis.bestMove.length > 4 ? opponentAnalysis.bestMove[4] : undefined;
 
         await this.board.animateMove(from, to);
+        // Reset gameOver flag so makeMove doesn't reject the opponent's move
+        this.game.gameOver = false;
         const m = this.game.makeMove(from, to, promo);
         if (m) {
           this.sound.playMoveSound(m);
+          this.notation.addMove(m);
           this.board.setLastMove(m);
         }
+        // Reset gameOver again after opponent's move (endgame trainer manages its own end conditions)
+        this.game.gameOver = false;
         this.board.update();
 
-        // Check if game is over after opponent's move
-        if (this.game.chess.isGameOver()) {
+        // Check if game is over after opponent's move (checkmate/stalemate only)
+        if (this.game.chess.in_checkmate() || this.game.chess.in_stalemate()) {
           // Check if player lost — opponent checkmated us
-          if (this.game.chess.isCheckmate()) {
+          if (this.game.chess.in_checkmate()) {
             document.getElementById('game-status').textContent = 'Opponent delivered checkmate. Try again!';
             this.board.setInteractive(false);
             show(document.getElementById('btn-endgame-retry'));
