@@ -1174,7 +1174,8 @@ export class DGTBoard {
               if (this._isStartingPosition()) {
                 this._startPosDetected = true;
                 console.log('[DGT] Starting position confirmed — firing callback');
-                this._setStatus('Starting position — ready for new game');
+                const pieces = this.dgtBoard.filter(v => v !== 0).length;
+                this._setStatus('Starting position (' + pieces + '/32) — ready for new game');
                 if (this.onStartingPositionDetected) {
                   this.onStartingPositionDetected();
                 }
@@ -1214,7 +1215,8 @@ export class DGTBoard {
         } else {
           console.log('[DGT] Board synced to game position!');
         }
-        this._setStatus('Board synced — ready to play');
+        const syncPieces = this.dgtBoard.filter(v => v !== 0).length;
+        this._setStatus('Board synced (' + syncPieces + '/32) — ready to play');
         this.lastStableBoard = [...this.dgtBoard];
         clearTimeout(this._syncWarningTimer);
         return;
