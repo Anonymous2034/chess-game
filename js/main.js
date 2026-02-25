@@ -3743,15 +3743,21 @@ class ChessApp {
     const myId = this._dbCountId;
 
     // Non-blocking chunked computation via setTimeout (won't block engine messages)
+    const totalGames = this.database.games.length;
     this.database.countByPositionAsync(fen).then(count => {
-      if (this._dbCountId !== myId) return;
+      if (this._dbCountId !== myId) {
+        labelEl.textContent = (name || '') + ` [SKIP id${myId}/${this._dbCountId}]`;
+        return;
+      }
       if (count > 0) {
         labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
         labelEl.style.cursor = 'pointer';
         labelEl.onclick = () => this._openDBByPosition();
+      } else {
+        labelEl.textContent = (name || '') + ` [${count}/${totalGames} ply${ply}]`;
       }
     }).catch(err => {
-      console.warn('[DB] position count error:', err);
+      labelEl.textContent = (name || '') + ` [ERR: ${err.message}]`;
     });
   }
 
