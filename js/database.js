@@ -261,16 +261,21 @@ export class Database {
    */
   countByMovePrefix(moves) {
     if (!moves || moves.length === 0) return 0;
-    let count = 0;
-    for (const game of this.games) {
-      if (game.moves.length < moves.length) continue;
-      let match = true;
+    return this.filterByMovePrefix(moves).length;
+  }
+
+  /**
+   * Return all DB games whose moves start with the given prefix
+   */
+  filterByMovePrefix(moves) {
+    if (!moves || moves.length === 0) return this.games;
+    return this.games.filter(game => {
+      if (game.moves.length < moves.length) return false;
       for (let i = 0; i < moves.length; i++) {
-        if (game.moves[i] !== moves[i]) { match = false; break; }
+        if (game.moves[i] !== moves[i]) return false;
       }
-      if (match) count++;
-    }
-    return count;
+      return true;
+    });
   }
 
   /**

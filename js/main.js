@@ -3730,9 +3730,59 @@ class ChessApp {
     const name = this.lastOpeningName || '';
     if (count > 0) {
       labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
+      labelEl.style.cursor = 'pointer';
+      labelEl.onclick = () => this._openDBByPosition();
     } else {
       labelEl.textContent = name;
+      labelEl.style.cursor = '';
+      labelEl.onclick = null;
     }
+  }
+
+  /** Open DB dialog showing only games that match the current board position */
+  _openDBByPosition() {
+    const moves = this.game.moveHistory.map(m => m.san);
+    const games = this.database.filterByMovePrefix(moves);
+    if (games.length === 0) return;
+
+    const show = el => el?.classList.remove('hidden');
+    show(document.getElementById('database-dialog'));
+
+    // Clear search/filter so they don't interfere
+    const searchEl = document.getElementById('db-search');
+    if (searchEl) searchEl.value = '';
+    const colEl = document.getElementById('db-collection');
+    if (colEl) colEl.value = 'all';
+
+    // Render the filtered games directly
+    const listEl = document.getElementById('db-games-list');
+    const summaryEl = document.getElementById('db-results-summary');
+    listEl.innerHTML = '';
+
+    const title = this.lastOpeningName || `Position after ${moves.length} moves`;
+    if (summaryEl) summaryEl.textContent = `${games.length} game${games.length !== 1 ? 's' : ''} matching this position`;
+
+    const header = document.createElement('div');
+    header.className = 'db-header-stats';
+    header.innerHTML = `\u265A ${title}`;
+    listEl.appendChild(header);
+
+    games.slice(0, 100).forEach(game => {
+      const item = document.createElement('div');
+      item.className = 'db-game-item';
+      let resultClass = 'draw';
+      if (game.result === '1-0') resultClass = 'win';
+      else if (game.result === '0-1') resultClass = 'loss';
+      const ecoTag = game.eco ? `<span class="db-eco">${game.eco}</span>` : '';
+      item.innerHTML = `
+        <div class="db-game-players">${game.white} vs ${game.black} <span class="db-game-result ${resultClass}">${game.result}</span></div>
+        <div class="db-game-info">${ecoTag}${game.event} | ${game.date}</div>
+      `;
+      item.addEventListener('click', () => {
+        this.loadDatabaseGame(game);
+      });
+      listEl.appendChild(item);
+    });
   }
 
   // === Analysis ===

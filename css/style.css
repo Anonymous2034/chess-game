@@ -984,6 +984,10 @@ main {
   padding: 4px 0;
   height: 22px;
   overflow: hidden;
+  transition: color 0.15s;
+}
+.opening-label[style*="cursor: pointer"]:hover {
+  color: #d4af37;
   flex-shrink: 0;
 }
 
