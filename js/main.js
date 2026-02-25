@@ -4470,7 +4470,7 @@ class ChessApp {
       evalBar: true, playerInfoTop: true, playerInfoBottom: true,
       capturedPieces: true, timers: true, openingLabel: true,
       evalGraph: true, navControls: true, statusBar: true,
-      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: false,
+      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
       showLegalMoves: false
     };
   }
@@ -4536,6 +4536,8 @@ class ChessApp {
     } catch {
       this._layout = { ...defaults };
     }
+    // Book tab is always on
+    this._layout.openingExplorer = true;
   }
 
   _saveLayoutSettings() {
