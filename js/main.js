@@ -3734,7 +3734,9 @@ class ChessApp {
     labelEl.style.cursor = '';
     labelEl.onclick = null;
 
-    if (ply === 0) return;
+    // Only compute after move 3 (ply 6) — earlier positions match too many games
+    // and the computation is expensive
+    if (ply < 6) return;
 
     // Cancel any previous in-flight computation
     this._dbCountId = (this._dbCountId || 0) + 1;
@@ -3750,8 +3752,6 @@ class ChessApp {
       }
     }).catch(err => {
       console.warn('[DB] position count error:', err);
-      // Show error visually so we can debug
-      labelEl.innerHTML = (name ? `${name} ` : '') + '<span class="db-match-count" style="color:#f44">DB error</span>';
     });
   }
 
