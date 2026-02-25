@@ -6249,7 +6249,6 @@ class ChessApp {
     // Physical board change callback — detect moves
     let dgtProcessing = false;
     let dgtLastMoveTime = 0;
-    const DGT_MOVE_COOLDOWN = 800; // ms — ignore board changes for 800ms after executing a move
 
     this.dgtBoard._onPhysicalBoardChanged = async () => {
       if (dgtProcessing) return; // Prevent re-entry during move execution
@@ -6257,7 +6256,7 @@ class ChessApp {
       // Cooldown: ignore rapid board changes right after a move was executed.
       // Prevents the engine's response from triggering a phantom second detection.
       const now = Date.now();
-      if (now - dgtLastMoveTime < DGT_MOVE_COOLDOWN) {
+      if (now - dgtLastMoveTime < this.dgtBoard.moveCooldown) {
         console.log('[DGT-main] Cooldown active — ignoring board change');
         return;
       }
@@ -6359,6 +6358,10 @@ class ChessApp {
 
     // Starting position detected — auto-start new game with same settings
     this.dgtBoard.onStartingPositionDetected = () => {
+      if (!this.dgtBoard.autoNewGame) {
+        console.log('[DGT-main] Starting position detected but auto-new-game disabled — ignoring');
+        return;
+      }
       if (this.chess.history().length === 0 && !this.game.gameOver) {
         console.log('[DGT-main] Starting position detected but no game played — ignoring');
         return;
@@ -6415,6 +6418,18 @@ class ChessApp {
     const resetDefaultsBtn = document.getElementById('dgt-reset-defaults');
     const playerLedSelect = document.getElementById('dgt-player-led-mode');
     const engineLedSelect = document.getElementById('dgt-engine-led-mode');
+    const castleDelaySlider = document.getElementById('dgt-castle-delay');
+    const castleDelayVal = document.getElementById('dgt-castle-delay-val');
+    const debounceSlider = document.getElementById('dgt-debounce');
+    const debounceVal = document.getElementById('dgt-debounce-val');
+    const pollSlider = document.getElementById('dgt-poll-interval');
+    const pollVal = document.getElementById('dgt-poll-interval-val');
+    const cooldownSlider = document.getElementById('dgt-move-cooldown');
+    const cooldownVal = document.getElementById('dgt-move-cooldown-val');
+    const startPosDelaySlider = document.getElementById('dgt-start-pos-delay');
+    const startPosDelayVal = document.getElementById('dgt-start-pos-delay-val');
+    const voiceCheckbox = document.getElementById('dgt-voice-enabled');
+    const autoNewGameCheckbox = document.getElementById('dgt-auto-new-game');
 
     // Show hardware settings when connected
     const origOnConnection = this.dgtBoard.onConnectionChange;
@@ -6449,6 +6464,18 @@ class ChessApp {
     flashVal.textContent = this.dgtBoard.flashDuration;
     playerLedSelect.value = this.dgtBoard.playerLedMode;
     engineLedSelect.value = this.dgtBoard.engineLedMode;
+    castleDelaySlider.value = this.dgtBoard.castleDelay;
+    castleDelayVal.textContent = this.dgtBoard.castleDelay;
+    debounceSlider.value = this.dgtBoard.debounceMs;
+    debounceVal.textContent = this.dgtBoard.debounceMs;
+    pollSlider.value = this.dgtBoard.pollInterval;
+    pollVal.textContent = this.dgtBoard.pollInterval;
+    cooldownSlider.value = this.dgtBoard.moveCooldown;
+    cooldownVal.textContent = this.dgtBoard.moveCooldown;
+    startPosDelaySlider.value = this.dgtBoard.startPosDelay;
+    startPosDelayVal.textContent = this.dgtBoard.startPosDelay;
+    voiceCheckbox.checked = this.dgtBoard.voiceEnabled;
+    autoNewGameCheckbox.checked = this.dgtBoard.autoNewGame;
 
     brightnessSlider.addEventListener('input', () => {
       const v = parseInt(brightnessSlider.value);
@@ -6476,6 +6503,48 @@ class ChessApp {
       this.dgtBoard.setHardwareSetting('engineLedMode', engineLedSelect.value);
     });
 
+    castleDelaySlider.addEventListener('input', () => {
+      const v = parseInt(castleDelaySlider.value);
+      castleDelayVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('castleDelay', v);
+    });
+
+    debounceSlider.addEventListener('input', () => {
+      const v = parseInt(debounceSlider.value);
+      debounceVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('debounceMs', v);
+    });
+
+    pollSlider.addEventListener('input', () => {
+      const v = parseInt(pollSlider.value);
+      pollVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('pollInterval', v);
+      // Restart polling with new interval if connected
+      if (this.dgtBoard.isPegasus() && this.dgtBoard.isConnected()) {
+        this.dgtBoard._startPegasusPolling();
+      }
+    });
+
+    cooldownSlider.addEventListener('input', () => {
+      const v = parseInt(cooldownSlider.value);
+      cooldownVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('moveCooldown', v);
+    });
+
+    startPosDelaySlider.addEventListener('input', () => {
+      const v = parseInt(startPosDelaySlider.value);
+      startPosDelayVal.textContent = v;
+      this.dgtBoard.setHardwareSetting('startPosDelay', v);
+    });
+
+    voiceCheckbox.addEventListener('change', () => {
+      this.dgtBoard.setHardwareSetting('voiceEnabled', voiceCheckbox.checked);
+    });
+
+    autoNewGameCheckbox.addEventListener('change', () => {
+      this.dgtBoard.setHardwareSetting('autoNewGame', autoNewGameCheckbox.checked);
+    });
+
     resetDefaultsBtn.addEventListener('click', () => {
       this.dgtBoard.resetHardwareDefaults();
       brightnessSlider.value = this.dgtBoard.ledBrightness;
@@ -6486,7 +6555,23 @@ class ChessApp {
       flashVal.textContent = this.dgtBoard.flashDuration;
       playerLedSelect.value = this.dgtBoard.playerLedMode;
       engineLedSelect.value = this.dgtBoard.engineLedMode;
-      this.showToast('LED settings reset to defaults');
+      castleDelaySlider.value = this.dgtBoard.castleDelay;
+      castleDelayVal.textContent = this.dgtBoard.castleDelay;
+      debounceSlider.value = this.dgtBoard.debounceMs;
+      debounceVal.textContent = this.dgtBoard.debounceMs;
+      pollSlider.value = this.dgtBoard.pollInterval;
+      pollVal.textContent = this.dgtBoard.pollInterval;
+      cooldownSlider.value = this.dgtBoard.moveCooldown;
+      cooldownVal.textContent = this.dgtBoard.moveCooldown;
+      startPosDelaySlider.value = this.dgtBoard.startPosDelay;
+      startPosDelayVal.textContent = this.dgtBoard.startPosDelay;
+      voiceCheckbox.checked = this.dgtBoard.voiceEnabled;
+      autoNewGameCheckbox.checked = this.dgtBoard.autoNewGame;
+      // Restart polling with default interval if connected
+      if (this.dgtBoard.isPegasus() && this.dgtBoard.isConnected()) {
+        this.dgtBoard._startPegasusPolling();
+      }
+      this.showToast('DGT settings reset to defaults');
     });
   }
 

@@ -80,7 +80,6 @@ export class DGTBoard {
     this._startPosTimer = null;     // Timer for starting position auto-detect
     this._startPosDetected = false; // Prevents repeated callback fires
     this.debounceTimer = null;
-    this.debounceMs = 300;
     this._syncWarningTimer = null;
 
     // Protocol buffer
@@ -108,38 +107,35 @@ export class DGTBoard {
     castleDelay: 2000,   // ms — delay between king and rook LED phases
     playerLedMode: 'both',     // 'both' | 'from' | 'to' — what LEDs show for player's own moves
     engineLedMode: 'sequential', // 'sequential' | 'both' | 'to' — what LEDs show for engine moves
+    debounceMs: 300,     // ms — wait before processing board changes (stability filter)
+    pollInterval: 500,   // ms — how often Pegasus board state is polled via BLE
+    moveCooldown: 800,   // ms — ignore board changes after a move is executed
+    voiceEnabled: true,  // Speak moves aloud via speech synthesis
+    autoNewGame: true,   // Auto-start new game when starting position detected
+    startPosDelay: 2000, // ms — how long starting position must be stable before triggering
   };
 
   _loadHardwareSettings() {
     const defaults = DGTBoard.HARDWARE_DEFAULTS;
     try {
       const saved = JSON.parse(localStorage.getItem('dgt_hardware_settings'));
-      this.ledBrightness = saved?.ledBrightness ?? defaults.ledBrightness;
-      this.ledSpeed = saved?.ledSpeed ?? defaults.ledSpeed;
-      this.flashDuration = saved?.flashDuration ?? defaults.flashDuration;
-      this.castleDelay = saved?.castleDelay ?? defaults.castleDelay;
-      this.playerLedMode = saved?.playerLedMode ?? defaults.playerLedMode;
-      this.engineLedMode = saved?.engineLedMode ?? defaults.engineLedMode;
+      for (const key of Object.keys(defaults)) {
+        this[key] = saved?.[key] ?? defaults[key];
+      }
     } catch {
-      this.ledBrightness = defaults.ledBrightness;
-      this.ledSpeed = defaults.ledSpeed;
-      this.flashDuration = defaults.flashDuration;
-      this.castleDelay = defaults.castleDelay;
-      this.playerLedMode = defaults.playerLedMode;
-      this.engineLedMode = defaults.engineLedMode;
+      for (const key of Object.keys(defaults)) {
+        this[key] = defaults[key];
+      }
     }
   }
 
   _saveHardwareSettings() {
     try {
-      localStorage.setItem('dgt_hardware_settings', JSON.stringify({
-        ledBrightness: this.ledBrightness,
-        ledSpeed: this.ledSpeed,
-        flashDuration: this.flashDuration,
-        castleDelay: this.castleDelay,
-        playerLedMode: this.playerLedMode,
-        engineLedMode: this.engineLedMode,
-      }));
+      const data = {};
+      for (const key of Object.keys(DGTBoard.HARDWARE_DEFAULTS)) {
+        data[key] = this[key];
+      }
+      localStorage.setItem('dgt_hardware_settings', JSON.stringify(data));
     } catch {}
   }
 
@@ -663,7 +659,7 @@ export class DGTBoard {
    */
   speakMove(san) {
     if (!window.speechSynthesis) return;
-    if (localStorage.getItem('chess_voice_enabled') === 'false') return;
+    if (!this.voiceEnabled) return;
 
     const text = this._sanToSpeech(san);
     if (!text) return;
@@ -1148,7 +1144,7 @@ export class DGTBoard {
       if (this._isStartingPosition()) {
         if (!this._startPosDetected) {
           if (!this._startPosTimer) {
-            console.log('[DGT] Starting position detected — confirming (2s)...');
+            console.log(`[DGT] Starting position detected — confirming (${this.startPosDelay}ms)...`);
             this._startPosTimer = setTimeout(() => {
               this._startPosTimer = null;
               if (this._isStartingPosition()) {
@@ -1159,7 +1155,7 @@ export class DGTBoard {
                   this.onStartingPositionDetected();
                 }
               }
-            }, 2000);
+            }, this.startPosDelay);
           }
         }
         this.lastStableBoard = [...this.dgtBoard];
@@ -1339,7 +1335,7 @@ export class DGTBoard {
     this._bleListeners = [];
   }
 
-  /** Start polling the Pegasus board state every 500ms */
+  /** Start polling the Pegasus board state */
   _startPegasusPolling() {
     this._stopPegasusPolling();
     this._pollInterval = setInterval(() => {
@@ -1348,7 +1344,7 @@ export class DGTBoard {
       } else {
         this._stopPegasusPolling();
       }
-    }, 500);
+    }, this.pollInterval);
   }
 
   /** Stop the Pegasus polling interval */
