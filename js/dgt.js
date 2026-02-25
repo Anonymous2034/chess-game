@@ -1060,15 +1060,20 @@ export class DGTBoard {
     // Check if anything actually changed before updating
     let changed = false;
     for (let i = 0; i < 64; i++) {
-      if (this.dgtBoard[i] !== payload[i]) changed = true;
-      this.dgtBoard[i] = payload[i];
+      // Pegasus sends raw occupancy bytes — normalize to 0/1
+      const val = this.boardType === 'pegasus' ? (payload[i] ? 1 : 0) : payload[i];
+      if (this.dgtBoard[i] !== val) changed = true;
+      this.dgtBoard[i] = val;
     }
 
     if (!this.lastStableBoard) {
       // First board dump after connection
       const occupied = this.dgtBoard.filter(v => v !== 0).length;
-      console.log('[DGT] Initial board dump: ' + occupied + ' pieces, boardType=' + this.boardType);
-      this._setStatus('Board connected (' + occupied + ' pieces)');
+      console.log('[DGT] Initial board dump: ' + occupied + '/32 pieces, boardType=' + this.boardType);
+      if (this.boardType === 'pegasus') {
+        console.log('[DGT] Raw payload sample (first 16):', Array.from(payload.slice(0, 16)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+      }
+      this._setStatus('Board connected (' + occupied + '/32 pieces)');
     } else if (changed) {
       console.log('[DGT] Board dump: state changed');
     }
@@ -1085,7 +1090,8 @@ export class DGTBoard {
     console.log('[DGT] Field update: square=' + square + ' (' + this._dgtSquareToAlgebraic(square) + ') piece=0x' + piece.toString(16));
 
     if (square >= 0 && square < 64) {
-      this.dgtBoard[square] = piece;
+      // Pegasus sends raw occupancy bytes — normalize to 0/1
+      this.dgtBoard[square] = this.boardType === 'pegasus' ? (piece ? 1 : 0) : piece;
     }
 
     // Debounce: moving a piece causes multiple updates (lift + place)
