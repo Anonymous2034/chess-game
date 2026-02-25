@@ -201,10 +201,11 @@ main {
 .board-area {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 4px;
   align-self: flex-start;
   position: relative;
+  width: calc(var(--board-size) + 36px); /* board + eval bar + margin */
 }
 
 #board-container {
@@ -420,7 +421,6 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: calc(var(--board-size) + 22px);
   padding: 4px 8px;
   background: var(--panel-bg);
   border-radius: 4px;
@@ -429,6 +429,7 @@ main {
   flex-shrink: 0;
   border-left: 3px solid transparent;
   transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
 .player-info.bottom {
   margin-top: 14px;
@@ -525,12 +526,19 @@ main {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   /* Match board area: top player info → bottom player info */
   height: var(--panel-height, auto);
   min-height: var(--panel-height, 300px);
   max-height: calc(100vh - 82px);
   max-height: calc(100dvh - 82px);
+}
+/* Active tab content fills remaining space and scrolls */
+.side-panel .panel-content:not(.hidden) {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .status-bar {
@@ -624,7 +632,7 @@ main {
   display: flex;
   gap: 4px;
   justify-content: center;
-  width: calc(var(--board-size) + 22px);
+  box-sizing: border-box;
 }
 
 .nav-controls .btn {
@@ -1067,7 +1075,6 @@ main {
 
 /* === Opening Label (below board) === */
 .opening-label {
-  width: calc(var(--board-size) + 22px);
   text-align: center;
   font-size: 0.8rem;
   color: var(--accent);
@@ -3135,7 +3142,6 @@ main {
 
 /* === Eval Graph === */
 .eval-graph-container {
-  width: calc(var(--board-size) + 22px);
   height: 80px;
   border-radius: 4px;
   overflow: hidden;
@@ -4503,10 +4509,10 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: calc(var(--board-size) + 22px);
   padding: 8px 12px;
   background: var(--panel-bg);
   border-radius: 6px;
+  box-sizing: border-box;
   border: 1px solid var(--border-color);
   margin-top: 4px;
 }
@@ -4528,11 +4534,11 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   display: flex;
   align-items: center;
   gap: 6px;
-  width: calc(var(--board-size) + 22px);
   padding: 5px 10px;
   background: var(--panel-bg);
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
   margin-top: 4px;
 }
 
@@ -4869,11 +4875,11 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: calc(var(--board-size) + 22px);
   padding: 8px 12px;
   background: var(--panel-bg);
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
   margin-top: 4px;
 }
 
@@ -5781,7 +5787,7 @@ body.drag-mode .side-panel.drag-over {
 
 /* Cross-container overrides */
 .side-panel .nav-controls { justify-content: center; }
-.board-area .status-bar { width: calc(var(--board-size) + 22px); box-sizing: border-box; }
+.board-area .status-bar { box-sizing: border-box; }
 
 /* Mobile touch adjustments */
 @media (pointer: coarse) {
@@ -5852,18 +5858,20 @@ body.drag-mode .side-panel.drag-over {
 }
 
 .resize-handle-h {
-  height: 6px;
+  height: 10px;
   cursor: row-resize;
-  background: transparent;
+  background: rgba(255,255,255,0.03);
   position: relative;
   flex-shrink: 0;
   z-index: 5;
   transition: background 0.2s;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .resize-handle-h:hover,
 .resize-handle-h.active {
-  background: var(--accent);
+  background: rgba(129,182,76,0.15);
 }
 
 .resize-handle-h::after {
@@ -5872,9 +5880,9 @@ body.drag-mode .side-panel.drag-over {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 32px;
+  width: 40px;
   height: 2px;
-  background: var(--border-color);
+  background: #555;
   border-radius: 1px;
 }
 
