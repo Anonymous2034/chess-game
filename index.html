@@ -1125,29 +1125,6 @@
         </div>
         </div>
 
-        <div class="drag-group" data-drag-id="explorer" data-drag-label="Explorer">
-        <!-- Opening Explorer (below board) -->
-        <div class="opening-explorer" id="opening-explorer">
-          <div class="oe-header" id="oe-header">
-            <div class="oe-header-left">
-              <span class="oe-icon">&#9670;</span>
-              <span class="oe-title">Explorer</span>
-              <span class="oe-opening-name" id="oe-opening-name"></span>
-            </div>
-            <div class="oe-header-right">
-              <span class="oe-total-badge" id="oe-total-badge"></span>
-              <button class="oe-collapse-btn" id="oe-collapse-btn"><span class="oe-chevron" id="oe-chevron">&#9660;</span></button>
-            </div>
-          </div>
-          <div class="oe-body" id="oe-body">
-            <div class="oe-moves-table" id="oe-moves-table"></div>
-            <div class="oe-context" id="oe-context">
-              <div class="oe-gm-row" id="oe-gm-row"></div>
-              <div class="oe-db-count" id="oe-db-count"></div>
-            </div>
-          </div>
-        </div>
-        </div>
 
       </div>
 
@@ -1188,6 +1165,7 @@
         <!-- Side Panel Tabs -->
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="moves">Moves</button>
+          <button class="panel-tab" data-tab="book">Book</button>
           <button class="panel-tab" data-tab="ideas">GM Hints</button>
           <button class="panel-tab" data-tab="gm-coach">GM Coach</button>
         </div>
@@ -1220,6 +1198,17 @@
 
         </div>
 
+        <!-- Book Tab (Opening Explorer) -->
+        <div class="panel-content hidden" id="tab-book">
+          <div class="book-panel" id="book-panel">
+            <div class="book-header">
+              <div class="oe-gm-row" id="oe-gm-row"></div>
+            </div>
+            <div class="oe-moves-table" id="oe-moves-table"></div>
+          </div>
+          <div class="resize-handle resize-handle-h" id="resize-handle-book" title="Drag to resize book"></div>
+        </div>
+
         <!-- Ideas Tab (GM Hints) -->
         <div class="panel-content hidden" id="tab-ideas">
           <div class="ideas-panel">
@@ -1227,6 +1216,7 @@
             <div class="ideas-list" id="ideas-list">
               <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
             </div>
+            <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize hints"></div>
             <div class="advisor-annotations" id="advisor-annotations"></div>
           </div>
         </div>

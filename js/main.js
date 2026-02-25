@@ -3554,19 +3554,7 @@ class ChessApp {
   }
 
   setupOpeningExplorerCollapse() {
-    const header = document.getElementById('oe-header');
-    const explorer = document.getElementById('opening-explorer');
-    if (!header || !explorer) return;
-
-    // Restore collapsed state
-    if (localStorage.getItem('chess_oe_collapsed') === '1') {
-      explorer.classList.add('collapsed');
-    }
-
-    header.addEventListener('click', () => {
-      explorer.classList.toggle('collapsed');
-      localStorage.setItem('chess_oe_collapsed', explorer.classList.contains('collapsed') ? '1' : '0');
-    });
+    // Explorer is now a side-panel tab — no collapse needed
   }
 
   async fetchOpeningExplorer() {
@@ -3576,122 +3564,54 @@ class ChessApp {
   }
 
   async _doFetchOpeningExplorer() {
-    const nameEl = document.getElementById('oe-opening-name');
-    const badgeEl = document.getElementById('oe-total-badge');
     const tableEl = document.getElementById('oe-moves-table');
     const gmRowEl = document.getElementById('oe-gm-row');
-    const dbCountEl = document.getElementById('oe-db-count');
     const labelEl = document.getElementById('opening-label');
 
-    const bodyEl = document.getElementById('oe-body');
+    const ply = this.game.moveHistory.length;
+    const myMoves = this.game.moveHistory.map(m => m.san);
 
+    // Count DB games matching current move sequence
+    let dbTotal = 0;
+    if (ply > 0) {
+      for (const game of this.database.games) {
+        if (game.moves.length < ply) continue;
+        let match = true;
+        for (let i = 0; i < ply; i++) {
+          if (game.moves[i] !== myMoves[i]) { match = false; break; }
+        }
+        if (match) dbTotal++;
+      }
+    }
+
+    // Fetch Lichess masters data
     const data = await this.database.fetchOpeningExplorer(this.chess.fen());
-    if (!data) {
-      // Keep showing last known opening name (persistence)
-      this._updateDBMatchCount();
-      if (nameEl) nameEl.textContent = this.lastOpeningName;
-      if (tableEl) tableEl.innerHTML = '';
-      if (gmRowEl) gmRowEl.innerHTML = '';
-      if (dbCountEl) dbCountEl.textContent = '';
-      if (badgeEl) badgeEl.textContent = '';
-      if (bodyEl) bodyEl.style.display = 'none';
-      return;
+
+    // Update opening name
+    if (data) {
+      const openingName = data.opening?.name || '';
+      if (openingName) this.lastOpeningName = openingName;
     }
+    const name = this.lastOpeningName || '';
 
-    // Opening name — update and persist
-    const openingName = data.opening?.name || '';
-    if (openingName) {
-      this.lastOpeningName = openingName;
-    }
-    if (nameEl) {
-      const ply = this.game.moveHistory.length;
-      const dbg = `[v77 ply${ply} g${this.database.games.length} lbl=${!!labelEl}]`;
-      nameEl.textContent = (this.lastOpeningName || '') + ' ' + dbg;
-    }
-    if (labelEl) this._updateDBMatchCount();
-    if (bodyEl) bodyEl.style.display = '';
-
-    // Grand total across all moves
-    let grandTotal = 0;
-    if (data.moves) {
-      for (const m of data.moves) grandTotal += m.white + m.draws + m.black;
-    }
-    if (badgeEl) {
-      badgeEl.textContent = grandTotal > 0 ? this._formatCount(grandTotal) + ' games' : '';
-    }
-
-    // Move rows with WDL bars
-    if (tableEl) {
-      tableEl.innerHTML = '';
-      if (data.moves && data.moves.length > 0) {
-        data.moves.slice(0, 5).forEach(m => {
-          const total = m.white + m.draws + m.black;
-          if (total === 0) return;
-          const wPct = Math.round((m.white / total) * 100);
-          const dPct = Math.round((m.draws / total) * 100);
-          const lPct = 100 - wPct - dPct;
-
-          const row = document.createElement('div');
-          row.className = 'oe-move-row';
-
-          // SAN
-          const san = document.createElement('span');
-          san.className = 'oe-move-san';
-          san.textContent = m.san;
-
-          // WDL bar
-          const bar = document.createElement('div');
-          bar.className = 'oe-wdl-bar';
-
-          const wSeg = document.createElement('div');
-          wSeg.className = 'oe-wdl-seg w';
-          wSeg.style.width = wPct + '%';
-          if (wPct >= 15) wSeg.innerHTML = `<span class="oe-wdl-label">${wPct}%</span>`;
-
-          const dSeg = document.createElement('div');
-          dSeg.className = 'oe-wdl-seg d';
-          dSeg.style.width = dPct + '%';
-          if (dPct >= 15) dSeg.innerHTML = `<span class="oe-wdl-label">${dPct}%</span>`;
-
-          const lSeg = document.createElement('div');
-          lSeg.className = 'oe-wdl-seg l';
-          lSeg.style.width = lPct + '%';
-          if (lPct >= 15) lSeg.innerHTML = `<span class="oe-wdl-label">${lPct}%</span>`;
-
-          bar.appendChild(wSeg);
-          bar.appendChild(dSeg);
-          bar.appendChild(lSeg);
-
-          // Game count
-          const count = document.createElement('span');
-          count.className = 'oe-move-count';
-          count.textContent = this._formatCount(total);
-
-          row.appendChild(san);
-          row.appendChild(bar);
-          row.appendChild(count);
-
-          // Click to play the move
-          row.addEventListener('click', () => {
-            if (!this.game.gameOver && !this.game.replayMode) {
-              const legalMoves = this.chess.moves({ verbose: true });
-              const match = legalMoves.find(lm => lm.san === m.san);
-              if (match) {
-                this.board.tryMove(match.from, match.to);
-              }
-            }
-          });
-
-          tableEl.appendChild(row);
-        });
+    // Opening label — single source: name + DB count
+    if (labelEl) {
+      if (dbTotal > 0) {
+        labelEl.innerHTML = (name ? `${name} &middot; ` : '') + `<span class="db-match-count">${dbTotal.toLocaleString()} game${dbTotal !== 1 ? 's' : ''}</span>`;
+        labelEl.style.cursor = 'pointer';
+        labelEl.onclick = () => this._openDBByPosition();
+      } else {
+        labelEl.textContent = name;
+        labelEl.style.cursor = '';
+        labelEl.onclick = null;
       }
     }
 
     // GM avatars for this opening
     if (gmRowEl) {
       gmRowEl.innerHTML = '';
-      const gmMatches = this._findGMsForOpening(this.lastOpeningName);
-      gmMatches.slice(0, 5).forEach(({ gm, asColor }) => {
+      const gmMatches = this._findGMsForOpening(name);
+      gmMatches.slice(0, 4).forEach(({ gm, asColor }) => {
         const img = document.createElement('img');
         img.className = 'oe-gm-avatar';
         img.src = `img/gm/${gm.id}.svg`;
@@ -3699,7 +3619,6 @@ class ChessApp {
         img.title = `${gm.name} plays this as ${asColor === 'w' ? 'White' : 'Black'}`;
         img.addEventListener('click', (e) => {
           e.stopPropagation();
-          // Open GM browser detail if available
           const gmCard = document.querySelector(`.gm-card[data-bot-id="${gm.id}"]`);
           if (gmCard) gmCard.click();
         });
@@ -3707,68 +3626,159 @@ class ChessApp {
       });
     }
 
-    // DB game count — match on ECO code for exact opening match
-    if (dbCountEl) {
-      const eco = data.opening?.eco || '';
-      let dbGames = 0;
-      if (eco) {
-        dbGames = this.database.games.filter(g => g.eco === eco).length;
+    // Build move table — combine Lichess stats + local DB counts
+    if (!tableEl) return;
+    tableEl.innerHTML = '';
+
+    // Count next moves from local DB
+    const dbMoveCounts = new Map();
+    if (ply >= 0) {
+      for (const game of this.database.games) {
+        if (game.moves.length <= ply) continue;
+        let match = true;
+        for (let i = 0; i < ply; i++) {
+          if (game.moves[i] !== myMoves[i]) { match = false; break; }
+        }
+        if (!match) continue;
+        const nextSan = game.moves[ply];
+        const entry = dbMoveCounts.get(nextSan);
+        if (entry) {
+          entry.count++;
+          if (game.result === '1-0') entry.white++;
+          else if (game.result === '0-1') entry.black++;
+          else entry.draws++;
+        } else {
+          dbMoveCounts.set(nextSan, {
+            count: 1,
+            white: game.result === '1-0' ? 1 : 0,
+            black: game.result === '0-1' ? 1 : 0,
+            draws: (game.result === '1/2-1/2') ? 1 : 0
+          });
+        }
       }
-      dbCountEl.textContent = dbGames > 0 ? `${dbGames} game${dbGames !== 1 ? 's' : ''} in library` : '';
     }
 
-    // Hide context row if both children are empty
-    const contextEl = document.getElementById('oe-context');
-    if (contextEl) {
-      const hasGMs = gmRowEl && gmRowEl.children.length > 0;
-      const hasDB = dbCountEl && dbCountEl.textContent !== '';
-      contextEl.classList.toggle('hidden', !hasGMs && !hasDB);
+    // Build merged move list: Lichess moves enriched with DB, then DB-only moves
+    const lichessMoves = (data?.moves || []).slice(0, 8);
+    const seenSans = new Set();
+    const mergedMoves = [];
+
+    // Lichess moves first
+    for (const m of lichessMoves) {
+      const mastersTotal = m.white + m.draws + m.black;
+      if (mastersTotal === 0) continue;
+      seenSans.add(m.san);
+      const db = dbMoveCounts.get(m.san);
+      mergedMoves.push({
+        san: m.san,
+        mastersTotal,
+        mastersW: m.white, mastersD: m.draws, mastersL: m.black,
+        dbCount: db ? db.count : 0,
+        dbW: db ? db.white : 0, dbD: db ? db.draws : 0, dbL: db ? db.black : 0
+      });
     }
-  }
 
-  _updateDBMatchCount() {
-    const labelEl = document.getElementById('opening-label');
-    if (!labelEl) return;
-    const fen = this.chess.fen();
-    const ply = this.game.moveHistory.length;
-    const name = this.lastOpeningName || '';
+    // DB-only moves (not in Lichess)
+    const dbOnly = [...dbMoveCounts.entries()]
+      .filter(([san]) => !seenSans.has(san))
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 8);
+    for (const [san, db] of dbOnly) {
+      mergedMoves.push({
+        san,
+        mastersTotal: 0,
+        mastersW: 0, mastersD: 0, mastersL: 0,
+        dbCount: db.count,
+        dbW: db.white, dbD: db.draws, dbL: db.black
+      });
+    }
 
-    // Show opening name immediately (no blocking)
-    labelEl.textContent = name;
-    labelEl.style.cursor = '';
-    labelEl.onclick = null;
+    if (mergedMoves.length === 0) return;
 
-    // Only compute after move 3 (ply 6) — earlier positions match too many games
-    // and the computation is expensive
-    if (ply < 6) return;
+    // Render rows
+    mergedMoves.forEach(m => {
+      // Use masters WDL if available, otherwise DB WDL
+      const hasM = m.mastersTotal > 0;
+      const wdlTotal = hasM ? m.mastersTotal : (m.dbW + m.dbD + m.dbL);
+      const wPct = wdlTotal > 0 ? Math.round(((hasM ? m.mastersW : m.dbW) / wdlTotal) * 100) : 0;
+      const dPct = wdlTotal > 0 ? Math.round(((hasM ? m.mastersD : m.dbD) / wdlTotal) * 100) : 0;
+      const lPct = wdlTotal > 0 ? (100 - wPct - dPct) : 0;
 
-    // Cancel any previous in-flight computation
-    this._dbCountId = (this._dbCountId || 0) + 1;
-    const myId = this._dbCountId;
+      const row = document.createElement('div');
+      row.className = 'oe-move-row';
 
-    // Non-blocking chunked computation via setTimeout (won't block engine messages)
-    const totalGames = this.database.games.length;
-    this.database.countByPositionAsync(fen).then(count => {
-      if (this._dbCountId !== myId) {
-        labelEl.textContent = (name || '') + ` [SKIP id${myId}/${this._dbCountId}]`;
-        return;
+      const san = document.createElement('span');
+      san.className = 'oe-move-san';
+      san.textContent = m.san;
+
+      // WDL bar
+      const bar = document.createElement('div');
+      bar.className = 'oe-wdl-bar';
+      if (wdlTotal > 0) {
+        const wSeg = document.createElement('div');
+        wSeg.className = 'oe-wdl-seg w';
+        wSeg.style.width = wPct + '%';
+        if (wPct >= 15) wSeg.innerHTML = `<span class="oe-wdl-label">${wPct}%</span>`;
+        const dSeg = document.createElement('div');
+        dSeg.className = 'oe-wdl-seg d';
+        dSeg.style.width = dPct + '%';
+        if (dPct >= 15) dSeg.innerHTML = `<span class="oe-wdl-label">${dPct}%</span>`;
+        const lSeg = document.createElement('div');
+        lSeg.className = 'oe-wdl-seg l';
+        lSeg.style.width = lPct + '%';
+        if (lPct >= 15) lSeg.innerHTML = `<span class="oe-wdl-label">${lPct}%</span>`;
+        bar.appendChild(wSeg);
+        bar.appendChild(dSeg);
+        bar.appendChild(lSeg);
       }
-      if (count > 0) {
-        labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
-        labelEl.style.cursor = 'pointer';
-        labelEl.onclick = () => this._openDBByPosition();
-      } else {
-        labelEl.textContent = (name || '') + ` [${count}/${totalGames} ply${ply}]`;
-      }
-    }).catch(err => {
-      labelEl.textContent = (name || '') + ` [ERR: ${err.message}]`;
+
+      // Masters count
+      const mastersCol = document.createElement('span');
+      mastersCol.className = 'oe-move-count';
+      mastersCol.textContent = m.mastersTotal > 0 ? this._formatCount(m.mastersTotal) : '–';
+
+      // DB count
+      const dbCol = document.createElement('span');
+      dbCol.className = 'oe-move-db';
+      dbCol.textContent = m.dbCount > 0 ? this._formatCount(m.dbCount) : '–';
+
+      row.appendChild(san);
+      row.appendChild(bar);
+      row.appendChild(mastersCol);
+      row.appendChild(dbCol);
+
+      row.addEventListener('click', () => {
+        if (!this.game.gameOver && !this.game.replayMode) {
+          const legalMoves = this.chess.moves({ verbose: true });
+          const match = legalMoves.find(lm => lm.san === m.san);
+          if (match) {
+            this.board.tryMove(match.from, match.to);
+          }
+        }
+      });
+
+      tableEl.appendChild(row);
     });
   }
 
-  /** Open DB dialog showing only games that match the current board position */
+  _updateDBMatchCount() {
+    // Now handled by _doFetchOpeningExplorer — kept for any external callers
+    const labelEl = document.getElementById('opening-label');
+    if (labelEl) labelEl.textContent = this.lastOpeningName || '';
+  }
+
+  /** Open DB dialog showing only games that match the current move sequence */
   _openDBByPosition() {
-    const fen = this.chess.fen();
-    const games = this.database.filterByPosition(fen);
+    const ply = this.game.moveHistory.length;
+    if (ply < 1) return;
+    const myMoves = this.game.moveHistory.map(m => m.san);
+    const games = this.database.games.filter(game => {
+      if (game.moves.length < ply) return false;
+      for (let i = 0; i < ply; i++) {
+        if (game.moves[i] !== myMoves[i]) return false;
+      }
+      return true;
+    });
     if (games.length === 0) return;
 
     const show = el => el?.classList.remove('hidden');
@@ -4568,9 +4578,12 @@ class ChessApp {
         if (!visible) this._activateFirstVisibleTab();
         break;
       }
-      case 'openingExplorer':
-        toggle(document.querySelector('.opening-explorer'));
+      case 'openingExplorer': {
+        toggle(document.querySelector('.panel-tab[data-tab="book"]'));
+        if (!visible) toggle(document.getElementById('tab-book'));
+        if (!visible) this._activateFirstVisibleTab();
         break;
+      }
       case 'showLegalMoves':
         if (this.board) this.board.showLegalMoves = visible;
         break;
@@ -5313,21 +5326,30 @@ class ChessApp {
     handle.addEventListener('touchstart', onStart, { passive: false });
   }
 
-  _setupResizeExplorer() {
-    const handle = document.getElementById('resize-handle-explorer');
+  /** Generic vertical resize for any panel section */
+  _setupPanelResize(handleId, containerId, storageKey, minH = 60, maxH = 900) {
+    const handle = document.getElementById(handleId);
     if (!handle) return;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Restore saved height
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      container.style.minHeight = saved;
+      container.style.maxHeight = saved;
+      container.style.flex = 'none';
+    }
 
     let startY, startH;
-    const explorer = document.querySelector('.opening-explorer');
-    if (!explorer) return;
 
     const onMove = (e) => {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = clientY - startY;
-      const newH = Math.max(40, Math.min(600, startH + dy));
-      explorer.style.minHeight = newH + 'px';
-      explorer.style.maxHeight = newH + 'px';
-      explorer.style.flex = 'none';
+      const newH = Math.max(minH, Math.min(maxH, startH + dy));
+      container.style.minHeight = newH + 'px';
+      container.style.maxHeight = newH + 'px';
+      container.style.flex = 'none';
     };
 
     const onEnd = () => {
@@ -5337,14 +5359,14 @@ class ChessApp {
       document.removeEventListener('mouseup', onEnd);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
-      localStorage.setItem('chess_explorer_height', explorer.style.minHeight);
+      localStorage.setItem(storageKey, container.style.minHeight);
     };
 
     const onStart = (e) => {
       e.preventDefault();
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       startY = clientY;
-      startH = explorer.offsetHeight;
+      startH = container.offsetHeight;
       document.body.classList.add('resizing', 'resizing-h');
       handle.classList.add('active');
       document.addEventListener('mousemove', onMove);
@@ -5355,6 +5377,12 @@ class ChessApp {
 
     handle.addEventListener('mousedown', onStart);
     handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  _setupResizeExplorer() {
+    // Book tab, Ideas tab
+    this._setupPanelResize('resize-handle-book', 'book-panel', 'chess_book_height', 80, 900);
+    this._setupPanelResize('resize-handle-ideas', 'ideas-list', 'chess_ideas_height', 60, 900);
   }
 
   _setupResizeNotes() {

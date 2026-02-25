@@ -691,23 +691,6 @@ main {
   font-weight: 600;
   flex-shrink: 0;
 }
-.oe-opening-name {
-  font-size: 0.68rem;
-  color: var(--accent);
-  font-style: italic;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.oe-total-badge {
-  font-size: 0.6rem;
-  color: var(--text-light);
-  background: rgba(255,255,255,0.08);
-  padding: 1px 6px;
-  border-radius: 8px;
-  white-space: nowrap;
-}
-.oe-total-badge:empty { display: none; }
 .oe-collapse-btn {
   background: none;
   border: none;
@@ -743,7 +726,7 @@ main {
 }
 .oe-move-row {
   display: grid;
-  grid-template-columns: 32px 1fr 44px;
+  grid-template-columns: 32px 1fr 38px 32px;
   align-items: center;
   gap: 4px;
   padding: 1px 2px;
@@ -766,6 +749,13 @@ main {
   color: #888;
   font-size: 0.55rem;
   white-space: nowrap;
+}
+.oe-move-db {
+  text-align: right;
+  color: var(--accent);
+  font-size: 0.55rem;
+  white-space: nowrap;
+  font-weight: 600;
 }
 
 /* WDL color bar */
@@ -798,19 +788,28 @@ main {
 .oe-wdl-seg.d .oe-wdl-label { color: #eee; }
 .oe-wdl-seg.l .oe-wdl-label { color: #ccc; }
 
-/* Context row — GM avatars + DB count */
-.oe-context {
+/* Book tab panel */
+.book-panel {
+  padding: 4px 8px;
+  overflow-y: auto;
+}
+.book-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 2px;
-  gap: 6px;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+  min-height: 20px;
 }
-.oe-context.hidden { display: none; }
+.book-panel .oe-moves-table {
+  max-width: 100%;
+  min-height: 200px;
+}
+
+/* GM avatars */
 .oe-gm-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 .oe-gm-avatar {
   width: 16px;
@@ -824,11 +823,6 @@ main {
 .oe-gm-avatar:hover {
   transform: scale(1.2);
   border-color: var(--accent);
-}
-.oe-db-count {
-  font-size: 0.55rem;
-  color: #888;
-  white-space: nowrap;
 }
 
 /* === Dialogs === */
@@ -989,6 +983,11 @@ main {
 .opening-label[style*="cursor: pointer"]:hover {
   color: #d4af37;
   flex-shrink: 0;
+}
+.db-match-count {
+  color: #d4af37;
+  font-style: normal;
+  font-weight: 600;
 }
 
 /* === Bot Picker — Two-Panel Layout === */

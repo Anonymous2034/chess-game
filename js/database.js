@@ -95,9 +95,10 @@ export class Database {
     } while (moveText !== prev);
     moveText = moveText.replace(/\d+\.\.\./g, '');
 
-    // Extract individual moves, strip annotation glyphs (!, ?, !!, ??, !?, ?!, $1-$255)
+    // Extract individual moves, strip move numbers (1. or 1.e4) and annotation glyphs
     const moveTokens = moveText
       .split(/\s+/)
+      .map(t => t.replace(/^\d+\./, ''))           // strip leading "1." from "1.e4"
       .filter(t => t && !t.match(/^\d+\.?$/) && !t.match(/^(1-0|0-1|1\/2-1\/2|\*)$/) && !t.match(/^\$\d+$/))
       .map(t => t.replace(/[!?]+$/, ''));
 
