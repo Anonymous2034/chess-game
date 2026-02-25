@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Clothing / body -->
+  <rect x="31" y="52" width="18" height="14" rx="2" fill="#e0d5c7"/>
+  <path d="M20 80 Q40 66 60 80" fill="#4a4745"/>
+  <path d="M24 68 L33 56 L33 68 Z" fill="#4a4745"/>
+  <path d="M56 68 L47 56 L47 68 Z" fill="#4a4745"/>
+  <!-- Collar -->
+  <path d="M36 57 L38 64 L40 58 L42 64 L44 57" fill="none" stroke="#e8e2da" stroke-width="1"/>
+  <!-- Face (round) -->
+  <path d="M26 40 Q26 20 40 17 Q54 20 54 40 L52 50 Q48 56 40 56 Q32 56 28 50 Z" fill="#e0d5c7"/>
+  <path d="M28 48 Q32 55 40 56 Q48 55 52 48" fill="none" stroke="#d0c5b7" stroke-width="0.5"/>
+  <!-- Baroque powdered wig -->
+  <path d="M26 36 Q24 14 40 10 Q56 14 54 36 Q53 18 40 14 Q27 18 26 36Z" fill="#c0bab0"/>
+  <!-- Wig side curls left -->
+  <path d="M24 32 Q20 34 21 38 Q22 42 24 40 Q22 38 24 36 Z" fill="#c0bab0"/>
+  <path d="M22 38 Q18 40 19 44 Q20 48 22 46 Q20 44 22 42 Z" fill="#c0bab0"/>
+  <path d="M20 44 Q17 46 18 50 Q19 53 21 51 Q19 49 20 47 Z" fill="#c0bab0"/>
+  <!-- Wig side curls right -->
+  <path d="M56 32 Q60 34 59 38 Q58 42 56 40 Q58 38 56 36 Z" fill="#c0bab0"/>
+  <path d="M58 38 Q62 40 61 44 Q60 48 58 46 Q60 44 58 42 Z" fill="#c0bab0"/>
+  <path d="M60 44 Q63 46 62 50 Q61 53 59 51 Q61 49 60 47 Z" fill="#c0bab0"/>
+  <!-- Sideburns from wig -->
+  <path d="M26 30 L25 36 Q24 34 26 30Z" fill="#c0bab0"/>
+  <path d="M54 30 L55 36 Q56 34 54 30Z" fill="#c0bab0"/>
+  <!-- Eyes -->
+  <ellipse cx="34" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.8" fill="#5a3a1a"/>
+  <circle cx="46" cy="34" r="1.8" fill="#5a3a1a"/>
+  <circle cx="34" cy="34" r="1" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="1" fill="#1a1715"/>
+  <circle cx="34.4" cy="33.5" r="0.5" fill="#8a6a3a"/>
+  <circle cx="46.4" cy="33.5" r="0.5" fill="#8a6a3a"/>
+  <!-- Eyebrows -->
+  <path d="M28.5 30 Q34 28.5 38 30.5" fill="none" stroke="#6a5a4a" stroke-width="1.3" stroke-linecap="round"/>
+  <path d="M42 30.5 Q46 28.5 51.5 30" fill="none" stroke="#6a5a4a" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="36" x2="40" y2="43" stroke="#c4b9ac" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M38 43 Q40 44.5 42 43" fill="none" stroke="#c4b9ac" stroke-width="0.6"/>
+  <!-- Mouth -->
+  <line x1="35" y1="48.5" x2="45" y2="48.5" stroke="#b09e8e" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="25" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="55" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

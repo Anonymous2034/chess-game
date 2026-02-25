@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="33" y="52" width="14" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Victorian high collar -->
+  <path d="M20 80 Q40 64 60 80" fill="#f0ebe4"/>
+  <rect x="33" y="56" width="14" height="10" fill="#f0ebe4"/>
+  <line x1="33" y1="56" x2="33" y2="66" stroke="#d0cbc4" stroke-width="0.5"/>
+  <line x1="47" y1="56" x2="47" y2="66" stroke="#d0cbc4" stroke-width="0.5"/>
+  <!-- Collar wings -->
+  <path d="M28 66 L33 59 L33 66 Z" fill="#f0ebe4" stroke="#d0cbc4" stroke-width="0.3"/>
+  <path d="M52 66 L47 59 L47 66 Z" fill="#f0ebe4" stroke="#d0cbc4" stroke-width="0.3"/>
+  <!-- Dark formal coat -->
+  <path d="M16 80 L28 66 L33 66 L33 80 Z" fill="#1a1815"/>
+  <path d="M64 80 L52 66 L47 66 L47 80 Z" fill="#1a1815"/>
+  <!-- Face - stocky, broad, determined -->
+  <path d="M27 42 Q27 22 40 18 Q53 22 53 42 Q50 54 40 57 Q30 54 27 42Z" fill="#e0d5c7"/>
+  <!-- Full beard - signature Steinitz -->
+  <path d="M30 44 Q28 50 30 58 Q35 62 40 62 Q45 62 50 58 Q52 50 50 44" fill="#5a4a3a"/>
+  <path d="M30 44 Q32 42 34 44 Q36 46 38 44 Q40 42 42 44 Q44 46 46 44 Q48 42 50 44" fill="#5a4a3a"/>
+  <!-- Balding with wild side hair -->
+  <path d="M27 34 Q26 28 29 24 L27 30Z" fill="#5a4a3a"/>
+  <path d="M53 34 Q54 28 51 24 L53 30Z" fill="#5a4a3a"/>
+  <path d="M26 30 L26 40 Q25 36 26 30Z" fill="#5a4a3a"/>
+  <path d="M54 30 L54 40 Q55 36 54 30Z" fill="#5a4a3a"/>
+  <!-- Wild tufts of side hair -->
+  <path d="M25 32 Q24 28 26 24 L25 28Z" fill="#5a4a3a"/>
+  <path d="M55 32 Q56 28 54 24 L55 28Z" fill="#5a4a3a"/>
+  <!-- Bald crown -->
+  <ellipse cx="40" cy="18" rx="10" ry="5" fill="#ddd0c2"/>
+  <!-- Eyes - intense, small -->
+  <ellipse cx="34" cy="34" rx="2.8" ry="2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="2.8" ry="2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.5" fill="#3a3020"/>
+  <circle cx="46" cy="34" r="1.5" fill="#3a3020"/>
+  <circle cx="34" cy="34" r="0.8" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="0.8" fill="#1a1715"/>
+  <circle cx="34.3" cy="33.6" r="0.4" fill="#81b64c"/>
+  <circle cx="46.3" cy="33.6" r="0.4" fill="#81b64c"/>
+  <!-- Heavy bushy eyebrows -->
+  <path d="M29 30 Q34 27.5 38 30" fill="none" stroke="#4a3a2a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 30 Q46 27.5 51 30" fill="none" stroke="#4a3a2a" stroke-width="2" stroke-linecap="round"/>
+  <!-- Nose - broad, prominent -->
+  <line x1="40" y1="36" x2="39.5" y2="42" stroke="#c4b9ac" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M37 42 Q39.5 44.5 42.5 42" fill="none" stroke="#c4b9ac" stroke-width="0.7"/>
+  <!-- Ears -->
+  <ellipse cx="26" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="54" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

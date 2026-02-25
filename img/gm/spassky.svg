@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck - solid build -->
+  <rect x="32" y="52" width="16" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Suit jacket -->
+  <path d="M20 80 Q40 64 60 80" fill="#2a2725"/>
+  <path d="M24 68 L33 56 L33 68 Z" fill="#2a2725"/>
+  <path d="M56 68 L47 56 L47 68 Z" fill="#2a2725"/>
+  <!-- Shirt and tie -->
+  <rect x="38" y="57" width="4" height="10" fill="#e8e2da"/>
+  <polygon points="38.5,59 41.5,59 42,68 38,68" fill="#6a4a3a"/>
+  <!-- Face - broad, friendly, strong -->
+  <path d="M27 40 Q27 20 40 17 Q53 20 53 40 Q51 54 40 56 Q29 54 27 40Z" fill="#e0d5c7"/>
+  <!-- Wavy hair, full, medium-dark -->
+  <path d="M27 34 Q26 14 40 12 Q54 14 53 34 Q52 20 40 16 Q28 20 27 34Z" fill="#4a3a2a"/>
+  <path d="M26 30 Q25 22 28 16 L26 24Z" fill="#4a3a2a"/>
+  <path d="M54 30 Q55 22 52 16 L54 24Z" fill="#4a3a2a"/>
+  <!-- Slight wave in hair -->
+  <path d="M30 16 Q35 13 42 14 Q37 12 30 15Z" fill="#5a4a3a"/>
+  <path d="M42 14 Q48 15 52 18 Q47 14 42 13Z" fill="#5a4a3a"/>
+  <!-- Side hair -->
+  <path d="M26 30 L26 36 Q25 32 26 30Z" fill="#4a3a2a"/>
+  <path d="M54 30 L54 36 Q55 32 54 30Z" fill="#4a3a2a"/>
+  <!-- Eyes - warm, open -->
+  <ellipse cx="34" cy="34" rx="3.2" ry="2.4" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.2" ry="2.4" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.8" fill="#4a6a8a"/>
+  <circle cx="46" cy="34" r="1.8" fill="#4a6a8a"/>
+  <circle cx="34" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="34.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <circle cx="46.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <!-- Friendly eyebrows -->
+  <path d="M29 31 Q34 29 37.5 31" fill="none" stroke="#3a2a1a" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M42.5 31 Q46 29 51 31" fill="none" stroke="#3a2a1a" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="36" x2="40" y2="43" stroke="#c4b9ac" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M38 43 Q40 44.5 42 43" fill="none" stroke="#c4b9ac" stroke-width="0.6"/>
+  <!-- Warm slight smile -->
+  <path d="M35 48 Q40 50.5 45 48" fill="none" stroke="#b09e8e" stroke-width="1.1" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="26" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="54" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck - tall -->
+  <rect x="33" y="52" width="14" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Modern suit -->
+  <path d="M20 80 Q40 64 60 80" fill="#2a2725"/>
+  <path d="M24 68 L34 56 L34 68 Z" fill="#2a2725"/>
+  <path d="M56 68 L46 56 L46 68 Z" fill="#2a2725"/>
+  <!-- Shirt collar -->
+  <path d="M34 57 L37 63 L40 58 L43 63 L46 57" fill="none" stroke="#d0cbc4" stroke-width="1"/>
+  <!-- Tie -->
+  <polygon points="39,60 41,60 41.5,68 38.5,68" fill="#4a5a6a"/>
+  <!-- Face - tall, thin, angular -->
+  <path d="M29 40 Q29 20 40 16 Q51 20 51 40 Q49 54 40 57 Q31 54 29 40Z" fill="#e0d5c7"/>
+  <!-- Dark straight hair - neat, medium length -->
+  <path d="M28 34 Q27 14 40 12 Q53 14 52 34 Q51 18 40 15 Q29 18 28 34Z" fill="#2a2018"/>
+  <path d="M27 30 Q26 22 29 16 L27 24Z" fill="#2a2018"/>
+  <path d="M53 30 Q54 22 51 16 L53 24Z" fill="#2a2018"/>
+  <!-- Side hair -->
+  <path d="M27 30 L27 36 Q26 32 27 30Z" fill="#2a2018"/>
+  <path d="M53 30 L53 36 Q54 32 53 30Z" fill="#2a2018"/>
+  <!-- Hair parted neatly -->
+  <path d="M32 15 Q38 12 46 14 Q40 11 32 14Z" fill="#3a3028"/>
+  <!-- Eyes - calm, deep, focused -->
+  <ellipse cx="34" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34.2" cy="34" r="1.6" fill="#4a5a3a"/>
+  <circle cx="46.2" cy="34" r="1.6" fill="#4a5a3a"/>
+  <circle cx="34.2" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="46.2" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="34.5" cy="33.5" r="0.5" fill="#81b64c"/>
+  <circle cx="46.5" cy="33.5" r="0.5" fill="#81b64c"/>
+  <!-- Thin straight eyebrows -->
+  <line x1="29.5" y1="31" x2="37.5" y2="31" stroke="#2a2018" stroke-width="1" stroke-linecap="round"/>
+  <line x1="42.5" y1="31" x2="50.5" y2="31" stroke="#2a2018" stroke-width="1" stroke-linecap="round"/>
+  <!-- Nose - long, straight -->
+  <line x1="40" y1="36" x2="40" y2="44" stroke="#c4b9ac" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M38 44 Q40 45.5 42 44" fill="none" stroke="#c4b9ac" stroke-width="0.6"/>
+  <!-- Composed neutral expression -->
+  <line x1="36" y1="49" x2="44" y2="49" stroke="#b09e8e" stroke-width="1" stroke-linecap="round"/>
+  <!-- Slight chin dimple -->
+  <path d="M39 53 Q40 54 41 53" fill="none" stroke="#d0c5b7" stroke-width="0.4"/>
+  <!-- Ears -->
+  <ellipse cx="28" cy="37" rx="2" ry="3.5" fill="#d4c9bb"/>
+  <ellipse cx="52" cy="37" rx="2" ry="3.5" fill="#d4c9bb"/>
+</svg>

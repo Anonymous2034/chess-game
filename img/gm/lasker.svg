@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="33" y="52" width="14" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- High collar - early 1900s -->
+  <path d="M20 80 Q40 64 60 80" fill="#f0ebe4"/>
+  <rect x="33" y="57" width="14" height="9" fill="#f0ebe4"/>
+  <line x1="33" y1="57" x2="33" y2="66" stroke="#d0cbc4" stroke-width="0.5"/>
+  <line x1="47" y1="57" x2="47" y2="66" stroke="#d0cbc4" stroke-width="0.5"/>
+  <!-- Collar wings -->
+  <path d="M28 66 L33 60 L33 66 Z" fill="#f0ebe4" stroke="#d0cbc4" stroke-width="0.3"/>
+  <path d="M52 66 L47 60 L47 66 Z" fill="#f0ebe4" stroke="#d0cbc4" stroke-width="0.3"/>
+  <!-- Dark jacket -->
+  <path d="M16 80 L28 66 L33 66 L33 80 Z" fill="#2a2725"/>
+  <path d="M64 80 L52 66 L47 66 L47 80 Z" fill="#2a2725"/>
+  <!-- Bow tie -->
+  <ellipse cx="40" cy="58" rx="4" ry="1.5" fill="#1a1715"/>
+  <rect x="39" y="57" width="2" height="3" rx="0.5" fill="#1a1715"/>
+  <!-- Face - mature, philosophical features -->
+  <path d="M28 42 Q28 21 40 17 Q52 21 52 42 Q50 54 40 56 Q30 54 28 42Z" fill="#e0d5c7"/>
+  <!-- Balding head with side hair -->
+  <path d="M28 34 Q27 26 30 22 L28 28Z" fill="#5a5048"/>
+  <path d="M52 34 Q53 26 50 22 L52 28Z" fill="#5a5048"/>
+  <path d="M27 30 L27 38 Q26 34 27 30Z" fill="#5a5048"/>
+  <path d="M53 30 L53 38 Q54 34 53 30Z" fill="#5a5048"/>
+  <!-- Receding hairline -->
+  <path d="M30 22 Q36 18 44 18 Q50 20 52 24 Q48 18 40 17 Q32 18 30 22Z" fill="#5a5048"/>
+  <!-- Mustache - signature -->
+  <path d="M34 44 Q37 46 40 44 Q43 46 46 44" fill="none" stroke="#4a3a2a" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M34 44 Q36 46.5 40 45" fill="#4a3a2a" opacity="0.6"/>
+  <path d="M40 45 Q44 46.5 46 44" fill="#4a3a2a" opacity="0.6"/>
+  <!-- Eyes - wise, penetrating -->
+  <ellipse cx="34" cy="34" rx="3" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.7" fill="#3a4a3a"/>
+  <circle cx="46" cy="34" r="1.7" fill="#3a4a3a"/>
+  <circle cx="34" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="34.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <circle cx="46.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <!-- Thoughtful eyebrows - bushy -->
+  <path d="M29 30.5 Q34 28.5 38 31" fill="none" stroke="#4a3a2a" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M42 31 Q46 28.5 51 30.5" fill="none" stroke="#4a3a2a" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Nose - prominent -->
+  <line x1="40" y1="36" x2="39.5" y2="42" stroke="#c4b9ac" stroke-width="1" stroke-linecap="round"/>
+  <path d="M37.5 42 Q39.5 44 42 42" fill="none" stroke="#c4b9ac" stroke-width="0.7"/>
+  <!-- Composed mouth under mustache -->
+  <line x1="36" y1="49" x2="44" y2="49" stroke="#b09e8e" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="27" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="53" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Background -->
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Neck -->
+  <rect x="33" y="52" width="14" height="14" rx="2" fill="#e0d5c7"/>
+  <!-- Victorian high collar and cravat -->
+  <path d="M20 80 Q40 64 60 80" fill="#f0ebe4"/>
+  <rect x="33" y="56" width="14" height="10" fill="#f0ebe4"/>
+  <line x1="33" y1="56" x2="33" y2="66" stroke="#d0cbc4" stroke-width="0.5"/>
+  <line x1="47" y1="56" x2="47" y2="66" stroke="#d0cbc4" stroke-width="0.5"/>
+  <!-- Collar points -->
+  <path d="M28 66 L33 59 L33 66 Z" fill="#f0ebe4" stroke="#d0cbc4" stroke-width="0.3"/>
+  <path d="M52 66 L47 59 L47 66 Z" fill="#f0ebe4" stroke="#d0cbc4" stroke-width="0.3"/>
+  <!-- Dark jacket -->
+  <path d="M16 80 L28 66 L33 66 L33 80 Z" fill="#2a2725"/>
+  <path d="M64 80 L52 66 L47 66 L47 80 Z" fill="#2a2725"/>
+  <!-- Cravat knot -->
+  <ellipse cx="40" cy="58" rx="3" ry="2" fill="#e0d5c7"/>
+  <path d="M38 58 Q40 62 42 58" fill="none" stroke="#c4b9ac" stroke-width="0.5"/>
+  <!-- Face - young, handsome, refined Southern gentleman -->
+  <path d="M28 40 Q28 20 40 17 Q52 20 52 40 Q50 54 40 56 Q30 54 28 40Z" fill="#e0d5c7"/>
+  <!-- Dark wavy hair - parted, romantic era style -->
+  <path d="M27 34 Q26 14 40 12 Q54 14 53 34 Q52 20 40 16 Q28 20 27 34Z" fill="#1a1410"/>
+  <path d="M26 30 Q25 22 28 16 L26 24Z" fill="#1a1410"/>
+  <path d="M54 30 Q55 22 52 16 L54 24Z" fill="#1a1410"/>
+  <!-- Wavy texture on top -->
+  <path d="M31 15 Q36 12 42 13 Q37 11 31 14Z" fill="#2a2420"/>
+  <path d="M39 13 Q44 12 50 16 Q46 13 39 12Z" fill="#2a2420"/>
+  <!-- Side hair flowing slightly -->
+  <path d="M26 30 L26 38 Q25 34 26 30Z" fill="#1a1410"/>
+  <path d="M54 30 L54 38 Q55 34 54 30Z" fill="#1a1410"/>
+  <!-- Eyes - bright, youthful, alert -->
+  <ellipse cx="34" cy="34" rx="3.3" ry="2.5" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.3" ry="2.5" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.8" fill="#3a3020"/>
+  <circle cx="46" cy="34" r="1.8" fill="#3a3020"/>
+  <circle cx="34" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="0.9" fill="#1a1715"/>
+  <circle cx="34.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <circle cx="46.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <!-- Elegant arched eyebrows -->
+  <path d="M29 31 Q34 29 38 31.5" fill="none" stroke="#1a1410" stroke-width="1" stroke-linecap="round"/>
+  <path d="M42 31.5 Q46 29 51 31" fill="none" stroke="#1a1410" stroke-width="1" stroke-linecap="round"/>
+  <!-- Nose - straight, refined -->
+  <line x1="40" y1="36" x2="40" y2="43" stroke="#c4b9ac" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M38 43 Q40 44.5 42 43" fill="none" stroke="#c4b9ac" stroke-width="0.6"/>
+  <!-- Youthful confident smile -->
+  <path d="M35 48 Q40 51 45 48" fill="none" stroke="#b09e8e" stroke-width="1" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="27" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="53" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

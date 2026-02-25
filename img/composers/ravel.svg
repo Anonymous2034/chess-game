@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Clothing / body -->
+  <rect x="31" y="52" width="18" height="14" rx="2" fill="#e0d5c7"/>
+  <path d="M20 80 Q40 66 60 80" fill="#4a4745"/>
+  <path d="M24 68 L33 56 L33 68 Z" fill="#4a4745"/>
+  <path d="M56 68 L47 56 L47 68 Z" fill="#4a4745"/>
+  <!-- Collar with tie -->
+  <path d="M36 57 L38 64 L40 58 L42 64 L44 57" fill="none" stroke="#e8e2da" stroke-width="1"/>
+  <line x1="40" y1="58" x2="40" y2="66" stroke="#5a4a3a" stroke-width="1.5"/>
+  <!-- Face (refined, elegant) -->
+  <path d="M28 40 Q28 21 40 18 Q52 21 52 40 L50 50 Q47 56 40 56 Q33 56 30 50 Z" fill="#e0d5c7"/>
+  <path d="M30 48 Q33 55 40 56 Q47 55 50 48" fill="none" stroke="#d0c5b7" stroke-width="0.5"/>
+  <!-- Neat dark hair parted to side -->
+  <path d="M28 34 Q27 16 40 13 Q53 16 52 34 Q51 20 40 17 Q29 20 28 34Z" fill="#3a2a1a"/>
+  <!-- Hair part on left side -->
+  <path d="M33 14 Q34 13 36 14" fill="none" stroke="#2a1a0a" stroke-width="0.6"/>
+  <!-- Hair combed to right -->
+  <path d="M33 15 Q38 14 44 16 Q48 17 52 20" fill="none" stroke="#2a1a0a" stroke-width="0.5"/>
+  <path d="M33 17 Q38 16 44 18" fill="none" stroke="#2a1a0a" stroke-width="0.4"/>
+  <!-- Sideburns (neat) -->
+  <path d="M28 28 Q27 24 29 20 L28 26Z" fill="#3a2a1a"/>
+  <path d="M52 28 Q53 24 51 20 L52 26Z" fill="#3a2a1a"/>
+  <!-- Eyes -->
+  <ellipse cx="34" cy="34" rx="3" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.8" fill="#5a3a1a"/>
+  <circle cx="46" cy="34" r="1.8" fill="#5a3a1a"/>
+  <circle cx="34" cy="34" r="1" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="1" fill="#1a1715"/>
+  <circle cx="34.4" cy="33.5" r="0.5" fill="#8a6a3a"/>
+  <circle cx="46.4" cy="33.5" r="0.5" fill="#8a6a3a"/>
+  <!-- Eyebrows (neat, refined) -->
+  <path d="M29 30.5 Q34 29 38 31" fill="none" stroke="#3a2a1a" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M42 31 Q46 29 51 30.5" fill="none" stroke="#3a2a1a" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Nose (refined) -->
+  <line x1="40" y1="36" x2="40" y2="43" stroke="#c4b9ac" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M38.5 43 Q40 44.5 41.5 43" fill="none" stroke="#c4b9ac" stroke-width="0.5"/>
+  <!-- Thin mustache -->
+  <path d="M34 45 Q37 44.5 40 45 Q43 44.5 46 45" fill="none" stroke="#3a2a1a" stroke-width="0.9" stroke-linecap="round"/>
+  <!-- Mouth -->
+  <line x1="36" y1="48.5" x2="44" y2="48.5" stroke="#b09e8e" stroke-width="1" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="27" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="53" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

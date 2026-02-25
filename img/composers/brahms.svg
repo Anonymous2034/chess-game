@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Clothing / body -->
+  <rect x="30" y="52" width="20" height="14" rx="2" fill="#e0d5c7"/>
+  <path d="M18 80 Q40 66 62 80" fill="#4a4745"/>
+  <path d="M22 68 L32 56 L32 68 Z" fill="#4a4745"/>
+  <path d="M58 68 L48 56 L48 68 Z" fill="#4a4745"/>
+  <!-- Collar -->
+  <path d="M36 57 L38 64 L40 58 L42 64 L44 57" fill="none" stroke="#e8e2da" stroke-width="1"/>
+  <!-- Face (broad) -->
+  <path d="M25 40 Q25 22 40 19 Q55 22 55 40 L53 50 Q49 56 40 56 Q31 56 27 50 Z" fill="#e0d5c7"/>
+  <!-- Full bushy beard -->
+  <path d="M27 42 Q27 58 40 62 Q53 58 53 42 L51 48 Q48 56 40 58 Q32 56 29 48 Z" fill="#5a4a3a"/>
+  <!-- Beard texture -->
+  <path d="M30 46 Q32 50 30 54" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <path d="M35 48 Q36 52 35 56" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <path d="M40 48 Q40 54 40 60" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <path d="M45 48 Q44 52 45 56" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <path d="M50 46 Q48 50 50 54" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <!-- Hair (receding hairline) -->
+  <path d="M25 36 Q26 24 32 20 L28 22 Q25 28 25 36Z" fill="#5a4a3a"/>
+  <path d="M55 36 Q54 24 48 20 L52 22 Q55 28 55 36Z" fill="#5a4a3a"/>
+  <!-- Top of head (receding) -->
+  <path d="M32 20 Q36 16 40 15 Q44 16 48 20 Q44 18 40 17 Q36 18 32 20Z" fill="#5a4a3a"/>
+  <!-- Forehead (exposed by receding hairline) -->
+  <path d="M30 26 Q35 18 40 17 Q45 18 50 26" fill="#e0d5c7"/>
+  <!-- Sideburns merging into beard -->
+  <path d="M25 32 L24 42 Q24 38 25 34 Z" fill="#5a4a3a"/>
+  <path d="M55 32 L56 42 Q56 38 55 34 Z" fill="#5a4a3a"/>
+  <!-- Eyes -->
+  <ellipse cx="34" cy="33" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="33" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="33" r="1.8" fill="#3a4a6a"/>
+  <circle cx="46" cy="33" r="1.8" fill="#3a4a6a"/>
+  <circle cx="34" cy="33" r="1" fill="#1a1715"/>
+  <circle cx="46" cy="33" r="1" fill="#1a1715"/>
+  <circle cx="34.4" cy="32.5" r="0.5" fill="#6a8ab0"/>
+  <circle cx="46.4" cy="32.5" r="0.5" fill="#6a8ab0"/>
+  <!-- Eyebrows (bushy) -->
+  <path d="M28.5 29 Q34 27 38 29.5" fill="none" stroke="#5a4a3a" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M42 29.5 Q46 27 51.5 29" fill="none" stroke="#5a4a3a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Nose -->
+  <line x1="40" y1="35" x2="40" y2="42" stroke="#c4b9ac" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M38 42 Q40 43.5 42 42" fill="none" stroke="#c4b9ac" stroke-width="0.6"/>
+  <!-- Mouth hidden by beard - slight line -->
+  <line x1="37" y1="47" x2="43" y2="47" stroke="#4a3a2a" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="24" cy="36" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="56" cy="36" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#3d3a37"/>
+  <!-- Clothing / body -->
+  <rect x="31" y="52" width="18" height="14" rx="2" fill="#e0d5c7"/>
+  <path d="M20 80 Q40 66 60 80" fill="#4a4745"/>
+  <path d="M24 68 L33 56 L33 68 Z" fill="#4a4745"/>
+  <path d="M56 68 L47 56 L47 68 Z" fill="#4a4745"/>
+  <!-- Collar -->
+  <path d="M36 57 L38 64 L40 58 L42 64 L44 57" fill="none" stroke="#e8e2da" stroke-width="1"/>
+  <!-- Face (sharp features, angular) -->
+  <path d="M28 40 Q28 21 40 18 Q52 21 52 40 L50 51 Q47 56 40 56 Q33 56 30 51 Z" fill="#e0d5c7"/>
+  <path d="M30 49 Q33 55 40 56 Q47 55 50 49" fill="none" stroke="#d0c5b7" stroke-width="0.5"/>
+  <!-- Long flowing hair swept back dramatically -->
+  <path d="M28 34 Q27 16 40 12 Q53 16 52 34 Q51 19 40 16 Q29 19 28 34Z" fill="#5a4a3a"/>
+  <!-- Hair sweeping back and flowing long -->
+  <path d="M27 22 Q22 16 24 10 Q25 14 28 18 Z" fill="#5a4a3a"/>
+  <path d="M53 22 Q58 16 56 10 Q55 14 52 18 Z" fill="#5a4a3a"/>
+  <!-- Long hair flowing down behind -->
+  <path d="M26 28 L22 50 Q20 44 22 36 Z" fill="#5a4a3a"/>
+  <path d="M54 28 L58 50 Q60 44 58 36 Z" fill="#5a4a3a"/>
+  <!-- Hair wave lines -->
+  <path d="M23 34 Q21 38 23 42 Q21 46 23 48" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <path d="M57 34 Q59 38 57 42 Q59 46 57 48" fill="none" stroke="#4a3a2a" stroke-width="0.5"/>
+  <!-- Hair strands at top -->
+  <path d="M36 14 Q34 10 36 8 Q37 11 38 14" fill="#5a4a3a"/>
+  <path d="M44 14 Q46 10 44 8 Q43 11 42 14" fill="#5a4a3a"/>
+  <!-- Eyes -->
+  <ellipse cx="34" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <ellipse cx="46" cy="34" rx="3.2" ry="2.2" fill="white" opacity="0.9"/>
+  <circle cx="34" cy="34" r="1.8" fill="#3a5a2a"/>
+  <circle cx="46" cy="34" r="1.8" fill="#3a5a2a"/>
+  <circle cx="34" cy="34" r="1" fill="#1a1715"/>
+  <circle cx="46" cy="34" r="1" fill="#1a1715"/>
+  <circle cx="34.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <circle cx="46.4" cy="33.5" r="0.5" fill="#81b64c"/>
+  <!-- Eyebrows -->
+  <path d="M28.5 30 Q34 28 38 30.5" fill="none" stroke="#4a3a2a" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M42 30.5 Q46 28 51.5 30" fill="none" stroke="#4a3a2a" stroke-width="1.4" stroke-linecap="round"/>
+  <!-- Prominent nose -->
+  <line x1="40" y1="35" x2="40" y2="44" stroke="#c4b9ac" stroke-width="1" stroke-linecap="round"/>
+  <path d="M38 44 Q40 45.5 42 44" fill="none" stroke="#c4b9ac" stroke-width="0.7"/>
+  <!-- Mouth -->
+  <line x1="35" y1="49" x2="45" y2="49" stroke="#b09e8e" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Ears -->
+  <ellipse cx="27" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+  <ellipse cx="53" cy="37" rx="2.5" ry="4" fill="#d4c9bb"/>
+</svg>
