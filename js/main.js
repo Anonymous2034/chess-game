@@ -3603,7 +3603,11 @@ class ChessApp {
     if (openingName) {
       this.lastOpeningName = openingName;
     }
-    if (nameEl) nameEl.textContent = this.lastOpeningName;
+    if (nameEl) {
+      const ply = this.game.moveHistory.length;
+      const dbg = `[v77 ply${ply} g${this.database.games.length} lbl=${!!labelEl}]`;
+      nameEl.textContent = (this.lastOpeningName || '') + ' ' + dbg;
+    }
     if (labelEl) this._updateDBMatchCount();
     if (bodyEl) bodyEl.style.display = '';
 
