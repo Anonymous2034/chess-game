@@ -6344,9 +6344,12 @@ class ChessApp {
 
         dgtLastMoveTime = Date.now(); // Start cooldown
 
-        // Update DGT board state AFTER move is confirmed by the game
-        this.dgtBoard.lastStableBoard = [...this.dgtBoard.dgtBoard];
-        this.dgtBoard._expectedGameBoard = this.dgtBoard._gameToBoard(this.chess);
+        // Update DGT board state AFTER move is confirmed by the game.
+        // Use the GAME position as ground truth (not the physical board)
+        // to prevent drift from sensor noise accumulating over moves.
+        const gameBoard = this.dgtBoard._gameToBoard(this.chess);
+        this.dgtBoard.lastStableBoard = [...gameBoard];
+        this.dgtBoard._expectedGameBoard = [...gameBoard];
 
         const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
         if (lastMove) this.dgtBoard.speakMove(lastMove.san);

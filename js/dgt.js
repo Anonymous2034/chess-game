@@ -865,6 +865,14 @@ export class DGTBoard {
     console.log('[DGT] detectMove: ' + legalMoves.length + ' legal, ' + matches.length + ' matches' +
       (matches.length > 0 ? ' → ' + matches.map(m => m.san).join(', ') : ''));
 
+    // Pegasus transition guard: make sure the board actually changed from last stable state.
+    // If current board == last stable board, this is a false trigger (debounce noise).
+    if (this.boardType === 'pegasus' && this.lastStableBoard &&
+        this._boardsMatch(this.lastStableBoard, this.dgtBoard)) {
+      console.log('[DGT] Board unchanged from last stable — ignoring');
+      return null;
+    }
+
     if (matches.length === 1) {
       this.lastStableBoard = [...this.dgtBoard];
       clearTimeout(this._syncWarningTimer);
@@ -898,20 +906,62 @@ export class DGTBoard {
         return { from: queenMove.from, to: queenMove.to, promotion: queenMove.promotion };
       }
 
-      // Multiple different from/to — for Pegasus, occupancy might match multiple moves.
-      // Disambiguate: find the match whose FROM square is NOW EMPTY on the physical board
-      // (was occupied before, now empty = that's the piece that actually moved)
+      // Multiple different from/to — Pegasus occupancy matched multiple moves.
+      // Disambiguate using lastStableBoard: score each candidate by how well the
+      // actual board changes (from→empty, to→filled) match the move's from/to squares.
       if (this.boardType === 'pegasus' && this.lastStableBoard) {
-        const best = matches.find(m => {
+        let bestMove = null;
+        let bestScore = -1;
+
+        for (const m of matches) {
+          let score = 0;
           const fromIdx = this._algebraicToDgtSquare(m.from);
-          return this.lastStableBoard[fromIdx] !== 0 && this.dgtBoard[fromIdx] === 0;
-        });
-        if (best) {
+          const toIdx = this._algebraicToDgtSquare(m.to);
+
+          // FROM square should have changed from occupied → empty
+          if (this.lastStableBoard[fromIdx] !== 0 && this.dgtBoard[fromIdx] === 0) score += 2;
+
+          // TO square should be occupied now
+          if (this.dgtBoard[toIdx] !== 0) score += 1;
+
+          // For captures: TO was occupied before AND is still occupied (piece replaced)
+          if (m.captured && this.lastStableBoard[toIdx] !== 0 && this.dgtBoard[toIdx] !== 0) score += 1;
+
+          // For non-captures: TO was empty before AND is now occupied (piece placed)
+          if (!m.captured && this.lastStableBoard[toIdx] === 0 && this.dgtBoard[toIdx] !== 0) score += 1;
+
+          // Count total changed squares — should match expected changes for this move
+          const temp = new Chess(chess.fen());
+          temp.move(m);
+          const expectedBoard = this._gameToBoard(temp);
+          let expectedChanges = 0;
+          let actualChanges = 0;
+          for (let i = 0; i < 64; i++) {
+            if (this._sensorGaps.has(i)) continue;
+            if (expectedBoard[i] !== this.lastStableBoard[i]) expectedChanges++;
+            if (this.dgtBoard[i] !== this.lastStableBoard[i]) actualChanges++;
+          }
+          // Bonus if the number of changed squares matches expected
+          if (actualChanges === expectedChanges) score += 2;
+
+          console.log('[DGT] Disambiguate: ' + m.san + ' from=' + m.from + ' to=' + m.to +
+            ' score=' + score + ' (changes: expected=' + expectedChanges + ' actual=' + actualChanges + ')');
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = m;
+          }
+        }
+
+        if (bestMove && bestScore >= 3) {
+          console.log('[DGT] Disambiguated → ' + bestMove.san + ' (score=' + bestScore + ')');
           this.lastStableBoard = [...this.dgtBoard];
           clearTimeout(this._syncWarningTimer);
-          return { from: best.from, to: best.to, promotion: best.promotion };
+          return { from: bestMove.from, to: bestMove.to, promotion: bestMove.promotion };
         }
-        // Still ambiguous — wait for more board state changes
+
+        // Score too low — board might be in transition, wait for next poll
+        console.log('[DGT] Ambiguous (best score=' + bestScore + ') — waiting for stable board');
         return null;
       } else if (this.boardType === 'pegasus') {
         const nonPromo = matches.find(m => !m.promotion) || matches[0];
