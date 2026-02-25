@@ -3208,16 +3208,15 @@ class ChessApp {
       if (fileInput) fileInput.value = '';
     });
 
-    // File upload handler
-    document.getElementById('pgn-file-input')?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      document.getElementById('pgn-file-name').textContent = file.name;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        document.getElementById('pgn-input').value = ev.target.result;
-      };
-      reader.readAsText(file);
+    // File upload handler (supports multiple files)
+    document.getElementById('pgn-file-input')?.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+      document.getElementById('pgn-file-name').textContent = files.length === 1
+        ? files[0].name
+        : `${files.length} files selected`;
+      const texts = await Promise.all(files.map(f => f.text()));
+      document.getElementById('pgn-input').value = texts.join('\n\n');
     });
 
     document.getElementById('cancel-pgn').addEventListener('click', () => {
@@ -3235,7 +3234,10 @@ class ChessApp {
       if (eventCount > 1) {
         // Multi-game PGN → import all games into the database
         const fileInput = document.getElementById('pgn-file-input');
-        const fileName = fileInput?.files?.[0]?.name?.replace(/\.pgn$/i, '') || 'Imported';
+        const files = fileInput?.files;
+        const fileName = files && files.length > 1
+          ? 'Imported (' + files.length + ' files)'
+          : files?.[0]?.name?.replace(/\.pgn$/i, '') || 'Imported';
         const count = this.database.importAllGames(pgn, fileName);
         if (count > 0) {
           this.populateCategoryTabs();
