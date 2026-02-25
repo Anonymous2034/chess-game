@@ -3726,7 +3726,9 @@ class ChessApp {
     const labelEl = document.getElementById('opening-label');
     if (!labelEl) return;
     const fen = this.chess.fen();
-    const count = this.database.countByPosition(fen);
+    const ply = this.game.moveHistory.length;
+    // Don't show count at starting position — every game matches
+    const count = ply > 0 ? this.database.countByPosition(fen) : 0;
     const name = this.lastOpeningName || '';
     if (count > 0) {
       labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
