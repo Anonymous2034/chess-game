@@ -118,6 +118,69 @@ export class Database {
     };
   }
 
+  // Known player surnames for content-based category matching
+  static KNOWN_PLAYERS = [
+    'fischer', 'kasparov', 'carlsen', 'morphy', 'capablanca', 'alekhine',
+    'tal', 'petrosian', 'karpov', 'anand', 'kramnik', 'botvinnik',
+    'lasker', 'steinitz', 'spassky', 'smyslov', 'euwe', 'topalov',
+    'caruana', 'ding', 'nepomniachtchi', 'gukesh'
+  ];
+
+  // ECO code ranges for opening categories
+  static OPENING_ECO_RANGES = {
+    'B20': 'B99',  // Sicilian
+    'C60': 'C99',  // Ruy Lopez
+    'D06': 'D69',  // Queen's Gambit
+    'E60': 'E99',  // King's Indian
+    'C00': 'C19',  // French
+    'C50': 'C59'   // Italian
+  };
+
+  // Known event keywords
+  static KNOWN_EVENTS = [
+    'candidates', 'linares', 'wijk', 'tata steel', 'zurich',
+    'world championship', 'olympiad', 'sinquefield', 'norway chess',
+    'grand prix', 'grand tour', 'dortmund', 'tilburg'
+  ];
+
+  /**
+   * Content-based category matching — lets imported games appear under
+   * Players / Openings / Events tabs automatically.
+   */
+  gameMatchesCategory(game, categoryId) {
+    if (categoryId === 'all') return true;
+    // Original tag always matches
+    if (game.category === categoryId) return true;
+
+    const wl = (game.white || '').toLowerCase();
+    const bl = (game.black || '').toLowerCase();
+
+    switch (categoryId) {
+      case 'players':
+        return Database.KNOWN_PLAYERS.some(p => wl.includes(p) || bl.includes(p));
+
+      case 'openings': {
+        const eco = (game.eco || '').toUpperCase();
+        if (eco.length < 2) return false;
+        for (const [lo, hi] of Object.entries(Database.OPENING_ECO_RANGES)) {
+          if (eco >= lo && eco <= hi) return true;
+        }
+        return false;
+      }
+
+      case 'events': {
+        const ev = (game.event || '').toLowerCase();
+        return Database.KNOWN_EVENTS.some(k => ev.includes(k));
+      }
+
+      case 'classic':
+        return false; // only manually tagged games
+
+      default:
+        return false;
+    }
+  }
+
   // Surname alias map — nicknames / first names → canonical surname
   static ALIASES = {
     bobby: 'fischer', vishy: 'anand', garry: 'kasparov',
@@ -164,7 +227,7 @@ export class Database {
     let results = this.games;
 
     if (category !== 'all') {
-      results = results.filter(g => g.category === category);
+      results = results.filter(g => this.gameMatchesCategory(g, category));
     }
 
     if (collection !== 'all') {

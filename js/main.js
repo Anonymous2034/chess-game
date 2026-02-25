@@ -3393,7 +3393,7 @@ class ChessApp {
     tabsEl.innerHTML = `<button class="db-tab active" data-category="all">All <span class="tab-count">${allCount}</span></button>`;
 
     for (const cat of this.database.categories) {
-      const count = this.database.games.filter(g => g.category === cat.id).length;
+      const count = this.database.games.filter(g => this.database.gameMatchesCategory(g, cat.id)).length;
       if (count === 0) continue;
       const btn = document.createElement('button');
       btn.className = 'db-tab';
