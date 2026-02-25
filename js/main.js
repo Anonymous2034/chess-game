@@ -3736,20 +3736,20 @@ class ChessApp {
 
     if (ply === 0) return;
 
-    // Cancel any pending DB count computation
-    if (this._dbCountTimer) clearTimeout(this._dbCountTimer);
+    // Cancel any previous in-flight async computation
+    this._dbCountId = (this._dbCountId || 0) + 1;
+    const myId = this._dbCountId;
 
-    // Defer the expensive position-matching off the current call stack
-    this._dbCountTimer = setTimeout(() => {
-      const count = this.database.countByPosition(fen);
-      // Guard: position may have changed while we waited
-      if (this.chess.fen() !== fen) return;
+    // Non-blocking: async chunked computation
+    this.database.countByPositionAsync(fen).then(count => {
+      // Guard: position changed while we were computing
+      if (this._dbCountId !== myId) return;
       if (count > 0) {
         labelEl.innerHTML = (name ? `${name} ` : '') + `<span class="db-match-count">${count.toLocaleString()} game${count !== 1 ? 's' : ''} in DB</span>`;
         labelEl.style.cursor = 'pointer';
         labelEl.onclick = () => this._openDBByPosition();
       }
-    }, 50);
+    });
   }
 
   /** Open DB dialog showing only games that match the current board position */

@@ -305,22 +305,47 @@ export class Database {
    * Handles transpositions — different move orders reaching the same position.
    */
   countByPosition(targetFen) {
-    return this.filterByPosition(targetFen).length;
+    const cached = this._getCachedPosition(targetFen);
+    if (cached !== null) return cached.length;
+    return -1; // not yet computed — caller should use async version
   }
 
   /**
-   * Return all DB games that pass through the given position.
-   * Replays each game's moves up to the target ply and compares FEN.
-   * Results are cached by position key.
+   * Async version that won't block the UI thread.
+   * Processes games in small chunks, yielding between each.
+   */
+  async countByPositionAsync(targetFen) {
+    const results = await this.filterByPositionAsync(targetFen);
+    return results.length;
+  }
+
+  /** Return cached results if available, else null */
+  _getCachedPosition(targetFen) {
+    const posKey = targetFen.split(' ').slice(0, 4).join(' ');
+    if (!this._positionCache) this._positionCache = new Map();
+    return this._positionCache.has(posKey) ? this._positionCache.get(posKey) : null;
+  }
+
+  /**
+   * Return all DB games that pass through the given position (sync).
+   * Use filterByPositionAsync for non-blocking version.
    */
   filterByPosition(targetFen) {
-    // Position key: piece placement + active color + castling + en passant
+    const cached = this._getCachedPosition(targetFen);
+    if (cached !== null) return cached;
+    // Fallback sync — only used by on-click (user-initiated)
+    return this._computePositionMatch(targetFen, this.games);
+  }
+
+  /**
+   * Async non-blocking position matching — processes games in chunks,
+   * yielding to the UI thread between each chunk.
+   */
+  async filterByPositionAsync(targetFen) {
+    const cached = this._getCachedPosition(targetFen);
+    if (cached !== null) return cached;
+
     const posKey = targetFen.split(' ').slice(0, 4).join(' ');
-
-    if (!this._positionCache) this._positionCache = new Map();
-    if (this._positionCache.has(posKey)) return this._positionCache.get(posKey);
-
-    // Determine ply from FEN
     const fenParts = targetFen.split(' ');
     const activeColor = fenParts[1];
     const fullmove = parseInt(fenParts[5]) || 1;
@@ -330,10 +355,55 @@ export class Database {
 
     const results = [];
     const temp = new Chess();
+    const CHUNK = 40;
 
-    for (const game of this.games) {
+    for (let start = 0; start < this.games.length; start += CHUNK) {
+      const end = Math.min(start + CHUNK, this.games.length);
+      for (let j = start; j < end; j++) {
+        const game = this.games[j];
+        if (game.moves.length < ply) continue;
+        temp.reset();
+        let valid = true;
+        for (let i = 0; i < ply; i++) {
+          try {
+            if (!temp.move(game.moves[i])) { valid = false; break; }
+          } catch { valid = false; break; }
+        }
+        if (!valid) continue;
+        const gamePosKey = temp.fen().split(' ').slice(0, 4).join(' ');
+        if (gamePosKey === posKey) results.push(game);
+      }
+      // Yield to the browser between chunks
+      if (start + CHUNK < this.games.length) {
+        await new Promise(r => setTimeout(r, 0));
+      }
+    }
+
+    // Cache with eviction
+    if (!this._positionCache) this._positionCache = new Map();
+    if (this._positionCache.size >= 200) {
+      const first = this._positionCache.keys().next().value;
+      this._positionCache.delete(first);
+    }
+    this._positionCache.set(posKey, results);
+    return results;
+  }
+
+  /** Sync helper used by filterByPosition and on-demand calls */
+  _computePositionMatch(targetFen, games) {
+    const posKey = targetFen.split(' ').slice(0, 4).join(' ');
+    const fenParts = targetFen.split(' ');
+    const activeColor = fenParts[1];
+    const fullmove = parseInt(fenParts[5]) || 1;
+    const ply = (fullmove - 1) * 2 + (activeColor === 'b' ? 1 : 0);
+
+    if (ply === 0) return games;
+
+    const results = [];
+    const temp = new Chess();
+
+    for (const game of games) {
       if (game.moves.length < ply) continue;
-
       temp.reset();
       let valid = true;
       for (let i = 0; i < ply; i++) {
@@ -342,12 +412,11 @@ export class Database {
         } catch { valid = false; break; }
       }
       if (!valid) continue;
-
       const gamePosKey = temp.fen().split(' ').slice(0, 4).join(' ');
       if (gamePosKey === posKey) results.push(game);
     }
 
-    // Cache with eviction
+    if (!this._positionCache) this._positionCache = new Map();
     if (this._positionCache.size >= 200) {
       const first = this._positionCache.keys().next().value;
       this._positionCache.delete(first);
