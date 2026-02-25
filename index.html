@@ -68,49 +68,23 @@
             <div class="bot-picker-detail" id="bot-picker-detail"></div>
           </div>
         </div>
-        <div class="dialog-section">
+        <div class="dialog-section tc-section">
           <label>Time Control</label>
           <div class="time-control-grid" id="time-control-grid">
-            <div class="tc-category">
-              <span class="tc-label tc-label-bullet">&#9889; Bullet</span>
-              <div class="tc-buttons">
-                <button class="btn btn-sm tc-btn" data-time="60" data-increment="0">1 min</button>
-                <button class="btn btn-sm tc-btn" data-time="60" data-increment="1">1+1</button>
-                <button class="btn btn-sm tc-btn" data-time="120" data-increment="1">2+1</button>
-              </div>
-            </div>
-            <div class="tc-category">
-              <span class="tc-label tc-label-blitz">&#128293; Blitz</span>
-              <div class="tc-buttons">
-                <button class="btn btn-sm tc-btn" data-time="180" data-increment="0">3 min</button>
-                <button class="btn btn-sm tc-btn" data-time="180" data-increment="2">3+2</button>
-                <button class="btn btn-sm tc-btn" data-time="300" data-increment="0">5 min</button>
-                <button class="btn btn-sm tc-btn" data-time="300" data-increment="3">5+3</button>
-              </div>
-            </div>
-            <div class="tc-category">
-              <span class="tc-label tc-label-rapid">&#9201; Rapid</span>
-              <div class="tc-buttons">
-                <button class="btn btn-sm tc-btn" data-time="600" data-increment="0">10 min</button>
-                <button class="btn btn-sm tc-btn" data-time="900" data-increment="10">15+10</button>
-                <button class="btn btn-sm tc-btn" data-time="1500" data-increment="10">25+10</button>
-              </div>
-            </div>
-            <div class="tc-category">
-              <span class="tc-label tc-label-classical">&#9812; Classical</span>
-              <div class="tc-buttons">
-                <button class="btn btn-sm tc-btn" data-time="1800" data-increment="0">30 min</button>
-                <button class="btn btn-sm tc-btn" data-time="2700" data-increment="15">45+15</button>
-                <button class="btn btn-sm tc-btn" data-time="3600" data-increment="0">60 min</button>
-                <button class="btn btn-sm tc-btn" data-time="5400" data-increment="30">90+30</button>
-              </div>
-            </div>
-            <div class="tc-category">
-              <span class="tc-label tc-label-custom">&#9881; Other</span>
-              <div class="tc-buttons">
-                <button class="btn btn-sm tc-btn active" data-time="0" data-increment="0">None</button>
-                <button class="btn btn-sm tc-btn" data-time="custom" data-increment="0">Custom...</button>
-              </div>
+            <div class="tc-compact-row">
+              <button class="btn btn-sm tc-btn active" data-time="0" data-increment="0">None</button>
+              <button class="btn btn-sm tc-btn" data-time="60" data-increment="0">&#9889;1</button>
+              <button class="btn btn-sm tc-btn" data-time="60" data-increment="1">&#9889;1+1</button>
+              <button class="btn btn-sm tc-btn" data-time="120" data-increment="1">&#9889;2+1</button>
+              <button class="btn btn-sm tc-btn" data-time="180" data-increment="0">&#128293;3</button>
+              <button class="btn btn-sm tc-btn" data-time="180" data-increment="2">&#128293;3+2</button>
+              <button class="btn btn-sm tc-btn" data-time="300" data-increment="0">&#128293;5</button>
+              <button class="btn btn-sm tc-btn" data-time="300" data-increment="3">&#128293;5+3</button>
+              <button class="btn btn-sm tc-btn" data-time="600" data-increment="0">&#9201;10</button>
+              <button class="btn btn-sm tc-btn" data-time="900" data-increment="10">&#9201;15+10</button>
+              <button class="btn btn-sm tc-btn" data-time="1800" data-increment="0">&#9812;30</button>
+              <button class="btn btn-sm tc-btn" data-time="2700" data-increment="15">&#9812;45+15</button>
+              <button class="btn btn-sm tc-btn" data-time="custom" data-increment="0">&#9881;Custom</button>
             </div>
             <div class="tc-custom-inputs hidden" id="tc-custom-inputs">
               <div class="tc-custom-row">

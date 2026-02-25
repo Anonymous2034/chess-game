@@ -2333,7 +2333,7 @@ class ChessApp {
     detailEl.querySelector('#gmb-browse-btn')?.addEventListener('click', () => {
       hide(document.getElementById('gm-browse-dialog'));
       const searchEl = document.getElementById('db-search');
-      if (searchEl) searchEl.value = gm.name;
+      if (searchEl) searchEl.value = gm.name.split(' ').pop();
       show(document.getElementById('database-dialog'));
       this.renderDatabaseGames();
     });
@@ -3162,7 +3162,7 @@ class ChessApp {
       browseBtn.addEventListener('click', () => {
         hide(document.getElementById('new-game-dialog'));
         const searchEl = document.getElementById('db-search');
-        if (searchEl) searchEl.value = browseBtn.dataset.gmName;
+        if (searchEl) searchEl.value = browseBtn.dataset.gmName.split(' ').pop();
         show(document.getElementById('database-dialog'));
         this.renderDatabaseGames();
       });
@@ -3436,17 +3436,34 @@ class ChessApp {
       }
     }
 
+    // Header stats showing total DB size
+    const totalGames = this.database.games.length;
+    if (totalGames > 0) {
+      const header = document.createElement('div');
+      header.className = 'db-header-stats';
+      header.innerHTML = `\u265A ${totalGames.toLocaleString()} Grandmaster Games`;
+      listEl.appendChild(header);
+    }
+
     if (games.length === 0) {
-      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No games found</div>';
+      listEl.innerHTML += '<div style="padding:20px;text-align:center;color:#888;">No games found</div>';
       return;
     }
 
     games.slice(0, 100).forEach(game => {
       const item = document.createElement('div');
       item.className = 'db-game-item';
+
+      // Result badge class
+      let resultClass = 'draw';
+      if (game.result === '1-0') resultClass = 'win';
+      else if (game.result === '0-1') resultClass = 'loss';
+
+      const ecoTag = game.eco ? `<span class="db-eco">${game.eco}</span>` : '';
+
       item.innerHTML = `
-        <div class="db-game-players">${game.white} vs ${game.black}</div>
-        <div class="db-game-info">${game.event} | ${game.date} | ${game.result}${game.eco ? ' | ' + game.eco : ''}</div>
+        <div class="db-game-players">${game.white} vs ${game.black} <span class="db-game-result ${resultClass}">${game.result}</span></div>
+        <div class="db-game-info">${ecoTag}${game.event} | ${game.date}</div>
       `;
       item.addEventListener('click', () => {
         this.loadDatabaseGame(game);
@@ -3571,7 +3588,7 @@ class ChessApp {
     const data = await this.database.fetchOpeningExplorer(this.chess.fen());
     if (!data) {
       // Keep showing last known opening name (persistence)
-      if (labelEl) labelEl.textContent = this.lastOpeningName;
+      this._updateDBMatchCount();
       if (nameEl) nameEl.textContent = this.lastOpeningName;
       if (tableEl) tableEl.innerHTML = '';
       if (gmRowEl) gmRowEl.innerHTML = '';
@@ -3587,7 +3604,7 @@ class ChessApp {
       this.lastOpeningName = openingName;
     }
     if (nameEl) nameEl.textContent = this.lastOpeningName;
-    if (labelEl) labelEl.textContent = this.lastOpeningName;
+    if (labelEl) this._updateDBMatchCount();
     if (bodyEl) bodyEl.style.display = '';
 
     // Grand total across all moves
@@ -3702,6 +3719,18 @@ class ChessApp {
       const hasGMs = gmRowEl && gmRowEl.children.length > 0;
       const hasDB = dbCountEl && dbCountEl.textContent !== '';
       contextEl.classList.toggle('hidden', !hasGMs && !hasDB);
+    }
+  }
+
+  _updateDBMatchCount() {
+    const labelEl = document.getElementById('opening-label');
+    if (!labelEl) return;
+    const moves = this.game.moveHistory.map(m => m.san);
+    const count = this.database.countByMovePrefix(moves);
+    if (count > 0 && this.lastOpeningName) {
+      labelEl.innerHTML = `${this.lastOpeningName} <span class="db-match-count">\u00b7 ${count.toLocaleString()} in DB</span>`;
+    } else {
+      labelEl.textContent = this.lastOpeningName || '';
     }
   }
 

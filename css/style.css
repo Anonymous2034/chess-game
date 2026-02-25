@@ -856,7 +856,7 @@ main {
 
 .dialog-wide {
   min-width: 500px;
-  width: 600px;
+  width: 780px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
@@ -989,8 +989,29 @@ main {
 
 /* === Bot Picker — Two-Panel Layout === */
 .dialog-new-game {
-  width: 720px;
+  width: 780px;
   max-width: 95vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.dialog-new-game h2 {
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+.dialog-new-game h2::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: #d4af37;
+  margin-top: 6px;
+  border-radius: 1px;
 }
 
 /* Top row: Mode + Play as + Game Type side by side */
@@ -998,6 +1019,7 @@ main {
   display: flex;
   gap: 16px;
   margin-bottom: 10px;
+  flex-shrink: 0;
 }
 .new-game-top-item {
   flex: 1;
@@ -1007,15 +1029,31 @@ main {
   display: block;
   margin-bottom: 4px;
 }
+.dialog-new-game .dialog-section.engine-only {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dialog-new-game .tc-section {
+  flex-shrink: 0;
+}
+.tc-compact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
 
 /* Time control grid (categorized) — see also .time-control-grid near line 1875 */
 
 .bot-picker-layout {
   display: flex;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  height: 380px;
-  min-height: 200px;
+  border: 1px solid #d4af3744;
+  border-radius: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--panel-bg);
 }
 
 .bot-picker-list {
@@ -1024,6 +1062,7 @@ main {
   overflow-y: auto;
   border-right: 1px solid var(--border-color);
   flex-shrink: 0;
+  background: rgba(0,0,0,0.15);
 }
 
 .bot-picker-detail {
@@ -2001,8 +2040,9 @@ main {
 }
 
 .db-game-item {
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border-color);
+  border-left: 3px solid #d4a843;
   cursor: pointer;
   font-size: 0.85rem;
 }
@@ -2019,11 +2059,54 @@ main {
   color: var(--text-light);
   font-weight: 600;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .db-game-info {
   color: #888;
   font-size: 0.78rem;
+}
+
+.db-game-result {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.db-game-result.win   { background: #d4a843; color: #1a1a1a; }
+.db-game-result.loss  { background: #8b4444; color: #ddd; }
+.db-game-result.draw  { background: #555; color: #ccc; }
+
+.db-eco {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.7rem;
+  background: rgba(212, 168, 67, 0.15);
+  color: #d4a843;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+
+.db-header-stats {
+  text-align: center;
+  padding: 10px 0 8px;
+  color: #d4a843;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.db-match-count {
+  font-style: normal;
+  color: #888;
+  font-size: 0.72rem;
 }
 
 .pgn-file-row {
@@ -5662,6 +5745,7 @@ body.resizing-h {
   .dialog-new-game {
     min-width: unset;
     width: 95vw;
+    max-height: 85dvh;
   }
   .new-game-top-row {
     flex-direction: column;
@@ -5872,15 +5956,12 @@ body.resizing-h {
     font-size: 0.6rem;
   }
 
-  .tc-category {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .tc-compact-row {
+    gap: 3px;
   }
-
-  .tc-label {
-    width: auto;
-    text-align: left;
+  .tc-compact-row .tc-btn {
+    font-size: 0.68rem;
+    padding: 4px 6px;
   }
 
   .eval-graph-container {

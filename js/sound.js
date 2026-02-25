@@ -67,6 +67,13 @@ export class SoundManager {
       }
     };
     document.addEventListener('click', warmup, { once: true });
+
+    // Periodic keepalive — Chrome desktop silences speechSynthesis after ~15s idle
+    setInterval(() => {
+      if (window.speechSynthesis) {
+        try { speechSynthesis.resume(); } catch {}
+      }
+    }, 10000);
   }
 
   /** Test voice — plays a sample announcement. Returns true if speech API is available. */
@@ -134,7 +141,7 @@ export class SoundManager {
    */
   speakMove(san) {
     if (!window.speechSynthesis) return;
-    if (localStorage.getItem('chess_voice_enabled') === 'false') return;
+    // Voice is always on — no toggle check
     if (!san) return;
 
     const text = this._sanToSpeech(san);
@@ -157,7 +164,23 @@ export class SoundManager {
         utterance.pitch = 1.0;
         utterance.volume = this._voiceVolume;
         utterance.lang = 'en-US';
-        utterance.onerror = (e) => console.warn('[Voice] Error:', e.error, 'for:', text);
+        utterance.onerror = (e) => {
+          console.warn('[Voice] Error:', e.error, 'for:', text);
+          // Retry on 'not-allowed' — Chrome desktop sometimes blocks after inactivity
+          if (e.error === 'not-allowed') {
+            setTimeout(() => {
+              try {
+                speechSynthesis.resume();
+                const retry = new SpeechSynthesisUtterance(text);
+                if (this._preferredVoice) retry.voice = this._preferredVoice;
+                retry.rate = 0.95;
+                retry.volume = this._voiceVolume;
+                retry.lang = 'en-US';
+                speechSynthesis.speak(retry);
+              } catch {}
+            }, 200);
+          }
+        };
         speechSynthesis.speak(utterance);
         console.log('[Voice] Speaking:', text);
       };
@@ -254,10 +277,9 @@ export class SoundManager {
 
   // === Sound Definitions ===
 
-  /** Regular move — soft woody click */
+  /** Regular move — permanently disabled (no peep) */
   _playMove() {
-    const t = this._getContext().currentTime;
-    this._scheduleNote(520, 'triangle', t, 0.08, 0.25, 0.06);
+    return;
   }
 
   /** Capture — sharper percussive hit */

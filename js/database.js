@@ -118,6 +118,45 @@ export class Database {
     };
   }
 
+  // Surname alias map — nicknames / first names → canonical surname
+  static ALIASES = {
+    bobby: 'fischer', vishy: 'anand', garry: 'kasparov',
+    tigran: 'petrosian', jose: 'capablanca', raul: 'capablanca',
+    magnus: 'carlsen', anatoly: 'karpov', boris: 'spassky',
+    emanuel: 'lasker', wilhelm: 'steinitz', vladimir: 'kramnik',
+    paul: 'morphy', vasily: 'smyslov', alexander: 'alekhine',
+    mikhail: 'tal', mikhal: 'tal', misha: 'tal'
+  };
+
+  /**
+   * Check if two strings are within Levenshtein distance 1.
+   * Single-pass O(max(a,b)), no library needed.
+   */
+  _isWithinDist1(a, b) {
+    const la = a.length, lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    let i = 0, j = 0, edits = 0;
+    while (i < la && j < lb) {
+      if (a[i] !== b[j]) {
+        if (++edits > 1) return false;
+        if (la > lb) i++;        // deletion
+        else if (la < lb) j++;   // insertion
+        else { i++; j++; }       // substitution
+      } else { i++; j++; }
+    }
+    return edits + (la - i) + (lb - j) <= 1;
+  }
+
+  /**
+   * Fuzzy match: exact substring first, then Levenshtein-1 on individual words.
+   */
+  _fuzzyMatch(word, haystack) {
+    if (haystack.includes(word)) return true;
+    if (word.length < 4) return false;
+    const tokens = haystack.split(/[\s,]+/);
+    return tokens.some(t => this._isWithinDist1(word, t));
+  }
+
   /**
    * Search games by query string, collection, and category
    */
@@ -139,7 +178,14 @@ export class Database {
       results = results.filter(g => {
         const haystack = (g.white + ' ' + g.black + ' ' + g.event + ' ' + g.date + ' ' + (g.eco || '')).toLowerCase();
         // All words must appear somewhere in the combined fields
-        return words.every(w => haystack.includes(w));
+        return words.every(w => {
+          // Direct match
+          if (this._fuzzyMatch(w, haystack)) return true;
+          // Try alias: if "bobby" → also search "fischer"
+          const alias = Database.ALIASES[w];
+          if (alias && this._fuzzyMatch(alias, haystack)) return true;
+          return false;
+        });
       });
     }
 
@@ -208,6 +254,23 @@ export class Database {
       }
       return null;
     }
+  }
+
+  /**
+   * Count how many DB games start with the given move prefix
+   */
+  countByMovePrefix(moves) {
+    if (!moves || moves.length === 0) return 0;
+    let count = 0;
+    for (const game of this.games) {
+      if (game.moves.length < moves.length) continue;
+      let match = true;
+      for (let i = 0; i < moves.length; i++) {
+        if (game.moves[i] !== moves[i]) { match = false; break; }
+      }
+      if (match) count++;
+    }
+    return count;
   }
 
   /**
