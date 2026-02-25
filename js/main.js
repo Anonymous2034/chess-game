@@ -37,7 +37,7 @@ class ChessApp {
     this.board = null;
     this.engine = null;
     this.notation = null;
-    this.database = new Database();
+    this.database = new Database(Chess);
     this.engineInitialized = false;
     this.activeBot = null;
     this.activeCategory = 'all';
@@ -3749,7 +3749,7 @@ class ChessApp {
         labelEl.style.cursor = 'pointer';
         labelEl.onclick = () => this._openDBByPosition();
       }
-    });
+    }).catch(err => console.warn('[DB] position count error:', err));
   }
 
   /** Open DB dialog showing only games that match the current board position */

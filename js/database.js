@@ -1,12 +1,14 @@
 // PGN database browser, game loader, Lichess opening explorer
 
 export class Database {
-  constructor() {
+  constructor(ChessCtor) {
     this.categories = [];
     this.collections = [];
     this.games = [];
     this.onGameSelect = null;
     this._explorerCache = new Map();
+    // Store Chess constructor for position matching (globals may not be visible in ES modules)
+    this._Chess = ChessCtor || (typeof Chess !== 'undefined' ? Chess : null);
   }
 
   /**
@@ -354,7 +356,7 @@ export class Database {
     if (ply === 0) return this.games;
 
     const results = [];
-    const temp = new Chess();
+    const temp = new this._Chess();
     const CHUNK = 40;
 
     for (let start = 0; start < this.games.length; start += CHUNK) {
@@ -400,7 +402,7 @@ export class Database {
     if (ply === 0) return games;
 
     const results = [];
-    const temp = new Chess();
+    const temp = new this._Chess();
 
     for (const game of games) {
       if (game.moves.length < ply) continue;
