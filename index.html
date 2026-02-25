@@ -623,6 +623,17 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="showLegalMoves"><span class="toggle-slider"></span></span>
           </label>
         </div>
+        <div class="layout-section layout-section-drag">
+          <h4 class="layout-section-title">Arrangement</h4>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Drag & Drop Reorder</span>
+            <span class="toggle-switch">
+              <input type="checkbox" id="layout-drag-toggle">
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+          <button class="btn btn-sm" id="layout-drag-reset" style="margin-top:8px;width:100%">Reset Arrangement</button>
+        </div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="layout-reset">Reset to Defaults</button>
           <button class="btn btn-primary" id="close-layout-dialog">Done</button>
@@ -698,14 +709,14 @@
             <span class="settings-sublabel">Piece Style</span>
             <div class="piece-theme-list" id="piece-theme-list"></div>
           </div>
+          <div class="settings-subsection">
+            <span class="settings-sublabel">Clock Style</span>
+            <div class="clock-theme-list" id="clock-theme-list"></div>
+          </div>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Eval Bar</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-eval-bar"><span class="toggle-slider"></span></span>
           </label>
-          <div class="settings-toggle-row settings-btn-row">
-            <span class="layout-toggle-label">Layout Editor</span>
-            <button class="btn btn-sm" id="settings-open-layout">Open</button>
-          </div>
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings-display">Done</button>
@@ -1037,6 +1048,7 @@
             <button class="btn" id="btn-settings-sound">Sound & Music</button>
             <button class="btn" id="btn-settings-display">Display</button>
             <button class="btn" id="btn-settings-board">Board</button>
+            <button class="btn" id="btn-settings-layout">Layout Editor</button>
           </div>
           <div class="nav-menu-section">
             <button class="btn hidden" id="btn-admin">Admin</button>
@@ -1052,6 +1064,7 @@
     <main>
       <!-- Left: Board Area -->
       <div class="board-area">
+        <div class="drag-group" data-drag-id="board" data-drag-label="Board">
         <!-- Top Player Info -->
         <div class="player-info top" id="player-top">
           <div class="player-info-left">
@@ -1096,29 +1109,6 @@
         <!-- Eval Graph (shown after analysis) -->
         <div class="eval-graph-container hidden" id="eval-graph-container"></div>
 
-        <!-- Navigation Controls (under board) -->
-        <div class="nav-controls">
-          <button class="btn btn-sm" id="btn-flip-shortcut" title="Flip board">&#8693;</button>
-          <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
-          <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
-          <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
-          <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
-        </div>
-
-        <!-- Mini Music Player -->
-        <div class="mini-music" id="mini-music">
-          <button class="mini-music-btn" id="mini-music-prev" title="Previous">&#9664;&#9664;</button>
-          <button class="mini-music-btn mini-music-play" id="mini-music-toggle" title="Play/Pause">&#9654;</button>
-          <button class="mini-music-btn" id="mini-music-next" title="Next">&#9654;&#9654;</button>
-          <div class="mini-music-info">
-            <span class="mini-music-title" id="mini-music-title">-</span>
-            <span class="mini-music-composer" id="mini-music-composer">-</span>
-          </div>
-          <button class="mini-music-btn mini-music-shuffle-btn" id="mini-music-shuffle" title="Shuffle">&#8645;</button>
-          <button class="mini-music-btn mini-music-composers-btn" id="mini-music-composers" title="Browse composers">&#9835;</button>
-          <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
-        </div>
-
         <!-- Puzzle Bar (shown during puzzle mode) -->
         <div class="puzzle-bar hidden" id="puzzle-bar">
           <div class="puzzle-info">
@@ -1132,7 +1122,36 @@
             <button class="btn btn-sm btn-primary hidden" id="btn-puzzle-next">Next</button>
           </div>
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="nav" data-drag-label="Arrows">
+        <!-- Navigation Controls (under board) -->
+        <div class="nav-controls">
+          <button class="btn btn-sm" id="btn-flip-shortcut" title="Flip board">&#8693;</button>
+          <button class="btn btn-sm" id="btn-first" title="First move">&laquo;</button>
+          <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
+          <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
+          <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
+        </div>
+        </div>
+
+        <div class="drag-group" data-drag-id="music" data-drag-label="Music">
+        <!-- Mini Music Player -->
+        <div class="mini-music" id="mini-music">
+          <button class="mini-music-btn" id="mini-music-prev" title="Previous">&#9664;&#9664;</button>
+          <button class="mini-music-btn mini-music-play" id="mini-music-toggle" title="Play/Pause">&#9654;</button>
+          <button class="mini-music-btn" id="mini-music-next" title="Next">&#9654;&#9654;</button>
+          <div class="mini-music-info">
+            <span class="mini-music-title" id="mini-music-title">-</span>
+            <span class="mini-music-composer" id="mini-music-composer">-</span>
+          </div>
+          <button class="mini-music-btn mini-music-shuffle-btn" id="mini-music-shuffle" title="Shuffle">&#8645;</button>
+          <button class="mini-music-btn mini-music-composers-btn" id="mini-music-composers" title="Browse composers">&#9835;</button>
+          <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
+        </div>
+        </div>
+
+        <div class="drag-group" data-drag-id="explorer" data-drag-label="Explorer">
         <!-- Opening Explorer (below board) -->
         <div class="opening-explorer" id="opening-explorer">
           <div class="oe-header" id="oe-header">
@@ -1154,6 +1173,7 @@
             </div>
           </div>
         </div>
+        </div>
 
       </div>
 
@@ -1162,6 +1182,7 @@
 
       <!-- Right: Side Panel -->
       <div class="side-panel">
+        <div class="drag-group" data-drag-id="status" data-drag-label="Status">
         <!-- Game Status -->
         <div class="status-bar" id="status-bar">
           <span id="game-status">White to move</span>
@@ -1184,10 +1205,12 @@
             <span class="progress-text" id="analysis-progress-text">Analyzing...</span>
           </div>
         </div>
+        </div>
 
-        <!-- Analysis Summary (shown after analysis) -->
+        <!-- Analysis Summary (shown after analysis) — not draggable, stays at top -->
         <div class="analysis-summary hidden" id="analysis-summary"></div>
 
+        <div class="drag-group" data-drag-id="tabs" data-drag-label="Tabs">
         <!-- Side Panel Tabs -->
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="moves">Moves</button>
@@ -1218,24 +1241,19 @@
           <!-- DB Stats for Opening Training (below coach) -->
           <div class="ot-stats" id="ot-stats"></div>
 
-          <!-- Advisor Annotations (shown below current move) -->
-          <div class="advisor-annotations" id="advisor-annotations"></div>
-
           <!-- Move Insight (shown after analysis, per-move learning feedback) -->
           <div class="move-insight hidden" id="move-insight"></div>
 
         </div>
 
-        <!-- Ideas Tab -->
+        <!-- Ideas Tab (GM Hints) -->
         <div class="panel-content hidden" id="tab-ideas">
           <div class="ideas-panel">
-            <div class="ideas-header">
-              <button class="btn btn-sm" id="btn-pick-advisors">Choose Advisors</button>
-            </div>
-            <div class="advisor-picker hidden" id="advisor-picker"></div>
+            <div class="advisor-picker" id="advisor-picker"></div>
             <div class="ideas-list" id="ideas-list">
               <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
             </div>
+            <div class="advisor-annotations" id="advisor-annotations"></div>
           </div>
         </div>
 
@@ -1243,10 +1261,9 @@
         <div class="panel-content hidden" id="tab-gm-coach">
           <div class="gm-coach-panel">
             <div class="gm-coach-header">
-              <button class="btn btn-sm" id="btn-pick-coaches">Choose Coach</button>
               <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
             </div>
-            <div class="gm-coach-picker hidden" id="gm-coach-picker"></div>
+            <div class="gm-coach-picker" id="gm-coach-picker"></div>
             <div class="gm-coach-cards" id="gm-coach-cards">
               <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
             </div>
@@ -1261,18 +1278,18 @@
             <div class="gm-coach-status" id="gm-coach-status"></div>
           </div>
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="coach-area" data-drag-label="Coach">
         <!-- GM Coach Commentary (always visible, outside tabs) -->
         <div class="panel-coach-area hidden" id="panel-coach-area"></div>
-
-        <!-- Game Controls (always visible, outside tabs) -->
-        <div class="game-controls">
-          <button class="btn btn-sm" id="btn-toggle-notes" title="Notes">Notes</button>
         </div>
-        <div class="move-notes hidden" id="move-notes">
+
+        <div class="drag-group" data-drag-id="notes" data-drag-label="Notes">
+        <div class="move-notes" id="move-notes">
           <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..." rows="2"></textarea>
         </div>
-        <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
+        </div>
       </div>
     </main>
   </div>
