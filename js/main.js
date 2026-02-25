@@ -24,6 +24,7 @@ import { DGTBoard } from './dgt.js';
 import { SoundManager } from './sound.js';
 import { MultiplayerManager } from './multiplayer.js';
 import { PuzzleManager } from './puzzle.js';
+import { EndgameTrainer } from './endgame-trainer.js';
 import { PlayerProfile } from './profile.js';
 import { RatingGraph } from './rating-graph.js';
 import { MusicPlayer, PLAYLIST } from './music.js';
@@ -70,6 +71,9 @@ class ChessApp {
     this.multiplayer = null;
     this.puzzleManager = new PuzzleManager();
     this.puzzleActive = false;
+    this.endgameTrainer = new EndgameTrainer();
+    this.endgameActive = false;
+    this._endgameCategory = null;
     this.profile = new PlayerProfile();
     this.ratingGraph = null;
     this.music = new MusicPlayer();
@@ -141,6 +145,7 @@ class ChessApp {
     this.setupDGT();
     this.setupMultiplayer();
     this.setupPuzzles();
+    this.setupEndgameTrainer();
     this.setupReviewDialog();
     this.setupHamburgerMenu();
     this.setupOfflineIndicator();
@@ -266,6 +271,12 @@ class ChessApp {
     // Puzzle mode interception — validate move before applying side effects
     if (this.puzzleActive) {
       this._handlePuzzleMove(move);
+      return;
+    }
+
+    // Endgame trainer interception
+    if (this.endgameActive) {
+      this._handleEndgameMove(move);
       return;
     }
 
@@ -688,6 +699,9 @@ class ChessApp {
 
     // Show per-move insight if analysis is available
     this._updateMoveInsight(index);
+
+    // Show analysis arrows and square highlights during review
+    this._updateAnalysisArrows(index);
 
     // Load notes for this move
     this._loadNoteForCurrentMove();
@@ -2861,6 +2875,8 @@ class ChessApp {
 
     // Exit puzzle mode if active
     this._exitPuzzleMode();
+    // Exit endgame trainer if active
+    this._exitEndgameMode();
 
     // Disconnect any active multiplayer game
     if (this.multiplayer) {
@@ -3710,7 +3726,7 @@ class ChessApp {
     // Column headers
     const headerRow = document.createElement('div');
     headerRow.className = 'oe-move-row oe-header-row';
-    headerRow.innerHTML = `<span class="oe-col-label">Move</span><span class="oe-col-label">White / Draw / Black</span><span class="oe-col-label oe-move-db" title="${this.database.games.length.toLocaleString()} games in your collection">Games</span>`;
+    headerRow.innerHTML = `<span></span><span class="oe-col-label">Move</span><span class="oe-col-label">White / Draw / Black</span><span class="oe-col-label oe-move-db" title="${this.database.games.length.toLocaleString()} games in your collection">Games</span>`;
     tableEl.appendChild(headerRow);
 
     // Render rows
@@ -3720,8 +3736,26 @@ class ChessApp {
       const dPct = total > 0 ? Math.round((m.draws / total) * 100) : 0;
       const lPct = total > 0 ? (100 - wPct - dPct) : 0;
 
+      // Check if this move is in user's repertoire
+      const lineKey = [...myMoves, san].join(',');
+      const inRepertoire = this._isInRepertoire(lineKey);
+
       const row = document.createElement('div');
-      row.className = 'oe-move-row';
+      row.className = 'oe-move-row' + (inRepertoire ? ' oe-repertoire' : '');
+
+      // Repertoire star button
+      const starEl = document.createElement('span');
+      starEl.className = 'oe-star' + (inRepertoire ? ' starred' : '');
+      starEl.textContent = inRepertoire ? '\u2605' : '\u2606';
+      starEl.title = inRepertoire ? 'Remove from repertoire' : 'Add to repertoire';
+      starEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._toggleRepertoire(lineKey, san, myMoves);
+        starEl.classList.toggle('starred');
+        row.classList.toggle('oe-repertoire');
+        starEl.textContent = starEl.classList.contains('starred') ? '\u2605' : '\u2606';
+        starEl.title = starEl.classList.contains('starred') ? 'Remove from repertoire' : 'Add to repertoire';
+      });
 
       const sanEl = document.createElement('span');
       sanEl.className = 'oe-move-san';
@@ -3758,6 +3792,7 @@ class ChessApp {
         this._openDBByMoveSequence([...myMoves, san]);
       });
 
+      row.appendChild(starEl);
       row.appendChild(sanEl);
       row.appendChild(bar);
       row.appendChild(countEl);
@@ -3780,6 +3815,70 @@ class ChessApp {
     // Now handled by _doFetchOpeningExplorer — kept for any external callers
     const labelEl = document.getElementById('opening-label');
     if (labelEl) labelEl.textContent = this.lastOpeningName || '';
+  }
+
+  // === Opening Repertoire ===
+
+  _loadRepertoire() {
+    try {
+      return JSON.parse(localStorage.getItem('chess_repertoire') || '{}');
+    } catch { return {}; }
+  }
+
+  _saveRepertoire(rep) {
+    localStorage.setItem('chess_repertoire', JSON.stringify(rep));
+  }
+
+  _isInRepertoire(lineKey) {
+    if (!this._repertoire) this._repertoire = this._loadRepertoire();
+    return !!this._repertoire[lineKey];
+  }
+
+  _toggleRepertoire(lineKey, san, parentMoves) {
+    if (!this._repertoire) this._repertoire = this._loadRepertoire();
+    if (this._repertoire[lineKey]) {
+      delete this._repertoire[lineKey];
+    } else {
+      const ply = parentMoves.length;
+      const color = ply % 2 === 0 ? 'w' : 'b'; // whose move this is
+      this._repertoire[lineKey] = {
+        san,
+        moves: [...parentMoves, san],
+        color,
+        added: Date.now(),
+        opening: this.lastOpeningName || ''
+      };
+    }
+    this._saveRepertoire(this._repertoire);
+  }
+
+  _getRepertoireLines() {
+    if (!this._repertoire) this._repertoire = this._loadRepertoire();
+    return Object.values(this._repertoire);
+  }
+
+  _applyRepertoireFilter() {
+    const rows = document.querySelectorAll('#oe-moves-table .oe-move-row:not(.oe-header-row)');
+    rows.forEach(row => {
+      if (this._repertoireFilterOn) {
+        row.style.display = row.classList.contains('oe-repertoire') ? '' : 'none';
+      } else {
+        row.style.display = '';
+      }
+    });
+    // Show summary when filter is active
+    const summary = document.getElementById('oe-repertoire-summary');
+    if (summary) {
+      if (this._repertoireFilterOn) {
+        const lines = this._getRepertoireLines();
+        const whiteLines = lines.filter(l => l.color === 'w').length;
+        const blackLines = lines.filter(l => l.color === 'b').length;
+        summary.innerHTML = `Your repertoire: ${lines.length} line${lines.length !== 1 ? 's' : ''} (${whiteLines} as White, ${blackLines} as Black)`;
+        show(summary);
+      } else {
+        hide(summary);
+      }
+    }
   }
 
   /** Open DB dialog showing only games that match the current move sequence */
@@ -4129,6 +4228,45 @@ class ChessApp {
     }
 
     show(dialog);
+  }
+
+  _updateAnalysisArrows(index) {
+    // Clear previous
+    this.board.clearArrows();
+    this.board.clearAnalysisHighlights();
+
+    if (!this.analysisResults || index < 0 || index >= this.analysisResults.moves.length) return;
+
+    const data = this.analysisResults.moves[index];
+    const move = this.game.moveHistory[index];
+
+    // Color map for classifications
+    const arrowColors = {
+      best: 'rgba(76,175,80,0.7)',
+      great: 'rgba(33,150,243,0.7)',
+      good: 'rgba(139,195,74,0.6)',
+      inaccuracy: 'rgba(255,193,7,0.6)',
+      mistake: 'rgba(255,152,0,0.7)',
+      blunder: 'rgba(244,67,54,0.7)'
+    };
+
+    // Highlight the played move's destination with classification color
+    if (move && (data.classification === 'blunder' || data.classification === 'mistake' || data.classification === 'inaccuracy')) {
+      this.board.setAnalysisHighlight(move.to, data.classification);
+    }
+
+    // Show best move arrow if played move wasn't best
+    if (!data.isBestMove && data.bestMove && data.bestMove.length >= 4) {
+      const from = data.bestMove.substring(0, 2);
+      const to = data.bestMove.substring(2, 4);
+      this.board.drawArrow(from, to, 'rgba(76,175,80,0.6)', 0.7);
+    }
+
+    // Show played move arrow colored by classification
+    if (move && (data.classification === 'blunder' || data.classification === 'mistake')) {
+      const color = arrowColors[data.classification] || 'rgba(255,152,0,0.5)';
+      this.board.drawArrow(move.from, move.to, color, 0.5);
+    }
   }
 
   _updateMoveInsight(index) {
@@ -5198,6 +5336,11 @@ class ChessApp {
     this._setupResizeCoach();
     // Load saved sizes
     this._loadResizeSizes();
+    // Sync side panel height to board area
+    this._syncPanelHeight();
+    window.addEventListener('resize', debounce(() => this._syncPanelHeight(), 100));
+    // Re-sync after fonts/images settle
+    requestAnimationFrame(() => this._syncPanelHeight());
   }
 
   _setupPanelOffset() {
@@ -5278,6 +5421,7 @@ class ChessApp {
       const panelW = sidePanel.style.width;
       localStorage.setItem('chess_board_size', boardSize);
       localStorage.setItem('chess_panel_width', panelW);
+      this._syncPanelHeight();
     };
 
     const onStart = (e) => {
@@ -5546,6 +5690,20 @@ class ChessApp {
     }
   }
 
+  _syncPanelHeight() {
+    const boardArea = document.querySelector('.board-area');
+    const sidePanel = document.querySelector('.side-panel');
+    const bottomPlayer = document.getElementById('player-bottom');
+    if (!boardArea || !sidePanel || !bottomPlayer) return;
+    // Panel height = top of board area to bottom of "You + time" bar
+    const top = boardArea.getBoundingClientRect().top;
+    const bottom = bottomPlayer.getBoundingClientRect().bottom;
+    const h = bottom - top;
+    if (h > 0) {
+      document.documentElement.style.setProperty('--panel-height', h + 'px');
+    }
+  }
+
   // === Puzzles ===
 
   setupPuzzles() {
@@ -5805,6 +5963,349 @@ class ChessApp {
     this.puzzleActive = false;
     this.board.clearHints();
     hide(document.getElementById('puzzle-bar'));
+  }
+
+  // === Endgame Trainer ===
+
+  setupEndgameTrainer() {
+    const dialog = document.getElementById('endgame-dialog');
+    const categoriesEl = document.getElementById('endgame-categories');
+    const positionsEl = document.getElementById('endgame-positions');
+    const positionListEl = document.getElementById('endgame-position-list');
+    const categoryTitleEl = document.getElementById('endgame-category-title');
+
+    // Endgames button in nav menu
+    document.getElementById('btn-endgames').addEventListener('click', async () => {
+      // Load positions if needed
+      if (!this.endgameTrainer.loaded) {
+        await this.endgameTrainer.loadPositions();
+      }
+      this._renderEndgameCategories();
+      this._renderEndgameStats();
+      show(categoriesEl);
+      hide(positionsEl);
+      show(dialog);
+    });
+
+    // Close button
+    document.getElementById('cancel-endgame').addEventListener('click', () => {
+      hide(dialog);
+    });
+
+    // Back to categories
+    document.getElementById('endgame-back').addEventListener('click', () => {
+      show(categoriesEl);
+      hide(positionsEl);
+    });
+
+    // Hint button
+    document.getElementById('btn-endgame-hint').addEventListener('click', async () => {
+      if (!this.endgameActive || this.endgameTrainer.phase !== 'solving') return;
+      await this.initEngine();
+      const fen = this.game.chess.fen();
+      const hint = await this.endgameTrainer.getHint(this.engine, fen);
+      if (hint) {
+        this.board.clearHints();
+        if (hint.from && this.board.squares[hint.from]) {
+          this.board.squares[hint.from].classList.add('puzzle-hint');
+        }
+        if (hint.to && this.board.squares[hint.to]) {
+          this.board.squares[hint.to].classList.add('puzzle-hint');
+        }
+      }
+    });
+
+    // Retry button
+    document.getElementById('btn-endgame-retry').addEventListener('click', () => {
+      if (!this.endgameActive || !this.endgameTrainer.currentPosition) return;
+      this._startEndgame(this.endgameTrainer.currentPosition);
+    });
+
+    // Next button
+    document.getElementById('btn-endgame-next').addEventListener('click', () => {
+      if (!this.endgameTrainer.currentPosition) return;
+      const cat = this.endgameTrainer.currentPosition.category;
+      const positions = this.endgameTrainer.getPositionsByCategory(cat);
+      const currentIdx = positions.findIndex(p => p.id === this.endgameTrainer.currentPosition.id);
+      const nextPos = positions[currentIdx + 1] || positions[0];
+      if (nextPos) {
+        this._startEndgame(nextPos);
+      }
+    });
+
+    // Exit button
+    document.getElementById('btn-endgame-exit').addEventListener('click', () => {
+      this._exitEndgameMode();
+    });
+  }
+
+  _renderEndgameCategories() {
+    const categoriesEl = document.getElementById('endgame-categories');
+    const positionsEl = document.getElementById('endgame-positions');
+    const categories = this.endgameTrainer.getCategories();
+
+    const CATEGORY_LABELS = {
+      'king-pawn': 'King & Pawn',
+      'rook-endgame': 'Rook Endgames',
+      'queen-endgame': 'Queen Endgames',
+      'bishop-endgame': 'Bishop Endgames',
+      'knight-endgame': 'Knight Endgames',
+      'pawn-endgame': 'Pawn Endgames',
+      'piece-vs-pawns': 'Piece vs Pawns'
+    };
+
+    categoriesEl.innerHTML = categories.map(cat => {
+      const pct = cat.count > 0 ? Math.round((cat.solved / cat.count) * 100) : 0;
+      const label = CATEGORY_LABELS[cat.name] || cat.name;
+      return `
+        <div class="endgame-category-card" data-category="${cat.name}">
+          <div class="endgame-category-name">${label}</div>
+          <div class="endgame-category-count">${cat.solved}/${cat.count} solved</div>
+          <div class="endgame-progress-bar">
+            <div class="endgame-progress-fill" style="width: ${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Click handler for category cards
+    categoriesEl.querySelectorAll('.endgame-category-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const category = card.dataset.category;
+        this._endgameCategory = category;
+        this._renderEndgamePositions(category);
+        hide(categoriesEl);
+        show(positionsEl);
+      });
+    });
+  }
+
+  _renderEndgamePositions(category) {
+    const CATEGORY_LABELS = {
+      'king-pawn': 'King & Pawn',
+      'rook-endgame': 'Rook Endgames',
+      'queen-endgame': 'Queen Endgames',
+      'bishop-endgame': 'Bishop Endgames',
+      'knight-endgame': 'Knight Endgames',
+      'pawn-endgame': 'Pawn Endgames',
+      'piece-vs-pawns': 'Piece vs Pawns'
+    };
+
+    const categoryTitleEl = document.getElementById('endgame-category-title');
+    const positionListEl = document.getElementById('endgame-position-list');
+
+    categoryTitleEl.textContent = CATEGORY_LABELS[category] || category;
+
+    const positions = this.endgameTrainer.getPositionsByCategory(category);
+    positionListEl.innerHTML = positions.map(pos => {
+      const isSolved = this.endgameTrainer.isSolved(pos.id);
+      const dots = Array.from({ length: 5 }, (_, i) =>
+        `<div class="endgame-difficulty-dot${i < pos.difficulty ? ' filled' : ''}"></div>`
+      ).join('');
+
+      return `
+        <div class="endgame-position-item${isSolved ? ' solved' : ''}" data-id="${pos.id}">
+          <div class="endgame-position-info">
+            <div class="endgame-position-title">${isSolved ? '&#10003; ' : ''}${pos.title}</div>
+            <div class="endgame-position-desc">${pos.description}</div>
+          </div>
+          <div class="endgame-difficulty">${dots}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Click handler for position items
+    positionListEl.querySelectorAll('.endgame-position-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const pos = this.endgameTrainer.getPosition(item.dataset.id);
+        if (pos) {
+          hide(document.getElementById('endgame-dialog'));
+          this._startEndgame(pos);
+        }
+      });
+    });
+  }
+
+  _renderEndgameStats() {
+    const el = document.getElementById('endgame-stats-summary');
+    const summary = this.endgameTrainer.getProgressSummary();
+    el.innerHTML = `
+      <div class="endgame-stat">
+        <span class="endgame-stat-value">${summary.totalSolved}</span>
+        <span class="endgame-stat-label">Solved</span>
+      </div>
+      <div class="endgame-stat">
+        <span class="endgame-stat-value">${summary.totalPositions}</span>
+        <span class="endgame-stat-label">Total</span>
+      </div>
+      <div class="endgame-stat">
+        <span class="endgame-stat-value">${summary.totalPositions > 0 ? Math.round((summary.totalSolved / summary.totalPositions) * 100) : 0}%</span>
+        <span class="endgame-stat-label">Complete</span>
+      </div>
+    `;
+  }
+
+  async _startEndgame(position) {
+    hide(document.getElementById('endgame-dialog'));
+    this._exitPuzzleMode();
+
+    // Ensure engine is loaded for validation
+    await this.initEngine();
+
+    // Start position in trainer
+    this.endgameTrainer.startPosition(position);
+    this.endgameActive = true;
+
+    const playerColor = this.endgameTrainer.getPlayerColor(position.fen);
+
+    // Set up game with the endgame FEN
+    this.game.mode = 'puzzle'; // reuse puzzle mode to prevent engine auto-play
+    this.game.playerColor = playerColor;
+    this.game.loadFromFEN(position.fen);
+
+    // Set up board
+    this.board.setFlipped(playerColor === 'b');
+    this.board.setLastMove(null);
+    this.board.setInteractive(true);
+    this.board.update();
+    this.notation.clear();
+
+    // Update endgame bar
+    document.getElementById('endgame-title-badge').textContent = position.title;
+    document.getElementById('endgame-objective').textContent = position.objective;
+    show(document.getElementById('endgame-bar'));
+    hide(document.getElementById('puzzle-bar'));
+    show(document.getElementById('btn-endgame-hint'));
+    show(document.getElementById('btn-endgame-retry'));
+    hide(document.getElementById('btn-endgame-next'));
+
+    // Update status
+    const colorName = playerColor === 'w' ? 'White' : 'Black';
+    document.getElementById('game-status').textContent = `Endgame: Play the best moves for ${colorName}`;
+  }
+
+  async _handleEndgameMove(move) {
+    if (!this.endgameActive || this.endgameTrainer.phase !== 'solving') return;
+
+    // Get FEN before and after the move
+    const fens = this.game.fens;
+    const fenAfter = this.game.chess.fen();
+    const fenBefore = fens.length >= 2 ? fens[fens.length - 2] : fens[0];
+    const playerColor = this.game.playerColor;
+    const playerMove = move.from + move.to + (move.promotion || '');
+
+    // Validate move via engine
+    const result = await this.endgameTrainer.validateMove(
+      fenBefore, fenAfter, playerMove, this.engine, playerColor
+    );
+
+    if (!result.correct) {
+      // Flash red, undo the move
+      this.board.flashSquare(move.to, 'puzzle-wrong');
+      this.sound.playMoveSound(move);
+
+      // Undo the move in chess.js
+      this.game.chess.undo();
+      this.game.moveHistory.pop();
+      this.game.currentMoveIndex = this.game.moveHistory.length - 1;
+      this.game.fens.pop();
+      this.game.gameOver = false;
+
+      this.board.update();
+      this.board.clearHints();
+
+      document.getElementById('game-status').textContent = result.message;
+      return;
+    }
+
+    // Correct move
+    this.sound.playMoveSound(move);
+    this.board.setLastMove(move);
+    this.board.update();
+    this.board.flashSquare(move.to, 'puzzle-correct');
+    this.board.clearHints();
+
+    // Check for game-ending conditions
+    if (this.game.chess.isGameOver()) {
+      this._endgameComplete(move);
+      return;
+    }
+
+    // Check if the position is clearly won (e.g., major material advantage)
+    const currentFen = this.game.chess.fen();
+    const evalResult = await this.engine.analyzePosition(currentFen, 12);
+    const evalScore = evalResult.mate !== null
+      ? (evalResult.mate > 0 ? 10000 : -10000)
+      : (evalResult.score || 0);
+    const playerEval = playerColor === 'w' ? evalScore : -evalScore;
+
+    // If player has made enough correct moves (at least 4) and eval is decisive, mark complete
+    this.endgameTrainer.moveIndex++;
+    if (this.endgameTrainer.moveIndex >= 4 && (playerEval > 500 || evalResult.mate !== null && ((playerColor === 'w' && evalResult.mate > 0) || (playerColor === 'b' && evalResult.mate < 0)))) {
+      this._endgameComplete(move);
+      return;
+    }
+
+    // Play opponent's response using engine
+    this.board.setInteractive(false);
+    document.getElementById('game-status').textContent = result.message;
+
+    setTimeout(async () => {
+      const opponentFen = this.game.chess.fen();
+      const opponentAnalysis = await this.engine.analyzePosition(opponentFen, 14);
+
+      if (opponentAnalysis.bestMove) {
+        const from = opponentAnalysis.bestMove.substring(0, 2);
+        const to = opponentAnalysis.bestMove.substring(2, 4);
+        const promo = opponentAnalysis.bestMove.length > 4 ? opponentAnalysis.bestMove[4] : undefined;
+
+        await this.board.animateMove(from, to);
+        const m = this.game.makeMove(from, to, promo);
+        if (m) {
+          this.sound.playMoveSound(m);
+          this.board.setLastMove(m);
+        }
+        this.board.update();
+
+        // Check if game is over after opponent's move
+        if (this.game.chess.isGameOver()) {
+          // Check if player lost — opponent checkmated us
+          if (this.game.chess.isCheckmate()) {
+            document.getElementById('game-status').textContent = 'Opponent delivered checkmate. Try again!';
+            this.board.setInteractive(false);
+            show(document.getElementById('btn-endgame-retry'));
+            show(document.getElementById('btn-endgame-next'));
+            hide(document.getElementById('btn-endgame-hint'));
+            return;
+          }
+          // Draw or stalemate
+          this._endgameComplete(m);
+          return;
+        }
+      }
+
+      const colorName = playerColor === 'w' ? 'White' : 'Black';
+      document.getElementById('game-status').textContent = `Your turn — play the best move for ${colorName}`;
+      this.board.setInteractive(true);
+    }, 400);
+  }
+
+  _endgameComplete(move) {
+    this.endgameTrainer.completePosition(this.endgameTrainer.currentPosition.id);
+    this.board.setInteractive(false);
+
+    document.getElementById('game-status').textContent = 'Position solved! Well done!';
+    show(document.getElementById('btn-endgame-next'));
+    hide(document.getElementById('btn-endgame-hint'));
+    hide(document.getElementById('btn-endgame-retry'));
+  }
+
+  _exitEndgameMode() {
+    if (!this.endgameActive) return;
+    this.endgameActive = false;
+    this.endgameTrainer.phase = 'idle';
+    this.board.clearHints();
+    hide(document.getElementById('endgame-bar'));
   }
 
   // === Hamburger Menu ===
@@ -7934,6 +8435,17 @@ class ChessApp {
         this._switchToTab(tab.dataset.tab);
       });
     });
+
+    // Repertoire filter toggle in Book tab
+    const repToggle = document.getElementById('oe-repertoire-toggle');
+    if (repToggle) {
+      this._repertoireFilterOn = false;
+      repToggle.addEventListener('click', () => {
+        this._repertoireFilterOn = !this._repertoireFilterOn;
+        repToggle.classList.toggle('active', this._repertoireFilterOn);
+        this._applyRepertoireFilter();
+      });
+    }
   }
 
   /** Programmatically activate a side-panel tab by its data-tab id */

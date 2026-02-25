@@ -552,4 +552,82 @@ export class Board {
       div.classList.remove('puzzle-hint');
     });
   }
+
+  /**
+   * Draw an arrow on the board from one square to another.
+   * @param {string} from - e.g. 'e2'
+   * @param {string} to - e.g. 'e4'
+   * @param {string} color - CSS color, default green
+   * @param {number} opacity - 0-1
+   */
+  drawArrow(from, to, color = 'rgba(76,175,80,0.8)', opacity = 0.8) {
+    let svg = this.container.querySelector('.board-arrows');
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'board-arrows');
+      svg.setAttribute('viewBox', '0 0 800 800');
+      // Arrowhead marker
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      svg.appendChild(defs);
+      this.container.appendChild(svg);
+    }
+
+    const sqSize = 100; // viewBox is 800x800 = 8x100
+    const fc = squareToCoords(from);
+    const tc = squareToCoords(to);
+
+    const fx = this.flipped ? (7 - fc.col) * sqSize + sqSize / 2 : fc.col * sqSize + sqSize / 2;
+    const fy = this.flipped ? (7 - fc.row) * sqSize + sqSize / 2 : fc.row * sqSize + sqSize / 2;
+    const tx = this.flipped ? (7 - tc.col) * sqSize + sqSize / 2 : tc.col * sqSize + sqSize / 2;
+    const ty = this.flipped ? (7 - tc.row) * sqSize + sqSize / 2 : tc.row * sqSize + sqSize / 2;
+
+    // Unique marker per color
+    const markerId = 'arrowhead-' + color.replace(/[^a-zA-Z0-9]/g, '');
+    let defs = svg.querySelector('defs');
+    if (!defs.querySelector('#' + markerId)) {
+      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+      marker.setAttribute('id', markerId);
+      marker.setAttribute('markerWidth', '12');
+      marker.setAttribute('markerHeight', '12');
+      marker.setAttribute('refX', '10');
+      marker.setAttribute('refY', '6');
+      marker.setAttribute('orient', 'auto');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0,0 L12,6 L0,12 Z');
+      path.setAttribute('fill', color);
+      marker.appendChild(path);
+      defs.appendChild(marker);
+    }
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', fx);
+    line.setAttribute('y1', fy);
+    line.setAttribute('x2', tx);
+    line.setAttribute('y2', ty);
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', '14');
+    line.setAttribute('opacity', opacity);
+    line.setAttribute('marker-end', `url(#${markerId})`);
+    svg.appendChild(line);
+  }
+
+  /** Clear all arrows from the board */
+  clearArrows() {
+    const svg = this.container.querySelector('.board-arrows');
+    if (svg) svg.remove();
+  }
+
+  /** Highlight a square with an analysis class */
+  setAnalysisHighlight(square, classification) {
+    const div = this.squares[square];
+    if (!div) return;
+    div.classList.add('analysis-' + classification);
+  }
+
+  /** Clear all analysis highlights */
+  clearAnalysisHighlights() {
+    Object.values(this.squares).forEach(div => {
+      div.classList.remove('analysis-best', 'analysis-blunder', 'analysis-mistake', 'analysis-inaccuracy');
+    });
+  }
 }

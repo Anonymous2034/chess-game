@@ -1031,6 +1031,25 @@
       </div>
     </div>
 
+    <!-- Endgame Trainer Dialog -->
+    <div id="endgame-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Endgame Trainer</h2>
+        <div class="endgame-stats-summary" id="endgame-stats-summary"></div>
+        <div class="endgame-categories" id="endgame-categories">
+          <!-- Rendered by JS: category cards with progress bars -->
+        </div>
+        <div class="endgame-positions hidden" id="endgame-positions">
+          <button class="btn btn-sm" id="endgame-back">&larr; Back</button>
+          <h3 id="endgame-category-title"></h3>
+          <div class="endgame-position-list" id="endgame-position-list"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn" id="cancel-endgame">Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Game Review Dialog -->
     <div id="review-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-wide review-dialog">
@@ -1090,6 +1109,7 @@
             <span class="nav-menu-label">Play</span>
             <button class="btn" id="btn-play-online">Play Online</button>
             <button class="btn" id="btn-puzzles">Puzzles</button>
+            <button class="btn" id="btn-endgames">Endgames</button>
             <button class="btn" id="btn-tournament">Tournament</button>
             <button class="btn" id="btn-bot-match">Bot Match</button>
           </div>
@@ -1117,7 +1137,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v51</div>
+          <div class="nav-menu-version" id="app-version">v53</div>
         </div>
       </nav>
     </header>
@@ -1182,6 +1202,20 @@
             <button class="btn btn-sm" id="btn-puzzle-hint">Hint</button>
             <button class="btn btn-sm" id="btn-puzzle-skip">Skip</button>
             <button class="btn btn-sm btn-primary hidden" id="btn-puzzle-next">Next</button>
+          </div>
+        </div>
+
+        <!-- Endgame Trainer Bar (shown during endgame training) -->
+        <div class="endgame-bar hidden" id="endgame-bar">
+          <div class="endgame-info">
+            <span class="endgame-title-badge" id="endgame-title-badge"></span>
+            <span class="endgame-objective" id="endgame-objective"></span>
+          </div>
+          <div class="endgame-controls">
+            <button class="btn btn-sm" id="btn-endgame-hint">Hint</button>
+            <button class="btn btn-sm" id="btn-endgame-retry">Retry</button>
+            <button class="btn btn-sm hidden" id="btn-endgame-next">Next</button>
+            <button class="btn btn-sm" id="btn-endgame-exit">Exit</button>
           </div>
         </div>
         </div>
@@ -1291,8 +1325,10 @@
           <div class="book-panel" id="book-panel">
             <div class="book-header">
               <div class="oe-gm-row" id="oe-gm-row"></div>
+              <button class="btn btn-xs oe-repertoire-toggle" id="oe-repertoire-toggle" title="Show only your repertoire moves">My Repertoire</button>
             </div>
             <div class="oe-moves-table" id="oe-moves-table"></div>
+            <div class="oe-repertoire-summary hidden" id="oe-repertoire-summary"></div>
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-book" title="Drag to resize book"></div>
         </div>

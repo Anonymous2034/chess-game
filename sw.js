@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v100';
+const CACHE_NAME = 'grandmasters-v53';
 
 const PRECACHE_URLS = [
   './',
@@ -33,6 +33,7 @@ const PRECACHE_URLS = [
   './js/openings.js',
   './js/profile.js',
   './js/puzzle.js',
+  './js/endgame-trainer.js',
   './js/rating-graph.js',
   './js/sound.js',
   './js/music.js',
@@ -52,6 +53,7 @@ const PRECACHE_URLS = [
   // Data files
   './data/collections.json',
   './data/puzzles.json',
+  './data/endgames.json',
   './data/classic-games/immortal-games.pgn',
   './data/classic-games/miniatures.pgn',
   './data/classic-games/world-championships.pgn',
