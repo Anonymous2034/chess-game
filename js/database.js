@@ -126,16 +126,6 @@ export class Database {
     'caruana', 'ding', 'nepomniachtchi', 'gukesh'
   ];
 
-  // ECO code ranges for opening categories
-  static OPENING_ECO_RANGES = {
-    'B20': 'B99',  // Sicilian
-    'C60': 'C99',  // Ruy Lopez
-    'D06': 'D69',  // Queen's Gambit
-    'E60': 'E99',  // King's Indian
-    'C00': 'C19',  // French
-    'C50': 'C59'   // Italian
-  };
-
   // Known event keywords
   static KNOWN_EVENTS = [
     'candidates', 'linares', 'wijk', 'tata steel', 'zurich',
@@ -145,7 +135,8 @@ export class Database {
 
   /**
    * Content-based category matching — lets imported games appear under
-   * Players / Openings / Events tabs automatically.
+   * Players / Events tabs automatically.
+   * Openings and Classic stay tag-only (curated collections).
    */
   gameMatchesCategory(game, categoryId) {
     if (categoryId === 'all') return true;
@@ -159,23 +150,12 @@ export class Database {
       case 'players':
         return Database.KNOWN_PLAYERS.some(p => wl.includes(p) || bl.includes(p));
 
-      case 'openings': {
-        const eco = (game.eco || '').toUpperCase();
-        if (eco.length < 2) return false;
-        for (const [lo, hi] of Object.entries(Database.OPENING_ECO_RANGES)) {
-          if (eco >= lo && eco <= hi) return true;
-        }
-        return false;
-      }
-
       case 'events': {
         const ev = (game.event || '').toLowerCase();
         return Database.KNOWN_EVENTS.some(k => ev.includes(k));
       }
 
-      case 'classic':
-        return false; // only manually tagged games
-
+      // Openings & Classic: only curated PGN collections, no auto-matching
       default:
         return false;
     }
