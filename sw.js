@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v90';
+const CACHE_NAME = 'grandmasters-v91';
 
 const PRECACHE_URLS = [
   './',
@@ -173,7 +173,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate — clean old caches
+// Activate — clean old caches and force reload all open tabs
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
@@ -181,6 +181,10 @@ self.addEventListener('activate', (event) => {
         keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       ))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then(clients => {
+        clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' }));
+      })
   );
 });
 

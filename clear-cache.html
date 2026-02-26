@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grandmasters Chess — Clear Cache</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #1a1a2e; color: #e0e0e0; }
+  h1 { color: #c9a84c; }
+  .status { padding: 12px; margin: 10px 0; border-radius: 8px; background: #16213e; }
+  .done { background: #1b4332; color: #95d5b2; }
+  .error { background: #3d0000; color: #ff8a8a; }
+  button { background: #c9a84c; color: #1a1a2e; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 16px; }
+  button:hover { background: #d4b85c; }
+  a { color: #c9a84c; }
+</style>
+</head>
+<body>
+<h1>Clear Cache &amp; Update</h1>
+<p>This page fixes the stuck service worker and loads the latest version.</p>
+<div id="log"></div>
+<button id="btn" onclick="clearAll()">Clear Cache &amp; Reload</button>
+<script>
+function log(msg, cls) {
+  var d = document.createElement('div');
+  d.className = 'status ' + (cls || '');
+  d.textContent = msg;
+  document.getElementById('log').appendChild(d);
+}
+
+async function clearAll() {
+  document.getElementById('btn').disabled = true;
+
+  // 1. Unregister all service workers
+  try {
+    var regs = await navigator.serviceWorker.getRegistrations();
+    for (var r of regs) {
+      await r.unregister();
+    }
+    log('Unregistered ' + regs.length + ' service worker(s)', 'done');
+  } catch(e) {
+    log('SW unregister: ' + e.message, 'error');
+  }
+
+  // 2. Delete all caches
+  try {
+    var keys = await caches.keys();
+    for (var k of keys) {
+      await caches.delete(k);
+    }
+    log('Deleted ' + keys.length + ' cache(s): ' + keys.join(', '), 'done');
+  } catch(e) {
+    log('Cache delete: ' + e.message, 'error');
+  }
+
+  // 3. Redirect to main site
+  log('Redirecting to fresh site in 2 seconds...', 'done');
+  setTimeout(function() {
+    window.location.href = './index.html?cache_bust=' + Date.now();
+  }, 2000);
+}
+</script>
+</body>
+</html>

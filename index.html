@@ -1437,7 +1437,21 @@
   <script type="module" src="js/main.js"></script>
   <script>
     if ('serviceWorker' in navigator && !window.Capacitor) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+        .then(function(reg) {
+          reg.update().catch(function() {});
+          reg.addEventListener('updatefound', function() {
+            var newSW = reg.installing;
+            if (newSW) {
+              newSW.addEventListener('statechange', function() {
+                if (newSW.state === 'activated') {
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        })
+        .catch(function() {});
     }
   </script>
 </body>
