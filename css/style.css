@@ -6154,7 +6154,7 @@ body.drag-mode .side-panel.drag-over {
 
 /* === Resize Handles === */
 .resize-handle-v {
-  width: 6px;
+  width: 12px;
   cursor: col-resize;
   background: transparent;
   position: relative;
@@ -6162,12 +6162,12 @@ body.drag-mode .side-panel.drag-over {
   align-self: stretch;
   min-height: var(--panel-height, 300px);
   z-index: 5;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 
 .resize-handle-v:hover,
 .resize-handle-v.active {
-  background: var(--accent);
+  background: rgba(129,182,76,0.25);
 }
 
 .resize-handle-v::after {
@@ -6176,27 +6176,27 @@ body.drag-mode .side-panel.drag-over {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 2px;
-  height: 32px;
+  width: 4px;
+  height: 40px;
   background: var(--border-color);
-  border-radius: 1px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
 }
 
 .resize-handle-v:hover::after,
 .resize-handle-v.active::after {
-  background: #fff;
+  background: var(--accent);
+  box-shadow: 0 0 4px rgba(129,182,76,0.4);
 }
 
 .resize-handle-h {
-  height: 10px;
+  height: 14px;
   cursor: row-resize;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.02);
   position: relative;
   flex-shrink: 0;
   z-index: 5;
-  transition: background 0.2s;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
 }
 
 .resize-handle-h:hover,
@@ -6210,15 +6210,51 @@ body.drag-mode .side-panel.drag-over {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40px;
-  height: 2px;
+  width: 48px;
+  height: 4px;
   background: #555;
-  border-radius: 1px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
 }
 
 .resize-handle-h:hover::after,
 .resize-handle-h.active::after {
-  background: #fff;
+  background: var(--accent);
+  box-shadow: 0 0 4px rgba(129,182,76,0.4);
+}
+
+/* Triple-dot grip pattern */
+.resize-handle-h::before {
+  content: '\00B7\00B7\00B7';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: #555;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.resize-handle-h:hover::before {
+  color: var(--accent);
+}
+
+.resize-handle-v::before {
+  content: '\22EE';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #555;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.resize-handle-v:hover::before {
+  color: var(--accent);
 }
 
 /* When resizing, prevent text selection */
@@ -6226,6 +6262,16 @@ body.resizing {
   user-select: none;
   -webkit-user-select: none;
   cursor: col-resize;
+}
+
+body.resizing-h {
+  cursor: ns-resize !important;
+}
+
+/* === Block Edge-Resize indicator === */
+.block-resizing {
+  outline: 1px solid rgba(129,182,76,0.3);
+  outline-offset: -1px;
 }
 
 body.resizing-v {

@@ -5628,6 +5628,8 @@ class ChessApp {
     this._setupResizeCoach();
     // Horizontal handle for mini music player height
     this._setupResizeMusic();
+    // Universal edge-resize for all drag-group blocks
+    this._setupBlockResize();
     // Load saved sizes
     this._loadResizeSizes();
     // Sync side panel height to board area — use ResizeObserver for live tracking
@@ -5975,6 +5977,98 @@ class ChessApp {
 
     handle.addEventListener('mousedown', onStart);
     handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  // Universal edge-resize: grab bottom edge of any block to resize height
+  // Works with display:contents drag-groups by targeting the first child element
+  _setupBlockResize() {
+    const EDGE_ZONE = 10; // px from bottom edge to trigger resize
+    const STORAGE_PREFIX = 'chess_block_h_';
+
+    document.querySelectorAll('.drag-group').forEach(group => {
+      const dragId = group.dataset.dragId;
+      if (!dragId) return;
+      // Skip board (resized via main handle) and very small utility blocks
+      if (['board'].includes(dragId)) return;
+
+      // The actual resizable target is the first visible child element
+      const target = group.querySelector('.player-info, .opening-label, .eval-graph-container, .status-bar, .panel-tabs, .panel-content, .mini-music, .nav-controls, .panel-coach-area, .move-notes');
+      if (!target) return;
+
+      // Restore saved height
+      const savedH = localStorage.getItem(STORAGE_PREFIX + dragId);
+      if (savedH) {
+        target.style.minHeight = savedH;
+        target.style.maxHeight = savedH;
+        target.style.flex = 'none';
+        target.style.overflow = 'auto';
+      }
+
+      let resizing = false;
+
+      // Show resize cursor near bottom edge
+      target.addEventListener('mousemove', (e) => {
+        if (resizing) return;
+        const rect = target.getBoundingClientRect();
+        const nearBottom = e.clientY > rect.bottom - EDGE_ZONE;
+        target.style.cursor = nearBottom ? 'ns-resize' : '';
+      });
+
+      target.addEventListener('mouseleave', () => {
+        if (!resizing) target.style.cursor = '';
+      });
+
+      // Start resize on mousedown near bottom edge
+      const onStart = (e) => {
+        const rect = target.getBoundingClientRect();
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        if (clientY < rect.bottom - EDGE_ZONE) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        resizing = true;
+        const startY = clientY;
+        const startH = rect.height;
+        document.body.classList.add('resizing', 'resizing-h');
+        target.classList.add('block-resizing');
+
+        const onMove = (ev) => {
+          const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+          const newH = Math.max(24, startH + (cy - startY));
+          target.style.minHeight = newH + 'px';
+          target.style.maxHeight = newH + 'px';
+          target.style.flex = 'none';
+          target.style.overflow = 'auto';
+        };
+
+        const onEnd = () => {
+          resizing = false;
+          document.body.classList.remove('resizing', 'resizing-h');
+          target.classList.remove('block-resizing');
+          target.style.cursor = '';
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onEnd);
+          document.removeEventListener('touchmove', onMove);
+          document.removeEventListener('touchend', onEnd);
+          localStorage.setItem(STORAGE_PREFIX + dragId, target.style.minHeight);
+          this._syncPanelHeight();
+        };
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+      };
+
+      target.addEventListener('mousedown', onStart);
+      target.addEventListener('touchstart', (e) => {
+        const rect = target.getBoundingClientRect();
+        const clientY = e.touches[0].clientY;
+        if (clientY >= rect.bottom - EDGE_ZONE * 2) {
+          onStart(e);
+        }
+      }, { passive: false });
+    });
   }
 
   _loadResizeSizes() {
