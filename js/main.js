@@ -179,6 +179,7 @@ class ChessApp {
       }
 
       if (categories.length > 0 || restored > 0 || this.database.games.length > 0) {
+        this.database.buildOpeningIndex();
         this.populateCategoryTabs();
         this.populateCollectionFilter();
       }
@@ -253,13 +254,14 @@ class ChessApp {
           if (!r.ok) continue;
           const pgn = await r.text();
           const name = file.replace(/\.pgn$/i, '');
-          const count = this.database.importAllGames(pgn, name);
-          totalGames += count;
+          const result = this.database.importAllGames(pgn, name);
+          totalGames += (typeof result === 'object' ? result.imported : result);
         } catch (e) { /* skip failed file */ }
       }
 
       if (totalGames > 0) {
         console.log(`[DB] Auto-imported ${totalGames} games from ${files.length} bundled PGN files`);
+        this.database.buildOpeningIndex();
         this.populateCategoryTabs();
         this.populateCollectionFilter();
       }
@@ -3522,13 +3524,17 @@ class ChessApp {
         const fileName = files && files.length > 1
           ? 'Imported (' + files.length + ' files)'
           : files?.[0]?.name?.replace(/\.pgn$/i, '') || 'Imported';
-        const count = this.database.importAllGames(pgn, fileName);
-        if (count > 0) {
+        const result = this.database.importAllGames(pgn, fileName);
+        const count = typeof result === 'object' ? result.imported : result;
+        const dupes = typeof result === 'object' ? result.duplicates : 0;
+        if (count > 0 || dupes > 0) {
+          this.database.buildOpeningIndex();
           this.populateCategoryTabs();
           this.populateCollectionFilter();
           hide(pgnDialog);
           // Open database dialog with the imported collection selected
-          this.activeCategory = 'imported';
+          const detectedCat = Database.detectCategory(fileName);
+          this.activeCategory = detectedCat;
           this.populateCategoryTabs();
           this.populateCollectionFilter();
           // Select the imported collection in the dropdown
@@ -3536,11 +3542,13 @@ class ChessApp {
           if (select) select.value = fileName;
           this.renderDatabaseGames();
           show(document.getElementById('database-dialog'));
-          // Highlight the Imported tab
+          // Highlight the right tab
           document.querySelectorAll('.db-tab').forEach(t => {
-            t.classList.toggle('active', t.dataset.category === 'imported');
+            t.classList.toggle('active', t.dataset.category === detectedCat);
           });
-          this.showToast(`Imported ${count} games into database`);
+          let msg = `Imported ${count} games into database`;
+          if (dupes > 0) msg += ` (${dupes} duplicates skipped)`;
+          this.showToast(msg);
         } else {
           alert('No games found in PGN. Please check the format.');
         }
@@ -3622,6 +3630,9 @@ class ChessApp {
       tab.classList.add('active');
       this.activeCategory = tab.dataset.category;
 
+      // Reset dropdown & search when switching tabs
+      document.getElementById('db-collection').value = 'all';
+      document.getElementById('db-search').value = '';
       this.populateCollectionFilter();
       this.renderDatabaseGames();
     });
@@ -3635,19 +3646,17 @@ class ChessApp {
 
   populateCategoryTabs() {
     const tabsEl = document.getElementById('db-category-tabs');
-    // Count games per category
-    const allCount = this.database.games.length;
+    const totalGames = this.database.games.length;
 
-    // Keep the "All" tab and update its count
-    tabsEl.innerHTML = `<button class="db-tab active" data-category="all">All <span class="tab-count">${allCount}</span></button>`;
+    tabsEl.innerHTML = `<button class="db-tab active" data-category="all">All Games <span class="tab-count">${totalGames.toLocaleString()}</span></button>`;
 
     for (const cat of this.database.categories) {
-      const count = this.database.games.filter(g => this.database.gameMatchesCategory(g, cat.id)).length;
-      if (count === 0) continue;
+      const cols = this.database.getCollectionsForCategory(cat.id);
+      if (cols.length === 0) continue;
       const btn = document.createElement('button');
       btn.className = 'db-tab';
       btn.dataset.category = cat.id;
-      btn.innerHTML = `${cat.name} <span class="tab-count">${count}</span>`;
+      btn.innerHTML = `${cat.name} <span class="tab-count">${cols.length}</span>`;
       tabsEl.appendChild(btn);
     }
   }
@@ -3669,29 +3678,75 @@ class ChessApp {
     const listEl = document.getElementById('db-games-list');
     const query = document.getElementById('db-search').value;
     const collection = document.getElementById('db-collection').value;
+    const summaryEl = document.getElementById('db-results-summary');
 
-    const games = this.database.search(query, collection, this.activeCategory);
     listEl.innerHTML = '';
 
+    // Show collection cards when no search and no specific collection selected
+    if (!query && collection === 'all') {
+      const catIcons = { players: '\u265A', openings: '\u2656', events: '\u2655', classic: '\u2654', imported: '\u265E' };
+      const catLabels = { players: 'Players', openings: 'Openings', events: 'Events', classic: 'Classic Collections', imported: 'Imported' };
+
+      // For "All" tab, show grouped sections; for a specific category, show flat grid
+      if (this.activeCategory === 'all') {
+        let totalCols = 0;
+        for (const cat of this.database.categories) {
+          const cols = this.database.getCollectionsForCategory(cat.id);
+          if (cols.length === 0) continue;
+          totalCols += cols.length;
+          const section = document.createElement('div');
+          section.className = 'db-section';
+          section.innerHTML = `<div class="db-section-header"><span class="db-section-icon">${catIcons[cat.id] || '\u265E'}</span> ${catLabels[cat.id] || cat.name} <span class="db-section-count">${cols.length}</span></div>`;
+          const grid = document.createElement('div');
+          grid.className = 'db-collection-grid';
+          for (const col of cols) {
+            const card = this._createCollectionCard(col, catIcons);
+            grid.appendChild(card);
+          }
+          section.appendChild(grid);
+          listEl.appendChild(section);
+        }
+        if (summaryEl) summaryEl.textContent = `${totalCols} collections \u2022 ${this.database.games.length.toLocaleString()} games`;
+        return;
+      }
+
+      // Specific category tab — flat grid
+      const cols = this.database.getCollectionsForCategory(this.activeCategory);
+      if (cols.length > 0) {
+        if (summaryEl) summaryEl.textContent = `${cols.length} collection${cols.length !== 1 ? 's' : ''}`;
+        const grid = document.createElement('div');
+        grid.className = 'db-collection-grid';
+        for (const col of cols) {
+          grid.appendChild(this._createCollectionCard(col, catIcons));
+        }
+        listEl.appendChild(grid);
+        return;
+      }
+    }
+
+    const games = this.database.search(query, collection, this.activeCategory);
+
+    // Back link when viewing a specific collection
+    if (collection !== 'all') {
+      const back = document.createElement('div');
+      back.className = 'db-back-btn';
+      back.innerHTML = '\u2190 Back to collections';
+      back.addEventListener('click', () => {
+        document.getElementById('db-collection').value = 'all';
+        this.renderDatabaseGames();
+      });
+      listEl.appendChild(back);
+    }
+
     // Show result count
-    const summaryEl = document.getElementById('db-results-summary');
     if (summaryEl) {
       if (games.length === 0) {
         summaryEl.textContent = 'No results';
       } else if (games.length > 100) {
-        summaryEl.textContent = `Showing 100 of ${games.length} results`;
+        summaryEl.textContent = `Showing 100 of ${games.length.toLocaleString()} results`;
       } else {
         summaryEl.textContent = `${games.length} result${games.length !== 1 ? 's' : ''}`;
       }
-    }
-
-    // Header stats showing total DB size
-    const totalGames = this.database.games.length;
-    if (totalGames > 0) {
-      const header = document.createElement('div');
-      header.className = 'db-header-stats';
-      header.innerHTML = `\u265A ${totalGames.toLocaleString()} Grandmaster Games`;
-      listEl.appendChild(header);
     }
 
     if (games.length === 0) {
@@ -3720,6 +3775,25 @@ class ChessApp {
       });
       listEl.appendChild(item);
     });
+  }
+
+  _createCollectionCard(col, catIcons) {
+    const icon = catIcons[col.category] || '\u265E';
+    const card = document.createElement('div');
+    card.className = 'db-collection-card';
+    card.dataset.category = col.category;
+    card.innerHTML = `<span class="db-card-icon">${icon}</span><div class="db-card-text"><div class="db-collection-name">${col.name}</div><div class="db-collection-count">${col.count.toLocaleString()} game${col.count !== 1 ? 's' : ''}</div></div>`;
+    card.addEventListener('click', () => {
+      // For openings from the index, stay on openings tab
+      if (col.category === 'openings' && this.activeCategory !== 'openings') {
+        this.activeCategory = 'openings';
+        document.querySelectorAll('.db-tab').forEach(t => t.classList.toggle('active', t.dataset.category === 'openings'));
+        this.populateCollectionFilter();
+      }
+      document.getElementById('db-collection').value = col.name;
+      this.renderDatabaseGames();
+    });
+    return card;
   }
 
   loadDatabaseGame(game) {

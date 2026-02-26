@@ -2174,7 +2174,8 @@ main {
 }
 
 .db-games-list {
-  max-height: 400px;
+  height: 400px;
+  min-height: 400px;
   overflow-y: auto;
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -2242,6 +2243,83 @@ main {
   font-size: 0.85rem;
   font-weight: 600;
   border-bottom: 1px solid var(--border-color);
+}
+
+/* Collection cards grid */
+.db-collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+  padding: 8px;
+}
+.db-collection-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.db-collection-card:hover {
+  background: var(--hover-bg, #363636);
+  border-color: #d4a843;
+  transform: translateY(-1px);
+}
+.db-card-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+.db-collection-card:hover .db-card-icon { opacity: 1; }
+.db-collection-card[data-category="players"] .db-card-icon { color: #6eb5ff; }
+.db-collection-card[data-category="openings"] .db-card-icon { color: #d4a843; }
+.db-collection-card[data-category="events"] .db-card-icon { color: #a078d0; }
+.db-collection-card[data-category="classic"] .db-card-icon { color: #e8c547; }
+.db-card-text { min-width: 0; }
+.db-collection-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary, #eee);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.db-collection-count {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 2px;
+}
+/* Section headers for grouped "All" view */
+.db-section { margin-bottom: 4px; }
+.db-section-header {
+  padding: 8px 12px 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #d4a843;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.db-section-icon { font-size: 1.1rem; }
+.db-section-count {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: #888;
+  margin-left: auto;
+}
+.db-back-btn {
+  padding: 8px 14px;
+  color: #d4a843;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color, #444);
+}
+.db-back-btn:hover {
+  background: var(--hover-bg, #363636);
 }
 
 .db-match-count {
@@ -6449,7 +6527,8 @@ body.resizing-h {
   }
 
   .db-games-list {
-    max-height: 50vh;
+    height: 50vh;
+    min-height: 50vh;
     -webkit-overflow-scrolling: touch;
   }
 

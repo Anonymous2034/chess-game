@@ -7,6 +7,49 @@ export class Database {
     this.games = [];
     this.onGameSelect = null;
     this._explorerCache = new Map();
+    this._openingIndex = null;    // Map<name, game[]> — built after loading
+    this._fingerprints = new Set(); // dedup set
+  }
+
+  // --- ECO code → Opening name mapping ---
+  static ECO_RANGES = [
+    { lo: 'A10', hi: 'A39', name: 'English Opening' },
+    { lo: 'A45', hi: 'A49', name: 'Trompowsky & Indian Game' },
+    { lo: 'A50', hi: 'A79', name: 'Benoni Defense' },
+    { lo: 'A80', hi: 'A99', name: 'Dutch Defense' },
+    { lo: 'B06', hi: 'B06', name: 'Modern Defense' },
+    { lo: 'B07', hi: 'B09', name: 'Pirc Defense' },
+    { lo: 'B10', hi: 'B19', name: 'Caro-Kann Defense' },
+    { lo: 'B20', hi: 'B99', name: 'Sicilian Defense' },
+    { lo: 'C00', hi: 'C19', name: 'French Defense' },
+    { lo: 'C20', hi: 'C29', name: 'Open Game' },
+    { lo: 'C30', hi: 'C39', name: "King's Gambit" },
+    { lo: 'C40', hi: 'C43', name: 'Petrov & Philidor' },
+    { lo: 'C44', hi: 'C45', name: 'Scotch Game' },
+    { lo: 'C46', hi: 'C49', name: 'Four Knights Game' },
+    { lo: 'C50', hi: 'C59', name: 'Italian Game' },
+    { lo: 'C60', hi: 'C99', name: 'Ruy Lopez' },
+    { lo: 'D06', hi: 'D09', name: "Queen's Gambit" },
+    { lo: 'D10', hi: 'D19', name: 'Slav Defense' },
+    { lo: 'D20', hi: 'D69', name: "Queen's Gambit" },
+    { lo: 'D70', hi: 'D99', name: 'Grunfeld Defense' },
+    { lo: 'E01', hi: 'E09', name: 'Catalan Opening' },
+    { lo: 'E10', hi: 'E19', name: "Queen's Indian Defense" },
+    { lo: 'E20', hi: 'E59', name: 'Nimzo-Indian Defense' },
+    { lo: 'E60', hi: 'E99', name: "King's Indian Defense" },
+  ];
+
+  /**
+   * Create a fingerprint for dedup: "white|black|date|round|result"
+   */
+  static fingerprint(game) {
+    return [
+      (game.white || '').toLowerCase().trim(),
+      (game.black || '').toLowerCase().trim(),
+      (game.date || '').trim(),
+      (game.event || '').toLowerCase().trim(),
+      (game.result || '').trim()
+    ].join('|');
   }
 
   /**
@@ -34,6 +77,7 @@ export class Database {
             g.collection = col.name;
             g.category = category.id;
             g.categoryName = category.name;
+            this._fingerprints.add(Database.fingerprint(g));
           });
           this.collections.push({
             name: col.name,
@@ -125,7 +169,13 @@ export class Database {
     'fischer', 'kasparov', 'carlsen', 'morphy', 'capablanca', 'alekhine',
     'tal', 'petrosian', 'karpov', 'anand', 'kramnik', 'botvinnik',
     'lasker', 'steinitz', 'spassky', 'smyslov', 'euwe', 'topalov',
-    'caruana', 'ding', 'nepomniachtchi', 'gukesh'
+    'caruana', 'ding', 'nepomniachtchi', 'gukesh', 'nakamura', 'aronian',
+    'korchnoi', 'rubinstein', 'nimzowitsch', 'bronstein', 'shirov',
+    'firouzja', 'praggnanandhaa', 'anderssen', 'andersson', 'benko',
+    'byrne', 'chiburdanidze', 'duda', 'gelfand', 'geller', 'giri',
+    'keres', 'keymer', 'khalifman', 'leko', 'morozevich', 'najdorf',
+    'navara', 'paulsen', 'philidor', 'rapport', 'spielmann', 'tarrasch',
+    'tartakower', 'timman', 'wei'
   ];
 
   // Known event keywords
@@ -136,32 +186,40 @@ export class Database {
   ];
 
   /**
-   * Content-based category matching — lets imported games appear under
-   * Players / Events tabs automatically.
-   * Openings and Classic stay tag-only (curated collections).
+   * Category matching by tag.
    */
   gameMatchesCategory(game, categoryId) {
     if (categoryId === 'all') return true;
-    // Original tag always matches
-    if (game.category === categoryId) return true;
-
-    const wl = (game.white || '').toLowerCase();
-    const bl = (game.black || '').toLowerCase();
-
-    switch (categoryId) {
-      case 'players':
-        return Database.KNOWN_PLAYERS.some(p => wl.includes(p) || bl.includes(p));
-
-      case 'events': {
-        const ev = (game.event || '').toLowerCase();
-        return Database.KNOWN_EVENTS.some(k => ev.includes(k));
-      }
-
-      // Openings & Classic: only curated PGN collections, no auto-matching
-      default:
-        return false;
-    }
+    return game.category === categoryId;
   }
+
+  /**
+   * Auto-detect which category an imported collection belongs to.
+   * Returns 'players', 'events', 'openings', or 'imported'.
+   */
+  static detectCategory(collectionName) {
+    const lower = collectionName.toLowerCase().trim();
+    // Exact-match short names that would false-match via includes
+    const exactPlayers = ['so', 'li', 'wei'];
+    if (exactPlayers.includes(lower)) return 'players';
+    // Check player names
+    if (Database.KNOWN_PLAYERS.some(p => lower.includes(p))) return 'players';
+    // Check event keywords
+    if (Database.KNOWN_EVENTS.some(k => lower.includes(k))) return 'events';
+    // Check opening keywords
+    const openingKeys = ['sicilian', 'french', 'italian', 'spanish', 'ruy lopez',
+      'caro-kann', 'caro kann', 'pirc', 'dutch', 'english', 'catalan', 'slav',
+      'nimzo', 'grunfeld', 'grünfeld', 'scotch', 'king\'s gambit', 'kings gambit',
+      'queen\'s gambit', 'queens gambit', 'king\'s indian', 'kings indian',
+      'benoni', 'philidor', 'alekhine defense', 'scandinavian', 'petroff'];
+    if (openingKeys.some(k => lower.includes(k))) return 'openings';
+    return 'imported';
+  }
+
+  static CATEGORY_NAMES = {
+    players: 'Players', events: 'Events', openings: 'Openings',
+    classic: 'Classic Collections', imported: 'Imported'
+  };
 
   // Surname alias map — nicknames / first names → canonical surname
   static ALIASES = {
@@ -206,14 +264,19 @@ export class Database {
    * Search games by query string, collection, and category
    */
   search(query, collection = 'all', category = 'all') {
-    let results = this.games;
+    let results;
 
-    if (category !== 'all') {
-      results = results.filter(g => this.gameMatchesCategory(g, category));
-    }
-
-    if (collection !== 'all') {
-      results = results.filter(g => g.collection === collection);
+    // For openings with a specific collection selected, use the ECO index
+    if (category === 'openings' && collection !== 'all' && this._openingIndex?.has(collection)) {
+      results = this.getOpeningGames(collection);
+    } else {
+      results = this.games;
+      if (category !== 'all') {
+        results = results.filter(g => this.gameMatchesCategory(g, category));
+      }
+      if (collection !== 'all') {
+        results = results.filter(g => g.collection === collection);
+      }
     }
 
     if (query) {
@@ -241,8 +304,59 @@ export class Database {
    * Get collections for a specific category
    */
   getCollectionsForCategory(categoryId) {
-    if (categoryId === 'all') return this.collections;
-    return this.collections.filter(c => c.category === categoryId);
+    // For openings, return the ECO-based index which spans ALL games
+    if (categoryId === 'openings' && this._openingIndex) {
+      return Array.from(this._openingIndex.entries())
+        .map(([name, games]) => ({ name, count: games.length, category: 'openings' }))
+        .sort((a, b) => b.count - a.count);  // most games first
+    }
+    if (categoryId === 'all') return this.collections.slice().sort((a, b) => a.name.localeCompare(b.name));
+    return this.collections.filter(c => c.category === categoryId).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /**
+   * Build the opening index by scanning ALL games' ECO codes.
+   * Call after all imports are loaded.
+   */
+  buildOpeningIndex() {
+    this._openingIndex = new Map();
+    const seen = new Map(); // per-opening fingerprint sets for dedup
+
+    for (const game of this.games) {
+      const eco = game.eco;
+      if (!eco) continue;
+
+      for (const range of Database.ECO_RANGES) {
+        if (eco >= range.lo && eco <= range.hi) {
+          const fp = Database.fingerprint(game);
+          if (!seen.has(range.name)) seen.set(range.name, new Set());
+          if (seen.get(range.name).has(fp)) break; // skip duplicate
+          seen.get(range.name).add(fp);
+
+          if (!this._openingIndex.has(range.name)) this._openingIndex.set(range.name, []);
+          this._openingIndex.get(range.name).push(game);
+          break;
+        }
+      }
+    }
+
+    // Collect uncategorized ECO ranges as "Other Openings"
+    const categorized = new Set();
+    for (const range of Database.ECO_RANGES) {
+      for (let c = range.lo.charCodeAt(0); c <= range.hi.charCodeAt(0); c++) {
+        categorized.add(String.fromCharCode(c));
+      }
+    }
+
+    console.log(`[DB] Opening index: ${this._openingIndex.size} openings, ${
+      Array.from(this._openingIndex.values()).reduce((s, g) => s + g.length, 0)} games indexed`);
+  }
+
+  /**
+   * Get games for a specific opening from the index.
+   */
+  getOpeningGames(openingName) {
+    return this._openingIndex?.get(openingName) || [];
   }
 
   /**
@@ -423,40 +537,64 @@ export class Database {
    * Import all games from a multi-game PGN text into the database.
    * Returns the number of games imported.
    */
+  /**
+   * Import all games from a multi-game PGN text into the database.
+   * Returns { imported, duplicates } count object.
+   */
   importAllGames(pgnText, collectionName = 'Imported') {
     const normalized = pgnText.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const games = this.parsePGNFile(normalized);
-    if (games.length === 0) return 0;
+    if (games.length === 0) return { imported: 0, duplicates: 0 };
 
-    const categoryId = 'imported';
+    const categoryId = Database.detectCategory(collectionName);
+    const categoryName = Database.CATEGORY_NAMES[categoryId] || 'Imported';
 
-    // Ensure the "Imported" category exists
+    // Ensure the category exists
     if (!this.categories.find(c => c.id === categoryId)) {
-      this.categories.push({ id: categoryId, name: 'Imported', collections: [] });
+      this.categories.push({ id: categoryId, name: categoryName, collections: [] });
     }
 
     // Remove any existing collection with the same name (re-import replaces)
-    this.games = this.games.filter(g => g.collection !== collectionName);
+    this.games = this.games.filter(g => {
+      if (g.collection === collectionName) {
+        this._fingerprints.delete(Database.fingerprint(g));
+        return false;
+      }
+      return true;
+    });
     this.collections = this.collections.filter(c => c.name !== collectionName);
 
-    // Tag and add games
-    games.forEach(g => {
+    // Tag and add games, skipping duplicates
+    let duplicates = 0;
+    const added = [];
+    for (const g of games) {
+      const fp = Database.fingerprint(g);
+      if (this._fingerprints.has(fp)) {
+        duplicates++;
+        continue;
+      }
+      this._fingerprints.add(fp);
       g.collection = collectionName;
       g.category = categoryId;
-      g.categoryName = 'Imported';
-    });
-    this.games.push(...games);
+      g.categoryName = categoryName;
+      added.push(g);
+    }
+    this.games.push(...added);
+
+    if (duplicates > 0) {
+      console.warn(`[DB] "${collectionName}": skipped ${duplicates} duplicate game${duplicates !== 1 ? 's' : ''} (already in database)`);
+    }
 
     this.collections.push({
       name: collectionName,
-      count: games.length,
+      count: added.length,
       category: categoryId
     });
 
     // Persist to IndexedDB so imports survive page refresh
     this._saveImport(collectionName, normalized);
 
-    return games.length;
+    return { imported: added.length, duplicates };
   }
 
   // === IndexedDB Persistence for Imported Collections ===
@@ -519,36 +657,51 @@ export class Database {
       if (!entries || entries.length === 0) return 0;
 
       let totalGames = 0;
-      const categoryId = 'imported';
-
-      // Ensure the "Imported" category exists
-      if (!this.categories.find(c => c.id === categoryId)) {
-        this.categories.push({ id: categoryId, name: 'Imported', collections: [] });
-      }
 
       for (const entry of entries) {
         const games = this.parsePGNFile(entry.pgn);
         if (games.length === 0) continue;
 
-        // Tag games
-        games.forEach(g => {
-          g.collection = entry.name;
-          g.category = categoryId;
-          g.categoryName = 'Imported';
-        });
+        const categoryId = Database.detectCategory(entry.name);
+        const categoryName = Database.CATEGORY_NAMES[categoryId] || 'Imported';
 
-        // Remove duplicates (in case loadCollections already added same-named built-in)
-        this.games = this.games.filter(g => g.collection !== entry.name);
+        // Ensure the category exists
+        if (!this.categories.find(c => c.id === categoryId)) {
+          this.categories.push({ id: categoryId, name: categoryName, collections: [] });
+        }
+
+        // Remove any existing collection with same name
+        this.games = this.games.filter(g => {
+          if (g.collection === entry.name) {
+            this._fingerprints.delete(Database.fingerprint(g));
+            return false;
+          }
+          return true;
+        });
         this.collections = this.collections.filter(c => c.name !== entry.name);
 
-        this.games.push(...games);
+        // Tag and add games, skipping duplicates
+        let dupes = 0;
+        const added = [];
+        for (const g of games) {
+          const fp = Database.fingerprint(g);
+          if (this._fingerprints.has(fp)) { dupes++; continue; }
+          this._fingerprints.add(fp);
+          g.collection = entry.name;
+          g.category = categoryId;
+          g.categoryName = categoryName;
+          added.push(g);
+        }
+        this.games.push(...added);
+
         this.collections.push({
           name: entry.name,
-          count: games.length,
+          count: added.length,
           category: categoryId
         });
 
-        totalGames += games.length;
+        totalGames += added.length;
+        if (dupes > 0) console.warn(`[DB] "${entry.name}": ${dupes} duplicates skipped`);
         console.log('[DB] Restored import "' + entry.name + '": ' + games.length + ' games');
       }
 
