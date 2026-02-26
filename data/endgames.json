@@ -9,19 +9,14 @@
     "objective": "Win by promoting the f-pawn. Use key squares to escort it.",
     "difficulty": 1,
     "rating": 750,
-    "solution_moves": ["e2e3", "e6e5", "e3d3", "e5d5", "d3e3", "d5e5"]
-  },
-  {
-    "id": "eg002",
-    "fen": "8/8/8/8/4k3/8/4KP2/8 w - - 0 1",
-    "category": "king-pawn",
-    "subcategory": "opposition",
-    "title": "Opposition Fundamentals",
-    "description": "White must use opposition to push the pawn. Direct king opposition is the key.",
-    "objective": "Win by gaining the opposition and promoting the pawn.",
-    "difficulty": 1,
-    "rating": 800,
-    "solution_moves": ["e2e3", "e4e5", "f2f4", "e5e6", "e3e4", "e6f6"]
+    "solution_moves": [
+      "e2e3",
+      "e6e5",
+      "e3d3",
+      "e5d5",
+      "d3e3",
+      "d5e5"
+    ]
   },
   {
     "id": "eg003",
@@ -29,23 +24,18 @@
     "category": "king-pawn",
     "subcategory": "key-squares",
     "title": "King Ahead of Pawn",
-    "description": "King is already on a key square — this should be a straightforward win.",
+    "description": "King is already on a key square \u2014 this should be a straightforward win.",
     "objective": "Promote the f-pawn. The king is ideally placed ahead of it.",
     "difficulty": 1,
     "rating": 700,
-    "solution_moves": ["f5e5", "f7e7", "f4f5", "e7f7", "e5d6", "f7f8"]
-  },
-  {
-    "id": "eg004",
-    "fen": "8/8/8/3k4/8/4K3/4P3/8 w - - 0 1",
-    "category": "king-pawn",
-    "subcategory": "opposition",
-    "title": "Distant Opposition",
-    "description": "White can win by approaching with the right tempo to seize opposition.",
-    "objective": "Win using distant opposition. Advance the king correctly.",
-    "difficulty": 2,
-    "rating": 1050,
-    "solution_moves": ["e3d3", "d5e5", "e2e3", "e5d5", "d3e3", "d5e5"]
+    "solution_moves": [
+      "f5e5",
+      "f7e7",
+      "f4f5",
+      "e7f7",
+      "e5d6",
+      "f7f8"
+    ]
   },
   {
     "id": "eg005",
@@ -53,11 +43,18 @@
     "category": "king-pawn",
     "subcategory": "key-squares",
     "title": "Pawn on the 5th Rank",
-    "description": "King on the 6th rank, pawn on 5th — this is a won position for White.",
+    "description": "King on the 6th rank, pawn on 5th \u2014 this is a won position for White.",
     "objective": "Promote the e-pawn. King is already on its ideal square.",
     "difficulty": 1,
     "rating": 750,
-    "solution_moves": ["e6d6", "e8d8", "e5e6", "d8e8", "e6e7", "e8f7"]
+    "solution_moves": [
+      "e6d6",
+      "e8d8",
+      "e5e6",
+      "d8e8",
+      "e6e7",
+      "e8f7"
+    ]
   },
   {
     "id": "eg006",
@@ -65,11 +62,16 @@
     "category": "king-pawn",
     "subcategory": "stalemate",
     "title": "Stalemate Defense: Rook Pawn",
-    "description": "Black has a rook pawn but White can draw with correct defense — stalemate trap in the corner.",
+    "description": "Black has a rook pawn but White can draw with correct defense \u2014 stalemate trap in the corner.",
     "objective": "Draw by reaching the a1 corner. When the pawn reaches a2, White is stalemated.",
     "difficulty": 2,
     "rating": 1100,
-    "solution_moves": ["a1b1", "a4b3", "b1a1", "a3a2"]
+    "solution_moves": [
+      "a1b1",
+      "a4b3",
+      "b1a1",
+      "a3a2"
+    ]
   },
   {
     "id": "eg007",
@@ -81,19 +83,13 @@
     "objective": "Draw by maintaining opposition directly in front of the pawn.",
     "difficulty": 2,
     "rating": 1050,
-    "solution_moves": ["c1c2", "c5c4", "c2c1", "c4d3", "c1d1"]
-  },
-  {
-    "id": "eg008",
-    "fen": "8/8/8/8/3k4/8/3KP3/8 w - - 0 1",
-    "category": "king-pawn",
-    "subcategory": "opposition",
-    "title": "Critical Position — e-pawn",
-    "description": "A fundamental K+P vs K position. White to play — can White win?",
-    "objective": "Win by gaining opposition. The key is to step to the side first.",
-    "difficulty": 2,
-    "rating": 1150,
-    "solution_moves": ["d2e3", "d4e5", "e2e4"]
+    "solution_moves": [
+      "c1c2",
+      "c5c4",
+      "c2c1",
+      "c4d3",
+      "c1d1"
+    ]
   },
   {
     "id": "eg009",
@@ -105,7 +101,11 @@
     "objective": "Promote one of the pawns. Advance the correct one first.",
     "difficulty": 2,
     "rating": 1000,
-    "solution_moves": ["g6g7", "h8h7", "g7g8q"]
+    "solution_moves": [
+      "g6g7",
+      "h8h7",
+      "g7g8q"
+    ]
   },
   {
     "id": "eg010",
@@ -117,7 +117,14 @@
     "objective": "Promote the g-pawn by advancing the king to key squares first.",
     "difficulty": 1,
     "rating": 800,
-    "solution_moves": ["f2f3", "g7f6", "f3e4", "f6e6", "g2g3", "e6f6"]
+    "solution_moves": [
+      "f2f3",
+      "g7f6",
+      "f3e4",
+      "f6e6",
+      "g2g3",
+      "e6f6"
+    ]
   },
   {
     "id": "eg011",
@@ -129,19 +136,13 @@
     "objective": "Win without stalemating. Find the right king move.",
     "difficulty": 2,
     "rating": 1100,
-    "solution_moves": ["b6c6", "b8a7", "c6c7", "a7a6", "b7b8q"]
-  },
-  {
-    "id": "eg020",
-    "fen": "1K1k4/1P6/8/8/8/8/8/4R3 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "lucena",
-    "title": "Lucena Position",
-    "description": "The most important rook endgame position. White wins with the 'bridge' technique.",
-    "objective": "Win using the Lucena bridge-building method to shelter the king from checks.",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["e1e4", "d8c7", "e4d4", "c7b6", "b8a8", "b6c7"]
+    "solution_moves": [
+      "b6c6",
+      "b8a7",
+      "c6c7",
+      "a7a6",
+      "b7b8q"
+    ]
   },
   {
     "id": "eg021",
@@ -149,11 +150,18 @@
     "category": "rook-endgame",
     "subcategory": "philidor",
     "title": "Philidor Defense",
-    "description": "Black can draw with the Philidor position — rook on the 3rd rank, then checking from behind.",
+    "description": "Black can draw with the Philidor position \u2014 rook on the 3rd rank, then checking from behind.",
     "objective": "Draw using the Philidor technique. Keep the rook on the 6th rank cutting off the king.",
     "difficulty": 3,
     "rating": 1450,
-    "solution_moves": ["f6a6", "g7f8", "a6a1", "b2b8", "g1f2", "f8e7"]
+    "solution_moves": [
+      "f6a6",
+      "g7f8",
+      "a6a1",
+      "b2b8",
+      "g1f2",
+      "f8e7"
+    ]
   },
   {
     "id": "eg022",
@@ -165,55 +173,14 @@
     "objective": "Win by keeping the enemy king cut off from the pawn.",
     "difficulty": 3,
     "rating": 1350,
-    "solution_moves": ["d4d5", "d6e7", "d5d6", "e7f7", "e4e5", "g1e1"]
-  },
-  {
-    "id": "eg023",
-    "fen": "8/R7/5k2/4p3/8/8/5K2/3r4 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "active-rook",
-    "title": "Active Rook Principle",
-    "description": "Rook activity trumps material. White's active rook vs Black's passive one.",
-    "objective": "Use the active rook to win Black's pawn or create threats.",
-    "difficulty": 3,
-    "rating": 1300,
-    "solution_moves": ["a7a5", "d1d5", "a5e5"]
-  },
-  {
-    "id": "eg024",
-    "fen": "8/1p6/1k6/8/1K6/8/8/1R6 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-vs-pawn",
-    "title": "Rook vs Pawn — Frontal Attack",
-    "description": "Rook in front of the pawn is usually a draw or win, depending on king position.",
-    "objective": "Stop the pawn from promoting using frontal defense.",
-    "difficulty": 2,
-    "rating": 1100,
-    "solution_moves": ["b1b2", "b6a5", "b4a3", "b7b6"]
-  },
-  {
-    "id": "eg025",
-    "fen": "8/8/8/3k4/R7/3K4/3p4/8 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-vs-pawn",
-    "title": "Rook vs Pawn — Side Approach",
-    "description": "Rook must stop the advanced pawn. Correct technique is to approach from the side.",
-    "objective": "Stop the d2-pawn from promoting using the rook.",
-    "difficulty": 2,
-    "rating": 1150,
-    "solution_moves": ["a4a2", "d5e4", "a2d2"]
-  },
-  {
-    "id": "eg026",
-    "fen": "8/8/8/8/8/k7/2R5/1K5r w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "endgame-technique",
-    "title": "Rook vs Rook: Cutting Off",
-    "description": "Use the rook to cut off the enemy king from returning to the center.",
-    "objective": "Win by restricting the enemy king and improving your position.",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["c2c3", "a3a4", "b1b2", "h1h2", "b2a2"]
+    "solution_moves": [
+      "d4d5",
+      "d6e7",
+      "d5d6",
+      "e7f7",
+      "e4e5",
+      "g1e1"
+    ]
   },
   {
     "id": "eg027",
@@ -225,31 +192,14 @@
     "objective": "Promote the g-pawn with rook support.",
     "difficulty": 2,
     "rating": 1050,
-    "solution_moves": ["a6a7", "g7f8", "g5g6", "f8e8", "g6g7", "e8d8"]
-  },
-  {
-    "id": "eg028",
-    "fen": "2k5/1pR5/8/1P6/1K6/8/8/4r3 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "vancura",
-    "title": "Vancura Position",
-    "description": "A key rook endgame drawing technique with rook pawn. The defending rook harasses from the side.",
-    "objective": "Understand the Vancura drawing mechanism with the a/h-pawn.",
-    "difficulty": 4,
-    "rating": 1700,
-    "solution_moves": ["b4a5", "e1a1", "a5b6", "a1a8"]
-  },
-  {
-    "id": "eg029",
-    "fen": "8/8/8/1k6/8/1K6/1P6/1r6 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-vs-pawn",
-    "title": "Rook vs Pawn with Promotion Threat",
-    "description": "Black's rook tries to stop the b-pawn. Can White promote?",
-    "objective": "Promote the b-pawn despite Black's rook defense.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["b3a4", "b5c6", "b2b3"]
+    "solution_moves": [
+      "a6a7",
+      "g7f8",
+      "g5g6",
+      "f8e8",
+      "g6g7",
+      "e8d8"
+    ]
   },
   {
     "id": "eg030",
@@ -261,55 +211,33 @@
     "objective": "Win by coordinating rook and king to push the e-pawn.",
     "difficulty": 3,
     "rating": 1450,
-    "solution_moves": ["a4a6", "e6d7", "e4e5", "f2f1", "e1d2", "f1f5"]
-  },
-  {
-    "id": "eg031",
-    "fen": "3k4/8/3PK3/8/8/8/8/5r1R w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "lucena",
-    "title": "Lucena Bridge Building",
-    "description": "Classic bridge-building technique. The rook shields the king from checks.",
-    "objective": "Win with the bridge technique — interpose the rook to block checks.",
-    "difficulty": 3,
-    "rating": 1500,
-    "solution_moves": ["h1h4", "f1f8", "e6e7", "d8c7", "d6d7", "c7b6"]
+    "solution_moves": [
+      "a4a6",
+      "e6d7",
+      "e4e5",
+      "f2f1",
+      "e1d2",
+      "f1f5"
+    ]
   },
   {
     "id": "eg040",
     "fen": "8/8/8/8/4k3/8/3Q4/6K1 w - - 0 1",
     "category": "queen-endgame",
     "subcategory": "queen-vs-pawn",
-    "title": "Queen vs King — Basic Checkmate",
+    "title": "Queen vs King \u2014 Basic Checkmate",
     "description": "Queen and king vs lone king. Practice the systematic checkmate technique.",
     "objective": "Checkmate with queen and king. Drive the king to the edge.",
     "difficulty": 1,
     "rating": 700,
-    "solution_moves": ["d2d3", "e4f4", "g1f2", "f4g5", "d3d5", "g5g6"]
-  },
-  {
-    "id": "eg041",
-    "fen": "8/8/8/8/8/k7/p7/4K2Q w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-vs-pawn",
-    "title": "Queen vs a-pawn on 7th",
-    "description": "Queen vs rook pawn on the 7th. This is a draw because of stalemate tricks.",
-    "objective": "Try to win. Discover why this position is a draw.",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["h1h8", "a3b2", "h8b8", "b2a1", "b8b3", "a1a2"]
-  },
-  {
-    "id": "eg042",
-    "fen": "8/8/8/8/8/2k5/2p5/3QK3 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-vs-pawn",
-    "title": "Queen vs c-pawn on 7th",
-    "description": "Queen vs non-rook pawn on the 7th rank. White can win with precise technique.",
-    "objective": "Win by using queen checks to bring the king closer while preventing promotion.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["d1d4", "c3b2", "d4d2", "b2b1", "e1d3", "c2c1q"]
+    "solution_moves": [
+      "d2d3",
+      "e4f4",
+      "g1f2",
+      "f4g5",
+      "d3d5",
+      "g5g6"
+    ]
   },
   {
     "id": "eg043",
@@ -321,7 +249,14 @@
     "objective": "Win the pawn using queen checks to bring the king closer.",
     "difficulty": 3,
     "rating": 1350,
-    "solution_moves": ["d1d3", "b3a2", "d3c2", "a2a1", "e1d2", "b2b1q"]
+    "solution_moves": [
+      "d1d3",
+      "b3a2",
+      "d3c2",
+      "a2a1",
+      "e1d2",
+      "b2b1q"
+    ]
   },
   {
     "id": "eg044",
@@ -333,139 +268,31 @@
     "objective": "Deliver checkmate using queen and king coordination.",
     "difficulty": 2,
     "rating": 1000,
-    "solution_moves": ["d3e3", "d5c4", "e3e5", "c4b3", "d2c1", "b3a4"]
-  },
-  {
-    "id": "eg045",
-    "fen": "8/8/8/3k4/8/8/1p1K4/4Q3 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-vs-pawn",
-    "title": "Queen vs Pawn: Winning Method",
-    "description": "Standard technique: use queen to block promotion and bring king closer.",
-    "objective": "Win the pawn by using the queen to control the promotion square.",
-    "difficulty": 2,
-    "rating": 1100,
-    "solution_moves": ["e1b4", "d5c6", "b4b1", "c6c5", "d2c3"]
+    "solution_moves": [
+      "d3e3",
+      "d5c4",
+      "e3e5",
+      "c4b3",
+      "d2c1",
+      "b3a4"
+    ]
   },
   {
     "id": "eg050",
     "fen": "8/8/8/3k4/8/8/B4K2/8 w - - 0 1",
     "category": "bishop-endgame",
     "subcategory": "bishop-pawn",
-    "title": "Bishop & King vs King — Insufficient",
+    "title": "Bishop & King vs King \u2014 Insufficient",
     "description": "Bishop and king cannot force checkmate against a lone king. This is a draw.",
-    "objective": "Recognize that this position is a theoretical draw — insufficient material.",
+    "objective": "Recognize that this position is a theoretical draw \u2014 insufficient material.",
     "difficulty": 1,
     "rating": 650,
-    "solution_moves": ["a2b3", "d5c5", "f2e3", "c5b4"]
-  },
-  {
-    "id": "eg051",
-    "fen": "8/8/4k3/8/2B5/3P4/3K4/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-pawn",
-    "title": "Bishop + Pawn vs King: Normal Win",
-    "description": "Bishop and pawn vs lone king. Win by advancing the pawn with piece support.",
-    "objective": "Promote the d-pawn with bishop and king support.",
-    "difficulty": 2,
-    "rating": 1050,
-    "solution_moves": ["d2e3", "e6d5", "c4b5", "d5c5", "d3d4", "c5b4"]
-  },
-  {
-    "id": "eg052",
-    "fen": "7k/8/6KP/8/3B4/8/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "wrong-bishop",
-    "title": "Wrong Bishop + Rook Pawn",
-    "description": "The bishop doesn't control the promotion square. This is a famous drawn position.",
-    "objective": "This is a draw. The bishop cannot control h8 (wrong color).",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["d4e5", "h8g8", "e5f6", "g8h8"]
-  },
-  {
-    "id": "eg053",
-    "fen": "5k2/8/5KP1/8/4B3/8/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-pawn",
-    "title": "Right Bishop + Pawn Win",
-    "description": "The bishop controls the promotion square. This is a straightforward win.",
-    "objective": "Promote the g-pawn. The bishop covers the key square.",
-    "difficulty": 2,
-    "rating": 1100,
-    "solution_moves": ["e4d5", "f8g8", "g6g7", "g8h7", "f6f7", "h7h6"]
-  },
-  {
-    "id": "eg054",
-    "fen": "5k2/b1B5/5K2/5P2/8/8/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-vs-bishop",
-    "title": "Opposite Bishops + Pawn",
-    "description": "Opposite-colored bishops with one pawn. A notorious drawing tendency in endgames.",
-    "objective": "Try to promote. Opposite bishops make this very difficult to win.",
-    "difficulty": 4,
-    "rating": 1750,
-    "solution_moves": ["c7d8", "a7b8", "f5f6", "f8g8", "f6f7", "g8h7"]
-  },
-  {
-    "id": "eg055",
-    "fen": "6k1/5p2/5B2/6K1/8/8/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "fortress",
-    "title": "Bishop Fortress",
-    "description": "Black has a fortress with f7 pawn. Can White break through?",
-    "objective": "Attempt to win. Discover if Black's fortress holds.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["f6e7", "g8g7", "g5f5", "g7f8", "e7d6", "f8g7"]
-  },
-  {
-    "id": "eg060",
-    "fen": "8/8/4k3/8/4N3/4K3/4P3/8 w - - 0 1",
-    "category": "knight-endgame",
-    "subcategory": "knight-pawn",
-    "title": "Knight + Pawn vs King",
-    "description": "Knight and pawn vs lone king. Knight helps escort the pawn to promotion.",
-    "objective": "Promote the e-pawn using the knight to control key squares.",
-    "difficulty": 2,
-    "rating": 1050,
-    "solution_moves": ["e3d4", "e6d6", "e4f6", "d6e6", "e2e3", "e6f7"]
-  },
-  {
-    "id": "eg061",
-    "fen": "8/8/4k3/8/8/8/4PK2/4N3 w - - 0 1",
-    "category": "knight-endgame",
-    "subcategory": "knight-pawn",
-    "title": "Knight + Pawn Coordination",
-    "description": "Use the knight to protect key squares while advancing the pawn.",
-    "objective": "Advance and promote the e-pawn with knight and king support.",
-    "difficulty": 2,
-    "rating": 1100,
-    "solution_moves": ["e2e3", "e5e4", "f2e2", "e4d5"]
-  },
-  {
-    "id": "eg062",
-    "fen": "8/8/8/3Nk3/8/4K3/8/8 w - - 0 1",
-    "category": "knight-endgame",
-    "subcategory": "knight-king",
-    "title": "Knight & King vs King — Insufficient",
-    "description": "Knight and king cannot force checkmate. This is always a draw.",
-    "objective": "Recognize insufficient material — K+N vs K is always a draw.",
-    "difficulty": 1,
-    "rating": 650,
-    "solution_moves": ["d5c3", "e5d4", "e3d2", "d4c4"]
-  },
-  {
-    "id": "eg063",
-    "fen": "8/8/3k4/8/2PKN3/8/8/8 w - - 0 1",
-    "category": "knight-endgame",
-    "subcategory": "knight-pawn",
-    "title": "Knight Supports c-pawn",
-    "description": "The knight supports the passed c-pawn while the king restricts the enemy king.",
-    "objective": "Promote the c-pawn with correct knight maneuvers.",
-    "difficulty": 2,
-    "rating": 1150,
-    "solution_moves": ["c4c5", "d6c7", "e4d5", "c7b8", "c5c6", "b8a7"]
+    "solution_moves": [
+      "a2b3",
+      "d5c5",
+      "f2e3",
+      "c5b4"
+    ]
   },
   {
     "id": "eg064",
@@ -477,7 +304,14 @@
     "objective": "Avoid stalemate while restricting the enemy king.",
     "difficulty": 3,
     "rating": 1300,
-    "solution_moves": ["f6e4", "h8g8", "g6f6", "g8f8", "e4d6", "f8g8"]
+    "solution_moves": [
+      "f6e4",
+      "h8g8",
+      "g6f6",
+      "g8f8",
+      "e4d6",
+      "f8g8"
+    ]
   },
   {
     "id": "eg065",
@@ -489,19 +323,14 @@
     "objective": "Force promotion of the d-pawn using the knight.",
     "difficulty": 2,
     "rating": 1100,
-    "solution_moves": ["d5c7", "d7c8", "e5e6", "c8b7", "d6d7", "b7c7"]
-  },
-  {
-    "id": "eg070",
-    "fen": "8/8/8/pp6/kp6/8/PP6/KP6 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "pawn-breakthrough",
-    "title": "Pawn Breakthrough",
-    "description": "Classic pawn breakthrough. One of the pawns will break through to promote.",
-    "objective": "Find the pawn breakthrough combination to create a passed pawn.",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["b2b3", "a5a4", "a2a3"]
+    "solution_moves": [
+      "d5c7",
+      "d7c8",
+      "e5e6",
+      "c8b7",
+      "d6d7",
+      "b7c7"
+    ]
   },
   {
     "id": "eg071",
@@ -510,34 +339,34 @@
     "subcategory": "zugzwang",
     "title": "Zugzwang in Pawn Ending",
     "description": "A mutual zugzwang position. The side to move loses!",
-    "objective": "Understand zugzwang — whoever moves is in trouble.",
+    "objective": "Understand zugzwang \u2014 whoever moves is in trouble.",
     "difficulty": 4,
     "rating": 1700,
-    "solution_moves": ["g1f2", "g6f6", "f2e2", "f6e5"]
+    "solution_moves": [
+      "g1f2",
+      "g6f6",
+      "f2e2",
+      "f6e5"
+    ]
   },
   {
     "id": "eg072",
     "fen": "8/pp3k2/8/8/8/8/PP3K2/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "pawn-race",
-    "title": "Pawn Race — Counting Tempi",
+    "title": "Pawn Race \u2014 Counting Tempi",
     "description": "Both sides race to promote. Count the tempi to see who queens first.",
     "objective": "Win the pawn race by promoting first or with a tempo advantage.",
     "difficulty": 2,
     "rating": 1050,
-    "solution_moves": ["a2a4", "a7a5", "b2b4", "a5b4", "a4a5", "b7b5"]
-  },
-  {
-    "id": "eg073",
-    "fen": "8/8/1k6/3p4/3K4/3P4/8/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "opposition",
-    "title": "Symmetrical Pawns — Opposition Wins",
-    "description": "Symmetrical pawn structure. The side with opposition wins the enemy pawn.",
-    "objective": "Win by using opposition to outflank and capture Black's pawn.",
-    "difficulty": 2,
-    "rating": 1100,
-    "solution_moves": ["d4c4", "b6a5", "d3d4", "a5a4", "d4d5"]
+    "solution_moves": [
+      "a2a4",
+      "a7a5",
+      "b2b4",
+      "a5b4",
+      "a4a5",
+      "b7b5"
+    ]
   },
   {
     "id": "eg074",
@@ -545,11 +374,18 @@
     "category": "pawn-endgame",
     "subcategory": "outside-passer",
     "title": "Outside Passed Pawn",
-    "description": "The outside passed pawn is a powerful weapon — it decoys the enemy king.",
+    "description": "The outside passed pawn is a powerful weapon \u2014 it decoys the enemy king.",
     "objective": "Win using the outside passed pawn to decoy Black's king.",
     "difficulty": 3,
     "rating": 1350,
-    "solution_moves": ["c4d4", "f7e6", "d4e3", "e6d5", "f2f3", "g4f3"]
+    "solution_moves": [
+      "c4d4",
+      "f7e6",
+      "d4e3",
+      "e6d5",
+      "f2f3",
+      "g4f3"
+    ]
   },
   {
     "id": "eg075",
@@ -561,19 +397,11 @@
     "objective": "Promote the b-pawn or stop Black's a-pawn. Calculate the race.",
     "difficulty": 2,
     "rating": 1050,
-    "solution_moves": ["b5b6", "a7a6", "a4a5"]
-  },
-  {
-    "id": "eg076",
-    "fen": "8/8/3k4/2p1p3/2PpP3/3P4/8/4K3 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "fixed-pawns",
-    "title": "Fixed Pawn Structure — Outflanking",
-    "description": "Locked pawns. The only winning plan is to outflank via the wing.",
-    "objective": "Win by marching the king around the locked pawns to outflank.",
-    "difficulty": 4,
-    "rating": 1650,
-    "solution_moves": ["e1d2", "d6c6", "d2c3", "c6d6", "c3b3", "d6c6"]
+    "solution_moves": [
+      "b5b6",
+      "a7a6",
+      "a4a5"
+    ]
   },
   {
     "id": "eg077",
@@ -585,31 +413,13 @@
     "objective": "Find the correct pawn break to win material or promote.",
     "difficulty": 4,
     "rating": 1750,
-    "solution_moves": ["e1d2", "c7d7", "d2c3", "d7c7", "c3b3"]
-  },
-  {
-    "id": "eg078",
-    "fen": "8/8/4k3/6p1/5p2/5K2/6PP/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "pawn-race",
-    "title": "Pawn Majority Wins",
-    "description": "White has a 2 vs 2 pawn majority on the kingside but better placed pawns.",
-    "objective": "Create a passed pawn using the pawn majority and promote.",
-    "difficulty": 3,
-    "rating": 1300,
-    "solution_moves": ["h2h4", "g5h4", "g2g4", "f4g3", "f3g3", "e6f5"]
-  },
-  {
-    "id": "eg079",
-    "fen": "8/8/8/1p2k3/1P6/4K3/8/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "opposition",
-    "title": "Opposition with b-pawns",
-    "description": "Both sides have a b-pawn. Opposition determines the outcome.",
-    "objective": "Win or draw by correctly using opposition.",
-    "difficulty": 2,
-    "rating": 1050,
-    "solution_moves": ["e3d3", "e5d5", "d3c3", "d5c5"]
+    "solution_moves": [
+      "e1d2",
+      "c7d7",
+      "d2c3",
+      "d7c7",
+      "c3b3"
+    ]
   },
   {
     "id": "eg080",
@@ -621,31 +431,32 @@
     "objective": "Win by advancing the h-pawn to distract, then capture on the queenside.",
     "difficulty": 3,
     "rating": 1350,
-    "solution_moves": ["h4h5", "g6h5", "g5g6", "h7g6", "e3d4", "e6d6"]
-  },
-  {
-    "id": "eg085",
-    "fen": "7k/R7/8/8/4n3/8/PP6/K7 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "rook-vs-knight",
-    "title": "Rook vs Knight + Pawns",
-    "description": "Rook versus knight with pawns on the board. Rook's long-range power matters.",
-    "objective": "Use the rook's superiority over the knight in open positions.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["a7e7", "e4d2", "a1b1", "d2c4"]
+    "solution_moves": [
+      "h4h5",
+      "g6h5",
+      "g5g6",
+      "h7g6",
+      "e3d4",
+      "e6d6"
+    ]
   },
   {
     "id": "eg086",
     "fen": "8/1p6/1P1k4/8/3N4/3K4/8/8 w - - 0 1",
     "category": "piece-vs-pawns",
     "subcategory": "knight-vs-pawn",
-    "title": "Knight vs Pawn — Blockade",
+    "title": "Knight vs Pawn \u2014 Blockade",
     "description": "The knight blockades the passed pawn while the king approaches.",
     "objective": "Win by blockading the pawn with the knight and using the king.",
     "difficulty": 2,
     "rating": 1100,
-    "solution_moves": ["d4c6", "d6c5", "c6a7", "c5b4", "d3c2"]
+    "solution_moves": [
+      "d4c6",
+      "d6c5",
+      "c6a7",
+      "c5b4",
+      "d3c2"
+    ]
   },
   {
     "id": "eg087",
@@ -657,7 +468,13 @@
     "objective": "Exploit the bishop's long-range to win pawns or promote.",
     "difficulty": 3,
     "rating": 1400,
-    "solution_moves": ["c4e6", "f7e6", "d3e4", "d6e7", "e4e5"]
+    "solution_moves": [
+      "c4e6",
+      "f7e6",
+      "d3e4",
+      "d6e7",
+      "e4e5"
+    ]
   },
   {
     "id": "eg088",
@@ -669,31 +486,14 @@
     "objective": "Win by using the knight to outflank while pawns are fixed.",
     "difficulty": 3,
     "rating": 1350,
-    "solution_moves": ["d4c6", "e7d7", "c6b4", "d7c7", "e3d4", "c7d7"]
-  },
-  {
-    "id": "eg089",
-    "fen": "8/5p2/8/3Nk3/8/4K3/5P2/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "knight-vs-pawn",
-    "title": "Knight Outpost",
-    "description": "Knight on a dominant central square restricts the enemy king.",
-    "objective": "Win using the knight's dominance from d5 to push pawns.",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["f2f4", "e5d6", "d5f6", "f7f5", "e3d4", "d6e6"]
-  },
-  {
-    "id": "eg090",
-    "fen": "8/3b4/8/2kP4/8/2K5/8/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "pawn-vs-bishop",
-    "title": "Pawn vs Bishop — Can the Pawn Promote?",
-    "description": "The passed d-pawn races to promote. Can the bishop stop it?",
-    "objective": "Advance the d-pawn. Determine if it can outrun the bishop.",
-    "difficulty": 3,
-    "rating": 1300,
-    "solution_moves": ["d5d6", "d7e6", "c3d4", "c5d6"]
+    "solution_moves": [
+      "d4c6",
+      "e7d7",
+      "c6b4",
+      "d7c7",
+      "e3d4",
+      "c7d7"
+    ]
   },
   {
     "id": "eg100",
@@ -705,7 +505,13 @@
     "objective": "Draw by chasing Black's h-pawn AND supporting your c-pawn simultaneously.",
     "difficulty": 5,
     "rating": 2000,
-    "solution_moves": ["h8g7", "h5h4", "g7f6", "a6b6", "f6e7"]
+    "solution_moves": [
+      "h8g7",
+      "h5h4",
+      "g7f6",
+      "a6b6",
+      "f6e7"
+    ]
   },
   {
     "id": "eg101",
@@ -714,10 +520,17 @@
     "subcategory": "two-knights",
     "title": "Two Knights Checkmate",
     "description": "Two knights cannot force checkmate against a lone king, but with a pawn it's different.",
-    "objective": "Win using two knights — the pawn prevents stalemate.",
+    "objective": "Win using two knights \u2014 the pawn prevents stalemate.",
     "difficulty": 5,
     "rating": 2100,
-    "solution_moves": ["f5g3", "h5g5", "e5f3", "g5f4", "d5e6", "f4g3"]
+    "solution_moves": [
+      "f5g3",
+      "h5g5",
+      "e5f3",
+      "g5f4",
+      "d5e6",
+      "f4g3"
+    ]
   },
   {
     "id": "eg102",
@@ -729,67 +542,52 @@
     "objective": "Promote the c-pawn using the rook to shield from checks.",
     "difficulty": 4,
     "rating": 1650,
-    "solution_moves": ["c6c7", "e2c2", "f1c1", "g6f7", "g3f3", "f7e7"]
-  },
-  {
-    "id": "eg103",
-    "fen": "8/8/4k3/3p4/R3K3/8/8/4r3 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-activity",
-    "title": "Rook Activity vs Pawn",
-    "description": "White's active rook dominates. Use centralization to win the d-pawn and convert.",
-    "objective": "Win the d-pawn by keeping your rook active and king centralized.",
-    "difficulty": 4,
-    "rating": 1700,
-    "solution_moves": ["a4a6", "e6f5", "a6d6", "e1e5", "d6d5", "e5d5"]
-  },
-  {
-    "id": "eg104",
-    "fen": "8/8/5k2/8/5PK1/8/8/5r2 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-vs-pawn",
-    "title": "Rook vs Pawn — Cutting Off the King",
-    "description": "Black has a rook vs White's pawn. The key is to stay in front of the pawn.",
-    "objective": "Use the rook to stop the f-pawn from promoting.",
-    "difficulty": 3,
-    "rating": 1450,
-    "solution_moves": ["f4f5", "f1f2", "g4g5", "f6e7", "f5f6", "e7e6"]
+    "solution_moves": [
+      "c6c7",
+      "e2c2",
+      "f1c1",
+      "g6f7",
+      "g3f3",
+      "f7e7"
+    ]
   },
   {
     "id": "eg105",
     "fen": "8/p4k2/P7/5K2/8/8/8/1R6 w - - 0 1",
     "category": "rook-endgame",
     "subcategory": "rook-vs-pawn",
-    "title": "Rook + Pawn vs Pawn — Blockade Win",
+    "title": "Rook + Pawn vs Pawn \u2014 Blockade Win",
     "description": "White's a-pawn is blockaded but the rook can force a win from behind.",
     "objective": "Win by using the rook to support the a-pawn's advance.",
     "difficulty": 4,
     "rating": 1700,
-    "solution_moves": ["b1b7", "f7e8", "f5e6", "e8d8", "b7a7", "d8c8"]
-  },
-  {
-    "id": "eg106",
-    "fen": "8/6pp/5pk1/8/5PP1/6K1/8/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "pawn-breakthrough",
-    "title": "Pawn Breakthrough — Kingside",
-    "description": "White's kingside pawn majority can create a passed pawn with the right advance.",
-    "objective": "Break through with the kingside pawns to create a passed pawn.",
-    "difficulty": 4,
-    "rating": 1750,
-    "solution_moves": ["f4f5", "g7g5", "g4g5", "f6g5", "g3f3", "g6f5"]
+    "solution_moves": [
+      "b1b7",
+      "f7e8",
+      "f5e6",
+      "e8d8",
+      "b7a7",
+      "d8c8"
+    ]
   },
   {
     "id": "eg107",
     "fen": "8/8/4kpp1/4p3/4P1P1/4K3/5P2/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "zugzwang",
-    "title": "Mutual Zugzwang — Fixed Center",
+    "title": "Mutual Zugzwang \u2014 Fixed Center",
     "description": "A complex mutual zugzwang. The side to move loses because every move weakens the position.",
     "objective": "Navigate the zugzwang to outflank Black's king.",
     "difficulty": 5,
     "rating": 2000,
-    "solution_moves": ["e3d3", "e6d6", "d3c4", "d6c6", "f2f3", "c6d6"]
+    "solution_moves": [
+      "e3d3",
+      "e6d6",
+      "d3c4",
+      "d6c6",
+      "f2f3",
+      "c6d6"
+    ]
   },
   {
     "id": "eg108",
@@ -798,106 +596,93 @@
     "subcategory": "triangulation",
     "title": "Triangulation Technique",
     "description": "White must triangulate to reach the same position with Black to move. A key endgame skill.",
-    "objective": "Win by triangulating — lose a tempo to put Black in zugzwang.",
+    "objective": "Win by triangulating \u2014 lose a tempo to put Black in zugzwang.",
     "difficulty": 5,
     "rating": 2100,
-    "solution_moves": ["e3d3", "f7e7", "d3c3", "e7f7", "c3d3", "f7e7"]
-  },
-  {
-    "id": "eg109",
-    "fen": "8/8/6kp/4Kp2/5P2/6PP/8/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "outside-passer",
-    "title": "Shouldering the King Away",
-    "description": "White's king 'shoulders' the Black king, preventing it from reaching the critical squares.",
-    "objective": "Win by using the king to push Black's king away from the pawns.",
-    "difficulty": 4,
-    "rating": 1800,
-    "solution_moves": ["e5f4", "g6g7", "f4g5", "g7f7", "g5h6", "f7g8"]
+    "solution_moves": [
+      "e3d3",
+      "f7e7",
+      "d3c3",
+      "e7f7",
+      "c3d3",
+      "f7e7"
+    ]
   },
   {
     "id": "eg110",
     "fen": "5k2/4n3/4K3/4P3/8/8/8/4B3 w - - 0 1",
     "category": "piece-vs-pawns",
     "subcategory": "bishop-vs-knight",
-    "title": "Bishop + Pawn vs Knight — Promotion",
+    "title": "Bishop + Pawn vs Knight \u2014 Promotion",
     "description": "White's bishop supports the e-pawn while the knight struggles to blockade.",
     "objective": "Promote the e-pawn using the bishop to control key squares.",
     "difficulty": 4,
     "rating": 1750,
-    "solution_moves": ["e1d2", "e7d5", "d2c3", "d5e7", "c3d4", "f8g7"]
-  },
-  {
-    "id": "eg111",
-    "fen": "8/1R6/5k2/6p1/6Pp/7P/5K2/8 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-technique",
-    "title": "Rook Endgame — Passive Defense Fails",
-    "description": "White's rook dominates from the 7th rank. Convert the advantage with precise play.",
-    "objective": "Win by using the rook on the 7th rank to restrict Black's king.",
-    "difficulty": 4,
-    "rating": 1700,
-    "solution_moves": ["b7a7", "f6g6", "a7a6", "g6h5", "a6a5", "h5g6"]
-  },
-  {
-    "id": "eg112",
-    "fen": "8/8/1B6/7p/kP3K2/8/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-pawn",
-    "title": "Bishop + Pawn vs Pawn — Diagonal Control",
-    "description": "White's bishop controls key diagonals to support the b-pawn's advance.",
-    "objective": "Promote the b-pawn using the bishop to cut off the enemy king.",
-    "difficulty": 4,
-    "rating": 1650,
-    "solution_moves": ["b6c7", "a4a5", "f4e5", "a5a6", "e5d6", "a6a7"]
+    "solution_moves": [
+      "e1d2",
+      "e7d5",
+      "d2c3",
+      "d5e7",
+      "c3d4",
+      "f8g7"
+    ]
   },
   {
     "id": "eg113",
     "fen": "8/2k5/2P5/1K6/8/8/6n1/4N3 w - - 0 1",
     "category": "knight-endgame",
     "subcategory": "knight-pawn",
-    "title": "Knight + Pawn vs Knight — Promotion Race",
+    "title": "Knight + Pawn vs Knight \u2014 Promotion Race",
     "description": "Both sides have a knight. White's advanced c-pawn is the key advantage.",
     "objective": "Promote the c-pawn despite Black's knight trying to blockade.",
     "difficulty": 4,
     "rating": 1800,
-    "solution_moves": ["e1d3", "g2e3", "d3e5", "c7d8", "b5b6", "e3c4"]
-  },
-  {
-    "id": "eg114",
-    "fen": "8/8/pp6/kp6/8/PP1K4/1P6/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "pawn-breakthrough",
-    "title": "Advanced Pawn Breakthrough",
-    "description": "A complex pawn ending where the correct pawn break decides the game.",
-    "objective": "Find the winning pawn breakthrough combination.",
-    "difficulty": 5,
-    "rating": 2000,
-    "solution_moves": ["b2b4", "b5b4", "a3b4", "a5b4", "d3c4", "b4b3"]
+    "solution_moves": [
+      "e1d3",
+      "g2e3",
+      "d3e5",
+      "c7d8",
+      "b5b6",
+      "e3c4"
+    ]
   },
   {
     "id": "eg115",
     "fen": "8/7p/4k1p1/4p3/4P3/4K1P1/7P/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "opposition",
-    "title": "Distant Opposition — Complex",
+    "title": "Distant Opposition \u2014 Complex",
     "description": "With symmetric pawns, the distant opposition determines the winner. Every tempo matters.",
     "objective": "Win by seizing the distant opposition to outflank.",
     "difficulty": 5,
     "rating": 2200,
-    "solution_moves": ["h2h4", "h7h5", "e3d3", "e6d6", "d3c4", "d6c6"]
+    "solution_moves": [
+      "h2h4",
+      "h7h5",
+      "e3d3",
+      "e6d6",
+      "d3c4",
+      "d6c6"
+    ]
   },
   {
     "id": "eg116",
     "fen": "8/R7/2k5/2p5/2Kp4/8/8/3r4 w - - 0 1",
     "category": "rook-endgame",
     "subcategory": "endgame-technique",
-    "title": "Rook Endgame — Domination",
+    "title": "Rook Endgame \u2014 Domination",
     "description": "White's active rook on the 7th rank combined with the centralized king creates a winning squeeze.",
     "objective": "Win by restricting the Black king while neutralizing the d-pawn.",
     "difficulty": 4,
     "rating": 1800,
-    "solution_moves": ["a7a6", "c6b7", "a6d6", "d1d3", "d6d4", "d3c3"]
+    "solution_moves": [
+      "a7a6",
+      "c6b7",
+      "a6d6",
+      "d1d3",
+      "d6d4",
+      "d3c3"
+    ]
   },
   {
     "id": "eg117",
@@ -906,178 +691,74 @@
     "subcategory": "zugzwang",
     "title": "Zugzwang Chain Reaction",
     "description": "A subtle pawn ending. White triangulates to put Black in zugzwang, forcing a pawn weakness.",
-    "objective": "Win by creating zugzwang — force Black to move a pawn and collapse.",
+    "objective": "Win by creating zugzwang \u2014 force Black to move a pawn and collapse.",
     "difficulty": 5,
     "rating": 2100,
-    "solution_moves": ["g4f3", "f6e6", "f3e3", "e6f6", "e3d4", "f6e6"]
-  },
-  {
-    "id": "eg118",
-    "fen": "8/8/4kp2/3pNp2/5K2/8/8/8 w - - 0 1",
-    "category": "knight-endgame",
-    "subcategory": "knight-outpost",
-    "title": "Knight Dominance — Outpost on e5",
-    "description": "The knight on e5 is a monster. White must convert the positional bind into a material win.",
-    "objective": "Win by exploiting the knight's dominance to capture Black's pawns.",
-    "difficulty": 4,
-    "rating": 1850,
-    "solution_moves": ["e5d3", "e6d6", "d3f4", "d6e7", "f4g6", "e7f6"]
+    "solution_moves": [
+      "g4f3",
+      "f6e6",
+      "f3e3",
+      "e6f6",
+      "e3d4",
+      "f6e6"
+    ]
   },
   {
     "id": "eg119",
     "fen": "3r4/8/5k2/8/3R1PK1/8/8/8 w - - 0 1",
     "category": "rook-endgame",
     "subcategory": "rook-pawn-vs-rook",
-    "title": "Rook + f-pawn vs Rook — Winning Technique",
+    "title": "Rook + f-pawn vs Rook \u2014 Winning Technique",
     "description": "A critical rook endgame. White must advance the f-pawn while keeping the rook active.",
     "objective": "Win by pushing the f-pawn with correct rook and king coordination.",
     "difficulty": 4,
     "rating": 1800,
-    "solution_moves": ["d4d6", "f6e7", "d6d5", "d8d5", "f4f5", "e7f6"]
-  },
-  {
-    "id": "eg120",
-    "fen": "8/8/2p1k3/1p6/1P1K4/2P5/8/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "opposition",
-    "title": "Outflanking with Pawn Lever",
-    "description": "White uses the c-pawn lever to break through. Timing of c3-c4 is critical.",
-    "objective": "Win by combining the pawn break c3-c4 with king outflanking.",
-    "difficulty": 4,
-    "rating": 1900,
-    "solution_moves": ["d4c4", "e6d6", "c3c4", "b5c4", "b4b5", "c6b5"]
-  },
-  {
-    "id": "eg121",
-    "fen": "8/5B2/8/3k1K2/3p4/3P4/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-pawn",
-    "title": "Bishop vs Passed Pawn — Diagonal Fortress",
-    "description": "White's bishop must stop the d-pawn while the kings face off. Diagonal control is everything.",
-    "objective": "Win or draw by using the bishop's diagonal reach to block the pawn.",
-    "difficulty": 4,
-    "rating": 1800,
-    "solution_moves": ["f7e6", "d5c4", "e6d5", "c4b3", "f5e4", "b3c2"]
-  },
-  {
-    "id": "eg122",
-    "fen": "8/8/8/R4pk1/5r2/5K2/8/8 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-pawn-vs-rook",
-    "title": "Rook + Pawn vs Rook — Defensive Drawing",
-    "description": "Black defends a pawn-down rook ending. Cut off the enemy king and check from behind.",
-    "objective": "Find the drawing technique with the rook behind the passed pawn.",
-    "difficulty": 5,
-    "rating": 1950,
-    "solution_moves": ["a5a8", "f4f6", "f3g3", "g5f5", "a8a5", "f5e4"]
+    "solution_moves": [
+      "d4d6",
+      "f6e7",
+      "d6d5",
+      "d8d5",
+      "f4f5",
+      "e7f6"
+    ]
   },
   {
     "id": "eg123",
     "fen": "8/p7/Pk6/1P6/1K6/8/8/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "fixed-pawns",
-    "title": "Locked Pawns — King Maneuver",
+    "title": "Locked Pawns \u2014 King Maneuver",
     "description": "Pawns are locked on the queenside. The only winning plan is a precise king march.",
     "objective": "Win by marching the king to capture the a7 pawn.",
     "difficulty": 4,
     "rating": 1850,
-    "solution_moves": ["b4c4", "b6a5", "c4d5", "a5b6", "d5c4", "b6a5"]
-  },
-  {
-    "id": "eg124",
-    "fen": "6k1/5pp1/6p1/8/5PP1/6K1/8/3B4 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-pawn",
-    "title": "Bishop + Pawns — Breakthrough Plan",
-    "description": "White's bishop helps create a passed pawn on the kingside. Plan the breakthrough.",
-    "objective": "Win by combining the bishop and pawn majority to create a passer.",
-    "difficulty": 5,
-    "rating": 2050,
-    "solution_moves": ["d1e2", "g8f8", "e2f3", "f8e7", "f3g4", "e7f6"]
-  },
-  {
-    "id": "eg125",
-    "fen": "8/2R5/4k3/4p3/4Pp2/5K2/8/5r2 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "active-rook",
-    "title": "Active Rook on the 7th — Conversion",
-    "description": "White's rook dominates from c7 but Black has connected passed pawns. Activity is key.",
-    "objective": "Use the active rook to neutralize Black's pawns and win.",
-    "difficulty": 5,
-    "rating": 2000,
-    "solution_moves": ["c7c6", "e6d5", "c6f6", "f1a1", "f6f4", "a1a3"]
-  },
-  {
-    "id": "eg126",
-    "fen": "8/4k3/1p1p4/1P1Pp3/4Pp2/5P2/5K2/8 w - - 0 1",
-    "category": "pawn-endgame",
-    "subcategory": "fixed-pawns",
-    "title": "Fortress or Breakthrough?",
-    "description": "A complex locked position. Determine if White can breach Black's pawn chain.",
-    "objective": "Find the winning king maneuver through the pawn structure.",
-    "difficulty": 5,
-    "rating": 2200,
-    "solution_moves": ["f2g2", "e7d8", "g2h3", "d8c7", "h3g4", "c7b6"]
-  },
-  {
-    "id": "eg127",
-    "fen": "5n2/5P1k/7P/5K2/8/8/8/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "pawn-vs-knight",
-    "title": "Two Connected Pawns vs Knight",
-    "description": "White's f7+h6 pawns are nearly unstoppable. The knight struggles to hold both.",
-    "objective": "Promote one of the pawns against the knight's defense.",
-    "difficulty": 4,
-    "rating": 1900,
-    "solution_moves": ["f5g5", "f8d7", "g5f6", "d7f8", "f6g7", "f8e6"]
-  },
-  {
-    "id": "eg128",
-    "fen": "8/8/1k2r3/1P6/1K6/5R2/8/8 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "lucena",
-    "title": "Lucena with b-pawn — Tricky Bridge",
-    "description": "A Lucena-type position with a rook pawn. The bridge technique requires adaptation.",
-    "objective": "Win using an adapted bridge technique for the b-pawn.",
-    "difficulty": 5,
-    "rating": 2050,
-    "solution_moves": ["f3f6", "e6e1", "b4a5", "e1a1", "a5b6", "a1b1"]
-  },
-  {
-    "id": "eg129",
-    "fen": "8/8/8/2KPk3/8/8/6N1/8 w - - 0 1",
-    "category": "knight-endgame",
-    "subcategory": "knight-pawn",
-    "title": "Knight Escorts Passed Pawn",
-    "description": "The knight must help the d-pawn promote while Black's king tries to blockade.",
-    "objective": "Promote the d-pawn with knight support against the opposing king.",
-    "difficulty": 4,
-    "rating": 1850,
-    "solution_moves": ["g2f4", "e5d6", "f4e6", "d6e7", "d5d6", "e7e8"]
+    "solution_moves": [
+      "b4c4",
+      "b6a5",
+      "c4d5",
+      "a5b6",
+      "d5c4",
+      "b6a5"
+    ]
   },
   {
     "id": "eg130",
     "fen": "8/3k4/1p1p1p2/1PpP1Pp1/2P3P1/3K4/8/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "fixed-pawns",
-    "title": "Fortress Walls — Outflanking Required",
+    "title": "Fortress Walls \u2014 Outflanking Required",
     "description": "Completely locked pawns. The only winning idea is a long king march around the entire structure.",
     "objective": "Find the winning king path around the locked pawn chain.",
     "difficulty": 5,
     "rating": 2300,
-    "solution_moves": ["d3e3", "d7e7", "e3f3", "e7f7", "f3g3", "f7g7"]
-  },
-  {
-    "id": "eg131",
-    "fen": "8/8/8/8/2k5/8/1QK5/8 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-technique",
-    "title": "Queen Checkmate — Corner Drive",
-    "description": "Drive the king to the corner using the queen. Systematic restriction narrows the king's space.",
-    "objective": "Deliver checkmate by driving Black's king to the edge step by step.",
-    "difficulty": 2,
-    "rating": 950,
-    "solution_moves": ["b2b5", "c4d3", "c2d1", "d3c4", "b5a4", "c4d3"]
+    "solution_moves": [
+      "d3e3",
+      "d7e7",
+      "e3f3",
+      "e7f7",
+      "f3g3",
+      "f7g7"
+    ]
   },
   {
     "id": "eg132",
@@ -1089,211 +770,51 @@
     "objective": "Discover how the queen systematically wins the pawn and delivers mate.",
     "difficulty": 2,
     "rating": 1050,
-    "solution_moves": ["e1f2", "e4e5", "f2f1", "e5e2", "f1g1", "b4c3"]
-  },
-  {
-    "id": "eg133",
-    "fen": "8/1Q6/8/8/6kp/8/6K1/8 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-vs-pawn",
-    "title": "Queen vs h-pawn on 4th",
-    "description": "The queen must stop the h-pawn while bringing the king closer. Technique matters.",
-    "objective": "Win the h-pawn using queen checks to approach with the king.",
-    "difficulty": 3,
-    "rating": 1250,
-    "solution_moves": ["b7b4", "g4g3", "b4h4", "g3f2", "h4h3", "f2e1"]
-  },
-  {
-    "id": "eg134",
-    "fen": "3Q4/8/8/8/1q6/4k3/8/4K3 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-technique",
-    "title": "Queen vs Queen — Centralization",
-    "description": "Both sides have queens. Centralization and king safety determine who wins the queen trade.",
-    "objective": "Trade queens favorably by exploiting the exposed enemy king.",
-    "difficulty": 4,
-    "rating": 1750,
-    "solution_moves": ["d8d3", "e3f4", "d3d4", "f4g3", "d4e3", "g3h2"]
-  },
-  {
-    "id": "eg135",
-    "fen": "8/5Q2/8/3k4/8/6q1/5PK1/8 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-technique",
-    "title": "Queen + Pawn vs Queen — Winning Technique",
-    "description": "Extra pawn in a queen ending. Use the pawn as a shield and push for promotion.",
-    "objective": "Win by advancing the f-pawn while using the queen to control checks.",
-    "difficulty": 5,
-    "rating": 2050,
-    "solution_moves": ["f7f5", "d5c4", "f5f4", "g3g4", "f4e4", "c4d3"]
+    "solution_moves": [
+      "e1f2",
+      "e4e5",
+      "f2f1",
+      "e5e2",
+      "f1g1",
+      "b4c3"
+    ]
   },
   {
     "id": "eg136",
     "fen": "8/8/3b4/8/3NK3/8/3k4/8 w - - 0 1",
     "category": "piece-vs-pawns",
     "subcategory": "knight-vs-bishop",
-    "title": "Knight vs Bishop — Open Board",
+    "title": "Knight vs Bishop \u2014 Open Board",
     "description": "Knight versus bishop with no pawns. A theoretical draw, but the technique is instructive.",
     "objective": "Recognize that N vs B (no pawns) is a draw. Practice the defensive technique.",
     "difficulty": 2,
     "rating": 850,
-    "solution_moves": ["d4c6", "d2e2", "e4d4", "d6c7", "c6a5", "e2d2"]
-  },
-  {
-    "id": "eg137",
-    "fen": "8/8/8/3Bk3/2N5/3K4/8/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "bishop-and-knight",
-    "title": "Bishop + Knight Checkmate — Setup",
-    "description": "The hardest basic checkmate. B+N must drive the king to the correct corner.",
-    "objective": "Learn to coordinate bishop + knight to force the king toward the right corner.",
-    "difficulty": 5,
-    "rating": 2200,
-    "solution_moves": ["d5f3", "e5f5", "c4e3", "f5e5", "d3e3", "e5f6"]
-  },
-  {
-    "id": "eg138",
-    "fen": "6k1/8/5K2/8/3B4/1B6/8/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "two-bishops",
-    "title": "Two Bishops Checkmate",
-    "description": "Two bishops deliver checkmate by creating a shrinking diagonal cage.",
-    "objective": "Checkmate with two bishops. Restrict the king to the corner systematically.",
-    "difficulty": 3,
-    "rating": 1300,
-    "solution_moves": ["d4e5", "g8h8", "b3c4", "h8g8", "c4d5", "g8h8"]
-  },
-  {
-    "id": "eg139",
-    "fen": "3r4/8/8/4k3/2B5/4K3/8/3R4 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-bishop-vs-rook",
-    "title": "Rook + Bishop vs Rook — Winning Attempt",
-    "description": "A notoriously difficult endgame. White tries to win with the extra bishop.",
-    "objective": "Try to win with R+B vs R. Learn the key ideas even though it's often drawn.",
-    "difficulty": 5,
-    "rating": 2250,
-    "solution_moves": ["d1d5", "e5f4", "c4d3", "d8d5", "d3e4", "f4g3"]
-  },
-  {
-    "id": "eg140",
-    "fen": "6k1/8/6K1/8/8/8/1Q6/3r4 w - - 0 1",
-    "category": "queen-endgame",
-    "subcategory": "queen-vs-rook",
-    "title": "Queen vs Rook — Winning Technique",
-    "description": "Queen wins against a rook. Use Philidor's technique: force the king to the edge, then skewer.",
-    "objective": "Win the rook using queen checks and the Philidor skewer pattern.",
-    "difficulty": 4,
-    "rating": 1800,
-    "solution_moves": ["b2b8", "g8h7", "b8b1", "d1d7", "b1h1", "h7g8"]
+    "solution_moves": [
+      "d4c6",
+      "d2e2",
+      "e4d4",
+      "d6c7",
+      "c6a5",
+      "e2d2"
+    ]
   },
   {
     "id": "eg141",
     "fen": "8/3Q4/1k6/8/8/4r3/3K4/8 w - - 0 1",
     "category": "queen-endgame",
     "subcategory": "queen-vs-rook",
-    "title": "Queen vs Rook — Skewer Pattern",
+    "title": "Queen vs Rook \u2014 Skewer Pattern",
     "description": "The classic queen vs rook winning pattern. Check to separate king and rook, then skewer.",
     "objective": "Win the rook by forcing a skewer with queen checks.",
     "difficulty": 3,
     "rating": 1400,
-    "solution_moves": ["d7d6", "b6a5", "d6a3", "a5b5", "a3e3"]
-  },
-  {
-    "id": "eg142",
-    "fen": "8/5pk1/5bp1/8/3B4/5PK1/6P1/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "same-color-bishops",
-    "title": "Same-Color Bishops — Good vs Bad",
-    "description": "White's active bishop vs Black's passive bishop. Convert the advantage.",
-    "objective": "Win by exploiting the difference in bishop activity — dominate the diagonals.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["d4e5", "f6e5", "g3f4", "e5d4", "f4e4", "g7f6"]
-  },
-  {
-    "id": "eg143",
-    "fen": "8/8/5k2/2n5/2B2K2/8/4P3/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "bishop-vs-knight",
-    "title": "Bishop + Pawn vs Knight — Long Diagonal",
-    "description": "The bishop's long range controls both the pawn's path and the knight's squares.",
-    "objective": "Promote the e-pawn by using the bishop to restrict the knight.",
-    "difficulty": 3,
-    "rating": 1400,
-    "solution_moves": ["e2e3", "c5d3", "c4d3", "f6e5", "e3e4", "e5d6"]
-  },
-  {
-    "id": "eg144",
-    "fen": "5r2/8/8/3k4/8/3K4/3R4/8 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-vs-rook",
-    "title": "Rook vs Rook — Cutting Off the King",
-    "description": "Pure rook vs rook. The key principle: cut off the enemy king along a rank or file.",
-    "objective": "Gain a winning advantage by cutting off the enemy king.",
-    "difficulty": 3,
-    "rating": 1300,
-    "solution_moves": ["d2d1", "f8f3", "d3c4", "d5e5", "d1e1", "e5d6"]
-  },
-  {
-    "id": "eg145",
-    "fen": "8/2n5/8/3Pk3/8/3K4/8/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "pawn-vs-knight",
-    "title": "Passed Pawn vs Knight — The Race",
-    "description": "The d-pawn races to promote while the knight tries to blockade or capture it.",
-    "objective": "Promote the d-pawn despite the knight's attempts to stop it.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["d5d6", "c7d5", "d3c4", "d5e3", "c4c5", "e5d6"]
-  },
-  {
-    "id": "eg146",
-    "fen": "8/8/8/8/5B1k/8/5KBp/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "two-bishops",
-    "title": "Two Bishops vs Passed Pawn",
-    "description": "Black's h-pawn is one step from promotion. Can two bishops stop it and win?",
-    "objective": "Use the two bishops to stop the h-pawn and force a win.",
-    "difficulty": 4,
-    "rating": 1700,
-    "solution_moves": ["g2f1", "h4g3", "f4e3", "g3h4", "f1g2", "h4g5"]
-  },
-  {
-    "id": "eg147",
-    "fen": "8/8/2k5/4R3/8/2K1n3/8/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "rook-vs-knight",
-    "title": "Rook vs Knight — Cornering Technique",
-    "description": "Rook vs knight endgame. The rook wins by driving the knight away from the king.",
-    "objective": "Win the knight by separating it from its king and trapping it.",
-    "difficulty": 4,
-    "rating": 1650,
-    "solution_moves": ["e5e3", "c6d5", "e3e1", "d5d4", "c3b4", "e3c2"]
-  },
-  {
-    "id": "eg148",
-    "fen": "8/p7/k7/8/PK6/8/1R6/8 w - - 0 1",
-    "category": "rook-endgame",
-    "subcategory": "rook-vs-pawn",
-    "title": "Rook + Pawn vs Pawn — Winning with the a-pawn",
-    "description": "Rook pawns are tricky. White must be precise to avoid drawing traps.",
-    "objective": "Win by advancing the a-pawn while using the rook to support.",
-    "difficulty": 3,
-    "rating": 1250,
-    "solution_moves": ["b2b6", "a6a7", "b6b7", "a7a8", "b7a7"]
-  },
-  {
-    "id": "eg149",
-    "fen": "8/8/8/5k2/5b2/4K3/3N4/8 w - - 0 1",
-    "category": "piece-vs-pawns",
-    "subcategory": "knight-vs-bishop",
-    "title": "Knight vs Bishop — Defensive Fortress",
-    "description": "Knight defends against a bishop. Neither side can make progress without pawns.",
-    "objective": "Maintain the draw with the knight against the bishop.",
-    "difficulty": 2,
-    "rating": 900,
-    "solution_moves": ["d2c4", "f5e4", "c4e5", "f4e5", "e3e4"]
+    "solution_moves": [
+      "d7d6",
+      "b6a5",
+      "d6a3",
+      "a5b5",
+      "a3e3"
+    ]
   },
   {
     "id": "eg150",
@@ -1305,66 +826,683 @@
     "objective": "Win using the knight to create mating threats and fork possibilities.",
     "difficulty": 5,
     "rating": 2100,
-    "solution_moves": ["f5e7", "f7e8", "a6a8", "e8d7", "e7f5", "d7c6"]
-  },
-  {
-    "id": "eg151",
-    "fen": "8/8/k7/p7/P1K5/8/1B6/8 w - - 0 1",
-    "category": "bishop-endgame",
-    "subcategory": "bishop-pawn",
-    "title": "Bishop + Pawn — Opposite Wing Bind",
-    "description": "White's bishop controls key squares while the king outflanks on the queenside.",
-    "objective": "Win by combining the bishop's diagonal power with king penetration.",
-    "difficulty": 3,
-    "rating": 1350,
-    "solution_moves": ["b2c3", "a6b6", "c3d4", "b6a6", "c4b4", "a6b6"]
+    "solution_moves": [
+      "f5e7",
+      "f7e8",
+      "a6a8",
+      "e8d7",
+      "e7f5",
+      "d7c6"
+    ]
   },
   {
     "id": "eg152",
     "fen": "8/5p2/4k1p1/3n4/3NK1P1/5P2/8/8 w - - 0 1",
     "category": "knight-endgame",
     "subcategory": "knight-vs-knight",
-    "title": "Knight vs Knight — Pawn Structure Matters",
+    "title": "Knight vs Knight \u2014 Pawn Structure Matters",
     "description": "Symmetrical knights but White's pawn structure is slightly better. Convert the edge.",
     "objective": "Win by exploiting the better pawn structure with active knight play.",
     "difficulty": 4,
     "rating": 1800,
-    "solution_moves": ["d4f5", "d5f4", "f5g7", "e6d6", "g7e8", "d6c6"]
+    "solution_moves": [
+      "d4f5",
+      "d5f4",
+      "f5g7",
+      "e6d6",
+      "g7e8",
+      "d6c6"
+    ]
   },
   {
     "id": "eg153",
     "fen": "8/8/p1k5/Pp6/1P6/8/3B1K2/8 w - - 0 1",
     "category": "bishop-endgame",
     "subcategory": "bishop-pawn",
-    "title": "Bishop + Pawns vs Pawns — Diagonal Breakthrough",
+    "title": "Bishop + Pawns vs Pawns \u2014 Diagonal Breakthrough",
     "description": "White's bishop supports the queenside pawns. Find the winning plan.",
     "objective": "Win by using the bishop to break through on the queenside.",
     "difficulty": 3,
     "rating": 1400,
-    "solution_moves": ["d2c3", "c6b7", "f2e3", "b7c6", "e3d4", "c6d6"]
+    "solution_moves": [
+      "d2c3",
+      "c6b7",
+      "f2e3",
+      "b7c6",
+      "e3d4",
+      "c6d6"
+    ]
   },
   {
     "id": "eg154",
     "fen": "8/8/2k5/p1p5/P1P5/1PK5/8/8 w - - 0 1",
     "category": "pawn-endgame",
     "subcategory": "opposition",
-    "title": "Fixed Pawns — Losing the Opposition",
+    "title": "Fixed Pawns \u2014 Losing the Opposition",
     "description": "Fixed pawns on both sides. Whoever controls the opposition wins the breakthrough.",
     "objective": "Win by using opposition to break through the pawn chain.",
     "difficulty": 3,
     "rating": 1350,
-    "solution_moves": ["c3d3", "c6d6", "d3e4", "d6c6", "e4e5", "c6d7"]
+    "solution_moves": [
+      "c3d3",
+      "c6d6",
+      "d3e4",
+      "d6c6",
+      "e4e5",
+      "c6d7"
+    ]
   },
   {
     "id": "eg155",
     "fen": "1Q6/8/8/5k2/8/8/1r6/3K4 w - - 0 1",
     "category": "queen-endgame",
     "subcategory": "queen-vs-rook",
-    "title": "Queen vs Rook — Third Rank Defense",
+    "title": "Queen vs Rook \u2014 Third Rank Defense",
     "description": "Black's rook tries to shelter near the king. White systematically breaks the defense.",
     "objective": "Win the rook by driving the king to the edge and applying the skewer.",
     "difficulty": 4,
     "rating": 1850,
-    "solution_moves": ["b8f4", "f5g6", "f4e4", "g6f7", "e4e1", "b2b7"]
+    "solution_moves": [
+      "b8f4",
+      "f5g6",
+      "f4e4",
+      "g6f7",
+      "e4e1",
+      "b2b7"
+    ]
+  },
+  {
+    "id": "eg200",
+    "fen": "8/8/8/3k4/8/8/R2K4/8 w - - 0 1",
+    "category": "rook-endgame",
+    "subcategory": "rook-vs-king",
+    "title": "Rook vs King \u2014 Restricting Ranks",
+    "description": "Use the rook to cut off the king rank by rank while advancing your own king.",
+    "objective": "Restrict the enemy king using the rook. Drive it toward the edge.",
+    "difficulty": 1,
+    "rating": 700,
+    "solution_moves": [
+      "a2a5",
+      "d5d6",
+      "d2d3",
+      "d6c6",
+      "a5a6",
+      "c6b7"
+    ]
+  },
+  {
+    "id": "eg205",
+    "fen": "8/6pp/5k2/3R4/8/6K1/6PP/8 w - - 0 1",
+    "category": "rook-endgame",
+    "subcategory": "rook-technique",
+    "title": "Rook + Pawns \u2014 7th Rank Dominance",
+    "description": "White's rook occupies the 6th rank, restricting the Black king.",
+    "objective": "Use the rook on the 6th rank to create winning threats.",
+    "difficulty": 3,
+    "rating": 1350,
+    "solution_moves": [
+      "d5d6",
+      "f6e7",
+      "d6h6",
+      "e7f7",
+      "g3f4",
+      "f7g8"
+    ]
+  },
+  {
+    "id": "eg206",
+    "fen": "8/8/6p1/5Rk1/5P2/4K3/8/8 w - - 0 1",
+    "category": "rook-endgame",
+    "subcategory": "rook-pawn-vs-rook",
+    "title": "Rook + Pawn vs Pawn \u2014 Active Rook Wins",
+    "description": "White's active rook and passed f-pawn outweigh Black's g-pawn.",
+    "objective": "Win by activating the rook and pushing the f-pawn.",
+    "difficulty": 3,
+    "rating": 1300,
+    "solution_moves": [
+      "f5a5",
+      "g5f6",
+      "a5a6",
+      "f6f7",
+      "a6g6"
+    ]
+  },
+  {
+    "id": "eg210",
+    "fen": "8/8/3k4/8/2BK4/8/8/8 w - - 0 1",
+    "category": "bishop-endgame",
+    "subcategory": "bishop-king",
+    "title": "Bishop + King vs King \u2014 Insufficient Material",
+    "description": "Bishop and king cannot force checkmate. This is always a draw.",
+    "objective": "Recognize insufficient material \u2014 K+B vs K is always a draw.",
+    "difficulty": 1,
+    "rating": 650,
+    "solution_moves": [
+      "c4b5",
+      "d6c7",
+      "d4c5",
+      "c7b8",
+      "b5a6",
+      "b8a8"
+    ]
+  },
+  {
+    "id": "eg213",
+    "fen": "8/4k3/3p4/4p3/4P3/2BPK3/8/8 w - - 0 1",
+    "category": "bishop-endgame",
+    "subcategory": "bishop-pawn",
+    "title": "Bishop + Pawns \u2014 Fixed Center",
+    "description": "Use the bishop to support a king march around the locked pawns.",
+    "objective": "Win by outflanking through the kingside.",
+    "difficulty": 4,
+    "rating": 1650,
+    "solution_moves": [
+      "e3f3",
+      "e7d7",
+      "f3g4",
+      "d7c7",
+      "g4f5",
+      "c7d7"
+    ]
+  },
+  {
+    "id": "eg220",
+    "fen": "8/8/3k4/8/3NK3/8/8/8 w - - 0 1",
+    "category": "knight-endgame",
+    "subcategory": "knight-king",
+    "title": "Knight + King vs King \u2014 Insufficient Material",
+    "description": "Knight and king cannot force checkmate. This is always a draw.",
+    "objective": "Recognize that K+N vs K is a theoretical draw.",
+    "difficulty": 1,
+    "rating": 650,
+    "solution_moves": [
+      "d4c6",
+      "d6c7",
+      "e4d5",
+      "c7b6",
+      "c6a5",
+      "b6a5"
+    ]
+  },
+  {
+    "id": "eg221",
+    "fen": "8/5k2/8/4N3/8/4K3/4P3/8 w - - 0 1",
+    "category": "knight-endgame",
+    "subcategory": "knight-pawn",
+    "title": "Knight + Pawn vs King \u2014 Escort Plan",
+    "description": "The knight guards key squares while the pawn advances.",
+    "objective": "Promote the e-pawn with knight and king coordination.",
+    "difficulty": 2,
+    "rating": 1050,
+    "solution_moves": [
+      "e5c6",
+      "f7e6",
+      "e3d4",
+      "e6d6",
+      "e2e4",
+      "d6c7"
+    ]
+  },
+  {
+    "id": "eg223",
+    "fen": "8/5k2/8/8/3Np3/4K3/8/8 w - - 0 1",
+    "category": "knight-endgame",
+    "subcategory": "knight-vs-pawn",
+    "title": "Knight vs e-pawn \u2014 Capture Race",
+    "description": "The knight repositions to capture the enemy e-pawn.",
+    "objective": "Maneuver the knight to win the e4 pawn.",
+    "difficulty": 2,
+    "rating": 1050,
+    "solution_moves": [
+      "d4f3",
+      "f7e6",
+      "f3e1",
+      "e6d5",
+      "e1d3",
+      "d5c4"
+    ]
+  },
+  {
+    "id": "eg224",
+    "fen": "8/8/4k3/3pN3/8/4K3/3P4/8 w - - 0 1",
+    "category": "knight-endgame",
+    "subcategory": "knight-pawn",
+    "title": "Knight + Pawn vs Pawn \u2014 Outpost Power",
+    "description": "The knight dominates from a central outpost while the pawn advances.",
+    "objective": "Win by using the knight to support the d-pawn.",
+    "difficulty": 3,
+    "rating": 1350,
+    "solution_moves": [
+      "e5c4",
+      "e6d7",
+      "d2d3",
+      "d7c6",
+      "c4a5",
+      "c6c5"
+    ]
+  },
+  {
+    "id": "eg230",
+    "fen": "8/8/8/2k5/8/4K3/8/4Q3 w - - 0 1",
+    "category": "queen-endgame",
+    "subcategory": "queen-technique",
+    "title": "Queen + King vs King \u2014 Edge Drive",
+    "description": "The queen and king systematically drive the enemy to the edge.",
+    "objective": "Deliver checkmate using queen and king coordination.",
+    "difficulty": 1,
+    "rating": 750,
+    "solution_moves": [
+      "e1c3",
+      "c5d5",
+      "e3d3",
+      "d5e6",
+      "c3c6",
+      "e6f5"
+    ]
+  },
+  {
+    "id": "eg231",
+    "fen": "8/8/8/5k2/8/5K2/8/3Q4 w - - 0 1",
+    "category": "queen-endgame",
+    "subcategory": "queen-technique",
+    "title": "Queen Mate \u2014 Support from Behind",
+    "description": "The queen restricts the enemy king while the player's king approaches.",
+    "objective": "Use the queen to trap the king, then bring your king to help.",
+    "difficulty": 2,
+    "rating": 900,
+    "solution_moves": [
+      "d1d5",
+      "f5f6",
+      "d5e4",
+      "f6g7",
+      "e4e7",
+      "g7g6"
+    ]
+  },
+  {
+    "id": "eg240",
+    "fen": "8/4k3/8/4K3/4P3/8/8/8 w - - 0 1",
+    "category": "pawn-endgame",
+    "subcategory": "opposition",
+    "title": "King + Pawn vs King \u2014 Basic Opposition",
+    "description": "The fundamental pawn endgame. White has the opposition and wins.",
+    "objective": "Promote the e-pawn using the opposition.",
+    "difficulty": 1,
+    "rating": 750,
+    "solution_moves": [
+      "e5d5",
+      "e7d7",
+      "e4e5",
+      "d7e7",
+      "e5e6"
+    ]
+  },
+  {
+    "id": "eg244",
+    "fen": "8/p7/8/1P6/8/K7/8/1k6 w - - 0 1",
+    "category": "pawn-endgame",
+    "subcategory": "pawn-race",
+    "title": "Pawn Race \u2014 Who Queens First?",
+    "description": "Both sides have a passed pawn. Count the tempi to see who wins.",
+    "objective": "Win the pawn race by promoting first.",
+    "difficulty": 2,
+    "rating": 1050,
+    "solution_moves": [
+      "b5b6",
+      "a7a6",
+      "a3b4",
+      "b1c2",
+      "b4a5"
+    ]
+  },
+  {
+    "id": "eg245",
+    "fen": "8/8/3k4/pp6/2p1K3/8/PP6/8 w - - 0 1",
+    "category": "pawn-endgame",
+    "subcategory": "outside-passer",
+    "title": "Outside Passed Pawn \u2014 Decoy",
+    "description": "Create an outside passer to decoy the Black king.",
+    "objective": "Win by using the a-pawn as a decoy.",
+    "difficulty": 3,
+    "rating": 1400,
+    "solution_moves": [
+      "a2a4",
+      "b5a4",
+      "b2b3",
+      "c4b3",
+      "e4d4",
+      "d6c6"
+    ]
+  },
+  {
+    "id": "eg246",
+    "fen": "8/5k2/8/5pKp/5P1P/8/8/8 w - - 0 1",
+    "category": "pawn-endgame",
+    "subcategory": "zugzwang",
+    "title": "Zugzwang \u2014 Kingside Bind",
+    "description": "White's king penetrates and Black is in zugzwang.",
+    "objective": "Win by placing Black in zugzwang.",
+    "difficulty": 4,
+    "rating": 1700,
+    "solution_moves": [
+      "g5h6",
+      "f7f6",
+      "h6h7",
+      "f6f7"
+    ]
+  },
+  {
+    "id": "eg250",
+    "fen": "8/5k2/8/5N2/8/5K2/5P2/8 w - - 0 1",
+    "category": "piece-vs-pawns",
+    "subcategory": "knight-and-pawn",
+    "title": "Knight + Pawn vs King \u2014 Basic Technique",
+    "description": "Knight and pawn against king. Use the knight to clear the path.",
+    "objective": "Promote the f-pawn with knight support.",
+    "difficulty": 2,
+    "rating": 1000,
+    "solution_moves": [
+      "f5e3",
+      "f7e6",
+      "e3d5",
+      "e6d5",
+      "f3e3",
+      "d5e5"
+    ]
+  },
+  {
+    "id": "eg253",
+    "fen": "8/8/4k3/8/3Rn3/4K3/8/8 w - - 0 1",
+    "category": "piece-vs-pawns",
+    "subcategory": "rook-vs-knight",
+    "title": "Rook vs Knight \u2014 Separation Attack",
+    "description": "The rook separates the knight from its king to win material.",
+    "objective": "Win the knight by separating it from king support.",
+    "difficulty": 3,
+    "rating": 1350,
+    "solution_moves": [
+      "d4a4",
+      "e4d6",
+      "a4a6",
+      "e6e5",
+      "a6d6",
+      "e5d6"
+    ]
+  },
+  {
+    "id": "eg254",
+    "fen": "8/6pp/5k2/3R4/8/6K1/6PP/8 w - - 0 1",
+    "category": "rook-endgame",
+    "subcategory": "rook-technique",
+    "title": "Rook on the 6th \u2014 Kingside Squeeze",
+    "description": "The rook dominates from the 6th rank while pawns support.",
+    "objective": "Win by squeezing the enemy king with the rook.",
+    "difficulty": 3,
+    "rating": 1400,
+    "solution_moves": [
+      "d5d6",
+      "f6e7",
+      "d6h6",
+      "e7f7",
+      "h6h7",
+      "f7f6"
+    ]
+  },
+  {
+    "id": "eg256",
+    "fen": "Q7/8/8/1k6/8/r7/3K4/8 w - - 0 1",
+    "category": "queen-endgame",
+    "subcategory": "queen-vs-rook",
+    "title": "Queen vs Rook \u2014 Winning the Rook",
+    "description": "Win the rook using checks to separate it from the king.",
+    "objective": "Force the rook away from king support, then capture it.",
+    "difficulty": 4,
+    "rating": 1800,
+    "solution_moves": [
+      "a8b8",
+      "b5a4",
+      "b8a7",
+      "a4b3",
+      "a7a3"
+    ]
+  },
+  {
+    "id": "eg300",
+    "fen": "8/8/8/4k3/8/8/R7/4K3 w - - 0 1",
+    "solution_moves": [
+      "a2a5",
+      "e5d6",
+      "e1d2",
+      "d6c6",
+      "d2d3",
+      "c6b6"
+    ],
+    "category": "rook-endgame",
+    "subcategory": "rook-vs-king",
+    "title": "Rook vs King \u2014 Rank Restriction",
+    "description": "Use the rook to cut off the king rank by rank. Systematic approach.",
+    "objective": "Restrict the enemy king toward the edge.",
+    "difficulty": 1,
+    "rating": 700
+  },
+  {
+    "id": "eg303",
+    "fen": "8/8/k7/8/P7/2K5/8/R7 w - - 0 1",
+    "solution_moves": [
+      "a4a5",
+      "a6b7",
+      "c3b4",
+      "b7c7",
+      "b4b5",
+      "c7d7"
+    ],
+    "category": "rook-endgame",
+    "subcategory": "passed-pawn",
+    "title": "Rook Behind Passed Pawn \u2014 Classic Principle",
+    "description": "Tarrasch's rule: place the rook behind the passed pawn.",
+    "objective": "Advance the a-pawn with the rook supporting from behind.",
+    "difficulty": 2,
+    "rating": 1150
+  },
+  {
+    "id": "eg304",
+    "fen": "8/8/5kp1/3R4/8/5K2/8/r7 w - - 0 1",
+    "solution_moves": [
+      "d5d6",
+      "f6g7",
+      "d6g6",
+      "g7f7",
+      "f3f4",
+      "a1a3"
+    ],
+    "category": "rook-endgame",
+    "subcategory": "active-rook",
+    "title": "Active Rook Wins Material",
+    "description": "White's active rook attacks the g6 pawn. Black's rook is passive on a1.",
+    "objective": "Win the g-pawn with the active rook.",
+    "difficulty": 3,
+    "rating": 1350
+  },
+  {
+    "id": "eg312",
+    "fen": "7k/8/6KP/8/3B4/8/8/8 w - - 0 1",
+    "solution_moves": [
+      "d4e5",
+      "h8g8",
+      "e5f6",
+      "g8f8"
+    ],
+    "category": "bishop-endgame",
+    "subcategory": "wrong-bishop",
+    "title": "Wrong Bishop \u2014 The h-pawn Draw",
+    "description": "The dark-squared bishop can't control h8. Classic drawn position.",
+    "objective": "Try to promote. Discover why this position is a draw.",
+    "difficulty": 3,
+    "rating": 1400
+  },
+  {
+    "id": "eg313",
+    "fen": "6k1/5pbp/8/8/3B4/3K4/5PP1/8 w - - 0 1",
+    "solution_moves": [
+      "f2f4",
+      "g8f8",
+      "d3e4",
+      "f8e7",
+      "g2g4",
+      "g7f6"
+    ],
+    "category": "bishop-endgame",
+    "subcategory": "same-color-bishops",
+    "title": "Same-Color Bishops \u2014 Pawn Majority",
+    "description": "Both sides have same-color bishops. White's pawn majority decides.",
+    "objective": "Use the extra pawn with bishop support to win.",
+    "difficulty": 3,
+    "rating": 1350
+  },
+  {
+    "id": "eg320",
+    "fen": "8/8/8/5k2/3N4/3K4/8/8 w - - 0 1",
+    "solution_moves": [
+      "d4e6",
+      "f5e6",
+      "d3e4"
+    ],
+    "category": "knight-endgame",
+    "subcategory": "knight-king",
+    "title": "Knight + King vs King \u2014 Draw",
+    "description": "K+N vs K is insufficient material. Always a draw.",
+    "objective": "Recognize this is a theoretical draw.",
+    "difficulty": 1,
+    "rating": 650
+  },
+  {
+    "id": "eg321",
+    "fen": "8/5k2/2N5/8/3K4/8/4P3/8 w - - 0 1",
+    "solution_moves": [
+      "e2e4",
+      "f7e6",
+      "d4e3",
+      "e6d6",
+      "c6a5",
+      "d6c5"
+    ],
+    "category": "knight-endgame",
+    "subcategory": "knight-pawn",
+    "title": "Knight + e-pawn \u2014 Advanced Post",
+    "description": "The knight on c6 controls key squares for the pawn's advance.",
+    "objective": "Promote the e-pawn with the knight's support.",
+    "difficulty": 2,
+    "rating": 1100
+  },
+  {
+    "id": "eg330",
+    "fen": "8/8/8/2k5/8/4K3/8/3Q4 w - - 0 1",
+    "solution_moves": [
+      "d1c2",
+      "c5d5",
+      "e3d3",
+      "d5e6",
+      "c2c6",
+      "e6f7"
+    ],
+    "category": "queen-endgame",
+    "subcategory": "queen-technique",
+    "title": "Queen + King vs King \u2014 Wall Technique",
+    "description": "Systematically push the king to the wall using the queen.",
+    "objective": "Drive the king to the edge for checkmate.",
+    "difficulty": 1,
+    "rating": 750
+  },
+  {
+    "id": "eg332",
+    "fen": "Q7/8/8/1k6/8/r7/3K4/8 w - - 0 1",
+    "solution_moves": [
+      "a8b8",
+      "b5a4",
+      "b8b1",
+      "a3a1",
+      "b1a1"
+    ],
+    "category": "queen-endgame",
+    "subcategory": "queen-vs-rook",
+    "title": "Queen vs Rook \u2014 Winning the Rook",
+    "description": "Use checks to drive the king away from the rook, then capture it.",
+    "objective": "Win the rook with queen checks.",
+    "difficulty": 4,
+    "rating": 1800
+  },
+  {
+    "id": "eg340",
+    "fen": "8/4k3/8/4K3/4P3/8/8/8 w - - 0 1",
+    "solution_moves": [
+      "e5d5",
+      "e7d7",
+      "e4e5",
+      "d7e7",
+      "e5e6"
+    ],
+    "category": "pawn-endgame",
+    "subcategory": "opposition",
+    "title": "K+P vs K \u2014 Opposition Win",
+    "description": "The most fundamental endgame. White has the opposition.",
+    "objective": "Promote the e-pawn using the opposition.",
+    "difficulty": 1,
+    "rating": 750
+  },
+  {
+    "id": "eg342",
+    "fen": "8/p7/8/1P6/8/2K5/8/k7 w - - 0 1",
+    "solution_moves": [
+      "b5b6",
+      "a7b6",
+      "c3b4",
+      "a1b2",
+      "b4b5"
+    ],
+    "category": "pawn-endgame",
+    "subcategory": "pawn-race",
+    "title": "Pawn Race \u2014 Tempo Advantage",
+    "description": "White's b-pawn races against Black's a-pawn. Tempo is key.",
+    "objective": "Win the pawn race or gain a decisive tempo.",
+    "difficulty": 2,
+    "rating": 1050
+  },
+  {
+    "id": "eg344",
+    "fen": "8/8/3k4/pp6/2p1K3/8/PP6/8 w - - 0 1",
+    "solution_moves": [
+      "a2a4",
+      "b5a4",
+      "b2b3",
+      "c4b3",
+      "e4d4",
+      "d6c6"
+    ],
+    "category": "pawn-endgame",
+    "subcategory": "outside-passer",
+    "title": "Outside Passer \u2014 Classic Decoy",
+    "description": "Create an outside passed pawn to decoy the enemy king.",
+    "objective": "Sacrifice to create a passer and win on the other wing.",
+    "difficulty": 3,
+    "rating": 1400
+  },
+  {
+    "id": "eg351",
+    "fen": "8/8/4k3/8/3Rn3/4K3/8/8 w - - 0 1",
+    "solution_moves": [
+      "d4a4",
+      "e4d6",
+      "a4a6",
+      "e6e5",
+      "a6d6",
+      "e5d6"
+    ],
+    "category": "piece-vs-pawns",
+    "subcategory": "rook-vs-knight",
+    "title": "Rook vs Knight \u2014 Separation",
+    "description": "Separate the knight from its king, then win it.",
+    "objective": "Win the knight using the rook's long range.",
+    "difficulty": 3,
+    "rating": 1350
   }
 ]
