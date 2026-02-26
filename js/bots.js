@@ -156,7 +156,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Magician from Riga',
     tier: 'grandmaster',
     peakElo: 2705,
-    stockfishElo: 1600,
+    stockfishElo: 2250,
     portrait: 'img/gm/tal.svg',
     bio: {
       born: '1936, Riga, Latvia',
@@ -194,8 +194,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 3, positional: 3, aggression: 10, defense: 2, kingSafety: 3, pawnStructure: 4, pieceActivity: 9, tactical: 10, endgame: 4, drawContempt: 10 },
-    uci: { 'Skill Level': 8, 'Contempt': 100 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 12, 'Contempt': 100 },
+    searchDepth: 12,
     moveTime: null,
   },
   {
@@ -204,7 +204,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'Iron Tigran',
     tier: 'grandmaster',
     peakElo: 2649,
-    stockfishElo: 1800,
+    stockfishElo: 2200,
     portrait: 'img/gm/petrosian.svg',
     bio: {
       born: '1929, Tbilisi, Georgia',
@@ -243,7 +243,7 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 5, positional: 9, aggression: 2, defense: 10, kingSafety: 9, pawnStructure: 9, pieceActivity: 6, tactical: 5, endgame: 8, drawContempt: 2 },
-    uci: { 'Skill Level': 10, 'Contempt': -80 },
+    uci: { 'Skill Level': 12, 'Contempt': -80 },
     searchDepth: 12,
     moveTime: null,
   },
@@ -253,7 +253,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Chess Machine',
     tier: 'grandmaster',
     peakElo: 2725,
-    stockfishElo: 2000,
+    stockfishElo: 2350,
     portrait: 'img/gm/capablanca.svg',
     bio: {
       born: '1888, Havana, Cuba',
@@ -290,8 +290,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 6, positional: 9, aggression: 3, defense: 7, kingSafety: 7, pawnStructure: 7, pieceActivity: 8, tactical: 6, endgame: 10, drawContempt: 4 },
-    uci: { 'Skill Level': 12, 'Contempt': -30 },
-    searchDepth: 12,
+    uci: { 'Skill Level': 13, 'Contempt': -30 },
+    searchDepth: 13,
     moveTime: null,
   },
   {
@@ -300,7 +300,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Patriarch',
     tier: 'grandmaster',
     peakElo: 2730,
-    stockfishElo: 2100,
+    stockfishElo: 2400,
     portrait: 'img/gm/botvinnik.svg',
     bio: {
       born: '1911, Kuokkala, Russia',
@@ -339,7 +339,7 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 6, positional: 8, aggression: 5, defense: 7, kingSafety: 7, pawnStructure: 8, pieceActivity: 7, tactical: 6, endgame: 7, drawContempt: 6 },
-    uci: { 'Skill Level': 14, 'Contempt': 10 },
+    uci: { 'Skill Level': 15, 'Contempt': 10 },
     searchDepth: 14,
     moveTime: null,
   },
@@ -349,7 +349,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Great Attacker',
     tier: 'grandmaster',
     peakElo: 2690,
-    stockfishElo: 2200,
+    stockfishElo: 2450,
     portrait: 'img/gm/alekhine.svg',
     bio: {
       born: '1892, Moscow, Russia',
@@ -387,7 +387,7 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 4, positional: 6, aggression: 9, defense: 4, kingSafety: 4, pawnStructure: 5, pieceActivity: 9, tactical: 9, endgame: 6, drawContempt: 9 },
-    uci: { 'Skill Level': 15, 'Contempt': 70 },
+    uci: { 'Skill Level': 16, 'Contempt': 70 },
     searchDepth: 14,
     moveTime: null,
   },
@@ -641,7 +641,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Creative Champion',
     tier: 'grandmaster',
     peakElo: 2690,
-    stockfishElo: 1600,
+    stockfishElo: 2300,
     portrait: 'img/gm/spassky.svg',
     bio: {
       born: '1937, Leningrad, USSR',
@@ -679,8 +679,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 5, positional: 6, aggression: 7, defense: 5, kingSafety: 5, pawnStructure: 5, pieceActivity: 7, tactical: 7, endgame: 6, drawContempt: 7 },
-    uci: { 'Skill Level': 8, 'Contempt': 50 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 13, 'Contempt': 50 },
+    searchDepth: 13,
     moveTime: null,
   },
   {
@@ -689,7 +689,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Philosopher Champion',
     tier: 'grandmaster',
     peakElo: 2720,
-    stockfishElo: 1600,
+    stockfishElo: 2150,
     portrait: 'img/gm/lasker.svg',
     bio: {
       born: '1868, Berlinchen, Germany',
@@ -727,8 +727,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 6, positional: 7, aggression: 5, defense: 7, kingSafety: 6, pawnStructure: 6, pieceActivity: 7, tactical: 7, endgame: 9, drawContempt: 7 },
-    uci: { 'Skill Level': 8, 'Contempt': 30 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 11, 'Contempt': 30 },
+    searchDepth: 12,
     moveTime: null,
   },
   {
@@ -737,7 +737,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Father of Modern Chess',
     tier: 'grandmaster',
     peakElo: 2600,
-    stockfishElo: 1600,
+    stockfishElo: 2050,
     portrait: 'img/gm/steinitz.svg',
     bio: {
       born: '1836, Prague, Austrian Empire',
@@ -775,8 +775,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 7, positional: 9, aggression: 3, defense: 8, kingSafety: 7, pawnStructure: 8, pieceActivity: 5, tactical: 5, endgame: 7, drawContempt: 5 },
-    uci: { 'Skill Level': 8, 'Contempt': -20 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 10, 'Contempt': -20 },
+    searchDepth: 11,
     moveTime: null,
   },
   {
@@ -785,7 +785,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Berlin Wall',
     tier: 'grandmaster',
     peakElo: 2817,
-    stockfishElo: 1600,
+    stockfishElo: 2750,
     portrait: 'img/gm/kramnik.svg',
     bio: {
       born: '1975, Tuapse, Russia',
@@ -824,8 +824,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 6, positional: 9, aggression: 3, defense: 9, kingSafety: 8, pawnStructure: 9, pieceActivity: 7, tactical: 6, endgame: 9, drawContempt: 4 },
-    uci: { 'Skill Level': 8, 'Contempt': -30 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 18, 'Contempt': -30 },
+    searchDepth: 16,
     moveTime: null,
   },
   {
@@ -834,7 +834,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Pride and Sorrow of Chess',
     tier: 'grandmaster',
     peakElo: 2690,
-    stockfishElo: 1600,
+    stockfishElo: 2100,
     portrait: 'img/gm/morphy.svg',
     bio: {
       born: '1837, New Orleans, USA',
@@ -871,8 +871,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 4, positional: 5, aggression: 9, defense: 3, kingSafety: 4, pawnStructure: 4, pieceActivity: 10, tactical: 9, endgame: 5, drawContempt: 10 },
-    uci: { 'Skill Level': 8, 'Contempt': 80 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 11, 'Contempt': 80 },
+    searchDepth: 11,
     moveTime: null,
   },
   {
@@ -881,7 +881,7 @@ export const BOT_PERSONALITIES = [
     subtitle: 'The Harmonist',
     tier: 'grandmaster',
     peakElo: 2620,
-    stockfishElo: 1600,
+    stockfishElo: 2200,
     portrait: 'img/gm/smyslov.svg',
     bio: {
       born: '1921, Moscow, USSR',
@@ -920,8 +920,8 @@ export const BOT_PERSONALITIES = [
       }
     },
     styles: { material: 6, positional: 8, aggression: 3, defense: 7, kingSafety: 7, pawnStructure: 7, pieceActivity: 8, tactical: 5, endgame: 10, drawContempt: 4 },
-    uci: { 'Skill Level': 8, 'Contempt': -10 },
-    searchDepth: 10,
+    uci: { 'Skill Level': 12, 'Contempt': -10 },
+    searchDepth: 12,
     moveTime: null,
   },
   // === Tier 3: Chess Machines ===
