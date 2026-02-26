@@ -1141,7 +1141,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v72</div>
+          <div class="nav-menu-version" id="app-version">v73</div>
         </div>
       </nav>
     </header>
@@ -1394,7 +1394,14 @@
 
         <div class="drag-group" data-drag-id="notes" data-drag-label="Notes">
         <div class="move-notes" id="move-notes">
-          <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..."></textarea>
+          <div class="move-notes-half">
+            <div class="move-notes-label">Move</div>
+            <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..."></textarea>
+          </div>
+          <div class="move-notes-half">
+            <div class="move-notes-label">Match</div>
+            <textarea class="move-notes-input" id="match-notes-input" placeholder="General match notes..."></textarea>
+          </div>
         </div>
         <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
         </div>

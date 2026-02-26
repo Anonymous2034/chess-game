@@ -827,6 +827,7 @@ class ChessApp {
 
   setupNotes() {
     this._gameNotes = {}; // moveIndex -> text
+    this._matchNotes = ''; // general match notes
 
     // Notes always visible — load initial placeholder
     this._loadNoteForCurrentMove();
@@ -840,6 +841,15 @@ class ChessApp {
         delete this._gameNotes[idx];
       }
     });
+
+    // Match notes (general)
+    const matchInput = document.getElementById('match-notes-input');
+    if (matchInput) {
+      matchInput.value = this._matchNotes;
+      matchInput.addEventListener('input', (e) => {
+        this._matchNotes = e.target.value;
+      });
+    }
   }
 
   _loadNoteForCurrentMove() {
@@ -848,7 +858,7 @@ class ChessApp {
     const idx = this.notation.currentIndex;
     input.value = this._gameNotes[idx] || '';
     const moveNum = idx >= 0 ? `Move ${Math.floor(idx / 2) + 1}` : 'Start';
-    input.placeholder = `Notes for ${moveNum}...`;
+    input.placeholder = `${moveNum}...`;
   }
 
   // === Force Move ===
@@ -2945,6 +2955,10 @@ class ChessApp {
     });
 
     this.notation.clear();
+    this._gameNotes = {};
+    this._matchNotes = '';
+    const matchInput = document.getElementById('match-notes-input');
+    if (matchInput) matchInput.value = '';
     this.board.setLastMove(null);
     this.board.setInteractive(true);
 

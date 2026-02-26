@@ -433,7 +433,7 @@ main {
   box-sizing: border-box;
 }
 .player-info.bottom {
-  margin-top: 0;
+  margin-top: 16px;
 }
 
 .player-info.active-turn {
@@ -2565,16 +2565,36 @@ main {
   font-family: monospace;
 }
 
-/* === Per-Move Notes === */
+/* === Notes === */
 .move-notes {
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 4px;
   height: 40px;
   min-height: 40px;
   box-sizing: border-box;
+}
+
+.move-notes-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   background: var(--panel-bg);
   border-radius: 4px;
+  overflow: hidden;
+}
+
+.move-notes-label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px 0;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .move-notes-input {
@@ -2582,17 +2602,21 @@ main {
   background: transparent;
   color: var(--text-color);
   border: none;
-  padding: 8px 8px;
-  font-size: 0.75rem;
+  padding: 2px 8px 4px;
+  font-size: 0.72rem;
   resize: none;
-  font-family: inherit;
+  font-family: 'Georgia', 'Palatino Linotype', 'Book Antiqua', serif;
   height: 100%;
   box-sizing: border-box;
+  line-height: 1.4;
 }
 
 .move-notes-input:focus {
   outline: none;
-  border-color: var(--accent);
+}
+.move-notes-input::placeholder {
+  font-style: italic;
+  opacity: 0.4;
 }
 
 /* === Ideas / Advisor Panel === */
