@@ -352,12 +352,27 @@ class ChessApp {
   }
 
   async requestEngineMove() {
-    if (!this.engine || !this.engine.ready) return;
+    // If engine not ready, try to init it (may have failed on first attempt)
+    if (!this.engine || !this.engine.ready) {
+      if (!this.engineInitialized) {
+        console.warn('[Engine] Not ready — attempting late init');
+        await this.initEngine();
+      }
+      if (!this.engine || !this.engine.ready) {
+        console.error('[Engine] Still not ready after init attempt');
+        return;
+      }
+    }
 
     this.board.setInteractive(false);
     this.board.setPremoveAllowed(true); // Allow pre-move input while engine thinks
     this._setEngineThinking(true);
     this._startEngineMoveTimer();
+
+    // ALWAYS restore the game move handler before requesting a move.
+    // Analysis (eval bar, advisors, GM coach) may have replaced onBestMove.
+    this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+    this.engine.onNoMove = () => this._handleEngineNoMove();
 
     // ALWAYS restore active bot personality before requesting a move.
     // Analysis (eval bar, advisors) may have changed engine personality.
@@ -3797,35 +3812,50 @@ class ChessApp {
   }
 
   loadDatabaseGame(game) {
-    // Load game moves into the game state
-    this.game.loadFromMoves(game.moves);
-    this.notation.setMoves(this.game.moveHistory);
+    try {
+      // Load game moves into the game state
+      const moves = this.game.loadFromMoves(game.moves);
 
-    // Go to start for replay
-    this.game.goToStart();
-    this.notation.setCurrentIndex(-1);
-    this.board.setLastMove(null);
-    this.board.setInteractive(false);
-    this.board.setFlipped(false);
-    this.board.update();
-    this.captured.clear();
+      if (moves.length === 0) {
+        this.showToast('No valid moves found in this game');
+        return;
+      }
 
-    // Update player names
-    const topName = document.querySelector('#player-top .player-name');
-    const bottomName = document.querySelector('#player-bottom .player-name');
-    if (topName) topName.textContent = game.black;
-    if (bottomName) bottomName.textContent = game.white;
+      this.notation.setMoves(this.game.moveHistory);
 
-    // Clear bot
-    this.activeBot = null;
+      // Go to the end of the game so user can see the final position
+      this.game.goToEnd();
+      this.notation.setCurrentIndex(this.game.moveHistory.length - 1);
+      const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
+      this.board.setLastMove(lastMove || null);
+      this.board.setInteractive(false);
+      this.board.setFlipped(false);
+      this.board.update();
+      this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, false);
 
-    // Hide engine status
-    hide(document.getElementById('engine-status'));
+      // Update player names
+      const topName = document.querySelector('#player-top .player-name');
+      const bottomName = document.querySelector('#player-bottom .player-name');
+      if (topName) topName.textContent = game.black;
+      if (bottomName) bottomName.textContent = game.white;
 
-    this.updateGameStatus(`${game.white} vs ${game.black} — ${game.event} ${game.date}`);
+      // Clear bot — this is a replay, not an engine game
+      this.activeBot = null;
 
-    // Switch to Moves tab so the loaded game is immediately visible
-    this._switchToTab('moves');
+      // Hide engine status
+      hide(document.getElementById('engine-status'));
+
+      this.updateGameStatus(`${game.white} vs ${game.black} — ${game.event} ${game.date}`);
+
+      // Switch to Moves tab so the loaded game is immediately visible
+      this._switchToTab('moves');
+
+      // Toast with game info
+      this.showToast(`${game.white} vs ${game.black} (${moves.length} moves) — use arrows to replay`);
+    } catch (err) {
+      console.error('[DB] Error loading game:', err);
+      this.showToast('Failed to load game');
+    }
   }
 
   // === Opening Explorer ===
