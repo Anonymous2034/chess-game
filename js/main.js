@@ -2623,6 +2623,16 @@ class ChessApp {
     localStorage.setItem('chess_eval_bar', 'false');
   }
 
+  _applyCoords() {
+    const board = document.getElementById('board');
+    if (!board) return;
+    if (this._coordsEnabled) {
+      board.classList.remove('hide-coords');
+    } else {
+      board.classList.add('hide-coords');
+    }
+  }
+
   toggleEvalBar() {
     if (this._evalBarEnabled) {
       this._hideEvalBar();
@@ -5201,6 +5211,9 @@ class ChessApp {
       if (miniToggle) miniToggle.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
       const miniShuffleBtn = document.getElementById('mini-music-shuffle');
       if (miniShuffleBtn) miniShuffleBtn.classList.toggle('active', !!state.shuffle);
+
+      // Expanded mini-music content
+      this._updateMiniMusicExpanded(state);
     };
 
     // --- DISPLAY section ---
@@ -5212,6 +5225,18 @@ class ChessApp {
         this.toggleEvalBar();
       }
     });
+
+    // Coordinates toggle
+    this._coordsEnabled = localStorage.getItem('chess_coords_enabled') !== 'false';
+    this._applyCoords();
+    const coordsCb = document.getElementById('settings-coords');
+    if (coordsCb) {
+      coordsCb.addEventListener('change', () => {
+        this._coordsEnabled = coordsCb.checked;
+        localStorage.setItem('chess_coords_enabled', coordsCb.checked ? 'true' : 'false');
+        this._applyCoords();
+      });
+    }
 
     // --- BOARD section ---
 
@@ -5247,6 +5272,9 @@ class ChessApp {
     document.getElementById('settings-music-volume').value = Math.round(this.music.audio.volume * 100);
     // Eval bar
     document.getElementById('settings-eval-bar').checked = this._evalBarEnabled;
+    // Coordinates
+    const coordsCb = document.getElementById('settings-coords');
+    if (coordsCb) coordsCb.checked = this._coordsEnabled;
     // Flip
     document.getElementById('settings-flip').checked = this.board.flipped;
   }
@@ -5334,6 +5362,8 @@ class ChessApp {
     this._setupResizeNotes();
     // Horizontal handle for GM coach cards height
     this._setupResizeCoach();
+    // Horizontal handle for mini music player height
+    this._setupResizeMusic();
     // Load saved sizes
     this._loadResizeSizes();
     // Sync side panel height to board area
@@ -5547,7 +5577,7 @@ class ChessApp {
   _setupResizeExplorer() {
     // Book tab, Ideas tab
     this._setupPanelResize('resize-handle-book', 'book-panel', 'chess_book_height', 80, 900);
-    this._setupPanelResize('resize-handle-ideas', 'ideas-list', 'chess_ideas_height', 60, 900);
+    this._setupPanelResize('resize-handle-ideas', 'ideas-panel', 'chess_ideas_height', 80, 900);
   }
 
   _setupResizeNotes() {
@@ -5562,8 +5592,8 @@ class ChessApp {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = clientY - startY;
       const newH = Math.max(40, Math.min(400, startH + dy));
+      notes.style.height = newH + 'px';
       notes.style.minHeight = newH + 'px';
-      notes.style.maxHeight = newH + 'px';
     };
 
     const onEnd = () => {
@@ -5573,7 +5603,7 @@ class ChessApp {
       document.removeEventListener('mouseup', onEnd);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
-      localStorage.setItem('chess_notes_height', notes.style.minHeight);
+      localStorage.setItem('chess_notes_height', notes.style.height);
     };
 
     const onStart = (e) => {
@@ -5598,16 +5628,16 @@ class ChessApp {
     if (!handle) return;
 
     let startY, startH;
-    const cards = document.getElementById('gm-coach-cards');
-    if (!cards) return;
+    const panel = document.getElementById('gm-coach-panel');
+    if (!panel) return;
 
     const onMove = (e) => {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = clientY - startY;
-      const newH = Math.max(40, Math.min(600, startH + dy));
-      cards.style.minHeight = newH + 'px';
-      cards.style.maxHeight = newH + 'px';
-      cards.style.flex = 'none';
+      const newH = Math.max(80, Math.min(900, startH + dy));
+      panel.style.minHeight = newH + 'px';
+      panel.style.maxHeight = newH + 'px';
+      panel.style.flex = 'none';
     };
 
     const onEnd = () => {
@@ -5617,14 +5647,57 @@ class ChessApp {
       document.removeEventListener('mouseup', onEnd);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
-      localStorage.setItem('chess_coach_height', cards.style.minHeight);
+      localStorage.setItem('chess_coach_height', panel.style.minHeight);
     };
 
     const onStart = (e) => {
       e.preventDefault();
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       startY = clientY;
-      startH = cards.offsetHeight;
+      startH = panel.offsetHeight;
+      document.body.classList.add('resizing', 'resizing-h');
+      handle.classList.add('active');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  _setupResizeMusic() {
+    const handle = document.getElementById('resize-handle-music');
+    if (!handle) return;
+    const music = document.getElementById('mini-music');
+    if (!music) return;
+
+    let startY, startH;
+
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = clientY - startY;
+      const newH = Math.max(40, Math.min(300, startH + dy));
+      music.style.height = newH + 'px';
+      music.style.minHeight = newH + 'px';
+    };
+
+    const onEnd = () => {
+      document.body.classList.remove('resizing', 'resizing-h');
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      localStorage.setItem('chess_music_height', music.style.height);
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startY = clientY;
+      startH = music.offsetHeight;
       document.body.classList.add('resizing', 'resizing-h');
       handle.classList.add('active');
       document.addEventListener('mousemove', onMove);
@@ -5675,30 +5748,32 @@ class ChessApp {
     if (savedNotesH) {
       const notes = document.getElementById('move-notes');
       if (notes) {
+        notes.style.height = savedNotesH;
         notes.style.minHeight = savedNotesH;
-        notes.style.maxHeight = savedNotesH;
       }
     }
     const savedCoachH = localStorage.getItem('chess_coach_height');
     if (savedCoachH) {
-      const cards = document.getElementById('gm-coach-cards');
-      if (cards) {
-        cards.style.minHeight = savedCoachH;
-        cards.style.maxHeight = savedCoachH;
-        cards.style.flex = 'none';
+      const coachPanel = document.getElementById('gm-coach-panel');
+      if (coachPanel) {
+        coachPanel.style.minHeight = savedCoachH;
+        coachPanel.style.maxHeight = savedCoachH;
+        coachPanel.style.flex = 'none';
       }
+    }
+    const savedMusicH = localStorage.getItem('chess_music_height');
+    if (savedMusicH) {
+      const music = document.getElementById('mini-music');
+      if (music) music.style.height = savedMusicH;
     }
   }
 
   _syncPanelHeight() {
     const boardArea = document.querySelector('.board-area');
     const sidePanel = document.querySelector('.side-panel');
-    const bottomPlayer = document.getElementById('player-bottom');
-    if (!boardArea || !sidePanel || !bottomPlayer) return;
-    // Panel height = top of board area to bottom of "You + time" bar
-    const top = boardArea.getBoundingClientRect().top;
-    const bottom = bottomPlayer.getBoundingClientRect().bottom;
-    const h = bottom - top;
+    if (!boardArea || !sidePanel) return;
+    // Panel height = full board-area height (includes board, player bars, nav, music)
+    const h = boardArea.offsetHeight;
     if (h > 0) {
       document.documentElement.style.setProperty('--panel-height', h + 'px');
     }
@@ -7840,6 +7915,29 @@ class ChessApp {
       this._openMusicDialog();
     });
 
+    // Mini music seek bar
+    const miniSeek = document.getElementById('mini-music-seek');
+    if (miniSeek) {
+      miniSeek.addEventListener('input', (e) => {
+        this.music.seekTo(parseInt(e.target.value) / 1000);
+      });
+    }
+
+    // Mini music progress timer
+    this._miniMusicProgressInterval = setInterval(() => {
+      const seekEl = document.getElementById('mini-music-seek');
+      const curEl = document.getElementById('mini-music-time-cur');
+      const durEl = document.getElementById('mini-music-time-dur');
+      if (!seekEl) return;
+      const progress = this.music.getProgress();
+      seekEl.value = Math.round(progress * 1000);
+      if (curEl) curEl.textContent = this.music.formatTime(this.music.audio.currentTime);
+      if (durEl) durEl.textContent = this.music.formatTime(this.music.audio.duration);
+    }, 500);
+
+    // Initial expanded content
+    this._updateMiniMusicExpanded({ track: this.music.currentTrack, playing: this.music.playing });
+
     // Volume slider in music player dialog
     const mpVolSlider = document.getElementById('mp-vol-slider');
     if (mpVolSlider) {
@@ -7886,6 +7984,58 @@ class ChessApp {
     }
 
     // Note: onStateChange is set in setupSettings()
+  }
+
+  _updateMiniMusicExpanded(state) {
+    const portrait = document.getElementById('mini-music-portrait');
+    const tracklist = document.getElementById('mini-music-tracklist');
+    if (!portrait || !tracklist) return;
+
+    // Find composer profile for portrait
+    const composerName = state.track.composer;
+    const profile = COMPOSER_PROFILES.find(p => p.composerKey === composerName);
+    if (profile) {
+      portrait.src = profile.portrait;
+      portrait.alt = profile.fullName || composerName;
+    } else {
+      // Fallback: derive filename from last word of name
+      const key = composerName.toLowerCase().replace(/[^a-z]/g, ' ').trim().split(/\s+/).pop();
+      portrait.src = `img/composers/${key}.svg`;
+      portrait.alt = composerName;
+    }
+
+    // Build tracklist for current composer filter (or same composer as current track)
+    tracklist.innerHTML = '';
+    const filtered = PLAYLIST
+      .map((t, i) => ({ ...t, idx: i }))
+      .filter(t => t.composer === composerName);
+    for (let i = 0; i < filtered.length; i++) {
+      const t = filtered[i];
+      const isActive = t.idx === this.music.currentIndex;
+      const div = document.createElement('div');
+      div.className = 'mini-music-track-item' + (isActive ? ' active' : '');
+
+      const num = document.createElement('span');
+      num.className = 'mini-music-track-num';
+      num.textContent = isActive ? '\u25B6' : (i + 1);
+      div.appendChild(num);
+
+      const title = document.createElement('span');
+      title.className = 'mini-music-track-title';
+      title.textContent = t.title;
+      div.appendChild(title);
+
+      const dur = document.createElement('span');
+      dur.className = 'mini-music-track-dur';
+      dur.textContent = t.duration;
+      div.appendChild(dur);
+
+      div.addEventListener('click', () => {
+        this.music.setTrack(t.idx);
+        if (!this.music.playing) this.music.play();
+      });
+      tracklist.appendChild(div);
+    }
   }
 
   _openMusicDialog() {

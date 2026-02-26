@@ -69,32 +69,40 @@ export class Board {
   }
 
   renderCoordinates() {
-    const filesEl = document.getElementById('coords-files');
-    const ranksEl = document.getElementById('coords-ranks');
-    if (!filesEl || !ranksEl) return;
-
-    filesEl.innerHTML = '';
-    ranksEl.innerHTML = '';
+    // Remove old embedded coord labels
+    this.container.querySelectorAll('.coord-inside').forEach(el => el.remove());
 
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
-    const displayFiles = this.flipped ? [...files].reverse() : files;
-    const displayRanks = this.flipped ? [...ranks].reverse() : ranks;
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const displayRow = this.flipped ? 7 - row : row;
+        const displayCol = this.flipped ? 7 - col : col;
+        const sq = coordsToSquare(displayRow, displayCol);
+        const div = this.squares[sq];
+        if (!div) continue;
 
-    displayFiles.forEach(f => {
-      const span = document.createElement('span');
-      span.className = 'coord-label';
-      span.textContent = f;
-      filesEl.appendChild(span);
-    });
+        const isLight = (row + col) % 2 === 0;
+        const colorClass = isLight ? 'coord-on-light' : 'coord-on-dark';
 
-    displayRanks.forEach(r => {
-      const span = document.createElement('span');
-      span.className = 'coord-label';
-      span.textContent = r;
-      ranksEl.appendChild(span);
-    });
+        // File labels on bottom row
+        if (row === 7) {
+          const label = document.createElement('span');
+          label.className = `coord-inside coord-file ${colorClass}`;
+          label.textContent = files[displayCol];
+          div.appendChild(label);
+        }
+
+        // Rank labels on left column
+        if (col === 0) {
+          const label = document.createElement('span');
+          label.className = `coord-inside coord-rank ${colorClass}`;
+          label.textContent = ranks[displayRow];
+          div.appendChild(label);
+        }
+      }
+    }
   }
 
   applyHighlights() {
@@ -476,6 +484,7 @@ export class Board {
 
   update() {
     this.render();
+    this.renderCoordinates();
   }
 
   setInteractive(interactive) {

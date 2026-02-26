@@ -687,6 +687,10 @@
             <span class="layout-toggle-label">Eval Bar</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-eval-bar"><span class="toggle-slider"></span></span>
           </label>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Coordinates</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-coords" checked><span class="toggle-slider"></span></span>
+          </label>
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings-display">Done</button>
@@ -1137,7 +1141,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v59</div>
+          <div class="nav-menu-version" id="app-version">v68</div>
         </div>
       </nav>
     </header>
@@ -1220,6 +1224,37 @@
         </div>
         </div>
 
+        <div class="drag-group" data-drag-id="music" data-drag-label="Music">
+        <!-- Mini Music Player -->
+        <div class="mini-music" id="mini-music">
+          <div class="mini-music-compact">
+            <button class="mini-music-btn" id="mini-music-prev" title="Previous">&#9664;&#9664;</button>
+            <button class="mini-music-btn mini-music-play" id="mini-music-toggle" title="Play/Pause">&#9654;</button>
+            <button class="mini-music-btn" id="mini-music-next" title="Next">&#9654;&#9654;</button>
+            <div class="mini-music-info">
+              <span class="mini-music-title" id="mini-music-title">-</span>
+              <span class="mini-music-composer" id="mini-music-composer">-</span>
+            </div>
+            <button class="mini-music-btn mini-music-shuffle-btn" id="mini-music-shuffle" title="Shuffle">&#8645;</button>
+            <button class="mini-music-btn mini-music-composers-btn" id="mini-music-composers" title="Browse composers">&#9835;</button>
+            <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
+          </div>
+          <!-- Expanded content (visible when resized taller) -->
+          <div class="mini-music-expanded" id="mini-music-expanded">
+            <div class="mini-music-progress-row">
+              <span class="mini-music-time" id="mini-music-time-cur">0:00</span>
+              <input type="range" class="mini-music-seek" id="mini-music-seek" min="0" max="1000" value="0" title="Seek">
+              <span class="mini-music-time" id="mini-music-time-dur">0:00</span>
+            </div>
+            <div class="mini-music-detail">
+              <img class="mini-music-portrait" id="mini-music-portrait" src="" alt="">
+              <div class="mini-music-tracklist" id="mini-music-tracklist"></div>
+            </div>
+          </div>
+        </div>
+        <div class="resize-handle resize-handle-h" id="resize-handle-music" title="Drag to resize music player"></div>
+        </div>
+
         <div class="drag-group" data-drag-id="nav" data-drag-label="Arrows">
         <!-- Navigation Controls (under board) -->
         <div class="nav-controls">
@@ -1228,22 +1263,6 @@
           <button class="btn btn-sm" id="btn-prev" title="Previous move">&lsaquo;</button>
           <button class="btn btn-sm" id="btn-next" title="Next move">&rsaquo;</button>
           <button class="btn btn-sm" id="btn-last" title="Last move">&raquo;</button>
-        </div>
-        </div>
-
-        <div class="drag-group" data-drag-id="music" data-drag-label="Music">
-        <!-- Mini Music Player -->
-        <div class="mini-music" id="mini-music">
-          <button class="mini-music-btn" id="mini-music-prev" title="Previous">&#9664;&#9664;</button>
-          <button class="mini-music-btn mini-music-play" id="mini-music-toggle" title="Play/Pause">&#9654;</button>
-          <button class="mini-music-btn" id="mini-music-next" title="Next">&#9654;&#9654;</button>
-          <div class="mini-music-info">
-            <span class="mini-music-title" id="mini-music-title">-</span>
-            <span class="mini-music-composer" id="mini-music-composer">-</span>
-          </div>
-          <button class="mini-music-btn mini-music-shuffle-btn" id="mini-music-shuffle" title="Shuffle">&#8645;</button>
-          <button class="mini-music-btn mini-music-composers-btn" id="mini-music-composers" title="Browse composers">&#9835;</button>
-          <input type="range" class="mini-music-vol" id="mini-music-vol" min="0" max="100" value="30" title="Volume">
         </div>
         </div>
 
@@ -1335,19 +1354,19 @@
 
         <!-- Ideas Tab (GM Hints) -->
         <div class="panel-content hidden" id="tab-ideas">
-          <div class="ideas-panel">
+          <div class="ideas-panel" id="ideas-panel">
             <div class="advisor-picker" id="advisor-picker"></div>
             <div class="ideas-list" id="ideas-list">
               <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
             </div>
-            <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize hints"></div>
             <div class="advisor-annotations" id="advisor-annotations"></div>
           </div>
+          <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize GM Hints"></div>
         </div>
 
         <!-- GM Coach Tab -->
         <div class="panel-content hidden" id="tab-gm-coach">
-          <div class="gm-coach-panel">
+          <div class="gm-coach-panel" id="gm-coach-panel">
             <div class="gm-coach-header">
               <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
             </div>
@@ -1355,7 +1374,6 @@
             <div class="gm-coach-cards" id="gm-coach-cards">
               <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
             </div>
-            <div class="resize-handle resize-handle-h" id="resize-handle-coach" title="Drag to resize coach"></div>
             <div class="gm-coach-chat">
               <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>
               <div class="gm-coach-chat-input">
@@ -1365,6 +1383,7 @@
             </div>
             <div class="gm-coach-status" id="gm-coach-status"></div>
           </div>
+          <div class="resize-handle resize-handle-h" id="resize-handle-coach" title="Drag to resize GM Coach"></div>
         </div>
         </div>
 
@@ -1375,8 +1394,9 @@
 
         <div class="drag-group" data-drag-id="notes" data-drag-label="Notes">
         <div class="move-notes" id="move-notes">
-          <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..." rows="2"></textarea>
+          <textarea class="move-notes-input" id="move-notes-input" placeholder="Notes for this move..."></textarea>
         </div>
+        <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
         </div>
       </div>
     </main>
