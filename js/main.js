@@ -862,14 +862,21 @@ class ChessApp {
   _updateMatchNotesPlaceholder() {
     const matchInput = document.getElementById('match-notes-input');
     if (!matchInput) return;
-    if (this.activeBot) {
-      const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
-      matchInput.placeholder = `vs ${gmPrefix}${this.activeBot.name}...`;
-    } else if (this.game.mode === 'local') {
-      matchInput.placeholder = 'Two player match...';
-    } else {
-      matchInput.placeholder = 'General match notes...';
+
+    // Update the label to show "PlayerName vs Opponent"
+    const label = matchInput.closest('.move-notes-half')?.querySelector('.move-notes-label');
+    const myName = this.profile?.getDisplayName() || 'Player';
+    if (label) {
+      if (this.activeBot) {
+        const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
+        label.textContent = `${myName} vs ${gmPrefix}${this.activeBot.name}`;
+      } else if (this.game.mode === 'local') {
+        label.textContent = 'Two Player';
+      } else {
+        label.textContent = 'Match';
+      }
     }
+    matchInput.placeholder = 'Add note...';
   }
 
   // === Save Game to IndexedDB ("My Games" store, separate from GM database) ===
@@ -899,9 +906,10 @@ class ChessApp {
       ? `${this.activeBot.tier === 'grandmaster' ? 'GM ' : ''}${this.activeBot.name}`
       : (this.game.mode === 'local' ? 'Two Player' : 'Unknown');
 
+    const myName = this.profile?.getDisplayName() || 'Player';
     const pgn = this.notation.toPGN({
-      White: this.game.playerColor === 'w' ? 'You' : opponent,
-      Black: this.game.playerColor === 'b' ? 'You' : opponent,
+      White: this.game.playerColor === 'w' ? myName : opponent,
+      Black: this.game.playerColor === 'b' ? myName : opponent,
       Result: result,
       Event: this.activeBot ? `vs ${opponent}` : 'Casual Game',
       Date: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
@@ -947,15 +955,21 @@ class ChessApp {
     if (!input) return;
     const idx = this.notation.currentIndex;
     input.value = this._gameNotes[idx] || '';
-    // Show move number + SAN in placeholder, e.g. "3. Nf3"
-    if (idx >= 0 && this.notation.moves[idx]) {
-      const num = Math.floor(idx / 2) + 1;
-      const dot = idx % 2 === 0 ? '.' : '...';
-      const san = this.notation.moves[idx].san;
-      input.placeholder = `${num}${dot} ${san}`;
-    } else {
-      input.placeholder = 'Start position...';
+
+    // Update label to show which move, e.g. "Move · 3. Nf3"
+    const label = input.closest('.move-notes-half')?.querySelector('.move-notes-label');
+    if (label) {
+      if (idx >= 0 && this.notation.moves[idx]) {
+        const num = Math.floor(idx / 2) + 1;
+        const dot = idx % 2 === 0 ? '.' : '...';
+        const san = this.notation.moves[idx].san;
+        label.textContent = `Move \u00b7 ${num}${dot} ${san}`;
+      } else {
+        label.textContent = 'Move';
+      }
     }
+
+    input.placeholder = idx >= 0 ? 'Add note...' : '';
   }
 
   // === Sync compact moves into Ideas tab ===

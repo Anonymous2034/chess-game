@@ -2589,12 +2589,14 @@ main {
 .move-notes-label {
   font-size: 0.58rem;
   font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: #888;
+  letter-spacing: 0.3px;
   padding: 2px 8px 0;
   flex-shrink: 0;
   line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .move-notes-input {
@@ -2622,27 +2624,23 @@ main {
 .notes-save-btn {
   flex-shrink: 0;
   align-self: stretch;
-  padding: 0 10px;
+  padding: 0 12px;
   background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s;
 }
 .notes-save-btn:hover {
   background: var(--accent-hover);
 }
-.notes-save-btn:active {
-  transform: scale(0.95);
-}
 .notes-save-btn.saved {
-  background: #555;
-  color: #aaa;
+  background: #444;
+  color: #888;
+  pointer-events: none;
 }
 
 /* === Ideas Coach & Moves areas === */
