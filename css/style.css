@@ -2661,12 +2661,17 @@ main {
   flex-shrink: 0;
 }
 
-/* Ideas split (same pattern as GM Coach split) */
+/* Ideas & Coach split — must have explicit height since side-panel scrolls as whole */
+#tab-ideas:not(.hidden),
+#tab-gm-coach:not(.hidden) {
+  min-height: 320px;
+}
+
 .ideas-split {
   display: flex;
   flex-direction: row;
-  height: 100%;
-  min-height: 0;
+  flex: 1;
+  min-height: 280px;
 }
 .ideas-moves-pane {
   flex: 1;
@@ -2723,7 +2728,7 @@ main {
   flex: 1;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-y: auto;
   padding: 4px 6px;
 }
 .ideas-header {
@@ -3040,8 +3045,8 @@ main {
 .gm-coach-split {
   display: flex;
   flex-direction: row;
-  height: 100%;
-  min-height: 0;
+  flex: 1;
+  min-height: 280px;
 }
 .gm-coach-moves-pane {
   flex: 1;
@@ -3084,7 +3089,7 @@ main {
   background: var(--accent);
   color: #fff;
 }
-.gm-coach-panel { padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
+.gm-coach-panel { padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; min-width: 0; overflow-y: auto; }
 .gm-coach-header {
   display: flex; justify-content: space-between; align-items: center;
 }
