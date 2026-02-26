@@ -864,14 +864,15 @@ class ChessApp {
     if (!matchInput) return;
 
     // Update the label to show "PlayerName vs Opponent"
-    const label = matchInput.closest('.move-notes-half')?.querySelector('.move-notes-label');
+    const label = document.getElementById('match-notes-label');
     const myName = this.profile?.getDisplayName() || 'Player';
     if (label) {
       if (this.activeBot) {
         const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
-        label.textContent = `${myName} vs ${gmPrefix}${this.activeBot.name}`;
+        const color = this.game.playerColor === 'w' ? 'White' : 'Black';
+        label.textContent = `${myName} (${color}) \u2014 ${gmPrefix}${this.activeBot.name}`;
       } else if (this.game.mode === 'local') {
-        label.textContent = 'Two Player';
+        label.textContent = 'Match \u00b7 Two Player';
       } else {
         label.textContent = 'Match';
       }
@@ -937,16 +938,16 @@ class ChessApp {
       await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
       db.close();
 
-      btn.textContent = 'Saved';
+      btn.textContent = '\u2713';
       btn.classList.add('saved');
       setTimeout(() => {
-        btn.textContent = 'Save';
+        btn.textContent = '\uD83D\uDCBE';
         btn.classList.remove('saved');
       }, 2000);
     } catch (err) {
       console.warn('Failed to save game:', err);
-      btn.textContent = 'Error';
-      setTimeout(() => { btn.textContent = 'Save'; }, 2000);
+      btn.textContent = '\u2717';
+      setTimeout(() => { btn.textContent = '\uD83D\uDCBE'; }, 2000);
     }
   }
 
@@ -957,7 +958,7 @@ class ChessApp {
     input.value = this._gameNotes[idx] || '';
 
     // Update label to show which move, e.g. "Move · 3. Nf3"
-    const label = input.closest('.move-notes-half')?.querySelector('.move-notes-label');
+    const label = document.getElementById('move-notes-label');
     if (label) {
       if (idx >= 0 && this.notation.moves[idx]) {
         const num = Math.floor(idx / 2) + 1;
@@ -3126,7 +3127,7 @@ class ChessApp {
 
     // Reset save button
     const saveBtn = document.getElementById('btn-save-game');
-    if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.classList.remove('saved'); }
+    if (saveBtn) { saveBtn.textContent = '\uD83D\uDCBE'; saveBtn.classList.remove('saved'); }
 
     // Clear opening label
     this.lastOpeningName = '';
