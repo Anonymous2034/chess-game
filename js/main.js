@@ -938,16 +938,16 @@ class ChessApp {
       await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
       db.close();
 
-      btn.textContent = '\u2713';
+      btn.textContent = 'Saved';
       btn.classList.add('saved');
       setTimeout(() => {
-        btn.textContent = '\uD83D\uDCBE';
+        btn.textContent = 'Save';
         btn.classList.remove('saved');
       }, 2000);
     } catch (err) {
       console.warn('Failed to save game:', err);
-      btn.textContent = '\u2717';
-      setTimeout(() => { btn.textContent = '\uD83D\uDCBE'; }, 2000);
+      btn.textContent = 'Error';
+      setTimeout(() => { btn.textContent = 'Save'; }, 2000);
     }
   }
 
@@ -3132,7 +3132,7 @@ class ChessApp {
 
     // Reset save button
     const saveBtn = document.getElementById('btn-save-game');
-    if (saveBtn) { saveBtn.textContent = '\uD83D\uDCBE'; saveBtn.classList.remove('saved'); }
+    if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.classList.remove('saved'); }
 
     // Clear opening label
     this.lastOpeningName = '';
