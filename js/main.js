@@ -973,10 +973,15 @@ class ChessApp {
     input.placeholder = idx >= 0 ? 'Add note...' : '';
   }
 
-  // === Sync compact moves into Ideas tab ===
+  // === Sync compact moves into Ideas & GM Coach tabs ===
 
   _syncIdeasMoves() {
-    const container = document.getElementById('ideas-moves-list');
+    this._buildMovesInto('ideas-moves-list');
+    this._buildMovesInto('gm-coach-moves-list');
+  }
+
+  _buildMovesInto(containerId) {
+    const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
     const moves = this.notation.moves;
@@ -8821,6 +8826,7 @@ class ChessApp {
     // Auto-trigger GM Coach commentary when switching to that tab
     if (tabId === 'gm-coach') {
       this._updateGMCoachCommentary();
+      this._syncIdeasMoves();
     }
   }
 

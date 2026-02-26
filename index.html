@@ -1141,7 +1141,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v76</div>
+          <div class="nav-menu-version" id="app-version">v77</div>
         </div>
       </nav>
     </header>
@@ -1373,22 +1373,30 @@
 
         <!-- GM Coach Tab -->
         <div class="panel-content hidden" id="tab-gm-coach">
-          <div class="gm-coach-panel" id="gm-coach-panel">
-            <div class="gm-coach-header">
-              <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
+          <div class="gm-coach-split" id="gm-coach-split">
+            <!-- Left: Moves -->
+            <div class="gm-coach-moves-pane">
+              <div class="gm-coach-pane-label">Moves</div>
+              <div class="gm-coach-moves-list" id="gm-coach-moves-list"></div>
             </div>
-            <div class="gm-coach-picker" id="gm-coach-picker"></div>
-            <div class="gm-coach-cards" id="gm-coach-cards">
-              <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
-            </div>
-            <div class="gm-coach-chat">
-              <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>
-              <div class="gm-coach-chat-input">
-                <input type="text" id="gm-coach-input" placeholder="Ask your coaches...">
-                <button class="btn btn-sm btn-primary" id="btn-gm-coach-send">Send</button>
+            <!-- Right: Coach -->
+            <div class="gm-coach-panel" id="gm-coach-panel">
+              <div class="gm-coach-header">
+                <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
               </div>
+              <div class="gm-coach-picker" id="gm-coach-picker"></div>
+              <div class="gm-coach-cards" id="gm-coach-cards">
+                <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
+              </div>
+              <div class="gm-coach-chat">
+                <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>
+                <div class="gm-coach-chat-input">
+                  <input type="text" id="gm-coach-input" placeholder="Ask your coaches...">
+                  <button class="btn btn-sm btn-primary" id="btn-gm-coach-send">Send</button>
+                </div>
+              </div>
+              <div class="gm-coach-status" id="gm-coach-status"></div>
             </div>
-            <div class="gm-coach-status" id="gm-coach-status"></div>
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-coach" title="Drag to resize GM Coach"></div>
         </div>
