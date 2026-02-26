@@ -5014,8 +5014,8 @@ class ChessApp {
   static get _DRAG_LAYOUT_DEFAULTS() {
     return {
       enabled: false,
-      boardArea: ['board', 'nav', 'music', 'explorer'],
-      sidePanel: ['status', 'tabs', 'coach-area', 'notes']
+      boardArea: ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'nav', 'music'],
+      sidePanel: ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'notes']
     };
   }
 

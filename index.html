@@ -1171,7 +1171,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v94</div>
+          <div class="nav-menu-version" id="app-version">v95</div>
         </div>
       </nav>
     </header>
@@ -1180,7 +1180,7 @@
     <main>
       <!-- Left: Board Area -->
       <div class="board-area">
-        <div class="drag-group" data-drag-id="board" data-drag-label="Board">
+        <div class="drag-group" data-drag-id="player-top" data-drag-label="Player Top">
         <!-- Top Player Info -->
         <div class="player-info top" id="player-top">
           <div class="player-info-left">
@@ -1193,7 +1193,9 @@
             <span class="timer" id="timer-top">--:--</span>
           </div>
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="board" data-drag-label="Board">
         <!-- Chess Board -->
         <div id="board-container">
           <div class="eval-bar" id="eval-bar">
@@ -1205,26 +1207,6 @@
           <div class="coords coords-files" id="coords-files"></div>
           <div class="coords coords-ranks" id="coords-ranks"></div>
         </div>
-
-        <!-- Bottom Player Info -->
-        <div class="player-info bottom" id="player-bottom">
-          <div class="player-info-left">
-            <span class="player-name">White</span>
-            <span class="captured-pieces" id="captured-bottom"></span>
-            <span class="material-advantage" id="material-bottom"></span>
-          </div>
-          <div class="timer-group">
-            <span class="move-clock" id="move-clock-bottom">0s</span>
-            <span class="timer" id="timer-bottom">--:--</span>
-          </div>
-        </div>
-
-        <!-- Always-visible opening name -->
-        <div class="opening-label" id="opening-label"></div>
-
-        <!-- Eval Graph (shown after analysis) -->
-        <div class="eval-graph-container hidden" id="eval-graph-container"></div>
-
         <!-- Puzzle Bar (shown during puzzle mode) -->
         <div class="puzzle-bar hidden" id="puzzle-bar">
           <div class="puzzle-info">
@@ -1238,7 +1220,6 @@
             <button class="btn btn-sm btn-primary hidden" id="btn-puzzle-next">Next</button>
           </div>
         </div>
-
         <!-- Endgame Trainer Bar (shown during endgame training) -->
         <div class="endgame-bar hidden" id="endgame-bar">
           <div class="endgame-info">
@@ -1253,6 +1234,31 @@
             <button class="btn btn-sm" id="btn-endgame-exit">Exit</button>
           </div>
         </div>
+        </div>
+
+        <div class="drag-group" data-drag-id="player-bottom" data-drag-label="Player Bottom">
+        <!-- Bottom Player Info -->
+        <div class="player-info bottom" id="player-bottom">
+          <div class="player-info-left">
+            <span class="player-name">White</span>
+            <span class="captured-pieces" id="captured-bottom"></span>
+            <span class="material-advantage" id="material-bottom"></span>
+          </div>
+          <div class="timer-group">
+            <span class="move-clock" id="move-clock-bottom">0s</span>
+            <span class="timer" id="timer-bottom">--:--</span>
+          </div>
+        </div>
+        </div>
+
+        <div class="drag-group" data-drag-id="opening" data-drag-label="Opening">
+        <!-- Always-visible opening name -->
+        <div class="opening-label" id="opening-label"></div>
+        </div>
+
+        <div class="drag-group" data-drag-id="eval-graph" data-drag-label="Eval Graph">
+        <!-- Eval Graph (shown after analysis) -->
+        <div class="eval-graph-container hidden" id="eval-graph-container"></div>
         </div>
 
         <div class="drag-group" data-drag-id="music" data-drag-label="Music">
@@ -1333,7 +1339,7 @@
         <!-- Analysis Summary (shown after analysis) — not draggable, stays at top -->
         <div class="analysis-summary hidden" id="analysis-summary"></div>
 
-        <div class="drag-group" data-drag-id="tabs" data-drag-label="Tabs">
+        <div class="drag-group" data-drag-id="tab-bar" data-drag-label="Tab Bar">
         <!-- Side Panel Tabs -->
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="moves">Moves</button>
@@ -1341,7 +1347,9 @@
           <button class="panel-tab" data-tab="ideas">GM Hints</button>
           <button class="panel-tab" data-tab="gm-coach">GM Coach</button>
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="moves" data-drag-label="Moves">
         <!-- Moves Tab -->
         <div class="panel-content" id="tab-moves">
           <!-- Opening Training Bar -->
@@ -1369,7 +1377,9 @@
           <div class="move-insight hidden" id="move-insight"></div>
 
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="book" data-drag-label="Book">
         <!-- Book Tab (Opening Explorer) -->
         <div class="panel-content hidden" id="tab-book">
           <div class="book-panel" id="book-panel">
@@ -1382,7 +1392,9 @@
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-book" title="Drag to resize book"></div>
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="hints" data-drag-label="GM Hints">
         <!-- Ideas Tab (GM Hints) -->
         <div class="panel-content hidden" id="tab-ideas">
           <div class="ideas-split">
@@ -1403,7 +1415,9 @@
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize GM Hints"></div>
         </div>
+        </div>
 
+        <div class="drag-group" data-drag-id="gm-coach-tab" data-drag-label="GM Coach">
         <!-- GM Coach Tab -->
         <div class="panel-content hidden" id="tab-gm-coach">
           <div class="gm-coach-split" id="gm-coach-split">

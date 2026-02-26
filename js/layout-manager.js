@@ -8,13 +8,23 @@ export class LayoutManager {
 
   // Widget definitions — id must match drag-group data-drag-id
   static WIDGETS = [
-    { id: 'board',       label: 'Chess Board',      icon: '\u265A', defaultCol: 0,  defaultRow: 0, defaultW: 8, defaultH: 9, minW: 4, minH: 4 },
-    { id: 'status',      label: 'Status Bar',       icon: '\u2139', defaultCol: 8,  defaultRow: 0, defaultW: 8, defaultH: 1, minW: 3, minH: 1 },
-    { id: 'tabs',        label: 'Moves & Tabs',     icon: '\u2630', defaultCol: 8,  defaultRow: 1, defaultW: 8, defaultH: 7, minW: 4, minH: 3 },
-    { id: 'nav',         label: 'Nav Controls',     icon: '\u25C0', defaultCol: 0,  defaultRow: 9, defaultW: 8, defaultH: 1, minW: 3, minH: 1 },
-    { id: 'music',       label: 'Music Player',     icon: '\u266B', defaultCol: 0,  defaultRow: 10,defaultW: 8, defaultH: 2, minW: 4, minH: 1 },
-    { id: 'coach-area',  label: 'Coach Commentary', icon: '\u2606', defaultCol: 8,  defaultRow: 8, defaultW: 8, defaultH: 2, minW: 3, minH: 1 },
-    { id: 'notes',       label: 'Notes',            icon: '\u270E', defaultCol: 8,  defaultRow: 10,defaultW: 8, defaultH: 2, minW: 3, minH: 1 },
+    // Board area widgets
+    { id: 'player-top',    label: 'Player Top',       icon: '\u265F', defaultCol: 0,  defaultRow: 0, defaultW: 8, defaultH: 1, minW: 3, minH: 1 },
+    { id: 'board',         label: 'Chess Board',      icon: '\u265A', defaultCol: 0,  defaultRow: 1, defaultW: 8, defaultH: 8, minW: 4, minH: 4 },
+    { id: 'player-bottom', label: 'Player Bottom',    icon: '\u2659', defaultCol: 0,  defaultRow: 9, defaultW: 8, defaultH: 1, minW: 3, minH: 1 },
+    { id: 'opening',       label: 'Opening Name',     icon: '\u2637', defaultCol: 0,  defaultRow: 10,defaultW: 4, defaultH: 1, minW: 2, minH: 1 },
+    { id: 'eval-graph',    label: 'Eval Graph',       icon: '\u223F', defaultCol: 4,  defaultRow: 10,defaultW: 4, defaultH: 1, minW: 2, minH: 1 },
+    { id: 'nav',           label: 'Nav Controls',     icon: '\u25C0', defaultCol: 0,  defaultRow: 11,defaultW: 4, defaultH: 1, minW: 3, minH: 1 },
+    { id: 'music',         label: 'Music Player',     icon: '\u266B', defaultCol: 4,  defaultRow: 11,defaultW: 4, defaultH: 1, minW: 3, minH: 1 },
+    // Side panel widgets
+    { id: 'status',        label: 'Status Bar',       icon: '\u2139', defaultCol: 8,  defaultRow: 0, defaultW: 8, defaultH: 1, minW: 3, minH: 1 },
+    { id: 'tab-bar',       label: 'Tab Bar',          icon: '\u2261', defaultCol: 8,  defaultRow: 1, defaultW: 8, defaultH: 1, minW: 3, minH: 1 },
+    { id: 'moves',         label: 'Move History',     icon: '\u2630', defaultCol: 8,  defaultRow: 2, defaultW: 8, defaultH: 4, minW: 3, minH: 2 },
+    { id: 'book',          label: 'Opening Explorer', icon: '\u2684', defaultCol: 8,  defaultRow: 2, defaultW: 8, defaultH: 4, minW: 3, minH: 2, defaultVisible: false },
+    { id: 'hints',         label: 'GM Hints',         icon: '\u2605', defaultCol: 8,  defaultRow: 2, defaultW: 8, defaultH: 4, minW: 3, minH: 2, defaultVisible: false },
+    { id: 'gm-coach-tab',  label: 'GM Coach',         icon: '\u2655', defaultCol: 8,  defaultRow: 2, defaultW: 8, defaultH: 4, minW: 3, minH: 2, defaultVisible: false },
+    { id: 'coach-area',    label: 'Coach Commentary', icon: '\u2606', defaultCol: 8,  defaultRow: 6, defaultW: 8, defaultH: 2, minW: 3, minH: 1 },
+    { id: 'notes',         label: 'Notes',            icon: '\u270E', defaultCol: 8,  defaultRow: 8, defaultW: 8, defaultH: 4, minW: 3, minH: 1 },
   ];
 
   constructor() {
@@ -72,7 +82,7 @@ export class LayoutManager {
           } else {
             this._layout[w.id] = {
               col: w.defaultCol, row: w.defaultRow,
-              w: w.defaultW, h: w.defaultH, visible: true
+              w: w.defaultW, h: w.defaultH, visible: w.defaultVisible !== false
             };
           }
         }
@@ -87,7 +97,7 @@ export class LayoutManager {
     for (const w of LayoutManager.WIDGETS) {
       this._layout[w.id] = {
         col: w.defaultCol, row: w.defaultRow,
-        w: w.defaultW, h: w.defaultH, visible: true
+        w: w.defaultW, h: w.defaultH, visible: w.defaultVisible !== false
       };
     }
   }
@@ -404,6 +414,14 @@ export class LayoutManager {
     }
     if (resizeMain) resizeMain.style.display = 'none';
 
+    // Tab content IDs mapped to their drag-group IDs
+    const TAB_PANELS = {
+      'moves': 'tab-moves',
+      'book': 'tab-book',
+      'hints': 'tab-ideas',
+      'gm-coach-tab': 'tab-gm-coach'
+    };
+
     // Position each drag-group on the grid
     for (const w of LayoutManager.WIDGETS) {
       const pos = layout[w.id];
@@ -418,6 +436,12 @@ export class LayoutManager {
         dragGroup.style.overflow = 'auto';
         dragGroup.style.minWidth = '0';
         dragGroup.style.minHeight = '0';
+
+        // In grid mode, show tab panels directly (bypass tab switching)
+        if (TAB_PANELS[w.id]) {
+          const panel = document.getElementById(TAB_PANELS[w.id]);
+          if (panel) panel.classList.remove('hidden');
+        }
       } else {
         dragGroup.style.display = 'none';
       }
@@ -429,7 +453,6 @@ export class LayoutManager {
       const sPos = layout.status;
       if (sPos) {
         summary.style.gridColumn = `${sPos.col + 1} / span ${sPos.w}`;
-        // Place just below status row
         const sRow = sPos.row + sPos.h + 1;
         summary.style.gridRow = `${sRow} / span 1`;
       }
@@ -495,6 +518,19 @@ export class LayoutManager {
       summary.style.gridColumn = '';
       summary.style.gridRow = '';
     }
+
+    // Restore tab panel states (hide all except the active tab)
+    const activeTab = document.querySelector('.panel-tab.active');
+    const activeTabId = activeTab ? activeTab.dataset.tab : 'moves';
+    ['tab-moves', 'tab-book', 'tab-ideas', 'tab-gm-coach'].forEach(id => {
+      const panel = document.getElementById(id);
+      if (!panel) return;
+      if (id === `tab-${activeTabId}`) {
+        panel.classList.remove('hidden');
+      } else {
+        panel.classList.add('hidden');
+      }
+    });
 
     localStorage.removeItem(LayoutManager.STORAGE_KEY);
   }
