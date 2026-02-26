@@ -155,10 +155,10 @@ export class LayoutManager {
       }
     }
 
-    // Build sidebar widget list
+    // Build sidebar widget list — use <label> so clicks toggle the checkbox
     const list = overlay.querySelector('#grid-widget-list');
     for (const w of LayoutManager.WIDGETS) {
-      const item = document.createElement('div');
+      const item = document.createElement('label');
       item.className = 'grid-sidebar-widget';
       item.dataset.widgetId = w.id;
       const vis = this._layout[w.id]?.visible !== false;
@@ -399,6 +399,9 @@ export class LayoutManager {
     main.style.alignItems = 'stretch';
     main.style.justifyContent = 'stretch';
 
+    // Add grid-layout-on class for CSS styling
+    document.body.classList.add('grid-layout-on');
+
     // Make board-area and side-panel transparent containers
     const boardArea = document.querySelector('.board-area');
     const sidePanel = document.querySelector('.side-panel');
@@ -475,6 +478,8 @@ export class LayoutManager {
 
   // Reset to default flexbox layout (undo CSS grid on main)
   static resetDOM() {
+    document.body.classList.remove('grid-layout-on');
+
     const main = document.querySelector('main');
     if (!main) return;
 
