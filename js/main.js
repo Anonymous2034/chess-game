@@ -31,6 +31,7 @@ import { MusicPlayer, PLAYLIST } from './music.js';
 import { COMPOSER_PROFILES, COMPOSER_ERAS } from './composer-profiles.js';
 import { ChessNews } from './chess-news.js';
 import { PositionCommentary } from './position-commentary.js';
+import { LayoutManager } from './layout-manager.js';
 
 class ChessApp {
   constructor() {
@@ -156,6 +157,7 @@ class ChessApp {
     this.setupEvalBar();
     this.setupLayoutEditor();
     this.setupDragLayout();
+    this.setupGridLayout();
     this.setupSettings();
     this._loadClockTheme();
     this.setupResizeHandles();
@@ -5295,6 +5297,28 @@ class ChessApp {
     }
 
     this._rebuildDragOrder();
+  }
+
+  // === Grid Layout Manager ===
+
+  setupGridLayout() {
+    this._layoutManager = new LayoutManager();
+
+    // Apply saved grid layout on startup
+    const savedMgr = LayoutManager.applyIfSaved();
+    if (savedMgr) this._layoutManager = savedMgr;
+
+    // Wire up the Layout Manager button in nav menu
+    const gridBtn = document.getElementById('btn-grid-layout');
+    if (gridBtn) {
+      gridBtn.addEventListener('click', () => {
+        // Close nav menu
+        const menu = document.getElementById('nav-menu');
+        if (menu) menu.classList.remove('open');
+        // Open grid layout manager
+        this._layoutManager.open();
+      });
+    }
   }
 
   // === Settings Dialogs (Sound / Display / Board) ===
