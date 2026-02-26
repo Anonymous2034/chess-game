@@ -3524,7 +3524,7 @@ class ChessApp {
         const fileName = files && files.length > 1
           ? 'Imported (' + files.length + ' files)'
           : files?.[0]?.name?.replace(/\.pgn$/i, '') || 'Imported';
-        const result = this.database.importAllGames(pgn, fileName);
+        const result = this.database.importAllGames(pgn, fileName, { dedup: true });
         const count = typeof result === 'object' ? result.imported : result;
         const dupes = typeof result === 'object' ? result.duplicates : 0;
         if (count > 0 || dupes > 0) {

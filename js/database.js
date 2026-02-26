@@ -77,7 +77,6 @@ export class Database {
             g.collection = col.name;
             g.category = category.id;
             g.categoryName = category.name;
-            this._fingerprints.add(Database.fingerprint(g));
           });
           this.collections.push({
             name: col.name,
@@ -320,19 +319,13 @@ export class Database {
    */
   buildOpeningIndex() {
     this._openingIndex = new Map();
-    const seen = new Map(); // per-opening fingerprint sets for dedup
 
     for (const game of this.games) {
       const eco = game.eco;
-      if (!eco) continue;
+      if (!eco || eco.length < 3) continue;
 
       for (const range of Database.ECO_RANGES) {
         if (eco >= range.lo && eco <= range.hi) {
-          const fp = Database.fingerprint(game);
-          if (!seen.has(range.name)) seen.set(range.name, new Set());
-          if (seen.get(range.name).has(fp)) break; // skip duplicate
-          seen.get(range.name).add(fp);
-
           if (!this._openingIndex.has(range.name)) this._openingIndex.set(range.name, []);
           this._openingIndex.get(range.name).push(game);
           break;
@@ -340,16 +333,9 @@ export class Database {
       }
     }
 
-    // Collect uncategorized ECO ranges as "Other Openings"
-    const categorized = new Set();
-    for (const range of Database.ECO_RANGES) {
-      for (let c = range.lo.charCodeAt(0); c <= range.hi.charCodeAt(0); c++) {
-        categorized.add(String.fromCharCode(c));
-      }
-    }
-
-    console.log(`[DB] Opening index: ${this._openingIndex.size} openings, ${
-      Array.from(this._openingIndex.values()).reduce((s, g) => s + g.length, 0)} games indexed`);
+    let total = 0;
+    for (const games of this._openingIndex.values()) total += games.length;
+    console.log(`[DB] Opening index: ${this._openingIndex.size} openings, ${total} games indexed`);
   }
 
   /**
@@ -541,7 +527,7 @@ export class Database {
    * Import all games from a multi-game PGN text into the database.
    * Returns { imported, duplicates } count object.
    */
-  importAllGames(pgnText, collectionName = 'Imported') {
+  importAllGames(pgnText, collectionName = 'Imported', { dedup = false } = {}) {
     const normalized = pgnText.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const games = this.parsePGNFile(normalized);
     if (games.length === 0) return { imported: 0, duplicates: 0 };
@@ -554,47 +540,38 @@ export class Database {
       this.categories.push({ id: categoryId, name: categoryName, collections: [] });
     }
 
-    // Remove any existing collection with the same name (re-import replaces)
-    this.games = this.games.filter(g => {
-      if (g.collection === collectionName) {
-        this._fingerprints.delete(Database.fingerprint(g));
-        return false;
-      }
-      return true;
-    });
     this.collections = this.collections.filter(c => c.name !== collectionName);
 
-    // Tag and add games, skipping duplicates
+    // Tag and add games, optionally skipping duplicates
     let duplicates = 0;
-    const added = [];
+    let imported = 0;
     for (const g of games) {
-      const fp = Database.fingerprint(g);
-      if (this._fingerprints.has(fp)) {
-        duplicates++;
-        continue;
+      if (dedup) {
+        const fp = Database.fingerprint(g);
+        if (this._fingerprints.has(fp)) { duplicates++; continue; }
+        this._fingerprints.add(fp);
       }
-      this._fingerprints.add(fp);
       g.collection = collectionName;
       g.category = categoryId;
       g.categoryName = categoryName;
-      added.push(g);
+      this.games.push(g);
+      imported++;
     }
-    this.games.push(...added);
 
     if (duplicates > 0) {
-      console.warn(`[DB] "${collectionName}": skipped ${duplicates} duplicate game${duplicates !== 1 ? 's' : ''} (already in database)`);
+      console.warn(`[DB] "${collectionName}": skipped ${duplicates} duplicate${duplicates !== 1 ? 's' : ''}`);
     }
 
     this.collections.push({
       name: collectionName,
-      count: added.length,
+      count: imported,
       category: categoryId
     });
 
     // Persist to IndexedDB so imports survive page refresh
     this._saveImport(collectionName, normalized);
 
-    return { imported: added.length, duplicates };
+    return { imported, duplicates };
   }
 
   // === IndexedDB Persistence for Imported Collections ===
@@ -671,38 +648,23 @@ export class Database {
         }
 
         // Remove any existing collection with same name
-        this.games = this.games.filter(g => {
-          if (g.collection === entry.name) {
-            this._fingerprints.delete(Database.fingerprint(g));
-            return false;
-          }
-          return true;
-        });
         this.collections = this.collections.filter(c => c.name !== entry.name);
 
-        // Tag and add games, skipping duplicates
-        let dupes = 0;
-        const added = [];
+        // Tag and add games
         for (const g of games) {
-          const fp = Database.fingerprint(g);
-          if (this._fingerprints.has(fp)) { dupes++; continue; }
-          this._fingerprints.add(fp);
           g.collection = entry.name;
           g.category = categoryId;
           g.categoryName = categoryName;
-          added.push(g);
+          this.games.push(g);
         }
-        this.games.push(...added);
 
         this.collections.push({
           name: entry.name,
-          count: added.length,
+          count: games.length,
           category: categoryId
         });
 
-        totalGames += added.length;
-        if (dupes > 0) console.warn(`[DB] "${entry.name}": ${dupes} duplicates skipped`);
-        console.log('[DB] Restored import "' + entry.name + '": ' + games.length + ' games');
+        totalGames += games.length;
       }
 
       return totalGames;
