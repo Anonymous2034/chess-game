@@ -122,6 +122,8 @@ export class Notation {
 
       this.container.appendChild(row);
     }
+
+    if (this.onRender) this.onRender();
   }
 
   _createMoveCell(index) {

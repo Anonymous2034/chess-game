@@ -107,6 +107,7 @@ class ChessApp {
     // Init notation
     const moveHistoryEl = document.getElementById('move-history');
     this.notation = new Notation(moveHistoryEl);
+    this.notation.onRender = () => this._syncIdeasMoves();
 
     // Init captured pieces
     this.captured.init();
@@ -831,6 +832,7 @@ class ChessApp {
 
     // Notes always visible — load initial placeholder
     this._loadNoteForCurrentMove();
+    this._updateMatchNotesPlaceholder();
 
     document.getElementById('move-notes-input').addEventListener('input', (e) => {
       const idx = this.notation.currentIndex;
@@ -850,6 +852,94 @@ class ChessApp {
         this._matchNotes = e.target.value;
       });
     }
+
+    // Save button
+    document.getElementById('btn-save-game')?.addEventListener('click', () => {
+      this._saveCurrentGame();
+    });
+  }
+
+  _updateMatchNotesPlaceholder() {
+    const matchInput = document.getElementById('match-notes-input');
+    if (!matchInput) return;
+    if (this.activeBot) {
+      const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
+      matchInput.placeholder = `vs ${gmPrefix}${this.activeBot.name}...`;
+    } else if (this.game.mode === 'local') {
+      matchInput.placeholder = 'Two player match...';
+    } else {
+      matchInput.placeholder = 'General match notes...';
+    }
+  }
+
+  // === Save Game to IndexedDB ("My Games" store, separate from GM database) ===
+
+  async _openMyGamesDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('chess_my_games', 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains('games')) {
+          const store = db.createObjectStore('games', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('date', 'date');
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async _saveCurrentGame() {
+    const btn = document.getElementById('btn-save-game');
+    if (!btn) return;
+
+    const gameResult = this.game.getGameResult();
+    const result = gameResult?.result || '*';
+    const opponent = this.activeBot
+      ? `${this.activeBot.tier === 'grandmaster' ? 'GM ' : ''}${this.activeBot.name}`
+      : (this.game.mode === 'local' ? 'Two Player' : 'Unknown');
+
+    const pgn = this.notation.toPGN({
+      White: this.game.playerColor === 'w' ? 'You' : opponent,
+      Black: this.game.playerColor === 'b' ? 'You' : opponent,
+      Result: result,
+      Event: this.activeBot ? `vs ${opponent}` : 'Casual Game',
+      Date: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+      Opening: this.lastOpeningName || '?'
+    });
+
+    const record = {
+      date: new Date().toISOString(),
+      opponent,
+      opponentElo: this.activeBot?.peakElo || null,
+      result,
+      pgn,
+      opening: this.lastOpeningName || 'Unknown',
+      playerColor: this.game.playerColor,
+      moveCount: this.game.moveHistory.length,
+      timeControl: this.game.timeControl,
+      moveNotes: { ...this._gameNotes },
+      matchNotes: this._matchNotes
+    };
+
+    try {
+      const db = await this._openMyGamesDB();
+      const tx = db.transaction('games', 'readwrite');
+      tx.objectStore('games').add(record);
+      await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+      db.close();
+
+      btn.textContent = 'Saved';
+      btn.classList.add('saved');
+      setTimeout(() => {
+        btn.textContent = 'Save';
+        btn.classList.remove('saved');
+      }, 2000);
+    } catch (err) {
+      console.warn('Failed to save game:', err);
+      btn.textContent = 'Error';
+      setTimeout(() => { btn.textContent = 'Save'; }, 2000);
+    }
   }
 
   _loadNoteForCurrentMove() {
@@ -857,8 +947,51 @@ class ChessApp {
     if (!input) return;
     const idx = this.notation.currentIndex;
     input.value = this._gameNotes[idx] || '';
-    const moveNum = idx >= 0 ? `Move ${Math.floor(idx / 2) + 1}` : 'Start';
-    input.placeholder = `${moveNum}...`;
+    // Show move number + SAN in placeholder, e.g. "3. Nf3"
+    if (idx >= 0 && this.notation.moves[idx]) {
+      const num = Math.floor(idx / 2) + 1;
+      const dot = idx % 2 === 0 ? '.' : '...';
+      const san = this.notation.moves[idx].san;
+      input.placeholder = `${num}${dot} ${san}`;
+    } else {
+      input.placeholder = 'Start position...';
+    }
+  }
+
+  // === Sync compact moves into Ideas tab ===
+
+  _syncIdeasMoves() {
+    const container = document.getElementById('ideas-moves-list');
+    if (!container) return;
+    container.innerHTML = '';
+    const moves = this.notation.moves;
+    if (moves.length === 0) return;
+
+    for (let i = 0; i < moves.length; i += 2) {
+      const row = document.createElement('span');
+      row.className = 'move-row';
+
+      const num = document.createElement('span');
+      num.className = 'move-number';
+      num.textContent = Math.floor(i / 2) + 1 + '.';
+      row.appendChild(num);
+
+      const wCell = document.createElement('span');
+      wCell.className = 'move-cell' + (i === this.notation.currentIndex ? ' active' : '');
+      wCell.textContent = moves[i].san;
+      wCell.addEventListener('click', () => this.navigateToMove(i));
+      row.appendChild(wCell);
+
+      if (i + 1 < moves.length) {
+        const bCell = document.createElement('span');
+        bCell.className = 'move-cell' + (i + 1 === this.notation.currentIndex ? ' active' : '');
+        bCell.textContent = moves[i + 1].san;
+        bCell.addEventListener('click', () => this.navigateToMove(i + 1));
+        row.appendChild(bCell);
+      }
+
+      container.appendChild(row);
+    }
   }
 
   // === Force Move ===
@@ -2014,19 +2147,33 @@ class ChessApp {
 
   _syncPanelCoachArea(text) {
     const area = document.getElementById('panel-coach-area');
-    if (!area) return;
-    if (this._gmCoachBots.length === 0) {
-      area.classList.add('hidden');
-      area.innerHTML = '';
-      return;
+    const ideasCoach = document.getElementById('ideas-coach-area');
+
+    const coachHtml = this._buildCoachCardHtml(text);
+
+    // Sync to both: the always-visible panel-coach-area and ideas tab
+    if (area) {
+      if (coachHtml) {
+        area.classList.remove('hidden');
+        area.innerHTML = coachHtml;
+      } else {
+        area.classList.add('hidden');
+        area.innerHTML = '';
+      }
     }
+    if (ideasCoach) {
+      ideasCoach.innerHTML = coachHtml || '';
+    }
+  }
+
+  _buildCoachCardHtml(text) {
+    if (this._gmCoachBots.length === 0) return '';
     const bot = this._gmCoachBots[0];
     const profile = GM_COACH_PROFILES[bot.id];
-    if (!profile) { area.classList.add('hidden'); return; }
+    if (!profile) return '';
 
     const commentaryText = text || document.getElementById(`gm-coach-commentary-${bot.id}`)?.textContent || 'Analyzing position\u2026';
-    area.classList.remove('hidden');
-    area.innerHTML = `
+    return `
       <div class="panel-coach-card">
         <img class="panel-coach-portrait" src="${bot.portrait}" alt="${bot.name}">
         <div class="panel-coach-bubble">
@@ -2959,8 +3106,13 @@ class ChessApp {
     this._matchNotes = '';
     const matchInput = document.getElementById('match-notes-input');
     if (matchInput) matchInput.value = '';
+    this._updateMatchNotesPlaceholder();
     this.board.setLastMove(null);
     this.board.setInteractive(true);
+
+    // Reset save button
+    const saveBtn = document.getElementById('btn-save-game');
+    if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.classList.remove('saved'); }
 
     // Clear opening label
     this.lastOpeningName = '';
@@ -8644,8 +8796,11 @@ class ChessApp {
     });
 
     // Auto-trigger advisor analysis when switching to Ideas tab
-    if (tabId === 'ideas' && this._advisorBots.length > 0) {
-      this._updateAdvisorAnalysis();
+    if (tabId === 'ideas') {
+      if (this._advisorBots.length > 0) this._updateAdvisorAnalysis();
+      // Sync coach text and moves into ideas tab
+      this._syncPanelCoachArea();
+      this._syncIdeasMoves();
     }
 
     // Auto-trigger GM Coach commentary when switching to that tab

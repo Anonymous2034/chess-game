@@ -2619,6 +2619,86 @@ main {
   opacity: 0.4;
 }
 
+.notes-save-btn {
+  flex-shrink: 0;
+  align-self: stretch;
+  padding: 0 10px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.notes-save-btn:hover {
+  background: var(--accent-hover);
+}
+.notes-save-btn:active {
+  transform: scale(0.95);
+}
+.notes-save-btn.saved {
+  background: #555;
+  color: #aaa;
+}
+
+/* === Ideas Coach & Moves areas === */
+.ideas-coach-area {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+.ideas-coach-area:empty { display: none; }
+
+.ideas-moves-area {
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+  padding: 4px 8px;
+}
+.ideas-moves-area:empty { display: none; }
+.ideas-moves-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+.ideas-moves-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px 0;
+  font-size: 0.7rem;
+  max-height: 80px;
+  overflow-y: auto;
+}
+.ideas-moves-list .move-row {
+  display: inline-flex;
+  gap: 2px;
+  margin-right: 6px;
+}
+.ideas-moves-list .move-number {
+  color: #666;
+  font-size: 0.65rem;
+  min-width: 16px;
+}
+.ideas-moves-list .move-cell {
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.ideas-moves-list .move-cell:hover {
+  background: var(--btn-hover);
+}
+.ideas-moves-list .move-cell.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 /* === Ideas / Advisor Panel === */
 .ideas-panel {
   display: flex;

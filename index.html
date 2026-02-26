@@ -1141,7 +1141,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v73</div>
+          <div class="nav-menu-version" id="app-version">v74</div>
         </div>
       </nav>
     </header>
@@ -1360,6 +1360,13 @@
               <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
             </div>
             <div class="advisor-annotations" id="advisor-annotations"></div>
+            <!-- GM Coach commentary inside hints tab -->
+            <div class="ideas-coach-area" id="ideas-coach-area"></div>
+            <!-- Compact moves inside hints tab -->
+            <div class="ideas-moves-area" id="ideas-moves-area">
+              <div class="ideas-moves-label">Moves</div>
+              <div class="ideas-moves-list" id="ideas-moves-list"></div>
+            </div>
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize GM Hints"></div>
         </div>
@@ -1402,6 +1409,7 @@
             <div class="move-notes-label">Match</div>
             <textarea class="move-notes-input" id="match-notes-input" placeholder="General match notes..."></textarea>
           </div>
+          <button class="notes-save-btn" id="btn-save-game" title="Save game with notes">Save</button>
         </div>
         <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
         </div>
