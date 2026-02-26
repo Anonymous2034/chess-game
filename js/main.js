@@ -6399,8 +6399,8 @@ class ChessApp {
         <span class="endgame-stat-label">Solved</span>
       </div>
       <div class="endgame-stat">
-        <span class="endgame-stat-value">${summary.totalPositions}</span>
-        <span class="endgame-stat-label">Total</span>
+        <span class="endgame-stat-value">${summary.rating}</span>
+        <span class="endgame-stat-label">Rating</span>
       </div>
       <div class="endgame-stat">
         <span class="endgame-stat-value">${summary.totalPositions > 0 ? Math.round((summary.totalSolved / summary.totalPositions) * 100) : 0}%</span>
@@ -6435,6 +6435,7 @@ class ChessApp {
     this.notation.clear();
 
     // Update endgame bar
+    document.getElementById('endgame-rating-badge').textContent = position.rating || '';
     document.getElementById('endgame-title-badge').textContent = position.title;
     document.getElementById('endgame-objective').textContent = position.objective;
     show(document.getElementById('endgame-bar'));
@@ -8898,7 +8899,23 @@ class ChessApp {
     document.getElementById('profile-name').textContent = displayName;
 
     const currentRating = this.profile.getCurrentRating(this.stats.games);
-    document.getElementById('profile-rating').textContent = record.total > 0 ? `Rating: ${currentRating}` : '';
+    const puzzleSummary = this.puzzleManager.getProgressSummary();
+    const endgameSummary = this.endgameTrainer.getProgressSummary();
+    const overall = this.profile.getOverallRating({
+      gameRating: currentRating,
+      gameCount: record.total,
+      puzzleRating: puzzleSummary.rating,
+      puzzleSolved: puzzleSummary.totalSolved,
+      endgameRating: endgameSummary.rating,
+      endgameSolved: endgameSummary.totalSolved
+    });
+    const ratingEl = document.getElementById('profile-rating');
+    if (overall.components.length > 0) {
+      const parts = overall.components.map(c => `${c.name} ${c.rating}`).join(' \u00b7 ');
+      ratingEl.innerHTML = `<span class="profile-overall-rating">Overall: ${overall.overall}</span><span class="profile-rating-breakdown">${parts}</span>`;
+    } else {
+      ratingEl.textContent = '';
+    }
     document.getElementById('profile-record').textContent = record.total > 0
       ? `${record.wins}W / ${record.losses}L / ${record.draws}D — ${record.total} games`
       : 'No games played yet';

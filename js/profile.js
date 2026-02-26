@@ -88,4 +88,28 @@ export class PlayerProfile {
     const history = this.getRatingHistory(games);
     return history.length > 0 ? history[history.length - 1].rating : 1200;
   }
+
+  /**
+   * Compute an overall rating blending game, puzzle, and endgame ratings.
+   * Weights: games 50%, puzzles 30%, endgames 20%.
+   * Components with no activity are excluded and weights redistributed.
+   * @param {object} params - { gameRating, gameCount, puzzleRating, puzzleSolved, endgameRating, endgameSolved }
+   * @returns {{ overall: number, components: object[] }}
+   */
+  getOverallRating({ gameRating, gameCount, puzzleRating, puzzleSolved, endgameRating, endgameSolved }) {
+    const components = [];
+    if (gameCount >= 1)    components.push({ name: 'Game',    rating: gameRating,    weight: 50 });
+    if (puzzleSolved >= 1) components.push({ name: 'Puzzle',  rating: puzzleRating,  weight: 30 });
+    if (endgameSolved >= 1) components.push({ name: 'Endgame', rating: endgameRating, weight: 20 });
+
+    if (components.length === 0) return { overall: 1200, components: [] };
+
+    const totalWeight = components.reduce((s, c) => s + c.weight, 0);
+    let overall = 0;
+    for (const c of components) {
+      c.pct = Math.round((c.weight / totalWeight) * 100);
+      overall += c.rating * (c.weight / totalWeight);
+    }
+    return { overall: Math.round(overall), components };
+  }
 }

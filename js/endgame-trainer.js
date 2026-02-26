@@ -232,6 +232,11 @@ export class EndgameTrainer {
       const catStats = this.progress.categoryStats[position.category] || { attempted: 0, solved: 0 };
       catStats.solved++;
       this.progress.categoryStats[position.category] = catStats;
+
+      // Adjust Elo rating
+      const posRating = position.rating || 1200;
+      const firstTry = !this.failed && this.hintLevel === 0;
+      this._adjustRating(posRating, firstTry);
     }
 
     this.phase = 'review';
@@ -245,7 +250,8 @@ export class EndgameTrainer {
     return {
       totalSolved: this.progress.totalSolved,
       totalPositions: this.positions.length,
-      categoryStats: this.progress.categoryStats
+      categoryStats: this.progress.categoryStats,
+      rating: Math.round(this.progress.rating)
     };
   }
 
@@ -263,12 +269,21 @@ export class EndgameTrainer {
     this.progress = {
       solved: {},
       categoryStats: {},
-      totalSolved: 0
+      totalSolved: 0,
+      rating: 1200
     };
     this._saveProgress();
   }
 
   // === Private ===
+
+  _adjustRating(positionRating, firstTry) {
+    const K = 32;
+    const expected = 1 / (1 + Math.pow(10, (positionRating - this.progress.rating) / 400));
+    const score = firstTry ? 1 : 0.5;
+    this.progress.rating += K * (score - expected);
+    this.progress.rating = Math.max(400, Math.min(3000, this.progress.rating));
+  }
 
   _loadProgress() {
     try {
@@ -278,7 +293,8 @@ export class EndgameTrainer {
         return {
           solved: parsed.solved || {},
           categoryStats: parsed.categoryStats || {},
-          totalSolved: parsed.totalSolved || 0
+          totalSolved: parsed.totalSolved || 0,
+          rating: parsed.rating ?? 1200
         };
       }
     } catch (e) {
@@ -287,7 +303,8 @@ export class EndgameTrainer {
     return {
       solved: {},
       categoryStats: {},
-      totalSolved: 0
+      totalSolved: 0,
+      rating: 1200
     };
   }
 

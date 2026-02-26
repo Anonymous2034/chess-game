@@ -3495,7 +3495,13 @@ main {
   font-size: 1.2rem; font-weight: 700; color: var(--text-light);
 }
 .profile-rating {
-  font-size: 0.95rem; color: var(--accent); margin-top: 4px; font-weight: 600;
+  margin-top: 4px; display: flex; flex-direction: column; gap: 1px;
+}
+.profile-overall-rating {
+  font-size: 0.95rem; color: var(--accent); font-weight: 700;
+}
+.profile-rating-breakdown {
+  font-size: 0.7rem; color: var(--text-color); opacity: 0.7; font-weight: 400;
 }
 .profile-record {
   font-size: 0.8rem; color: var(--text-color); margin-top: 2px;
@@ -5189,6 +5195,15 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.endgame-rating-badge {
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .endgame-title-badge {

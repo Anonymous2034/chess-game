@@ -8,6 +8,7 @@
     "description": "White must advance the king to a key square (d5, e5, or f5) to promote the pawn.",
     "objective": "Win by promoting the f-pawn. Use key squares to escort it.",
     "difficulty": 1,
+    "rating": 750,
     "solution_moves": ["e2e3", "e6e5", "e3d3", "e5d5", "d3e3", "d5e5"]
   },
   {
@@ -19,6 +20,7 @@
     "description": "White must use opposition to push the pawn. Direct king opposition is the key.",
     "objective": "Win by gaining the opposition and promoting the pawn.",
     "difficulty": 1,
+    "rating": 800,
     "solution_moves": ["e2e3", "e4e5", "f2f4", "e5e6", "e3e4", "e6f6"]
   },
   {
@@ -30,6 +32,7 @@
     "description": "King is already on a key square — this should be a straightforward win.",
     "objective": "Promote the f-pawn. The king is ideally placed ahead of it.",
     "difficulty": 1,
+    "rating": 700,
     "solution_moves": ["f5e5", "f7e7", "f4f5", "e7f7", "e5d6", "f7f8"]
   },
   {
@@ -41,6 +44,7 @@
     "description": "White can win by approaching with the right tempo to seize opposition.",
     "objective": "Win using distant opposition. Advance the king correctly.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["e3d3", "d5e5", "e2e3", "e5d5", "d3e3", "d5e5"]
   },
   {
@@ -52,6 +56,7 @@
     "description": "King on the 6th rank, pawn on 5th — this is a won position for White.",
     "objective": "Promote the e-pawn. King is already on its ideal square.",
     "difficulty": 1,
+    "rating": 750,
     "solution_moves": ["e6d6", "e8d8", "e5e6", "d8e8", "e6e7", "e8f7"]
   },
   {
@@ -63,6 +68,7 @@
     "description": "Black has a rook pawn but White can draw with correct defense — stalemate trap in the corner.",
     "objective": "Draw by reaching the a1 corner. When the pawn reaches a2, White is stalemated.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["a1b1", "a4b3", "b1a1", "a3a2"]
   },
   {
@@ -74,6 +80,7 @@
     "description": "White defends a lost-looking position by keeping opposition on the pawn's file.",
     "objective": "Draw by maintaining opposition directly in front of the pawn.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["c1c2", "c5c4", "c2c1", "c4d3", "c1d1"]
   },
   {
@@ -85,6 +92,7 @@
     "description": "A fundamental K+P vs K position. White to play — can White win?",
     "objective": "Win by gaining opposition. The key is to step to the side first.",
     "difficulty": 2,
+    "rating": 1150,
     "solution_moves": ["d2e3", "d4e5", "e2e4"]
   },
   {
@@ -96,6 +104,7 @@
     "description": "Two connected pawns on the 6th rank with king support. One will promote.",
     "objective": "Promote one of the pawns. Advance the correct one first.",
     "difficulty": 2,
+    "rating": 1000,
     "solution_moves": ["g6g7", "h8h7", "g7g8q"]
   },
   {
@@ -107,6 +116,7 @@
     "description": "Standard K+P vs K with g-pawn. White must navigate to key squares.",
     "objective": "Promote the g-pawn by advancing the king to key squares first.",
     "difficulty": 1,
+    "rating": 800,
     "solution_moves": ["f2f3", "g7f6", "f3e4", "f6e6", "g2g3", "e6f6"]
   },
   {
@@ -118,6 +128,7 @@
     "description": "White must be careful not to stalemate Black while promoting.",
     "objective": "Win without stalemating. Find the right king move.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["b6c6", "b8a7", "c6c7", "a7a6", "b7b8q"]
   },
   {
@@ -129,6 +140,7 @@
     "description": "The most important rook endgame position. White wins with the 'bridge' technique.",
     "objective": "Win using the Lucena bridge-building method to shelter the king from checks.",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["e1e4", "d8c7", "e4d4", "c7b6", "b8a8", "b6c7"]
   },
   {
@@ -140,6 +152,7 @@
     "description": "Black can draw with the Philidor position — rook on the 3rd rank, then checking from behind.",
     "objective": "Draw using the Philidor technique. Keep the rook on the 6th rank cutting off the king.",
     "difficulty": 3,
+    "rating": 1450,
     "solution_moves": ["f6a6", "g7f8", "a6a1", "b2b8", "g1f2", "f8e7"]
   },
   {
@@ -151,6 +164,7 @@
     "description": "White's rook cuts off Black's king while the pawn advances.",
     "objective": "Win by keeping the enemy king cut off from the pawn.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["d4d5", "d6e7", "d5d6", "e7f7", "e4e5", "g1e1"]
   },
   {
@@ -162,6 +176,7 @@
     "description": "Rook activity trumps material. White's active rook vs Black's passive one.",
     "objective": "Use the active rook to win Black's pawn or create threats.",
     "difficulty": 3,
+    "rating": 1300,
     "solution_moves": ["a7a5", "d1d5", "a5e5"]
   },
   {
@@ -173,6 +188,7 @@
     "description": "Rook in front of the pawn is usually a draw or win, depending on king position.",
     "objective": "Stop the pawn from promoting using frontal defense.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["b1b2", "b6a5", "b4a3", "b7b6"]
   },
   {
@@ -184,6 +200,7 @@
     "description": "Rook must stop the advanced pawn. Correct technique is to approach from the side.",
     "objective": "Stop the d2-pawn from promoting using the rook.",
     "difficulty": 2,
+    "rating": 1150,
     "solution_moves": ["a4a2", "d5e4", "a2d2"]
   },
   {
@@ -195,6 +212,7 @@
     "description": "Use the rook to cut off the enemy king from returning to the center.",
     "objective": "Win by restricting the enemy king and improving your position.",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["c2c3", "a3a4", "b1b2", "h1h2", "b2a2"]
   },
   {
@@ -206,6 +224,7 @@
     "description": "Rook and pawn vs lone king. Use the rook to shield the pawn's advance.",
     "objective": "Promote the g-pawn with rook support.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["a6a7", "g7f8", "g5g6", "f8e8", "g6g7", "e8d8"]
   },
   {
@@ -217,6 +236,7 @@
     "description": "A key rook endgame drawing technique with rook pawn. The defending rook harasses from the side.",
     "objective": "Understand the Vancura drawing mechanism with the a/h-pawn.",
     "difficulty": 4,
+    "rating": 1700,
     "solution_moves": ["b4a5", "e1a1", "a5b6", "a1a8"]
   },
   {
@@ -228,6 +248,7 @@
     "description": "Black's rook tries to stop the b-pawn. Can White promote?",
     "objective": "Promote the b-pawn despite Black's rook defense.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["b3a4", "b5c6", "b2b3"]
   },
   {
@@ -239,6 +260,7 @@
     "description": "White has R+P but needs good king placement. Advance the pawn with king escort.",
     "objective": "Win by coordinating rook and king to push the e-pawn.",
     "difficulty": 3,
+    "rating": 1450,
     "solution_moves": ["a4a6", "e6d7", "e4e5", "f2f1", "e1d2", "f1f5"]
   },
   {
@@ -250,6 +272,7 @@
     "description": "Classic bridge-building technique. The rook shields the king from checks.",
     "objective": "Win with the bridge technique — interpose the rook to block checks.",
     "difficulty": 3,
+    "rating": 1500,
     "solution_moves": ["h1h4", "f1f8", "e6e7", "d8c7", "d6d7", "c7b6"]
   },
   {
@@ -261,6 +284,7 @@
     "description": "Queen and king vs lone king. Practice the systematic checkmate technique.",
     "objective": "Checkmate with queen and king. Drive the king to the edge.",
     "difficulty": 1,
+    "rating": 700,
     "solution_moves": ["d2d3", "e4f4", "g1f2", "f4g5", "d3d5", "g5g6"]
   },
   {
@@ -272,6 +296,7 @@
     "description": "Queen vs rook pawn on the 7th. This is a draw because of stalemate tricks.",
     "objective": "Try to win. Discover why this position is a draw.",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["h1h8", "a3b2", "h8b8", "b2a1", "b8b3", "a1a2"]
   },
   {
@@ -283,6 +308,7 @@
     "description": "Queen vs non-rook pawn on the 7th rank. White can win with precise technique.",
     "objective": "Win by using queen checks to bring the king closer while preventing promotion.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["d1d4", "c3b2", "d4d2", "b2b1", "e1d3", "c2c1q"]
   },
   {
@@ -294,6 +320,7 @@
     "description": "Queen vs b-pawn. Can White avoid stalemate and win?",
     "objective": "Win the pawn using queen checks to bring the king closer.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["d1d3", "b3a2", "d3c2", "a2a1", "e1d2", "b2b1q"]
   },
   {
@@ -305,6 +332,7 @@
     "description": "Queen + King vs King. Drive the enemy to the edge with systematic queen moves.",
     "objective": "Deliver checkmate using queen and king coordination.",
     "difficulty": 2,
+    "rating": 1000,
     "solution_moves": ["d3e3", "d5c4", "e3e5", "c4b3", "d2c1", "b3a4"]
   },
   {
@@ -316,6 +344,7 @@
     "description": "Standard technique: use queen to block promotion and bring king closer.",
     "objective": "Win the pawn by using the queen to control the promotion square.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["e1b4", "d5c6", "b4b1", "c6c5", "d2c3"]
   },
   {
@@ -327,6 +356,7 @@
     "description": "Bishop and king cannot force checkmate against a lone king. This is a draw.",
     "objective": "Recognize that this position is a theoretical draw — insufficient material.",
     "difficulty": 1,
+    "rating": 650,
     "solution_moves": ["a2b3", "d5c5", "f2e3", "c5b4"]
   },
   {
@@ -338,6 +368,7 @@
     "description": "Bishop and pawn vs lone king. Win by advancing the pawn with piece support.",
     "objective": "Promote the d-pawn with bishop and king support.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["d2e3", "e6d5", "c4b5", "d5c5", "d3d4", "c5b4"]
   },
   {
@@ -349,6 +380,7 @@
     "description": "The bishop doesn't control the promotion square. This is a famous drawn position.",
     "objective": "This is a draw. The bishop cannot control h8 (wrong color).",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["d4e5", "h8g8", "e5f6", "g8h8"]
   },
   {
@@ -360,6 +392,7 @@
     "description": "The bishop controls the promotion square. This is a straightforward win.",
     "objective": "Promote the g-pawn. The bishop covers the key square.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["e4d5", "f8g8", "g6g7", "g8h7", "f6f7", "h7h6"]
   },
   {
@@ -371,6 +404,7 @@
     "description": "Opposite-colored bishops with one pawn. A notorious drawing tendency in endgames.",
     "objective": "Try to promote. Opposite bishops make this very difficult to win.",
     "difficulty": 4,
+    "rating": 1750,
     "solution_moves": ["c7d8", "a7b8", "f5f6", "f8g8", "f6f7", "g8h7"]
   },
   {
@@ -382,6 +416,7 @@
     "description": "Black has a fortress with f7 pawn. Can White break through?",
     "objective": "Attempt to win. Discover if Black's fortress holds.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["f6e7", "g8g7", "g5f5", "g7f8", "e7d6", "f8g7"]
   },
   {
@@ -393,6 +428,7 @@
     "description": "Knight and pawn vs lone king. Knight helps escort the pawn to promotion.",
     "objective": "Promote the e-pawn using the knight to control key squares.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["e3d4", "e6d6", "e4f6", "d6e6", "e2e3", "e6f7"]
   },
   {
@@ -404,6 +440,7 @@
     "description": "Use the knight to protect key squares while advancing the pawn.",
     "objective": "Advance and promote the e-pawn with knight and king support.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["e2e3", "e5e4", "f2e2", "e4d5"]
   },
   {
@@ -415,6 +452,7 @@
     "description": "Knight and king cannot force checkmate. This is always a draw.",
     "objective": "Recognize insufficient material — K+N vs K is always a draw.",
     "difficulty": 1,
+    "rating": 650,
     "solution_moves": ["d5c3", "e5d4", "e3d2", "d4c4"]
   },
   {
@@ -426,6 +464,7 @@
     "description": "The knight supports the passed c-pawn while the king restricts the enemy king.",
     "objective": "Promote the c-pawn with correct knight maneuvers.",
     "difficulty": 2,
+    "rating": 1150,
     "solution_moves": ["c4c5", "d6c7", "e4d5", "c7b8", "c5c6", "b8a7"]
   },
   {
@@ -437,6 +476,7 @@
     "description": "Knight can accidentally cause stalemate. Be careful with the mating net.",
     "objective": "Avoid stalemate while restricting the enemy king.",
     "difficulty": 3,
+    "rating": 1300,
     "solution_moves": ["f6e4", "h8g8", "g6f6", "g8f8", "e4d6", "f8g8"]
   },
   {
@@ -448,6 +488,7 @@
     "description": "Advanced pawn on the 6th with knight support. Win by promoting.",
     "objective": "Force promotion of the d-pawn using the knight.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["d5c7", "d7c8", "e5e6", "c8b7", "d6d7", "b7c7"]
   },
   {
@@ -459,6 +500,7 @@
     "description": "Classic pawn breakthrough. One of the pawns will break through to promote.",
     "objective": "Find the pawn breakthrough combination to create a passed pawn.",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["b2b3", "a5a4", "a2a3"]
   },
   {
@@ -470,6 +512,7 @@
     "description": "A mutual zugzwang position. The side to move loses!",
     "objective": "Understand zugzwang — whoever moves is in trouble.",
     "difficulty": 4,
+    "rating": 1700,
     "solution_moves": ["g1f2", "g6f6", "f2e2", "f6e5"]
   },
   {
@@ -481,6 +524,7 @@
     "description": "Both sides race to promote. Count the tempi to see who queens first.",
     "objective": "Win the pawn race by promoting first or with a tempo advantage.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["a2a4", "a7a5", "b2b4", "a5b4", "a4a5", "b7b5"]
   },
   {
@@ -492,6 +536,7 @@
     "description": "Symmetrical pawn structure. The side with opposition wins the enemy pawn.",
     "objective": "Win by using opposition to outflank and capture Black's pawn.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["d4c4", "b6a5", "d3d4", "a5a4", "d4d5"]
   },
   {
@@ -503,6 +548,7 @@
     "description": "The outside passed pawn is a powerful weapon — it decoys the enemy king.",
     "objective": "Win using the outside passed pawn to decoy Black's king.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["c4d4", "f7e6", "d4e3", "e6d5", "f2f3", "g4f3"]
   },
   {
@@ -514,6 +560,7 @@
     "description": "Both sides have a passed pawn racing to promote. Who wins the race?",
     "objective": "Promote the b-pawn or stop Black's a-pawn. Calculate the race.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["b5b6", "a7a6", "a4a5"]
   },
   {
@@ -525,6 +572,7 @@
     "description": "Locked pawns. The only winning plan is to outflank via the wing.",
     "objective": "Win by marching the king around the locked pawns to outflank.",
     "difficulty": 4,
+    "rating": 1650,
     "solution_moves": ["e1d2", "d6c6", "d2c3", "c6d6", "c3b3", "d6c6"]
   },
   {
@@ -536,6 +584,7 @@
     "description": "A complex pawn structure. Find the breakthrough to create a winning passed pawn.",
     "objective": "Find the correct pawn break to win material or promote.",
     "difficulty": 4,
+    "rating": 1750,
     "solution_moves": ["e1d2", "c7d7", "d2c3", "d7c7", "c3b3"]
   },
   {
@@ -547,6 +596,7 @@
     "description": "White has a 2 vs 2 pawn majority on the kingside but better placed pawns.",
     "objective": "Create a passed pawn using the pawn majority and promote.",
     "difficulty": 3,
+    "rating": 1300,
     "solution_moves": ["h2h4", "g5h4", "g2g4", "f4g3", "f3g3", "e6f5"]
   },
   {
@@ -558,6 +608,7 @@
     "description": "Both sides have a b-pawn. Opposition determines the outcome.",
     "objective": "Win or draw by correctly using opposition.",
     "difficulty": 2,
+    "rating": 1050,
     "solution_moves": ["e3d3", "e5d5", "d3c3", "d5c5"]
   },
   {
@@ -569,6 +620,7 @@
     "description": "White's h-pawn becomes a decoy to lure the Black king away.",
     "objective": "Win by advancing the h-pawn to distract, then capture on the queenside.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["h4h5", "g6h5", "g5g6", "h7g6", "e3d4", "e6d6"]
   },
   {
@@ -580,6 +632,7 @@
     "description": "Rook versus knight with pawns on the board. Rook's long-range power matters.",
     "objective": "Use the rook's superiority over the knight in open positions.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["a7e7", "e4d2", "a1b1", "d2c4"]
   },
   {
@@ -591,6 +644,7 @@
     "description": "The knight blockades the passed pawn while the king approaches.",
     "objective": "Win by blockading the pawn with the knight and using the king.",
     "difficulty": 2,
+    "rating": 1100,
     "solution_moves": ["d4c6", "d6c5", "c6a7", "c5b4", "d3c2"]
   },
   {
@@ -602,6 +656,7 @@
     "description": "Bishop is strong when pawns are on both sides of the board.",
     "objective": "Exploit the bishop's long-range to win pawns or promote.",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["c4e6", "f7e6", "d3e4", "d6e7", "e4e5"]
   },
   {
@@ -613,6 +668,7 @@
     "description": "Knight and fixed pawns. Knight must outmaneuver to create a winning advantage.",
     "objective": "Win by using the knight to outflank while pawns are fixed.",
     "difficulty": 3,
+    "rating": 1350,
     "solution_moves": ["d4c6", "e7d7", "c6b4", "d7c7", "e3d4", "c7d7"]
   },
   {
@@ -624,6 +680,7 @@
     "description": "Knight on a dominant central square restricts the enemy king.",
     "objective": "Win using the knight's dominance from d5 to push pawns.",
     "difficulty": 3,
+    "rating": 1400,
     "solution_moves": ["f2f4", "e5d6", "d5f6", "f7f5", "e3d4", "d6e6"]
   },
   {
@@ -635,6 +692,7 @@
     "description": "The passed d-pawn races to promote. Can the bishop stop it?",
     "objective": "Advance the d-pawn. Determine if it can outrun the bishop.",
     "difficulty": 3,
+    "rating": 1300,
     "solution_moves": ["d5d6", "d7e6", "c3d4", "c5d6"]
   },
   {
@@ -646,6 +704,7 @@
     "description": "The legendary Reti study (1921). White's king simultaneously chases and supports.",
     "objective": "Draw by chasing Black's h-pawn AND supporting your c-pawn simultaneously.",
     "difficulty": 5,
+    "rating": 2000,
     "solution_moves": ["h8g7", "h5h4", "g7f6", "a6b6", "f6e7"]
   },
   {
@@ -657,6 +716,7 @@
     "description": "Two knights cannot force checkmate against a lone king, but with a pawn it's different.",
     "objective": "Win using two knights — the pawn prevents stalemate.",
     "difficulty": 5,
+    "rating": 2100,
     "solution_moves": ["f5g3", "h5g5", "e5f3", "g5f4", "d5e6", "f4g3"]
   },
   {
@@ -668,6 +728,7 @@
     "description": "White's c-pawn is advanced. Can it promote with rook support?",
     "objective": "Promote the c-pawn using the rook to shield from checks.",
     "difficulty": 4,
+    "rating": 1650,
     "solution_moves": ["c6c7", "e2c2", "f1c1", "g6f7", "g3f3", "f7e7"]
   }
 ]
