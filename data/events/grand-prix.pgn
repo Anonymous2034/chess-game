@@ -1,0 +1,96 @@
+[Event "FIDE Grand Prix 3 Pool A"]
+[Site "Berlin GER"]
+[Date "2022.03.27"]
+[Round "5.2"]
+[White "Aronian,L"]
+[Black "Esipenko,Andrey"]
+[Result "1-0"]
+[WhiteElo "2785"]
+[BlackElo "2723"]
+[ECO "E51"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 Bb4 5.e3 O-O 6.Bd2 b6 7.cxd5 exd5 8.Bd3 Bb7
+9.Qc2 Re8 10.a3 Bf8 11.Ng5 g6 12.h4 c5 13.h5 h6 14.hxg6 hxg5 15.gxf7+ Kxf7
+16.Bg6+ Ke7 17.Qf5 Bg7 18.e4 Nc6 19.Bxe8 Qxe8 20.Nxd5+ Nxd5 21.Bxg5+ Kd6
+22.Qxd5+ Kc7 23.Rh7  1-0
+
+[Event "Moscow FIDE Grand Prix"]
+[Site "Moscow RUS"]
+[Date "2019.05.17"]
+[Round "1.1"]
+[White "Duda,J"]
+[Black "So,W"]
+[Result "1-0"]
+[WhiteElo "2728"]
+[BlackElo "2754"]
+[ECO "C53"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 O-O 6.O-O d5 7.exd5 Nxd5 8.a4 a6
+9.Re1 Bg4 10.Nbd2 Kh8 11.h3 Bh5 12.Ne4 Ba7 13.Ng3 Bg6 14.Nxe5 Nxe5 15.Rxe5 Nb6
+16.Qf3 c6 17.Bf4 Bb8 18.Ree1 Nxc4 19.dxc4 Qh4 20.Ne2 Ba7 21.Bd6 Rfe8 22.Nf4 Bc2
+23.c5 a5 24.Re2 Bb3 25.Ra3  1-0
+
+[Event "Baku FIDE Grand Prix 2014"]
+[Site "Baku AZE"]
+[Date "2014.10.02"]
+[Round "1.4"]
+[White "Gelfand,B"]
+[Black "Andreikin,D"]
+[Result "1-0"]
+[WhiteElo "2748"]
+[BlackElo "2722"]
+[ECO "E15"]
+
+1.d4 e6 2.c4 Nf6 3.Nf3 b6 4.g3 Bb7 5.Bg2 c5 6.d5 exd5 7.cxd5 Bxd5 8.Nc3 Bc6
+9.e4 d6 10.O-O Be7 11.Nh4 g6 12.Bh6 Bf8 13.Bxf8 Kxf8 14.Qd2 Ne8 15.Rad1 Kg7
+16.f4 Qc8 17.Nd5 Rf8 18.e5 dxe5 19.f5 Qd8 20.f6+ Nxf6 21.Nf5+ Kh8 22.Qh6 Rg8
+23.Nxf6  1-0
+
+[Event "Baku FIDE Grand Prix 2014"]
+[Site "Baku AZE"]
+[Date "2014.10.13"]
+[Round "10.1"]
+[White "Gelfand,B"]
+[Black "Radjabov,T"]
+[Result "1-0"]
+[WhiteElo "2748"]
+[BlackElo "2726"]
+[ECO "E06"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.g3 Be7 5.Bg2 O-O 6.O-O dxc4 7.Qc2 a6 8.Qxc4 b5
+9.Qc2 Bb7 10.Bd2 Be4 11.Qc1 Bb7 12.Bf4 Nd5 13.Rd1 Nxf4 14.Qxf4 Qd6 15.Nbd2 Nd7
+16.Rac1 Rad8 17.Nb3 Bd5 18.Nfd2 Nb6 19.Rxc7 Bxb3 20.Nxb3 Nc4 21.Qxd6 Bxd6
+22.Ra7 a5 23.Rb1 Bb4 24.a3 Nd2 25.axb4 Nxb1 26.bxa5 f5 27.Rc7 e5 28.Rc1  1-0
+
+[Event "FIDE Grand Prix 3 Pool D"]
+[Site "Berlin GER"]
+[Date "2022.03.28"]
+[Round "6.2"]
+[White "Giri,A"]
+[Black "Tabatabaei,M"]
+[Result "0-1"]
+[WhiteElo "2771"]
+[BlackElo "2623"]
+[ECO "C50"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 Bc5 5.O-O O-O 6.Nbd2 d6 7.c3 a6 8.b4 Ba7
+9.a4 Ne7 10.Re1 Ng6 11.d4 Re8 12.h3 h6 13.Bd3 c6 14.Ra3 Qc7 15.Bb2 Bd7 16.Qc2 Rad8
+17.Raa1 Nh5 18.Bf1 Nhf4 19.h4 d5 20.g3 Nh3+ 21.Kg2 exd4 22.cxd4 Ngf4+ 23.gxf4 Qxf4
+24.e5 Bf5 25.Qc3 Re6 26.Qe3 Rg6+ 27.Kh1 Qg4 28.Ra3 f6 29.exf6 gxf6 30.h5 Rg7  0-1
+
+[Event "Grand Prix du Senat"]
+[Site "Paris FRA"]
+[Date "2002.06.29"]
+[Round "1.2"]
+[White "Bacrot,E"]
+[Black "Kramnik,V"]
+[Result "0-1"]
+[WhiteElo "2653"]
+[BlackElo "2809"]
+[ECO "E15"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3 Ba6 5.b3 Bb4+ 6.Bd2 Be7 7.Bg2 Bb7 8.Nc3 d5
+9.O-O O-O 10.cxd5 exd5 11.Bf4 Na6 12.Qc2 Re8 13.Rfd1 c6 14.a3 Nc7 15.Bxc7 Qxc7
+16.b4 Bd6 17.e3 Qe7 18.Qb3 Rad8 19.Ne1 h5 20.b5 h4 21.bxc6 hxg3 22.hxg3 Bxc6
+23.Nc2 Ng4 24.Nxd5 Qg5 25.Nf4 Bxf4 26.Bxc6 Qh6 27.Bg2 Bxg3 28.fxg3 Qh2+ 29.Kf1 Qxg3
+30.Rd2 Rd6  0-1

@@ -1,0 +1,126 @@
+[Event "Barmen-B"]
+[Site "Barmen"]
+[Date "1905.??.??"]
+[Round "?"]
+[White "Leussen, Benjamin"]
+[Black "Nimzowitsch, Aaron "]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "D07"]
+
+1.d4 d5 2.c4 Nc6 3.Nc3 e5 4.cxd5 exd4 5.dxc6 dxc3 6.Qxd8+ Kxd8 7.bxc3 Nf6
+8.g3 bxc6 9.Bg2 Nd5 10.Bd2 Be7 11.Nf3 Bf6 12.Nd4 Bd7 13.e4 Nb4 14.cxb4 Bxd4
+15.Rd1 Kc8 16.O-O c5 17.Bf4 Bb5 18.bxc5 Bc3 19.Bh3+ Kb7 20.Rb1 Kc6 21.Rfc1 Bd4
+22.e5  1-0
+
+[Event "Barmen-B"]
+[Site "Barmen"]
+[Date "1905.??.??"]
+[Round "?"]
+[White "Nimzowitsch, Aaron "]
+[Black "Cohn, Wilhelm"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C01"]
+
+1.e4 e5 2.Nf3 Nf6 3.Nxe5 d6 4.Nf3 Nxe4 5.Nc3 Nf6 6.d4 d5 7.Ne5 Bf5 8.Ne2 Bd6
+9.Ng3 Be4 10.f3 Bg6 11.Bg5 h6 12.Bh4 Qe7 13.Bb5+ c6 14.O-O Bxe5 15.dxe5 Qc5+
+16.Rf2 Nfd7 17.Bd3 O-O 18.f4 Na6 19.Qg4 Kh7 20.Qxd7 Bxd3 21.cxd3 Nb4 22.Be7 Qd4
+23.Rd1 Nxd3 24.Qf5+  1-0
+
+[Event "Barmen-B"]
+[Site "Barmen"]
+[Date "1905.??.??"]
+[Round "?"]
+[White "Nimzowitsch, Aaron "]
+[Black "Perlis, Julius"]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "B44"]
+
+1.e4 e6 2.c4 c5 3.Nf3 Nc6 4.d4 cxd4 5.Nxd4 Nf6 6.Nc3 Bb4 7.Nxc6 bxc6 8.e5 Ne4
+9.Qg4 Nxc3 10.Bd2 Qa5 11.Qxg7 Rf8 12.a3 Nd5 13.Bxb4 Nxb4 14.O-O-O Na6 15.f4 Rb8
+16.Qxh7 Qb6 17.Qc2 Qe3+ 18.Qd2 Qb3 19.Qc2 Nc5 20.Bd3 Ba6 21.Qxb3 Nxb3+ 22.Kc2 c5
+23.Kc3 Ke7  0-1
+
+[Event "Barmen-B"]
+[Site "Barmen"]
+[Date "1905.??.??"]
+[Round "?"]
+[White "Petterson, AH."]
+[Black "Nimzowitsch, Aaron "]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C63"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bb5 f5 4.Nc3 Nf6 5.Qe2 fxe4 6.Nxe4 Qe7 7.O-O d5 8.Ng3 Bg4
+9.Bxc6+ bxc6 10.Qa6 Kd7 11.Ne1 h5 12.Ne2 Qe6 13.c3 Bd6 14.Nc2 c5 15.f3 Bf5
+16.d3 h4 17.b4 Rab8 18.Re1 Nh5 19.Qa4+ Kc8 20.bxc5 Bxc5+ 21.d4 Bxc2 22.Qxc2 exd4
+23.Kf1 Re8 24.Bg5 dxc3 25.Nxc3 Qa6+ 26.Ne2 Ba3 27.Bxh4 Rb2 28.Qf5+ Kb8 29.Qxh5 Rexe2
+30.Bf2 Rxe1+  0-1
+
+[Event "Barmen-B"]
+[Site "Barmen"]
+[Date "1905.??.??"]
+[Round "?"]
+[White "Spielmann, Rudolf"]
+[Black "Nimzowitsch, Aaron "]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C30"]
+
+1.e4 e5 2.Nc3 Bc5 3.f4 d6 4.Nf3 Nf6 5.Bc4 Nc6 6.d3 Be6 7.Bb5 a6 8.Bxc6+ bxc6
+9.f5 Bc8 10.Bg5 Qd7 11.Bxf6 gxf6 12.Qd2 Bb7 13.Ne2 h5 14.Nh4 O-O-O 15.O-O-O d5
+16.Ng3 Bf8 17.Kb1 d4 18.Qe2 Bh6 19.Nxh5 Bg5 20.g3 c5 21.Ng2 c4 22.h4 c3 23.hxg5 Qa4
+24.Ka1 Rxh5 25.Rxh5 cxb2+ 26.Kb1 Bd5 27.exd5 Rxd5 28.Rh8+ Kb7 29.Qf3 c6 30.Qh5  1-0
+
+[Event "Karlsbad"]
+[Site "Karlsbad"]
+[Date "1907.??.??"]
+[Round "?"]
+[White "Cohn, Erich"]
+[Black "Nimzowitsch, Aaron "]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C25"]
+
+1.e4 e5 2.Nc3 Bc5 3.Nf3 d6 4.d4 exd4 5.Nxd4 Nf6 6.Be2 O-O 7.O-O Re8 8.Nb3 Bb6
+9.Bg5 h6 10.Bh4 g5 11.Bg3 Nxe4 12.Nxe4 Rxe4 13.Bd3 Bg4 14.Qd2 Re8 15.a4 a5
+16.h4 Qf6 17.hxg5 hxg5 18.Nc1 Nc6 19.Na2 Kg7 20.Nc3 Qh6  0-1
+
+[Event "Karlsbad"]
+[Site "Karlsbad"]
+[Date "1907.??.??"]
+[Round "?"]
+[White "Mieses, Jacques"]
+[Black "Nimzowitsch, Aaron "]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C28"]
+
+1.e4 e5 2.Nc3 Nf6 3.Bc4 Nc6 4.d3 Bb4 5.Bg5 h6 6.Bxf6 Bxc3+ 7.bxc3 Qxf6 8.Ne2 d6
+9.O-O Be6 10.Bxe6 fxe6 11.f4 O-O 12.Qb1 Rab8 13.Qb3 Kh7 14.f5 exf5 15.Rxf5 Qe7
+16.Raf1 Rxf5 17.exf5 Nd8 18.Ng3 c6 19.f6 gxf6 20.Nh5 Ne6 21.Rxf6 d5 22.g3 Ng7
+23.Rxc6 Nxh5 24.Qb5 Rg8 25.Rc5 Nxg3 26.Rxd5 Ne4+  0-1
+
+[Event "Karlsbad"]
+[Site "Karlsbad"]
+[Date "1907.??.??"]
+[Round "?"]
+[White "Nimzowitsch, Aaron "]
+[Black "Johner, Paul F"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "D02"]
+
+1.Nf3 d5 2.d4 e6 3.Bf4 c5 4.e3 Qb6 5.b3 Nc6 6.Be2 Nf6 7.h3 cxd4 8.exd4 Be7
+9.O-O O-O 10.c4 dxc4 11.bxc4 Rd8 12.Be3 e5 13.d5 Bc5 14.Bxc5 Qxc5 15.Nbd2 Nd4
+16.Nxe5 Re8 17.Ndf3 Nxf3+ 18.Nxf3 b5 19.Qd4 Qa3 20.Ne5 Bb7 21.d6 Rad8 22.c5  1-0

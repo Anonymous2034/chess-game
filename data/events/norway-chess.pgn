@@ -1,0 +1,96 @@
+[Event "Norway Supreme Masters Blitz 2013"]
+[Site "Stavanger NOR"]
+[Date "2013.05.07"]
+[Round "6.5"]
+[White "Svidler,P"]
+[Black "Anand,V"]
+[Result "0-1"]
+[WhiteElo "2769"]
+[BlackElo "2783"]
+[ECO "A30"]
+
+1.c4 c5 2.Nf3 Nc6 3.g3 g6 4.Bg2 Bg7 5.O-O e6 6.e3 Nge7 7.d4 cxd4 8.Nxd4 O-O
+9.Nxc6 bxc6 10.c5 f5 11.Qc2 Nd5 12.Na3 Ba6 13.Rd1 Rb8 14.e4 fxe4 15.Bxe4 Rb4
+16.Kg2 Qf6 17.f3 Rxb2 18.Bxb2 Qxb2 19.Qxb2 Bxb2 20.Nc2 Bxa1 21.Rxa1 Rb8 22.Nd4 Rb2+
+23.Kh3 Rd2 24.Nb3 Rf2 25.g4 Bf1+ 26.Kg3 Rg2+ 27.Kh4 Rxh2+ 28.Kg5 Bc4 29.Na5 Kg7  0-1
+
+[Event "3rd Norway Blitz 2015"]
+[Site "Stavanger NOR"]
+[Date "2015.06.15"]
+[Round "1.4"]
+[White "Grischuk,A"]
+[Black "Anand,V"]
+[Result "0-1"]
+[WhiteElo "2781"]
+[BlackElo "2804"]
+[ECO "A45"]
+
+1.d4 Nf6 2.Bf4 d5 3.e3 c5 4.dxc5 Nc6 5.Bb5 Qa5+ 6.Nc3 a6 7.Bxc6+ bxc6 8.Qd4 e6
+9.b4 Qa3 10.Nge2 a5 11.Rb1 axb4 12.Rxb4 Ba6 13.O-O Bxe2 14.Nxe2 Be7 15.Bd6 Bxd6
+16.cxd6 O-O 17.Ng3 Rfc8 18.Qd2 Rd8 19.e4 dxe4 20.c4 Qxa2 21.Qxa2 Rxa2 22.Rb6 h5
+23.Rxc6 h4 24.Nh1 Rc2 25.Rd1 Ng4 26.c5 e3 27.Rc7 exf2+ 28.Nxf2 Nxf2 29.Rf1 Ne4
+30.Rfxf7 Rc1+  0-1
+
+[Event "3rd Norway Blitz 2015"]
+[Site "Stavanger NOR"]
+[Date "2015.06.15"]
+[Round "3.1"]
+[White "Giri,A"]
+[Black "Anand,V"]
+[Result "1-0"]
+[WhiteElo "2773"]
+[BlackElo "2804"]
+[ECO "C50"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.d3 Nf6 5.O-O d6 6.c3 a6 7.Bb3 O-O 8.Nbd2 Be6
+9.Bc2 Ba7 10.h3 Re8 11.Ng5 Bd7 12.Ngf3 Be6 13.Re1 h6 14.Nf1 d5 15.exd5 Bxd5
+16.Ng3 Qd7 17.Nh4 Rad8 18.Nhf5 Kh8 19.d4 exd4 20.Nxg7 Rxe1+ 21.Qxe1 Kxg7
+22.Bxh6+ Kh8 23.Qd2 Rg8 24.Qf4 Qd6 25.Qh4 Qxg3 26.fxg3  1-0
+
+[Event "3rd Norway Chess 2015"]
+[Site "Stavanger NOR"]
+[Date "2015.06.22"]
+[Round "6.2"]
+[White "Anand,V"]
+[Black "Vachier Lagrave,M"]
+[Result "1-0"]
+[WhiteElo "2804"]
+[BlackElo "2723"]
+[ECO "B90"]
+
+1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.h3 e6 7.g4 h6 8.Bg2 Nc6
+9.Be3 Be7 10.f4 Nd7 11.O-O Nxd4 12.Qxd4 O-O 13.Qd2 Rb8 14.Ne2 b5 15.Rad1 Qc7
+16.f5 Nf6 17.Ng3 Bb7 18.Kh1 Rbd8 19.Bxh6 gxh6 20.Qxh6 d5 21.g5 Qxg3 22.Rd3 Nh5
+23.g6 fxg6 24.fxg6 Rxf1+ 25.Bxf1 Nf6 26.Rxg3 dxe4 27.Be2 e3+ 28.Kg1 Bc5 29.Kf1  1-0
+
+[Event "6th Norway Blitz 2018"]
+[Site "Stavanger NOR"]
+[Date "2018.05.27"]
+[Round "5.4"]
+[White "Anand,V"]
+[Black "Caruana,F"]
+[Result "0-1"]
+[WhiteElo "2760"]
+[BlackElo "2822"]
+[ECO "C50"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.d3 Nf6 5.O-O d6 6.c3 a5 7.Re1 O-O 8.h3 h6 9.Nbd2 a4
+10.Bb5 Bd7 11.Nf1 Ne7 12.Bxd7 Nxd7 13.d4 Bb6 14.Ng3 f5 15.exf5 Nxf5 16.Nxf5 Rxf5
+17.Be3 e4 18.Nd2 d5 19.Qg4 Qf6 20.Bxh6 Rf8 21.Be3 c5 22.Rad1 cxd4 23.cxd4 Ba5
+24.Rf1 Nb8 25.Nb1 Nc6 26.Na3 Bc7 27.Nc2 Nd8 28.f3 Ne6 29.Rf2  0-1
+
+[Event "7th Norway Armageddon"]
+[Site "Stavanger NOR"]
+[Date "2019.06.08"]
+[Round "4.4"]
+[White "Anand,V"]
+[Black "Ding Liren"]
+[Result "1-0"]
+[WhiteElo "2767"]
+[BlackElo "2805"]
+[ECO "C50"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O Nf6 5.d3 O-O 6.c3 d6 7.Re1 a5 8.h3 h6 9.Nbd2 Be6
+10.Bb5 Qb8 11.Nf1 Qa7 12.Qd2 Rad8 13.Ng3 Ne7 14.d4 Bb6 15.Qc2 Ng6 16.Be3 c6
+17.Bd3 Rfe8 18.Qd2 d5 19.Bxh6 dxe4 20.Nxe4 Nxe4 21.Rxe4 Bd5 22.Rg4 e4 23.Nh4 exd3
+24.Nf5 Be6 25.Bxg7 Bxf5 26.Qh6 Re6 27.Bh8  1-0

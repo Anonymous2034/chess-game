@@ -1,0 +1,125 @@
+[Event "41st Olympiad Open 2014"]
+[Site "Tromso NOR"]
+[Date "2014.08.02"]
+[Round "1.8"]
+[White "Juarez Flores,C"]
+[Black "Ding Liren"]
+[Result "0-1"]
+[WhiteElo "2425"]
+[BlackElo "2742"]
+[ECO "B46"]
+
+1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 Nc6 5.Nc3 a6 6.g3 d6 7.Bg2 Bd7 8.O-O Nf6
+9.a4 Be7 10.Nxc6 Bxc6 11.Bf4 Qc7 12.Qd2 O-O 13.Rfd1 Rfd8 14.a5 b5 15.axb6 Qxb6
+16.Ra3 a5 17.Rb3 Qa6 18.Qe3 Qc8 19.Nb5 a4 20.Rc3 Qb7 21.Nxd6 Bxd6 22.Rxd6 Rxd6
+23.Bxd6 Rd8 24.Qc5 Bxe4 25.Qc7 Qa8 26.Bxe4 Nxe4 27.Rc6 h6 28.c4 Nd2 29.c5 Nf3+  0-1
+
+[Event "41st Olympiad Open 2014"]
+[Site "Tromso NOR"]
+[Date "2014.08.09"]
+[Round "7.4"]
+[White "Perunovic,Mil"]
+[Black "Ding Liren"]
+[Result "0-1"]
+[WhiteElo "2602"]
+[BlackElo "2742"]
+[ECO "B12"]
+
+1.e4 c6 2.d4 d5 3.e5 Bf5 4.Nd2 e6 5.Nb3 Nd7 6.Nf3 Ne7 7.Be2 Bg4 8.O-O Nf5
+9.h3 Bxf3 10.Bxf3 g6 11.Re1 h5 12.Be2 f6 13.exf6 Qxf6 14.c4 O-O-O 15.cxd5 exd5
+16.Bf4 Bb4 17.Bd2 Bd6 18.Rc1 Rhf8 19.Rf1 Nxd4 20.Nxd4 Qxd4 21.Be3 Qe5 22.g3 Kb8
+23.h4 Rde8 24.Bd3 Qe6 25.Re1 Qf6 26.Qa4 Rxe3  0-1
+
+[Event "77th Tata Steel GpA"]
+[Site "Wijk aan Zee NED"]
+[Date "2015.01.12"]
+[Round "3.1"]
+[White "Ding Liren"]
+[Black "Jobava,Ba"]
+[Result "1-0"]
+[WhiteElo "2732"]
+[BlackElo "2727"]
+[ECO "A41"]
+
+1.d4 d6 2.Nf3 Nf6 3.c4 Bf5 4.Nc3 h6 5.g3 Nbd7 6.Bg2 c6 7.d5 c5 8.O-O g5 9.h4 g4
+10.Ne1 Bg7 11.e4 Bh7 12.Nd3 a6 13.a4 Qc7 14.Be3 O-O-O 15.Rb1 e6 16.b4 exd5
+17.bxc5 dxc4 18.e5 Nxe5 19.Rxb7 Qa5 20.Nxe5 dxe5 21.Qa1 Rd3 22.Qb2  1-0
+
+[Event "10th World Teams 2015"]
+[Site "Tsaghkadzor ARM"]
+[Date "2015.04.23"]
+[Round "5.3"]
+[White "Ding Liren"]
+[Black "Amin,B"]
+[Result "1-0"]
+[WhiteElo "2755"]
+[BlackElo "2634"]
+[ECO "E11"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+ 4.Nbd2 O-O 5.a3 Be7 6.e4 d5 7.e5 Nfd7 8.Bd3 c5
+9.Qc2 g6 10.cxd5 exd5 11.e6 fxe6 12.Bxg6 hxg6 13.Qxg6+ Kh8 14.Ne4 dxe4 15.Qh5+ Kg8
+16.Bh6 Rf6 17.Qg4+ Kf7 18.Ng5+ Kg6 19.Nxe6+ Kf7 20.Nxd8+ Bxd8 21.Qg7+ Ke8
+22.O-O-O Be7 23.Bg5 Bf8 24.Qh7 cxd4 25.Rxd4  1-0
+
+[Event "4th Sinquefield Cup 2016"]
+[Site "Saint Louis USA"]
+[Date "2016.08.14"]
+[Round "9.4"]
+[White "Nakamura,Hi"]
+[Black "Ding Liren"]
+[Result "1-0"]
+[WhiteElo "2791"]
+[BlackElo "2755"]
+[ECO "D43"]
+
+1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 e6 5.Bg5 h6 6.Bh4 dxc4 7.e4 g5 8.Bg3 b5 9.Be2 Bb7
+10.h4 g4 11.Ne5 Nbd7 12.Nxd7 Qxd7 13.Be5 Qe7 14.b3 cxb3 15.axb3 a6 16.Qc1 Rg8
+17.O-O Nh5 18.d5 Qxh4 19.g3 Qg5 20.dxc6 Qxe5 21.cxb7 Rb8 22.Nd5 exd5 23.Qc8+ Ke7
+24.Rxa6 Nxg3 25.Bxb5 Ne2+ 26.Bxe2 f6 27.Re6+ Qxe6 28.Qxb8  1-0
+
+[Event "FIDE World Cup 2017"]
+[Site "Tbilisi GEO"]
+[Date "2017.09.27"]
+[Round "7.5"]
+[White "Aronian,L"]
+[Black "Ding Liren"]
+[Result "1-0"]
+[WhiteElo "2802"]
+[BlackElo "2771"]
+[ECO "D30"]
+
+1.c4 Nf6 2.Nf3 e6 3.Nc3 d5 4.d4 c6 5.Bg5 h6 6.Bxf6 Qxf6 7.Qb3 Nd7 8.e4 dxe4
+9.Nxe4 Qf4 10.Bd3 e5 11.O-O Be7 12.Rae1 exd4 13.Bb1 O-O 14.Ng3 Bd8 15.Qd3 g6
+16.h4 Nf6 17.h5 g5 18.Ne5 Ba5 19.Ng6 Qd2 20.Ne7+ Kg7 21.Qb3 Qf4 22.Rd1 Bb6
+23.Ngf5+ Bxf5 24.Nxf5+ Kh8 25.g3 Qg4 26.Nxh6 Qxh5 27.Kg2 d3 28.Qc3 Kg7 29.Nf5+ Kg6
+30.Rh1  1-0
+
+[Event "World Rapid 2017"]
+[Site "Riyadh KSA"]
+[Date "2017.12.26"]
+[Round "5.21"]
+[White "Volokitin,And"]
+[Black "Ding Liren"]
+[Result "0-1"]
+[WhiteElo "2628"]
+[BlackElo "2777"]
+[ECO "C50"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 Bc5 5.O-O O-O 6.h3 d6 7.c3 a5 8.Re1 h6 9.Bb5 Ba7
+10.Nbd2 Ne7 11.d4 Ng6 12.Nf1 d5 13.exd5 exd4 14.c4 Qd6 15.Nxd4 Nxd5 16.cxd5 Qxd5
+17.Be3 Nh4 18.f3 Bxh3 19.Nb3 Qg5 20.g3 Bxf1 21.Bxf1 Qxg3+ 22.Kh1 Nxf3  0-1
+
+[Event "World Blitz 2017"]
+[Site "Riyadh KSA"]
+[Date "2017.12.29"]
+[Round "3.11"]
+[White "Ding Liren"]
+[Black "Khismatullin,D"]
+[Result "1-0"]
+[WhiteElo "2777"]
+[BlackElo "2632"]
+[ECO "D37"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 Nbd7 5.Bf4 dxc4 6.e3 Nd5 7.Bxc4 Nxf4 8.exf4 Bd6
+9.g3 Nb6 10.Bb3 Bd7 11.O-O O-O 12.Qd3 Bc6 13.Rad1 Bxf3 14.Qxf3 c6 15.f5 exf5
+16.Qxf5 g6 17.Qf3 a5 18.d5 a4 19.dxc6 axb3 20.cxb7 Rxa2 21.Nxa2 bxa2 22.Qc6  1-0

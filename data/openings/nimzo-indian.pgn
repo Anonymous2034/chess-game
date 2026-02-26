@@ -1,0 +1,80 @@
+[Event "World Blitz"]
+[Site "Moscow RUS"]
+[Date "2009.11.16"]
+[Round "11"]
+[White "Mamedyarov,S"]
+[Black "Anand,V"]
+[Result "0-1"]
+[WhiteElo "2719"]
+[BlackElo "2788"]
+[ECO "E20"]
+
+1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.f3 d5 5.a3 Be7 6.e4 dxe4 7.fxe4 e5 8.d5 Bc5
+9.Nf3 Bg4 10.Bd3 Nbd7 11.h3 Bxf3 12.Qxf3 c6 13.Bd2 O-O 14.Rc1 Bd4 15.b4 a5
+16.Ne2 Bb2 17.Rb1 Bxa3 18.bxa5 Bc5 19.Rxb7 cxd5 20.cxd5 Rxa5 21.g4 Ra3 22.Bc1 Ra1
+23.Kf1 Nb6 24.Bb5 Qc8 25.Bc6 Nc4 26.Kg2 Nd6 27.Be3 Ra3 28.Bxc5 Rxf3 29.Bxd6 Nxe4
+30.Bxf8 Rf2+  0-1
+
+[Event "World Blitz"]
+[Site "Moscow RUS"]
+[Date "2009.11.17"]
+[Round "15"]
+[White "Karpov,Ana"]
+[Black "Anand,V"]
+[Result "0-1"]
+[WhiteElo "2619"]
+[BlackElo "2788"]
+[ECO "E32"]
+
+1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Nf3 b6 5.Qc2 Bb7 6.a3 Bxc3+ 7.Qxc3 Ne4 8.Qc2 O-O
+9.e3 d6 10.Be2 Nd7 11.O-O f5 12.b4 Qe7 13.Bb2 c5 14.Nd2 Qg5 15.f4 Qg6 16.Nf3 Ndf6
+17.Rad1 Ng4 18.Qb3 Qh6 19.bxc5 Nxc5 20.dxc5 Bxf3 21.h3 Bxe2 22.hxg4 fxg4
+23.e4 Bxf1 24.Rxf1 Rxf4  0-1
+
+[Event "World Blitz 2015"]
+[Site "Berlin GER"]
+[Date "2015.10.13"]
+[Round "11.11"]
+[White "Bocharov,D"]
+[Black "Anand,V"]
+[Result "1-0"]
+[WhiteElo "2560"]
+[BlackElo "2803"]
+[ECO "E46"]
+
+1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 O-O 5.Ne2 d5 6.a3 Be7 7.cxd5 exd5 8.Nf4 c6
+9.Bd3 Bd6 10.O-O Re8 11.f3 Na6 12.Bc2 Bxf4 13.exf4 Nc7 14.f5 b6 15.Bf4 Bb7
+16.Qd2 Re7 17.g4 Nfe8 18.Rf2 f6 19.Rg2 Rf7 20.Re1 Qd7 21.g5 fxg5 22.Rxg5 Nf6
+23.Be5 Raf8 24.Kh1 Nce8 25.Ne2 Nd6 26.Reg1 Kh8 27.Nf4 Nc4 28.Qf2 Qe7 29.Qh4 Kg8
+30.Ne6  1-0
+
+[Event "World Blitz 2016"]
+[Site "Doha QAT"]
+[Date "2016.12.30"]
+[Round "15.6"]
+[White "Ivanchuk,V"]
+[Black "Anand,V"]
+[Result "1-0"]
+[WhiteElo "2747"]
+[BlackElo "2779"]
+[ECO "E53"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 Bb4 5.e3 O-O 6.Bd3 c5 7.cxd5 Nxd5 8.O-O cxd4
+9.exd4 Nc6 10.Bc2 Nf6 11.Re1 h6 12.Qd3 Bd6 13.Ne4 Nxe4 14.Qxe4 f5 15.Qe2 Nb4
+16.Bb3 Nd5 17.Bd2 Bd7 18.Ne5 Rf6 19.Qf3 Bc6 20.Nxc6 bxc6 21.Rac1 Rc8 22.Rc2 Qb6
+23.Rxe6  1-0
+
+[Event "37th Olympiad"]
+[Site "Turin ITA"]
+[Date "2006.05.28"]
+[Round "7"]
+[White "Sokolov,Iv"]
+[Black "Aronian,L"]
+[Result "0-1"]
+[WhiteElo "2676"]
+[BlackElo "2756"]
+[ECO "E35"]
+
+1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 d5 5.cxd5 exd5 6.Bg5 c5 7.dxc5 h6 8.Bh4 g5
+9.Bg3 Ne4 10.Bxb8 Qf6 11.Bg3 Nxc3 12.a3 Bf5 13.Qd2 Ba5 14.b4 Ne4 15.Qc1 Rc8
+16.Ra2 Rxc5 17.Qa1 Qc6 18.Qe5+ Kd8 19.Qxh8+ Kd7  0-1

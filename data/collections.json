@@ -24,7 +24,23 @@
         { "name": "Anatoly Karpov", "file": "data/players/karpov.pgn" },
         { "name": "Viswanathan Anand", "file": "data/players/anand.pgn" },
         { "name": "Vladimir Kramnik", "file": "data/players/kramnik.pgn" },
-        { "name": "Mikhail Botvinnik", "file": "data/players/botvinnik.pgn" }
+        { "name": "Mikhail Botvinnik", "file": "data/players/botvinnik.pgn" },
+        { "name": "Emanuel Lasker", "file": "data/players/lasker.pgn" },
+        { "name": "Vasily Smyslov", "file": "data/players/smyslov.pgn" },
+        { "name": "Boris Spassky", "file": "data/players/spassky.pgn" },
+        { "name": "Wilhelm Steinitz", "file": "data/players/steinitz.pgn" },
+        { "name": "Ding Liren", "file": "data/players/ding.pgn" },
+        { "name": "Fabiano Caruana", "file": "data/players/caruana.pgn" },
+        { "name": "Hikaru Nakamura", "file": "data/players/nakamura.pgn" },
+        { "name": "Levon Aronian", "file": "data/players/aronian.pgn" },
+        { "name": "Viktor Korchnoi", "file": "data/players/korchnoi.pgn" },
+        { "name": "Akiba Rubinstein", "file": "data/players/rubinstein.pgn" },
+        { "name": "Aron Nimzowitsch", "file": "data/players/nimzowitsch.pgn" },
+        { "name": "David Bronstein", "file": "data/players/bronstein.pgn" },
+        { "name": "Alexei Shirov", "file": "data/players/shirov.pgn" },
+        { "name": "Veselin Topalov", "file": "data/players/topalov.pgn" },
+        { "name": "Alireza Firouzja", "file": "data/players/firouzja.pgn" },
+        { "name": "Praggnanandhaa", "file": "data/players/praggnanandhaa.pgn" }
       ]
     },
     {
@@ -36,7 +52,17 @@
         { "name": "Queen's Gambit", "file": "data/openings/queens-gambit.pgn" },
         { "name": "King's Indian Defense", "file": "data/openings/kings-indian.pgn" },
         { "name": "French Defense", "file": "data/openings/french.pgn" },
-        { "name": "Italian Game", "file": "data/openings/italian.pgn" }
+        { "name": "Italian Game", "file": "data/openings/italian.pgn" },
+        { "name": "Caro-Kann Defense", "file": "data/openings/caro-kann.pgn" },
+        { "name": "English Opening", "file": "data/openings/english.pgn" },
+        { "name": "Nimzo-Indian Defense", "file": "data/openings/nimzo-indian.pgn" },
+        { "name": "Grunfeld Defense", "file": "data/openings/grunfeld.pgn" },
+        { "name": "Scotch Game", "file": "data/openings/scotch.pgn" },
+        { "name": "Pirc Defense", "file": "data/openings/pirc.pgn" },
+        { "name": "Dutch Defense", "file": "data/openings/dutch.pgn" },
+        { "name": "Catalan Opening", "file": "data/openings/catalan.pgn" },
+        { "name": "Slav Defense", "file": "data/openings/slav.pgn" },
+        { "name": "King's Gambit", "file": "data/openings/kings-gambit.pgn" }
       ]
     },
     {
@@ -46,7 +72,10 @@
         { "name": "Candidates Tournaments", "file": "data/events/candidates.pgn" },
         { "name": "Linares Super-GM", "file": "data/events/linares.pgn" },
         { "name": "Tata Steel / Wijk aan Zee", "file": "data/events/wijk-aan-zee.pgn" },
-        { "name": "Zurich 1953", "file": "data/events/zurich-1953.pgn" }
+        { "name": "Zurich 1953", "file": "data/events/zurich-1953.pgn" },
+        { "name": "Norway Chess", "file": "data/events/norway-chess.pgn" },
+        { "name": "Sinquefield Cup", "file": "data/events/sinquefield-cup.pgn" },
+        { "name": "FIDE Grand Prix", "file": "data/events/grand-prix.pgn" }
       ]
     }
   ]

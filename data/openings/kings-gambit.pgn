@@ -1,0 +1,81 @@
+[Event "World Corporate East D"]
+[Site "chess.com INT"]
+[Date "2021.02.19"]
+[Round "1.12"]
+[White "Carlsen,M"]
+[Black "Hassan,Sampath Santosh"]
+[Result "1-0"]
+[WhiteElo "2862"]
+[BlackElo ""]
+[ECO "C30"]
+
+1.e4 e5 2.f4 Nc6 3.Nf3 Bc5 4.fxe5 d6 5.d4 Bb6 6.exd6 Qxd6 7.c3 Bg4 8.Nbd2 Nge7
+9.Nc4 Qd7 10.a4 a6 11.Nxb6 cxb6 12.Bd3 O-O 13.O-O Rae8 14.h3 Bh5 15.Bf4 Ng6
+16.Bg3 Rd8 17.Qb3 Nce7 18.Qxb6 Nc8 19.Qc5 Nge7 20.Qxh5 Ng6 21.e5 Rde8 22.Ng5 h6
+23.Nxf7 Rxf7 24.Qxg6 Rff8 25.Qh7+  1-0
+
+[Event "9th Norway Armageddon"]
+[Site "Stavanger NOR"]
+[Date "2021.09.08"]
+[Round "2.2"]
+[White "Nepomniachtchi,I"]
+[Black "Firouzja,Alireza"]
+[Result "1-0"]
+[WhiteElo "2792"]
+[BlackElo "2754"]
+[ECO "C34"]
+
+1.e4 e5 2.f4 exf4 3.Nf3 Nf6 4.e5 Nh5 5.d4 d6 6.Qe2 dxe5 7.Nxe5 Qh4+ 8.g3 Nxg3
+9.hxg3 Qxh1 10.Bxf4 Be6 11.Nc3 g5 12.d5 gxf4 13.dxe6 Bd6 14.O-O-O Qh6 15.Qb5+ Nc6
+16.Nxf7 Qxe6 17.Bc4 Qe3+ 18.Kb1 Qc5 19.Nxd6+ cxd6 20.Qxb7 Qxc4 21.Qxa8+ Nd8
+22.Re1+ Kf7 23.Qxa7+ Kg6 24.gxf4 Qc5 25.Rg1+  1-0
+
+[Event "PCA/Intel-GP"]
+[Site "Moscow"]
+[Date "1995.??.??"]
+[Round "?"]
+[White "Morozevich, Alexander"]
+[Black "Anand, Viswanathan"]
+[Result "1-0"]
+[WhiteElo "2605"]
+[BlackElo "2715"]
+[ECO "C33"]
+
+1.e4 e5 2.f4 exf4 3.Bc4 Nf6 4.Nc3 c6 5.Bb3 d5 6.exd5 cxd5 7.d4 Bb4 8.Nf3 O-O
+9.O-O Bxc3 10.bxc3 Qc7 11.Qe1 Nc6 12.Qh4 Ne7 13.Bxf4 Qxc3 14.Bd2 Qc7 15.Ne5 Nf5
+16.Qf4 Be6 17.Bb4 Rfc8 18.g4 Nd6 19.Rae1 Nfe4 20.c4 dxc4 21.Bc2 Nf6 22.g5 Nh5
+23.Qf3 g6 24.Nxg6 hxg6 25.Bxg6 fxg6 26.Rxe6 Qf7 27.Qd5 Nf5 28.Rxf5  1-0
+
+[Event "Carlsen Inv Prelim"]
+[Site "chess24.com INT"]
+[Date "2020.04.30"]
+[Round "7.4"]
+[White "Carlsen,M"]
+[Black "Ding Liren"]
+[Result "0-1"]
+[WhiteElo "2863"]
+[BlackElo "2791"]
+[ECO "C34"]
+
+1.e4 e5 2.f4 exf4 3.Nf3 Nf6 4.e5 Nh5 5.Qe2 Be7 6.d4 O-O 7.Nc3 d6 8.Bd2 Bg4
+9.O-O-O Nd7 10.Qe1 c6 11.Be2 Re8 12.g3 dxe5 13.Nxe5 Nxe5 14.dxe5 f3 15.Bd3 Qd4
+16.Qe4 Qxe4 17.Nxe4 f2 18.Rdf1 Bf3 19.g4 Bh4 20.gxh5 Rxe5 21.Ng3 Rae8 22.Bc3 Bg5+
+23.Kb1 Bxh1  0-1
+
+[Event "11th Norway Armageddon"]
+[Site "Stavanger NOR"]
+[Date "2023.06.01"]
+[Round "3.1"]
+[White "Nakamura,Hi"]
+[Black "Carlsen,M"]
+[Result "0-1"]
+[WhiteElo "2775"]
+[BlackElo "2853"]
+[ECO "C39"]
+
+1.e4 e5 2.f4 exf4 3.Nf3 g5 4.h4 g4 5.Ne5 d6 6.Nxg4 Nf6 7.Nxf6+ Qxf6 8.d3 Nc6
+9.Qf3 Bh6 10.Qf2 Rg8 11.Nc3 Be6 12.Bd2 O-O-O 13.O-O-O Qd4 14.Qe1 Qe5 15.Ne2 f5
+16.g3 fxe4 17.gxf4 Qf5 18.Ng3 Qf7 19.f5 Bxd2+ 20.Rxd2 Bd7 21.Kb1 Ne5 22.Qe3 exd3
+23.cxd3 Bc6 24.Ne4 Kb8 25.Bh3 Rde8 26.Rc1 Bd5 27.Re2 Bxa2+ 28.Ka1 Bd5 29.Ng5 Qd7
+30.Qd4 Qb5 31.Kb1 Nc6 32.Rxe8+ Rxe8 33.Qc3 Bb3 34.Ne4 Qa4 35.Rf1 Nd4 36.Bg4 Bc2+
+37.Kc1 Qa1+ 38.Kd2 Qxf1 39.Qxd4 Bxd3 40.Nf6 Re2+  0-1

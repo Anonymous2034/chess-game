@@ -1,0 +1,128 @@
+[Event "Linares"]
+[Site "Linares"]
+[Date "1998.02.23"]
+[Round "2"]
+[White "Ivanchuk, Vassily"]
+[Black "Shirov, Alexei"]
+[Result "0-1"]
+[WhiteElo "2740"]
+[BlackElo "2710"]
+[ECO "C54"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.Qe2 Bb6 7.Bg5 h6 8.Bh4 Qe7
+9.Nbd2 g5 10.Bg3 Bg4 11.Nf1 Nh5 12.Bb5 Nf4 13.Bxf4 gxf4 14.N1d2 Rg8 15.g3 fxg3
+16.fxg3 O-O-O 17.a4 Nb8 18.a5 Bc5 19.Bc4 a6 20.h3 Be6 21.g4 Nd7 22.Bxa6 bxa6
+23.d4 Nb8 24.dxc5 dxc5 25.O-O-O Qe8 26.Nxe5 Qa4 27.Rhf1 Rge8 28.c4 Rd4 29.Kb1 Red8
+30.Rf3 Rxe4  0-1
+
+[Event "Linares"]
+[Site "Linares"]
+[Date "1998.02.28"]
+[Round "6"]
+[White "Shirov, Alexei"]
+[Black "Svidler, Peter"]
+[Result "1-0"]
+[WhiteElo "2710"]
+[BlackElo "2690"]
+[ECO "B90"]
+
+1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be3 e5 7.Nb3 Be6 8.Qd2 Nbd7
+9.f3 h5 10.O-O-O Rc8 11.Kb1 Be7 12.Nd5 Bxd5 13.exd5 Nb6 14.Bxb6 Qxb6 15.g3 O-O
+16.Bh3 Ra8 17.Rhe1 a5 18.a4 Qc7 19.Bf1 Rfc8 20.Bb5 Bf8 21.f4 exf4 22.gxf4 Qb6
+23.Re2 Ne8 24.f5 Nc7 25.f6 g6 26.Bd7 Rd8 27.Be6 Re8 28.Qg5  1-0
+
+[Event "34th Olympiad"]
+[Site "Istanbul TUR"]
+[Date "2000.10.29"]
+[Round "2"]
+[White "Shirov,A"]
+[Black "Annageldyev,O"]
+[Result "1-0"]
+[WhiteElo "2746"]
+[BlackElo "2491"]
+[ECO "B32"]
+
+1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5 8.Nd5 Nce7
+9.c4 Nxd5 10.exd5 Nf6 11.cxb5 Be7 12.Bc4 O-O 13.O-O Bg4 14.Qb3 Rb8 15.Be3 Bd7
+16.Rad1 Ng4 17.Ba7 axb5 18.Bxb8 bxc4 19.Qb7 Qc8 20.Qa7 f5 21.Nxc4 Rf6 22.Nb6 Qe8
+23.Qxd7 Qh5 24.h3 Nxf2 25.Kxf2  1-0
+
+[Event "34th Olympiad"]
+[Site "Istanbul TUR"]
+[Date "2000.11.01"]
+[Round "5"]
+[White "Shirov,A"]
+[Black "Van Wely,L"]
+[Result "1-0"]
+[WhiteElo "2746"]
+[BlackElo "2643"]
+[ECO "B81"]
+
+1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be3 e6 7.g4 e5 8.Nf5 g6
+9.g5 gxf5 10.exf5 d5 11.Qf3 d4 12.O-O-O Nbd7 13.Bd2 Qc7 14.gxf6 dxc3 15.Bxc3 Qc6
+16.Qg3 Qxh1 17.Bg2 Bh6+ 18.Bd2 Bxd2+ 19.Kxd2 Qxg2 20.Qxg2 a5 21.f4 exf4 22.Qg7 Rf8
+23.Re1+ Kd8 24.Re7 Kc7 25.Qxf8  1-0
+
+[Event "34th Olympiad"]
+[Site "Istanbul TUR"]
+[Date "2000.11.04"]
+[Round "7"]
+[White "Shirov,A"]
+[Black "Fedorov,Alex"]
+[Result "1-0"]
+[WhiteElo "2746"]
+[BlackElo "2646"]
+[ECO "B32"]
+
+1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5 8.Nd5 Nce7
+9.c4 Nxd5 10.exd5 bxc4 11.Nxc4 Nf6 12.Be3 Rb8 13.Be2 Be7 14.a4 Qd7 15.O-O Bb7
+16.Ba7 Rd8 17.Nb6 Qf5 18.Rc1 e4 19.Rc7 Bxd5 20.Bxa6 Be6 21.Qc2 h5 22.Rd1 Ng4
+23.h3 Ne5 24.Nc8 Bxc8 25.Bxc8 Qg6 26.Bb7 f5 27.a5 Bf6 28.Bd5  1-0
+
+[Event "34th Olympiad"]
+[Site "Istanbul TUR"]
+[Date "2000.11.06"]
+[Round "9"]
+[White "Vaganian,R"]
+[Black "Shirov,A"]
+[Result "1-0"]
+[WhiteElo "2623"]
+[BlackElo "2746"]
+[ECO "D15"]
+
+1.Nf3 d5 2.d4 c6 3.c4 Nf6 4.Nc3 a6 5.a4 e6 6.Bg5 Nbd7 7.cxd5 cxd5 8.e3 Qa5
+9.Bd3 Ne4 10.O-O Nxg5 11.Nxg5 Nf6 12.f4 Bb4 13.Rc1 O-O 14.Qe1 Bd7 15.Qh4 h6
+16.Nf3 Rfc8 17.g4 Bxc3 18.bxc3 Rxc3 19.g5 Rxd3 20.gxf6 Rxe3 21.Qg4 g6 22.Qh4 h5
+23.Qg5 Qb4 24.Rb1 Qa3 25.Nh4 Kh7 26.Rxb7 Rd8 27.f5 exf5 28.Rxd7 Rxd7 29.Nxf5  1-0
+
+[Event "36th Olympiad"]
+[Site "Calvia ESP"]
+[Date "2004.10.20"]
+[Round "6"]
+[White "Shirov,A"]
+[Black "Fressinet,L"]
+[Result "1-0"]
+[WhiteElo "2726"]
+[BlackElo "2640"]
+[ECO "D45"]
+
+1.d4 d5 2.c4 c6 3.Nc3 Nf6 4.Nf3 e6 5.e3 Nbd7 6.Qc2 Bd6 7.g4 dxc4 8.Bxc4 e5
+9.Bd2 exd4 10.Nxd4 Ne5 11.Be2 Bxg4 12.f4 Ng6 13.Bxg4 Nxg4 14.Nf5 Nh4 15.Nxg7+ Kf8
+16.O-O-O Nf2 17.Ne4 Nxd1 18.Rxd1 Be7 19.f5 Qb6 20.f6 Bb4 21.Bxb4+ Qxb4 22.a3 Qa5
+23.Nc5 h6 24.Nf5 Ng6 25.Nd7+ Kg8 26.Ne7+ Kh7 27.Nxg6 fxg6 28.Ne5  1-0
+
+[Event "36th Olympiad"]
+[Site "Calvia ESP"]
+[Date "2004.10.24"]
+[Round "9"]
+[White "Shirov,A"]
+[Black "Onischuk,Al"]
+[Result "0-1"]
+[WhiteElo "2726"]
+[BlackElo "2653"]
+[ECO "C88"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 O-O 8.a4 Bb7
+9.d3 Re8 10.Nbd2 Bf8 11.c3 Na5 12.Bc2 c5 13.d4 exd4 14.cxd4 d5 15.e5 Ne4
+16.Nxe4 dxe4 17.Rxe4 Nb3 18.Bg5 Be7 19.Bxe7 Qxe7 20.Rb1 Nxd4 21.Nxd4 Bxe4
+22.Bxe4 Rad8 23.Bxh7+ Kf8 24.Qf3 Rxd4 25.Re1 Qg5 26.h4 Qd2 27.Rf1 Rxh4  0-1

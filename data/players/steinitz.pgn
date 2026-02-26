@@ -1,0 +1,126 @@
+[Event "World Championship 1st"]
+[Site "USA"]
+[Date "1886.??.??"]
+[Round "19"]
+[White "Zukertort, Johannes Hermann"]
+[Black "Steinitz, William"]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "D53"]
+
+1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.Nf3 O-O 6.c5 b6 7.b4 bxc5 8.dxc5 a5
+9.a3 d4 10.Bxf6 gxf6 11.Na4 e5 12.b5 Be6 13.g3 c6 14.bxc6 Nxc6 15.Bg2 Rb8
+16.Qc1 d3 17.e3 e4 18.Nd2 f5 19.O-O Re8 20.f3 Nd4 21.exd4 Qxd4+ 22.Kh1 e3
+23.Nc3 Bf6 24.Ndb1 d2 25.Qc2 Bb3 26.Qxf5 d1=Q 27.Nxd1 Bxd1 28.Nc3 e2 29.Raxd1 Qxc3  0-1
+
+[Event "World Championship 1st"]
+[Site "USA"]
+[Date "1886.??.??"]
+[Round "20"]
+[White "Steinitz, William"]
+[Black "Zukertort, Johannes Hermann"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C25"]
+
+1.e4 e5 2.Nc3 Nc6 3.f4 exf4 4.d4 d5 5.exd5 Qh4+ 6.Ke2 Qe7+ 7.Kf2 Qh4+ 8.g3 fxg3+
+9.Kg2 Nxd4 10.hxg3 Qg4 11.Qe1+ Be7 12.Bd3 Nf5 13.Nf3 Bd7 14.Bf4 f6 15.Ne4 Ngh6
+16.Bxh6 Nxh6 17.Rxh6 gxh6 18.Nxf6+ Kf7 19.Nxg4  1-0
+
+[Event "World Championship 2nd"]
+[Site "Havana"]
+[Date "1889.??.??"]
+[Round "4"]
+[White "Steinitz, William"]
+[Black "Chigorin, Mikhail"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "D02"]
+
+1.Nf3 d5 2.d4 Bg4 3.c4 Bxf3 4.gxf3 e6 5.cxd5 Qxd5 6.e4 Bb4+ 7.Nc3 Qa5 8.Bd2 Nc6
+9.d5 exd5 10.a3 Nd4 11.Bd3 O-O-O 12.axb4 Nxf3+ 13.Qxf3 Qxa1+ 14.Ke2 Qxb2
+15.Rb1 Qa3 16.Nb5 Qa6 17.Qxf7 Qb6 18.Rc1 Nh6 19.Qxg7 dxe4 20.Qxc7+ Qxc7 21.Rxc7+ Kb8
+22.Bxe4  1-0
+
+[Event "World Championship 2nd"]
+[Site "Havana"]
+[Date "1889.??.??"]
+[Round "5"]
+[White "Chigorin, Mikhail"]
+[Black "Steinitz, William"]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C52"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Ba5 6.O-O Qf6 7.d4 Nge7 8.Bg5 Qd6
+9.Qb3 O-O 10.Rd1 Bb6 11.dxe5 Qg6 12.Qa3 Re8 13.Nbd2 d6 14.exd6 cxd6 15.Bf4 Bc5
+16.Qc1 Bg4 17.Bg3 Rad8 18.h3 Bxf3 19.Nxf3 Qxg3 20.Kh1 Qg6 21.Rd3 Qf6 22.Qd2 Ng6
+23.Ng5 Nce5 24.Rf3 Nxf3 25.Bxf7+ Qxf7 26.gxf3 Qc4  0-1
+
+[Event "World Championship 2nd"]
+[Site "Havana"]
+[Date "1889.??.??"]
+[Round "10"]
+[White "Steinitz, William"]
+[Black "Chigorin, Mikhail"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "D07"]
+
+1.Nf3 d5 2.d4 Bg4 3.c4 Nc6 4.e3 e5 5.Qb3 Bxf3 6.gxf3 exd4 7.cxd5 Ne5 8.exd4 Nd7
+9.Nc3 Qe7+ 10.Be3 Qb4 11.Qc2 Ngf6 12.Bb5 Rd8 13.O-O-O a6 14.Ba4 Be7 15.Rhg1 g6
+16.Bh6 b5 17.Bb3 Nb6 18.Rge1 Kd7 19.Bf4 Rc8 20.a3 Qa5 21.Bg5 Ng8 22.Bxe7 Nxe7
+23.Ne4 Rb8 24.Nf6+ Kd8 25.Rxe7 Kxe7 26.Qxc7+ Nd7 27.Qxa5  1-0
+
+[Event "World Championship 3rd"]
+[Site "New York"]
+[Date "1890.??.??"]
+[Round "5"]
+[White "Steinitz, William"]
+[Black "Gunsberg, Isidor"]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "D20"]
+
+1.d4 d5 2.c4 dxc4 3.e3 e5 4.dxe5 Qxd1+ 5.Kxd1 Nc6 6.Bxc4 Nxe5 7.Bb5+ c6 8.Be2 Be6
+9.Nc3 O-O-O+ 10.Kc2 Nf6 11.Nf3 Neg4 12.Rf1 Bf5+ 13.Kb3 Nd7 14.e4 Nc5+ 15.Kc2 Nxe4
+16.Nh4 Nxc3+ 17.Kxc3 Be6 18.f4 Nf6 19.f5 Bd5 20.g4 Be7 21.Kc2 Be4+ 22.Kb3 Nd7
+23.g5 f6 24.Bg4 Nc5+ 25.Ka3 Rd3+  0-1
+
+[Event "World Championship 3rd"]
+[Site "New York"]
+[Date "1890.??.??"]
+[Round "7"]
+[White "Steinitz, William"]
+[Black "Gunsberg, Isidor"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "E51"]
+
+1.d4 d5 2.c4 dxc4 3.Nf3 Nf6 4.e3 e6 5.Bxc4 Bb4+ 6.Nc3 O-O 7.O-O b6 8.Ne5 Bb7
+9.Qb3 Bxc3 10.bxc3 Bd5 11.Bxd5 exd5 12.Ba3 Re8 13.c4 c5 14.Rac1 Ne4 15.Rfd1 cxd4
+16.exd4 f6 17.cxd5 fxe5 18.d6+ Kh8 19.Qd5 Nxf2 20.Rd2 Nd7 21.Rxf2 Nf6 22.Rxf6 gxf6
+23.d7 Rg8 24.dxe5 Rg5 25.Qxa8 Qxa8 26.Rc8+ Rg8 27.Rxa8 Rxa8 28.e6  1-0
+
+[Event "World Championship 3rd"]
+[Site "New York"]
+[Date "1890.??.??"]
+[Round "12"]
+[White "Gunsberg, Isidor"]
+[Black "Steinitz, William"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo ""]
+[ECO "C52"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Ba5 6.O-O Qf6 7.d4 Nh6 8.Bg5 Qd6
+9.d5 Nd8 10.Qa4 Bb6 11.Na3 c6 12.Be2 Bc7 13.Nc4 Qf8 14.d6 Bxd6 15.Nb6 Rb8
+16.Qxa7 Ng4 17.Nh4 Ne6 18.Bxg4 Nxg5 19.Nf5 Ne6 20.Rfd1 Bc7 21.Na8 Rxa8 22.Qxa8 Kd8
+23.Rxd7+ Kxd7 24.Rd1+  1-0

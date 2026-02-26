@@ -1,0 +1,78 @@
+[Event "Tata Steel India Blitz"]
+[Site "Kolkata IND"]
+[Date "2018.11.14"]
+[Round "14.3"]
+[White "Vidit,S"]
+[Black "Anand,V"]
+[Result "0-1"]
+[WhiteElo "2702"]
+[BlackElo "2773"]
+[ECO "D73"]
+
+1.Nf3 d5 2.g3 Nf6 3.Bg2 g6 4.d4 Bg7 5.c4 c6 6.O-O dxc4 7.a4 O-O 8.Qc2 Be6
+9.e4 h6 10.Rd1 Na6 11.Ne5 Nb4 12.Qc3 c5 13.d5 Ng4 14.Bf4 g5 15.Bf3 Bc8 16.Bxg4 Bxg4
+17.f3 gxf4 18.fxg4 f3 19.Na3 Nd3 20.Rxd3 cxd3 21.Nac4 Qc7 22.Rd1 b6 23.Rxd3 a6
+24.d6 exd6 25.Nxd6 Rae8  0-1
+
+[Event "VI World Blitz"]
+[Site "Moscow RUS"]
+[Date "2010.11.16"]
+[Round "13.8"]
+[White "Aronian,L"]
+[Black "Nepomniachtchi,I"]
+[Result "1-0"]
+[WhiteElo "2801"]
+[BlackElo "2720"]
+[ECO "D85"]
+
+1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5 Nxd5 5.e4 Nxc3 6.bxc3 Bg7 7.Be3 c5 8.Nf3 Qa5
+9.Qd2 Nc6 10.Rb1 a6 11.Rc1 cxd4 12.cxd4 Qxd2+ 13.Kxd2 e6 14.d5 exd5 15.exd5 Ne7
+16.Bc4 Nf5 17.Bc5 Bh6+ 18.Kc3 Bxc1 19.Rxc1 f6 20.Re1+ Kd7 21.Re6 b5 22.Bb3 a5
+23.g4 b4+ 24.Kd2 Nh6 25.Ba4+ Kc7 26.Re7+ Kd8 27.d6 Ra6 28.Bb5 Nxg4  1-0
+
+[Event "73rd Tata Steel GMA"]
+[Site "Wijk aan Zee NED"]
+[Date "2011.01.18"]
+[Round "4"]
+[White "Aronian,L"]
+[Black "Nepomniachtchi,I"]
+[Result "1-0"]
+[WhiteElo "2805"]
+[BlackElo "2733"]
+[ECO "D83"]
+
+1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Bf4 Bg7 5.e3 O-O 6.Rc1 Be6 7.Qb3 c5 8.Qxb7 cxd4
+9.exd4 Qb6 10.Qxa8 Nh5 11.c5 Qxb2 12.Bd2 Bxd4 13.Nf3 Nd7 14.Qxf8+ Kxf8 15.Nxd4 Nxc5
+16.Rb1 Qa3 17.Be2 Nf4 18.O-O Nxe2+ 19.Ncxe2 Nd7 20.Rb7 Qa6 21.Nxe6+ Qxe6
+22.Nd4 Qg4 23.Rc1 f6 24.Be3 Nb6 25.h3 Qe4 26.Rcc7  1-0
+
+[Event "75th Tata Steel GpA"]
+[Site "Wijk aan Zee NED"]
+[Date "2013.01.17"]
+[Round "5.6"]
+[White "Sokolov,Ivan"]
+[Black "Aronian,L"]
+[Result "0-1"]
+[WhiteElo "2663"]
+[BlackElo "2802"]
+[ECO "D91"]
+
+1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Bg5 Bg7 5.Nf3 Ne4 6.Bf4 Nxc3 7.bxc3 dxc4 8.Qa4+ Nd7
+9.e4 c5 10.Bxc4 O-O 11.O-O Nb6 12.Qb3 Nxc4 13.Qxc4 b6 14.d5 e6 15.h3 a5 16.Bg5 f6
+17.dxe6 Ba6 18.Qd5 Qxd5 19.exd5 fxg5 20.Rfd1 Bxc3 21.Rac1 Be2 22.Nxg5 Bxd1
+23.Rxc3 Rf5 24.Ne4 Kg7  0-1
+
+[Event "World Blitz"]
+[Site "Moscow RUS"]
+[Date "2009.11.16"]
+[Round "10"]
+[White "Carlsen,M"]
+[Black "Mamedyarov,S"]
+[Result "1-0"]
+[WhiteElo "2801"]
+[BlackElo "2719"]
+[ECO "D85"]
+
+1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5 Nxd5 5.e4 Nxc3 6.bxc3 Bg7 7.Be3 c5 8.Qd2 Qa5
+9.Rc1 O-O 10.Nf3 e6 11.Be2 Rd8 12.Bg5 Re8 13.O-O Nc6 14.Rfd1 cxd4 15.cxd4 Qxd2
+16.Rxd2 Bd7 17.Rb1 b6 18.Ba6 e5 19.dxe5  1-0

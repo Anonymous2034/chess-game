@@ -1,0 +1,81 @@
+[Event "World Blitz 2019"]
+[Site "Moscow RUS"]
+[Date "2019.12.29"]
+[Round "7.46"]
+[White "Aronian,L"]
+[Black "Piorun,K"]
+[Result "1-0"]
+[WhiteElo "2775"]
+[BlackElo "2611"]
+[ECO "B07"]
+
+1.d4 g6 2.e4 Bg7 3.Nf3 d6 4.c3 Nf6 5.Bd3 O-O 6.O-O Nc6 7.h3 e5 8.Re1 Nh5
+9.Be3 h6 10.Nbd2 Qf6 11.d5 Ne7 12.c4 Nf4 13.Bf1 g5 14.c5 Neg6 15.Rc1 g4 16.hxg4 Bxg4
+17.Qb3 Qe7 18.Qxb7 Rab8 19.Qxa7 f5 20.cxd6 Qxd6 21.Rxc7 Qf6 22.Rc6 Qd8 23.Nh2 h5
+24.g3 Qg5 25.Ndf3 Bxf3 26.Nxf3 Qg4 27.Nh2 Nh3+ 28.Bxh3 Qxh3 29.Rxg6  1-0
+
+[Event "81st Tata Steel GpA"]
+[Site "Wijk aan Zee NED"]
+[Date "2019.01.12"]
+[Round "1.2"]
+[White "Giri,A"]
+[Black "Nepomniachtchi,I"]
+[Result "0-1"]
+[WhiteElo "2783"]
+[BlackElo "2763"]
+[ECO "B07"]
+
+1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.Be3 a6 5.Qd2 b5 6.f3 Nbd7 7.O-O-O Nb6 8.g4 Bb7
+9.Nh3 Nfd7 10.Be2 e6 11.Bg5 Be7 12.Qe3 Bxg5 13.Nxg5 h6 14.Nh3 Qh4 15.Nf2 O-O-O
+16.f4 f5 17.Bf3 b4 18.exf5 bxc3 19.fxe6 cxb2+ 20.Kb1 Nf6 21.Bxb7+ Kxb7 22.Qf3+ d5
+23.Nd3 Ne4 24.Nc5+ Ka7 25.Qa3 Nxc5 26.Qxc5 Kb7  0-1
+
+[Event "VI World Blitz"]
+[Site "Moscow RUS"]
+[Date "2010.11.16"]
+[Round "2.10"]
+[White "Nakamura,Hi"]
+[Black "Kramnik,V"]
+[Result "0-1"]
+[WhiteElo "2741"]
+[BlackElo "2791"]
+[ECO "B09"]
+
+1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.f4 Bg7 5.Nf3 O-O 6.e5 dxe5 7.fxe5 Nd5 8.h4 Bg4
+9.h5 c5 10.hxg6 hxg6 11.Rh4 Bxf3 12.Qxf3 Nb4 13.Bc4 e6 14.Qh3 Nxc2+ 15.Kf1 Nxd4
+16.Ne4 Nf5 17.Bg5 Qd4 18.Nf6+ Bxf6 19.Rxd4 Bxg5 20.Rg4 Bh6 21.Bd3 Ne3+ 22.Kf2 Nxg4+
+23.Qxg4 Nc6 24.Rh1 Bg7 25.Qh4 Rfd8 26.Bxg6 fxg6 27.Qh7+ Kf8 28.Rf1 Rd7 29.Qxg6 Rf7+
+30.Ke1 Nxe5  0-1
+
+[Event "World Blitz Final"]
+[Site "Astana KAZ"]
+[Date "2012.07.09"]
+[Round "10"]
+[White "Morozevich,A"]
+[Black "Bologan,V"]
+[Result "1-0"]
+[WhiteElo "2770"]
+[BlackElo "2732"]
+[ECO "B07"]
+
+1.e4 d6 2.d4 Nf6 3.Nc3 c6 4.f4 Qa5 5.Bd2 e5 6.Nf3 exd4 7.Nd5 Qd8 8.Nxf6+ Qxf6
+9.Bd3 Bg4 10.O-O Qd8 11.c3 d5 12.exd5 Be7 13.Qb3 Bxf3 14.Rxf3 Qb6 15.Be4 dxc3+
+16.Qxb6 axb6 17.Bxc3 O-O 18.Re1 Rxa2 19.Bxh7+ Kxh7 20.Rxe7 cxd5 21.Rh3+ Kg6
+22.Rg3+ Kf5 23.Rg5+ Kxf4 24.Bd2+  1-0
+
+[Event "VI World Blitz"]
+[Site "Moscow RUS"]
+[Date "2010.11.16"]
+[Round "2.10"]
+[White "Nakamura,Hi"]
+[Black "Kramnik,V"]
+[Result "0-1"]
+[WhiteElo "2741"]
+[BlackElo "2791"]
+[ECO "B09"]
+
+1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.f4 Bg7 5.Nf3 O-O 6.e5 dxe5 7.fxe5 Nd5 8.h4 Bg4
+9.h5 c5 10.hxg6 hxg6 11.Rh4 Bxf3 12.Qxf3 Nb4 13.Bc4 e6 14.Qh3 Nxc2+ 15.Kf1 Nxd4
+16.Ne4 Nf5 17.Bg5 Qd4 18.Nf6+ Bxf6 19.Rxd4 Bxg5 20.Rg4 Bh6 21.Bd3 Ne3+ 22.Kf2 Nxg4+
+23.Qxg4 Nc6 24.Rh1 Bg7 25.Qh4 Rfd8 26.Bxg6 fxg6 27.Qh7+ Kf8 28.Rf1 Rd7 29.Qxg6 Rf7+
+30.Ke1 Nxe5  0-1
