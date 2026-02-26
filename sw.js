@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v89';
+const CACHE_NAME = 'grandmasters-v90';
 
 const PRECACHE_URLS = [
   './',
@@ -146,6 +146,9 @@ const PRECACHE_URLS = [
   './img/avatars/crown.svg', './img/avatars/shield.svg', './img/avatars/sword.svg',
   './img/avatars/star.svg', './img/avatars/flame.svg', './img/avatars/lightning.svg',
 
+  // Logo
+  './assets/logo.svg',
+
   // App icons
   './icons/icon.svg',
   './icons/icon-192.png',
@@ -153,11 +156,19 @@ const PRECACHE_URLS = [
   './icons/apple-touch-icon.png'
 ];
 
-// Install — precache all assets
+// Install — precache assets (resilient: individual failures don't block install)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE_URLS))
+      .then(cache =>
+        Promise.all(
+          PRECACHE_URLS.map(url =>
+            cache.add(url).catch(err =>
+              console.warn('SW: failed to cache', url, err)
+            )
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -202,7 +213,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for local assets
+  // Network-first for HTML, JS, JSON (ensures updates reach users)
+  // Cache-first for static assets (images, fonts, wasm)
+  const path = url.pathname;
+  if (path.endsWith('.html') || path.endsWith('.js') || path.endsWith('.json') ||
+      path.endsWith('.css') || path === '/' || path.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first for static assets (SVG, PNG, WASM, PGN, audio)
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
