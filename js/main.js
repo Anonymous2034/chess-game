@@ -5366,11 +5366,14 @@ class ChessApp {
     this._setupResizeMusic();
     // Load saved sizes
     this._loadResizeSizes();
-    // Sync side panel height to board area
+    // Sync side panel height to board area — use ResizeObserver for live tracking
     this._syncPanelHeight();
     window.addEventListener('resize', debounce(() => this._syncPanelHeight(), 100));
-    // Re-sync after fonts/images settle
     requestAnimationFrame(() => this._syncPanelHeight());
+    const boardArea = document.querySelector('.board-area');
+    if (boardArea && typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => this._syncPanelHeight()).observe(boardArea);
+    }
   }
 
   _setupPanelOffset() {

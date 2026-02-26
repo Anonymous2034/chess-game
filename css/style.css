@@ -384,7 +384,7 @@ main {
   font-size: 0.62rem;
   font-weight: 700;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
   line-height: 1;
   user-select: none;
 }
