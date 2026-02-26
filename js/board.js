@@ -25,7 +25,6 @@ export class Board {
     this.squares = {};
     this.render();
     this.setupDragAndDrop();
-    this.renderCoordinates();
   }
 
   render() {
@@ -66,6 +65,7 @@ export class Board {
     }
 
     this.applyHighlights();
+    this.renderCoordinates();
   }
 
   renderCoordinates() {
@@ -473,18 +473,15 @@ export class Board {
   flip() {
     this.flipped = !this.flipped;
     this.render();
-    this.renderCoordinates();
   }
 
   setFlipped(flipped) {
     this.flipped = flipped;
     this.render();
-    this.renderCoordinates();
   }
 
   update() {
     this.render();
-    this.renderCoordinates();
   }
 
   setInteractive(interactive) {
