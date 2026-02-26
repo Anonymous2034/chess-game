@@ -2624,13 +2624,11 @@ class ChessApp {
   }
 
   _applyCoords() {
-    const board = document.getElementById('board');
-    if (!board) return;
-    if (this._coordsEnabled) {
-      board.classList.remove('hide-coords');
-    } else {
-      board.classList.add('hide-coords');
-    }
+    const files = document.getElementById('coords-files');
+    const ranks = document.getElementById('coords-ranks');
+    if (!files || !ranks) return;
+    files.style.display = this._coordsEnabled ? '' : 'none';
+    ranks.style.display = this._coordsEnabled ? '' : 'none';
   }
 
   toggleEvalBar() {

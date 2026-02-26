@@ -25,6 +25,7 @@ export class Board {
     this.squares = {};
     this.render();
     this.setupDragAndDrop();
+    this.renderCoordinates();
   }
 
   render() {
@@ -65,44 +66,35 @@ export class Board {
     }
 
     this.applyHighlights();
-    this.renderCoordinates();
   }
 
   renderCoordinates() {
-    // Remove old embedded coord labels
-    this.container.querySelectorAll('.coord-inside').forEach(el => el.remove());
+    const filesEl = document.getElementById('coords-files');
+    const ranksEl = document.getElementById('coords-ranks');
+    if (!filesEl || !ranksEl) return;
+
+    filesEl.innerHTML = '';
+    ranksEl.innerHTML = '';
 
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const displayRow = this.flipped ? 7 - row : row;
-        const displayCol = this.flipped ? 7 - col : col;
-        const sq = coordsToSquare(displayRow, displayCol);
-        const div = this.squares[sq];
-        if (!div) continue;
+    const displayFiles = this.flipped ? [...files].reverse() : files;
+    const displayRanks = this.flipped ? [...ranks].reverse() : ranks;
 
-        const isLight = (row + col) % 2 === 0;
-        const colorClass = isLight ? 'coord-on-light' : 'coord-on-dark';
+    displayFiles.forEach(f => {
+      const span = document.createElement('span');
+      span.className = 'coord-label';
+      span.textContent = f;
+      filesEl.appendChild(span);
+    });
 
-        // File labels on bottom row
-        if (row === 7) {
-          const label = document.createElement('span');
-          label.className = `coord-inside coord-file ${colorClass}`;
-          label.textContent = files[displayCol];
-          div.appendChild(label);
-        }
-
-        // Rank labels on left column
-        if (col === 0) {
-          const label = document.createElement('span');
-          label.className = `coord-inside coord-rank ${colorClass}`;
-          label.textContent = ranks[displayRow];
-          div.appendChild(label);
-        }
-      }
-    }
+    displayRanks.forEach(r => {
+      const span = document.createElement('span');
+      span.className = 'coord-label';
+      span.textContent = r;
+      ranksEl.appendChild(span);
+    });
   }
 
   applyHighlights() {
@@ -473,11 +465,13 @@ export class Board {
   flip() {
     this.flipped = !this.flipped;
     this.render();
+    this.renderCoordinates();
   }
 
   setFlipped(flipped) {
     this.flipped = flipped;
     this.render();
+    this.renderCoordinates();
   }
 
   update() {
