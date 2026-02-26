@@ -2723,7 +2723,7 @@ main {
   flex: 1;
   min-height: 0;
   min-width: 0;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 4px 6px;
 }
 .ideas-header {
@@ -2734,8 +2734,8 @@ main {
 }
 .ideas-list {
   flex: 0 1 auto;
-  height: 200px;
-  min-height: 80px;
+  max-height: 50%;
+  min-height: 60px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -3084,7 +3084,7 @@ main {
   background: var(--accent);
   color: #fff;
 }
-.gm-coach-panel { padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; min-width: 0; overflow-y: auto; }
+.gm-coach-panel { padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
 .gm-coach-header {
   display: flex; justify-content: space-between; align-items: center;
 }
@@ -3115,7 +3115,7 @@ main {
 .gm-coach-picker .gm-coach-pick-elo {
   margin-left: auto; font-size: 0.65rem; color: #888;
 }
-.gm-coach-cards { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1 1 auto; min-height: 60px; }
+.gm-coach-cards { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 0 1 auto; max-height: 50%; min-height: 60px; }
 .gm-coach-empty {
   color: var(--text-secondary, #888); text-align: center;
   padding: 16px 8px; font-size: 0.78rem;
