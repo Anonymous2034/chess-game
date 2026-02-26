@@ -2206,10 +2206,31 @@ class ChessApp {
   async _updateGMCoachCommentary() {
     if (this._gmCoachBots.length === 0) return;
     if (this._gmCoachPending) return;
-    if (!this.engine || !this.engine.ready) return;
+
+    // Show status message if engine not ready
+    if (!this.engine || !this.engine.ready) {
+      for (const bot of this._gmCoachBots) {
+        const commentary = document.getElementById(`gm-coach-commentary-${bot.id}`);
+        if (commentary) commentary.textContent = 'Engine loading\u2026 Make a move to start coaching.';
+        const card = document.getElementById(`gm-coach-${bot.id}`);
+        if (card) card.classList.remove('gm-coach-thinking');
+      }
+      return;
+    }
 
     const fen = this.chess.fen();
-    if (fen === 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') return;
+    if (fen === 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') {
+      for (const bot of this._gmCoachBots) {
+        const profile = GM_COACH_PROFILES[bot.id];
+        const commentary = document.getElementById(`gm-coach-commentary-${bot.id}`);
+        const greeting = profile ? (profile.greeting || `Welcome! I'm ${bot.name}. Play a move and I'll share my thoughts.`) : 'Play a move to begin.';
+        if (commentary) commentary.textContent = greeting;
+        const card = document.getElementById(`gm-coach-${bot.id}`);
+        if (card) card.classList.remove('gm-coach-thinking');
+      }
+      this._syncPanelCoachArea();
+      return;
+    }
 
     this._gmCoachPending = true;
 
@@ -2226,6 +2247,14 @@ class ChessApp {
     try {
       const analysis = await this.engine.analyzePosition(fen, 16);
       const sections = PositionCommentary.generate(this.chess, analysis);
+
+      // Show best move arrow on the board
+      if (analysis.bestMove) {
+        const bFrom = analysis.bestMove.substring(0, 2);
+        const bTo = analysis.bestMove.substring(2, 4);
+        this.board.clearArrows();
+        this.board.drawArrow(bFrom, bTo, 'rgba(201,168,76,0.5)');
+      }
 
       // Generate commentary for each coach in parallel
       const promises = this._gmCoachBots.map(async (bot) => {
@@ -2294,6 +2323,14 @@ class ChessApp {
           san = analysis.bestMove;
         }
         if (hintEl) hintEl.textContent = `${profile.moveHintIntro} ${san}!`;
+
+        // Draw arrow on the board for the suggested move
+        this.board.clearArrows();
+        this.board.drawArrow(from, to, 'rgba(201,168,76,0.85)');
+
+        // Highlight the from/to squares
+        this.board.flashSquare(from, 'puzzle-correct');
+        this.board.flashSquare(to, 'puzzle-correct');
       } else {
         if (hintEl) hintEl.textContent = 'No move found.';
       }
