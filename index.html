@@ -1141,7 +1141,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v78</div>
+          <div class="nav-menu-version" id="app-version">v79</div>
         </div>
       </nav>
     </header>
@@ -1354,18 +1354,20 @@
 
         <!-- Ideas Tab (GM Hints) -->
         <div class="panel-content hidden" id="tab-ideas">
-          <div class="ideas-panel" id="ideas-panel">
-            <div class="advisor-picker" id="advisor-picker"></div>
-            <div class="ideas-list" id="ideas-list">
-              <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
-            </div>
-            <div class="advisor-annotations" id="advisor-annotations"></div>
-            <!-- GM Coach commentary inside hints tab -->
-            <div class="ideas-coach-area" id="ideas-coach-area"></div>
-            <!-- Compact moves inside hints tab -->
-            <div class="ideas-moves-area" id="ideas-moves-area">
-              <div class="ideas-moves-label">Moves</div>
+          <div class="ideas-split">
+            <!-- Left: Moves -->
+            <div class="ideas-moves-pane">
+              <div class="split-pane-label">Moves</div>
               <div class="ideas-moves-list" id="ideas-moves-list"></div>
+            </div>
+            <!-- Right: Hints -->
+            <div class="ideas-panel" id="ideas-panel">
+              <div class="advisor-picker" id="advisor-picker"></div>
+              <div class="ideas-list" id="ideas-list">
+                <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
+              </div>
+              <div class="advisor-annotations" id="advisor-annotations"></div>
+              <div class="ideas-coach-area" id="ideas-coach-area"></div>
             </div>
           </div>
           <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize GM Hints"></div>
@@ -1376,12 +1378,13 @@
           <div class="gm-coach-split" id="gm-coach-split">
             <!-- Left: Moves -->
             <div class="gm-coach-moves-pane">
-              <div class="gm-coach-pane-label">Moves</div>
+              <div class="split-pane-label">Moves</div>
               <div class="gm-coach-moves-list" id="gm-coach-moves-list"></div>
             </div>
             <!-- Right: Coach -->
             <div class="gm-coach-panel" id="gm-coach-panel">
               <div class="gm-coach-header">
+                <span class="split-pane-label" style="padding:0">Coach</span>
                 <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
               </div>
               <div class="gm-coach-picker" id="gm-coach-picker"></div>
