@@ -683,6 +683,29 @@
             <span class="settings-sublabel">Clock Style</span>
             <div class="clock-theme-list" id="clock-theme-list"></div>
           </div>
+          <div class="settings-subsection">
+            <span class="settings-sublabel">Slogan</span>
+            <select class="dialog-select" id="settings-slogan">
+              <option value="Classical Brilliancy">Classical Brilliancy</option>
+              <option value="Where Every Move Is a Masterpiece">Where Every Move Is a Masterpiece</option>
+              <option value="Brilliance Has a Sound">Brilliance Has a Sound</option>
+              <option value="Where Strategy Meets Symphony">Where Strategy Meets Symphony</option>
+              <option value="Compose Your Victory">Compose Your Victory</option>
+              <option value="Where Genius Plays">Where Genius Plays</option>
+              <option value="The Sound of Brilliant Play">The Sound of Brilliant Play</option>
+              <option value="Masters of the Board. Masters of the Score.">Masters of the Board. Masters of the Score.</option>
+              <option value="Timeless Moves. Timeless Music.">Timeless Moves. Timeless Music.</option>
+              <option value="The Classical Game">The Classical Game</option>
+              <option value="Every Game a Composition">Every Game a Composition</option>
+              <option value="Grand Moves. Grand Music.">Grand Moves. Grand Music.</option>
+              <option value="Think in Moves. Feel in Music.">Think in Moves. Feel in Music.</option>
+              <option value="Where Classics Reign">Where Classics Reign</option>
+              <option value="Play Like a Master">Play Like a Master</option>
+              <option value="Every Move Resonates">Every Move Resonates</option>
+              <option value="The Beauty of the Brilliant Game">The Beauty of the Brilliant Game</option>
+              <option value="Where Knights Dance and Notes Sing">Where Knights Dance and Notes Sing</option>
+            </select>
+          </div>
           <label class="settings-toggle-row">
             <span class="layout-toggle-label">Eval Bar</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-eval-bar"><span class="toggle-slider"></span></span>
@@ -1100,7 +1123,10 @@
     <header>
       <div class="header-brand">
         <img src="assets/logo.svg" alt="Grandmasters" class="header-logo">
-        <h1>Grandmasters</h1>
+        <div class="header-titles">
+          <h1>Grandmasters</h1>
+          <span class="header-slogan" id="header-slogan">Classical Brilliancy</span>
+        </div>
       </div>
       <nav>
         <button class="btn" id="btn-new-game">New Game</button>
@@ -1144,7 +1170,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v91</div>
+          <div class="nav-menu-version" id="app-version">v93</div>
         </div>
       </nav>
     </header>

@@ -5439,6 +5439,22 @@ class ChessApp {
 
     // --- DISPLAY section ---
 
+    // Slogan selector
+    const sloganSelect = document.getElementById('settings-slogan');
+    const sloganEl = document.getElementById('header-slogan');
+    const savedSlogan = localStorage.getItem('chess_slogan');
+    if (savedSlogan) {
+      if (sloganEl) sloganEl.textContent = savedSlogan;
+      if (sloganSelect) sloganSelect.value = savedSlogan;
+    }
+    if (sloganSelect) {
+      sloganSelect.addEventListener('change', () => {
+        const val = sloganSelect.value;
+        if (sloganEl) sloganEl.textContent = val;
+        localStorage.setItem('chess_slogan', val);
+      });
+    }
+
     // Eval Bar toggle
     const evalCb = document.getElementById('settings-eval-bar');
     evalCb.addEventListener('change', () => {
@@ -5491,6 +5507,9 @@ class ChessApp {
     if (stMusic) stMusic.checked = localStorage.getItem('chess_music_enabled') !== 'false';
     // Music volume
     document.getElementById('settings-music-volume').value = Math.round(this.music.audio.volume * 100);
+    // Slogan
+    const sloganSel = document.getElementById('settings-slogan');
+    if (sloganSel) sloganSel.value = localStorage.getItem('chess_slogan') || 'Classical Brilliancy';
     // Eval bar
     document.getElementById('settings-eval-bar').checked = this._evalBarEnabled;
     // Coordinates
