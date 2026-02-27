@@ -6,28 +6,32 @@ export class FreeLayout {
 
   // Window definitions: which drag-groups go into each window
   static WINDOW_DEFS = {
-    board:      { label: 'Board',      icon: '\u265A', groups: ['player-top', 'board', 'player-bottom'], minW: 280, minH: 320 },
-    navigation: { label: 'Navigation', icon: '\u2194', groups: ['nav', 'opening'],                       minW: 200, minH: 50  },
-    'eval-graph': { label: 'Eval Graph', icon: '\u2191', groups: ['eval-graph'],                         minW: 150, minH: 60  },
-    music:      { label: 'Music',      icon: '\u266B', groups: ['music'],                                minW: 200, minH: 40  },
-    status:     { label: 'Status',     icon: '\u2139', groups: ['status'],                               minW: 200, minH: 36  },
-    analysis:   { label: 'Analysis',   icon: '\u2610', groups: ['tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab'], minW: 250, minH: 200 },
-    coach:      { label: 'Coach',      icon: '\u2605', groups: ['coach-area'],                           minW: 200, minH: 60  },
-    notes:      { label: 'Notes',      icon: '\u270E', groups: ['notes'],                                minW: 200, minH: 80  },
+    board:        { label: 'Board',      icon: '\u265A', groups: ['board'],                                  minW: 200, minH: 200 },
+    white:        { label: 'White',      icon: '\u2659', groups: ['player-bottom'],                          minW: 180, minH: 32  },
+    black:        { label: 'Black',      icon: '\u265F', groups: ['player-top'],                             minW: 180, minH: 32  },
+    navigation:   { label: 'Navigation', icon: '\u2194', groups: ['nav', 'opening'],                        minW: 200, minH: 50  },
+    'eval-graph': { label: 'Eval Graph', icon: '\u2191', groups: ['eval-graph'],                             minW: 150, minH: 60  },
+    music:        { label: 'Music',      icon: '\u266B', groups: ['music'],                                  minW: 200, minH: 40  },
+    status:       { label: 'Status',     icon: '\u2139', groups: ['status'],                                 minW: 200, minH: 36  },
+    analysis:     { label: 'Analysis',   icon: '\u2610', groups: ['tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab'], minW: 250, minH: 200 },
+    coach:        { label: 'Coach',      icon: '\u2605', groups: ['coach-area'],                             minW: 200, minH: 60  },
+    notes:        { label: 'Notes',      icon: '\u270E', groups: ['notes'],                                  minW: 200, minH: 80  },
   };
 
   // Default positions as viewport fractions { x, y, w, h }
-  // Left: board (large) + nav + eval graph + music
+  // Left: black + board (large) + white + nav + eval/music
   // Right: status + analysis (tall) + coach + notes
   static DEFAULT_POSITIONS = {
-    board:        { x: 0.005, y: 0.005, w: 0.48,  h: 0.76  },
-    navigation:   { x: 0.005, y: 0.77,  w: 0.48,  h: 0.07  },
-    'eval-graph': { x: 0.005, y: 0.85,  w: 0.24,  h: 0.14  },
-    music:        { x: 0.25,  y: 0.85,  w: 0.235, h: 0.14  },
-    status:       { x: 0.49,  y: 0.005, w: 0.505, h: 0.055 },
-    analysis:     { x: 0.49,  y: 0.065, w: 0.505, h: 0.52  },
-    coach:        { x: 0.49,  y: 0.59,  w: 0.505, h: 0.12  },
-    notes:        { x: 0.49,  y: 0.715, w: 0.505, h: 0.28  },
+    black:        { x: 0.005, y: 0.005, w: 0.48,  h: 0.05  },
+    board:        { x: 0.005, y: 0.06,  w: 0.48,  h: 0.68  },
+    white:        { x: 0.005, y: 0.745, w: 0.48,  h: 0.05  },
+    navigation:   { x: 0.005, y: 0.80,  w: 0.48,  h: 0.06  },
+    'eval-graph': { x: 0.005, y: 0.865, w: 0.24,  h: 0.13  },
+    music:        { x: 0.25,  y: 0.865, w: 0.235, h: 0.13  },
+    status:       { x: 0.49,  y: 0.005, w: 0.505, h: 0.05  },
+    analysis:     { x: 0.49,  y: 0.06,  w: 0.505, h: 0.52  },
+    coach:        { x: 0.49,  y: 0.585, w: 0.505, h: 0.12  },
+    notes:        { x: 0.49,  y: 0.71,  w: 0.505, h: 0.285 },
   };
 
   constructor() {
@@ -473,14 +477,9 @@ export class FreeLayout {
     const container = document.getElementById('board-container');
     if (!boardEl || !container) return;
 
-    // Available space inside the content area (minus player bars)
+    // Available space inside the content area
     const contentRect = content.getBoundingClientRect();
-    const playerTop = content.querySelector('.player-info.top');
-    const playerBottom = content.querySelector('.player-info.bottom');
-    const ptH = playerTop ? playerTop.offsetHeight : 0;
-    const pbH = playerBottom ? playerBottom.offsetHeight : 0;
-
-    const availH = contentRect.height - ptH - pbH;
+    const availH = contentRect.height;
     const availW = contentRect.width;
 
     // Board should be square — use min of available w and h

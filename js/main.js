@@ -5034,9 +5034,15 @@ class ChessApp {
         break;
       case 'playerInfoTop':
         toggle(document.getElementById('player-top'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('black') : this._freeLayout.hideWindow('black');
+        }
         break;
       case 'playerInfoBottom':
         toggle(document.getElementById('player-bottom'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('white') : this._freeLayout.hideWindow('white');
+        }
         break;
       case 'capturedPieces':
         document.querySelectorAll('.captured-pieces, .material-advantage')
@@ -5051,12 +5057,21 @@ class ChessApp {
         break;
       case 'evalGraph':
         toggle(document.getElementById('eval-graph-container'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('eval-graph') : this._freeLayout.hideWindow('eval-graph');
+        }
         break;
       case 'navControls':
         toggle(document.querySelector('.nav-controls'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('navigation') : this._freeLayout.hideWindow('navigation');
+        }
         break;
       case 'statusBar':
         toggle(document.getElementById('status-bar'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('status') : this._freeLayout.hideWindow('status');
+        }
         break;
       case 'moveList': {
         toggle(document.querySelector('.panel-tab[data-tab="moves"]'));
