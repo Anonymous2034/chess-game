@@ -31,7 +31,6 @@ import { MusicPlayer, PLAYLIST } from './music.js';
 import { COMPOSER_PROFILES, COMPOSER_ERAS } from './composer-profiles.js';
 import { ChessNews } from './chess-news.js';
 import { PositionCommentary } from './position-commentary.js';
-import { LayoutManager } from './layout-manager.js';
 import { FreeLayout } from './free-layout.js';
 
 class ChessApp {
@@ -158,7 +157,6 @@ class ChessApp {
     this.setupEvalBar();
     this.setupLayoutEditor();
     this.setupDragLayout();
-    this.setupGridLayout();
     this.setupFreeLayout();
     this.setupSettings();
     this._loadClockTheme();
@@ -4948,6 +4946,7 @@ class ChessApp {
       capturedPieces: true, timers: true, openingLabel: true,
       evalGraph: true, navControls: true, statusBar: true,
       moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
+      coachArea: true, music: true, notes: true,
       showLegalMoves: false
     };
   }
@@ -4962,14 +4961,38 @@ class ChessApp {
       show(document.getElementById('layout-dialog'));
     });
 
-    // Direct menu item for Layout Editor
+    // Direct menu item for Panels
     const layoutMenuBtn = document.getElementById('btn-settings-layout');
     if (layoutMenuBtn) {
       layoutMenuBtn.addEventListener('click', () => {
         this._syncLayoutCheckboxes();
         const t = document.getElementById('layout-drag-toggle');
         if (t) t.checked = this._dragLayout?.enabled || false;
+        const ft = document.getElementById('layout-free-toggle');
+        if (ft) ft.checked = this._freeLayout?.active || false;
         show(document.getElementById('layout-dialog'));
+      });
+    }
+
+    // Free Layout toggle inside dialog
+    const freeToggle = document.getElementById('layout-free-toggle');
+    if (freeToggle) {
+      freeToggle.addEventListener('change', () => {
+        const freeBtn = document.getElementById('btn-free-layout');
+        if (freeToggle.checked) {
+          if (!this._freeLayout?.active) {
+            if (document.body.classList.contains('drag-mode')) this._exitDragMode();
+            this._freeLayout.activate();
+            if (freeBtn) freeBtn.classList.add('active');
+          }
+        } else {
+          if (this._freeLayout?.active) {
+            this._freeLayout.deactivate();
+            FreeLayout.clearSaved();
+            if (freeBtn) freeBtn.classList.remove('active');
+            this._syncPanelHeight();
+          }
+        }
       });
     }
 
@@ -4986,6 +5009,16 @@ class ChessApp {
       this._saveLayoutSettings();
       this._applyAllLayoutSettings();
       this._syncLayoutCheckboxes();
+      // Deactivate free layout on reset
+      if (this._freeLayout?.active) {
+        this._freeLayout.deactivate();
+        FreeLayout.clearSaved();
+        const freeBtn = document.getElementById('btn-free-layout');
+        if (freeBtn) freeBtn.classList.remove('active');
+        this._syncPanelHeight();
+      }
+      const ft = document.getElementById('layout-free-toggle');
+      if (ft) ft.checked = false;
     });
 
     document.getElementById('layout-dialog').addEventListener('change', (e) => {
@@ -5013,8 +5046,6 @@ class ChessApp {
     } catch {
       this._layout = { ...defaults };
     }
-    // Book tab is always on
-    this._layout.openingExplorer = true;
   }
 
   _saveLayoutSettings() {
@@ -5082,9 +5113,47 @@ class ChessApp {
         if (!visible) this._activateFirstVisibleTab();
         break;
       }
+      case 'coachArea': {
+        toggle(document.getElementById('panel-coach-area'));
+        const coachGroup = document.querySelector('.drag-group[data-drag-id="coach-area"]');
+        if (coachGroup) toggle(coachGroup);
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('coach') : this._freeLayout.hideWindow('coach');
+        }
+        break;
+      }
+      case 'music': {
+        toggle(document.getElementById('mini-music'));
+        const musicGroup = document.querySelector('.drag-group[data-drag-id="music"]');
+        if (musicGroup) toggle(musicGroup);
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('music') : this._freeLayout.hideWindow('music');
+        }
+        break;
+      }
+      case 'notes': {
+        toggle(document.getElementById('move-notes'));
+        const notesGroup = document.querySelector('.drag-group[data-drag-id="notes"]');
+        if (notesGroup) toggle(notesGroup);
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('notes') : this._freeLayout.hideWindow('notes');
+        }
+        break;
+      }
       case 'showLegalMoves':
         if (this.board) this.board.showLegalMoves = visible;
         break;
+    }
+
+    // Sync free layout windows for tab-based panels
+    if (this._freeLayout?.active && ['moveList', 'advisorsTab', 'coachTab', 'openingExplorer'].includes(key)) {
+      // These all live in the 'analysis' window — show it if any tab is visible, hide if all gone
+      const anyTabVisible = this._layout.moveList || this._layout.advisorsTab || this._layout.coachTab || this._layout.openingExplorer;
+      if (anyTabVisible) {
+        this._freeLayout.showWindow('analysis');
+      } else {
+        this._freeLayout.hideWindow('analysis');
+      }
     }
   }
 
@@ -5405,28 +5474,6 @@ class ChessApp {
     this._rebuildDragOrder();
   }
 
-  // === Grid Layout Manager ===
-
-  setupGridLayout() {
-    this._layoutManager = new LayoutManager();
-
-    // Apply saved grid layout on startup
-    const savedMgr = LayoutManager.applyIfSaved();
-    if (savedMgr) this._layoutManager = savedMgr;
-
-    // Wire up the Layout Manager button in nav menu
-    const gridBtn = document.getElementById('btn-grid-layout');
-    if (gridBtn) {
-      gridBtn.addEventListener('click', () => {
-        // Close nav menu
-        const menu = document.getElementById('nav-menu');
-        if (menu) menu.classList.remove('open');
-        // Open grid layout manager
-        this._layoutManager.open();
-      });
-    }
-  }
-
   // === Free-Floating Layout (Chessmaster-style) ===
 
   setupFreeLayout() {
@@ -5457,10 +5504,6 @@ class ChessApp {
           // Re-sync panel height for classic layout
           this._syncPanelHeight();
         } else {
-          // Deactivate grid layout if it's on
-          if (document.body.classList.contains('grid-layout-on')) {
-            document.body.classList.remove('grid-layout-on');
-          }
           // Exit drag mode if active
           if (document.body.classList.contains('drag-mode')) {
             this._exitDragMode();

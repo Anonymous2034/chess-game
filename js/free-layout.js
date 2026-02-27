@@ -44,8 +44,6 @@ export class FreeLayout {
     this._active = true;
     document.body.classList.add('free-layout-on');
 
-    // Disable grid layout if active
-    document.body.classList.remove('grid-layout-on');
 
     const layout = this._loadLayout();
     this._wrapDragGroups(layout);
@@ -437,6 +435,14 @@ export class FreeLayout {
     w.el.classList.remove('free-window-minimized');
     this._bringToFront(winId);
     this._updatePos(winId);
+    this._saveLayout();
+  }
+
+  // Hide a window (from panel toggles)
+  hideWindow(winId) {
+    const w = this._windows[winId];
+    if (!w) return;
+    w.el.style.display = 'none';
     this._saveLayout();
   }
 

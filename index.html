@@ -530,13 +530,13 @@
       </div>
     </div>
 
-    <!-- Layout Editor Dialog -->
+    <!-- Panels Dialog -->
     <div id="layout-dialog" class="dialog-overlay hidden">
       <div class="dialog">
-        <h2>Layout Editor</h2>
-        <p class="layout-dialog-desc">Choose which elements are visible.</p>
+        <h2>Panels</h2>
+        <p class="layout-dialog-desc">Show or hide panels and windows.</p>
         <div class="layout-section">
-          <h4 class="layout-section-title">Board Area</h4>
+          <h4 class="layout-section-title">Board</h4>
           <label class="layout-toggle-row">
             <span class="layout-toggle-label">Eval Bar</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
@@ -571,7 +571,7 @@
           </label>
         </div>
         <div class="layout-section">
-          <h4 class="layout-section-title">Side Panel</h4>
+          <h4 class="layout-section-title">Panels</h4>
           <label class="layout-toggle-row">
             <span class="layout-toggle-label">Status Bar</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
@@ -581,16 +581,42 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">GM Hints Tab</span>
+            <span class="layout-toggle-label">Opening Explorer</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">GM Hints</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">GM Coach Tab</span>
+            <span class="layout-toggle-label">GM Coach</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Coach Commentary</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachArea"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Music Player</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="music"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Notes</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="notes"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+        <div class="layout-section">
+          <h4 class="layout-section-title">Options</h4>
+          <label class="layout-toggle-row">
             <span class="layout-toggle-label">Legal Move Hints</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="showLegalMoves"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Free Layout</span>
+            <span class="toggle-switch">
+              <input type="checkbox" id="layout-free-toggle">
+              <span class="toggle-slider"></span>
+            </span>
           </label>
         </div>
         <div class="layout-section layout-section-drag">
@@ -1163,16 +1189,15 @@
             <button class="btn" id="btn-settings-sound">Sound & Music</button>
             <button class="btn" id="btn-settings-display">Display</button>
             <button class="btn" id="btn-settings-board">Board</button>
-            <button class="btn" id="btn-grid-layout">Layout Manager</button>
             <button class="btn" id="btn-free-layout">Free Layout</button>
-            <button class="btn" id="btn-settings-layout">Layout Editor</button>
+            <button class="btn" id="btn-settings-layout">Panels</button>
           </div>
           <div class="nav-menu-section">
             <button class="btn hidden" id="btn-admin">Admin</button>
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v106</div>
+          <div class="nav-menu-version" id="app-version">v107</div>
         </div>
       </nav>
     </header>
