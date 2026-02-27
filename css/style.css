@@ -8225,7 +8225,7 @@ body.free-layout-on .drag-group {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  overflow: hidden;
+  overflow: visible;
   user-select: none;
 }
 
@@ -8234,24 +8234,36 @@ body.free-layout-on .drag-group {
   box-shadow: 0 0 12px rgba(129,182,76,0.15), 0 4px 16px rgba(0,0,0,0.4);
 }
 
-/* === Title Bar — Chessmaster brown gradient === */
+/* === Title Bar — Chessmaster brown gradient with grip texture === */
 .free-window-titlebar {
-  height: 22px;
-  min-height: 22px;
+  height: 28px;
+  min-height: 28px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 6px;
-  background: linear-gradient(180deg, #6b4c2a 0%, #4a3218 100%);
+  gap: 5px;
+  padding: 0 8px;
+  background: linear-gradient(180deg, #7b5c3a 0%, #5a4228 50%, #4a3218 100%);
   color: #d4b896;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: grab;
   flex-shrink: 0;
+  border-bottom: 1px solid #3a2810;
+  border-radius: 4px 4px 0 0;
+}
+
+/* Grip dots on the title bar — visual cue that it's draggable */
+.free-window-titlebar::before {
+  content: '\u2847';
+  font-size: 1rem;
+  color: rgba(255,255,255,0.25);
+  line-height: 1;
+  margin-right: 2px;
 }
 
 .free-window-titlebar:active {
   cursor: grabbing;
+  background: linear-gradient(180deg, #8b6c4a 0%, #6a5238 50%, #5a4228 100%);
 }
 
 .free-window-icon {
@@ -8305,6 +8317,8 @@ body.free-layout-on .drag-group {
   overflow: auto;
   display: flex;
   flex-direction: column;
+  background: var(--panel-bg);
+  border-radius: 0 0 4px 4px;
 }
 
 /* === Minimized state — collapse to title bar === */
@@ -8314,8 +8328,8 @@ body.free-layout-on .drag-group {
 }
 
 .free-window-minimized {
-  height: 22px !important;
-  min-height: 22px;
+  height: 28px !important;
+  min-height: 28px;
   overflow: hidden;
 }
 
@@ -8325,17 +8339,50 @@ body.free-layout-on .drag-group {
   z-index: 2;
 }
 
-/* Edges */
-.free-resize-n  { top: -3px;    left: 6px;   right: 6px;  height: 6px; cursor: n-resize; }
-.free-resize-s  { bottom: -3px; left: 6px;   right: 6px;  height: 6px; cursor: s-resize; }
-.free-resize-e  { right: -3px;  top: 6px;    bottom: 6px; width: 6px;  cursor: e-resize; }
-.free-resize-w  { left: -3px;   top: 6px;    bottom: 6px; width: 6px;  cursor: w-resize; }
+/* Edges — 8px wide invisible touch targets */
+.free-resize-n  { top: -4px;    left: 14px;  right: 14px; height: 8px; cursor: n-resize; }
+.free-resize-s  { bottom: -4px; left: 14px;  right: 14px; height: 8px; cursor: s-resize; }
+.free-resize-e  { right: -4px;  top: 14px;   bottom: 14px; width: 8px; cursor: e-resize; }
+.free-resize-w  { left: -4px;   top: 14px;   bottom: 14px; width: 8px; cursor: w-resize; }
 
-/* Corners */
-.free-resize-ne { top: -3px;    right: -3px;  width: 10px; height: 10px; cursor: ne-resize; }
-.free-resize-nw { top: -3px;    left: -3px;   width: 10px; height: 10px; cursor: nw-resize; }
-.free-resize-se { bottom: -3px; right: -3px;  width: 10px; height: 10px; cursor: se-resize; }
-.free-resize-sw { bottom: -3px; left: -3px;   width: 10px; height: 10px; cursor: sw-resize; }
+/* Corners — 14px visible grip triangles */
+.free-resize-ne { top: -4px;    right: -4px;  width: 14px; height: 14px; cursor: ne-resize; }
+.free-resize-nw { top: -4px;    left: -4px;   width: 14px; height: 14px; cursor: nw-resize; }
+.free-resize-se { bottom: -4px; right: -4px;  width: 14px; height: 14px; cursor: se-resize; }
+.free-resize-sw { bottom: -4px; left: -4px;   width: 14px; height: 14px; cursor: sw-resize; }
+
+/* Visible corner grip indicators */
+.free-resize-se::after,
+.free-resize-sw::after,
+.free-resize-ne::after,
+.free-resize-nw::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
+.free-resize-se::after { bottom: 4px; right: 4px; border-right: 2px solid #999; border-bottom: 2px solid #999; }
+.free-resize-sw::after { bottom: 4px; left: 4px;  border-left: 2px solid #999;  border-bottom: 2px solid #999; }
+.free-resize-ne::after { top: 4px;    right: 4px; border-right: 2px solid #999; border-top: 2px solid #999; }
+.free-resize-nw::after { top: 4px;    left: 4px;  border-left: 2px solid #999;  border-top: 2px solid #999; }
+
+/* Brighter on hover */
+.free-resize-handle:hover::after {
+  opacity: 0.7;
+}
+
+/* Show subtle edge lines on window hover */
+.free-window:hover > .free-resize-n,
+.free-window:hover > .free-resize-s {
+  background: linear-gradient(to bottom, transparent 30%, rgba(129,182,76,0.15) 50%, transparent 70%);
+}
+.free-window:hover > .free-resize-e,
+.free-window:hover > .free-resize-w {
+  background: linear-gradient(to right, transparent 30%, rgba(129,182,76,0.15) 50%, transparent 70%);
+}
 
 /* Dragging state */
 .free-window-dragging {

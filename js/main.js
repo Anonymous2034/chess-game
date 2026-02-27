@@ -5468,6 +5468,11 @@ class ChessApp {
           // Activate free layout
           this._freeLayout.activate();
           freeBtn.classList.add('active');
+          // Show instruction toast on first use
+          if (!localStorage.getItem('chess_free_layout_seen')) {
+            localStorage.setItem('chess_free_layout_seen', '1');
+            this.showToast('Drag title bars to move windows. Grab edges or corners to resize.');
+          }
         }
       });
     }
