@@ -4,6 +4,16 @@ export class EvalGraph {
   constructor(containerEl) {
     this.container = containerEl;
     this.onMoveClick = null; // callback(moveIndex)
+    this._lastResults = null;
+    this._lastIndex = -1;
+
+    // Re-render on resize so graph fills its window
+    if (containerEl && typeof ResizeObserver !== 'undefined') {
+      this._resizeObs = new ResizeObserver(() => {
+        if (this._lastResults) this.render(this._lastResults, this._lastIndex);
+      });
+      this._resizeObs.observe(containerEl);
+    }
   }
 
   /**
@@ -17,8 +27,11 @@ export class EvalGraph {
       return;
     }
 
+    this._lastResults = analysisResults;
+    this._lastIndex = currentIndex;
+
     const width = this.container.clientWidth || 400;
-    const height = 80;
+    const height = this.container.clientHeight || 80;
     const padding = { left: 2, right: 2, top: 4, bottom: 4 };
     const graphW = width - padding.left - padding.right;
     const graphH = height - padding.top - padding.bottom;
@@ -37,7 +50,7 @@ export class EvalGraph {
     });
 
     // Build SVG
-    let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="eval-graph-svg">`;
+    let svg = `<svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="eval-graph-svg">`;
 
     // Background
     svg += `<rect x="0" y="0" width="${width}" height="${height}" fill="#1a1816" rx="4"/>`;
@@ -99,6 +112,8 @@ export class EvalGraph {
   }
 
   clear() {
+    this._lastResults = null;
+    this._lastIndex = -1;
     if (this.container) this.container.innerHTML = '';
   }
 }
