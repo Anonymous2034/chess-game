@@ -7876,7 +7876,9 @@ body.free-layout-on [data-drag-id="board"] #board-container {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: center;
   justify-content: center;
   width: 100%;
   margin-left: 0;
@@ -7889,24 +7891,27 @@ body.free-layout-on [data-drag-id="board"] #board {
   max-height: 100%;
 }
 
-/* Coordinates overlay inside the board in free layout */
+/* File coords (a-h) below the board, inside the window */
 body.free-layout-on .coords-files {
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  width: var(--board-size);
+  display: flex;
+  justify-content: space-around;
 }
+/* Rank coords (1-8) overlay on board left edge */
 body.free-layout-on .coords-ranks {
-  left: 0;
+  left: 2px;
   top: 0;
   bottom: 0;
 }
-body.free-layout-on .coord-label {
-  color: rgba(255,255,255,0.6);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  font-size: 0.65rem;
-}
 body.free-layout-on .coords-ranks .coord-label {
-  width: 14px;
+  width: auto;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.55);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
 }
 
 body.free-layout-on .player-info {

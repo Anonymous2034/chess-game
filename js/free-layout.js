@@ -483,7 +483,7 @@ export class FreeLayout {
     const evalBar = document.getElementById('eval-bar');
     const evalW = (evalBar && !evalBar.classList.contains('layout-hidden') && evalBar.offsetParent) ? 22 : 0;
     const availW = contentRect.width - evalW;
-    const availH = contentRect.height;
+    const availH = contentRect.height - 18; // file coords (a-h) below board
 
     // Board should be square — use min of available w and h
     const boardSize = Math.max(120, Math.min(availW, availH));
