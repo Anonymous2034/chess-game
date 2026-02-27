@@ -6913,6 +6913,52 @@ body.resizing-h {
   body {
     overscroll-behavior-y: contain;
   }
+
+  /* --- v146: Repertoire Trainer mobile --- */
+  .rep-tabs { gap: 1px; }
+  .rep-tab { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .rep-actions { flex-wrap: wrap; }
+  .rep-line-card { padding: 10px 12px; }
+  .rep-accuracy-bar { width: 80px; }
+  .rep-eco-list { max-height: 50dvh; }
+  .rep-eco-item { min-height: 44px; display: flex; align-items: center; }
+  .repertoire-drill-bar { flex-wrap: wrap; gap: 6px; font-size: 0.75rem; justify-content: center; }
+  .rep-drill-info { justify-content: center; }
+
+  /* --- v147: Multi-PV Lines mobile --- */
+  .multi-pv-line { padding: 6px 10px; min-height: 44px; }
+  .multi-pv-eval { font-size: 0.8rem; }
+  .multi-pv-moves { word-break: break-word; }
+
+  /* --- v148: Tablebase mobile --- */
+  .tablebase-indicator { flex-direction: row; gap: 4px; }
+
+  /* --- v149: Annotations mobile --- */
+  .annotation-popup {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 90vw; max-width: 300px;
+  }
+  .ann-nag-btn { min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; }
+  .ann-comment { font-size: 16px; }
+
+  /* --- v150: Lichess Import mobile --- */
+  .lichess-import-form { flex-direction: column; }
+  .lichess-username-input { width: 100%; font-size: 16px; min-height: 44px; }
+  .lichess-game-row { flex-wrap: wrap; gap: 4px; padding: 8px 10px; }
+  .lichess-game-players { width: 100%; }
+  .lichess-game-date { display: none; }
+
+  /* --- v151: GIF Export mobile --- */
+  .gif-setting-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .gif-setting-row label { width: 100%; min-width: unset; }
+  .gif-setting-row input[type="range"] { width: 100%; }
+  .gif-preview img { max-height: 200px; }
+
+  /* --- v152: Saved Games mobile --- */
+  .saved-game-card { flex-wrap: wrap; padding: 10px 12px; }
+  .saved-game-actions { gap: 6px; }
+  .saved-game-actions .btn { min-height: 44px; }
+  .saved-games-list { max-height: 50dvh; }
 }
 
 /* === Landscape mobile === */
@@ -6968,6 +7014,15 @@ body.resizing-h {
   .coords-ranks {
     display: none;
   }
+
+  /* --- v149: Annotations 480px --- */
+  .annotation-popup { width: 95vw; }
+
+  /* --- v150: Lichess Import 480px --- */
+  .lichess-game-date, .lichess-game-opening { display: none; }
+
+  /* --- v146: Repertoire 480px --- */
+  .rep-line-card { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
 /* === Touch device enhancements === */
@@ -6986,6 +7041,13 @@ body.resizing-h {
   .square .legal-capture {
     border-width: 6px;
   }
+
+  /* --- v149: Annotation touch targets --- */
+  .ann-nag-btn { min-height: 44px; min-width: 44px; }
+
+  /* --- v146/v150/v152: Touch list items --- */
+  .rep-eco-item, .lichess-game-row, .saved-game-card { min-height: 44px; }
+  .rep-line-delete { min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; }
 }
 
 /* === Chess News === */
