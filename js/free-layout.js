@@ -19,7 +19,6 @@ export class FreeLayout {
     coach:        { label: 'Commentary',  icon: '✍', groups: ['coach-area'],                                 minW: 200, minH: 60  },
     'move-note':  { label: 'Move Notes', icon: '✎', groups: ['move-note'],                                  minW: 180, minH: 60  },
     'match-note': { label: 'Match Notes',icon: '✉', groups: ['match-note'],                                 minW: 180, minH: 60  },
-    panels:       { label: 'Panels',     icon: '⚙', groups: ['panels'],                                     minW: 180, minH: 200 },
   };
 
   // Default positions as viewport fractions { x, y, w, h }
@@ -40,7 +39,6 @@ export class FreeLayout {
     hints:        { x: 0.725, y: 0.005, w: 0.27,  h: 0.33  },
     'gm-coach':   { x: 0.725, y: 0.34,  w: 0.27,  h: 0.33  },
     coach:        { x: 0.725, y: 0.675, w: 0.27,  h: 0.32  },
-    panels:       { x: 0.005, y: 0.005, w: 0.025, h: 0.045, hidden: true },
   };
 
   constructor() {
@@ -170,7 +168,7 @@ export class FreeLayout {
 
     // Restore groups to their original containers
     const boardOrder = ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
-    const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note', 'panels'];
+    const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note'];
 
     for (const gId of boardOrder) {
       const g = document.querySelector(`[data-drag-id="${gId}"]`);

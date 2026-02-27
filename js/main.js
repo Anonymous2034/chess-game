@@ -4954,16 +4954,38 @@ class ChessApp {
     this._loadLayoutSettings();
     this._applyAllLayoutSettings();
 
-    // Panels menu button — toggle the panels window in free layout
+    // Panels dropdown toggle — header button and menu button both open it
+    const panelsToggle = document.getElementById('btn-panels-toggle');
+    const panelsDropdown = document.getElementById('panels-dropdown');
+    const togglePanels = () => {
+      this._syncLayoutCheckboxes();
+      panelsDropdown.classList.toggle('hidden');
+    };
+    if (panelsToggle) panelsToggle.addEventListener('click', (e) => { e.stopPropagation(); togglePanels(); });
+
     const layoutMenuBtn = document.getElementById('btn-settings-layout');
-    if (layoutMenuBtn) {
-      layoutMenuBtn.addEventListener('click', () => {
-        this._syncLayoutCheckboxes();
-        if (this._freeLayout?.active) {
-          this._freeLayout.showWindow('panels');
-        }
+    if (layoutMenuBtn) layoutMenuBtn.addEventListener('click', togglePanels);
+
+    // Close panels dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!panelsDropdown.classList.contains('hidden') &&
+          !panelsDropdown.contains(e.target) &&
+          e.target !== panelsToggle) {
+        panelsDropdown.classList.add('hidden');
+      }
+    });
+
+    // Panels tabs
+    document.querySelectorAll('.panels-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.panels-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const section = tab.dataset.panelsTab;
+        document.querySelectorAll('.panels-section').forEach(s => {
+          s.classList.toggle('hidden', s.dataset.panelsSection !== section);
+        });
       });
-    }
+    });
 
     document.getElementById('layout-reset').addEventListener('click', () => {
       this._layout = { ...ChessApp._LAYOUT_DEFAULTS };

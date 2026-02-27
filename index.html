@@ -1053,9 +1053,45 @@
           <img class="header-user-avatar hidden" id="header-user-avatar" src="img/avatars/knight.svg" alt="">
           <span class="header-user-name" id="header-user-name">Login</span>
         </button>
+        <button class="btn btn-panels-toggle" id="btn-panels-toggle" title="Panels">&#9881;</button>
         <button class="btn nav-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
           <span class="menu-icon"></span>
         </button>
+        <!-- Panels dropdown -->
+        <div class="panels-dropdown hidden" id="panels-dropdown">
+          <div class="panels-tabs">
+            <button class="panels-tab active" data-panels-tab="board">Board</button>
+            <button class="panels-tab" data-panels-tab="windows">Windows</button>
+            <button class="panels-tab" data-panels-tab="options">Options</button>
+          </div>
+          <div class="panels-tab-content" id="panels-box">
+            <div class="panels-section" data-panels-section="board">
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Eval Bar</span><span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Black</span><span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">White</span><span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Captured</span><span class="toggle-switch"><input type="checkbox" data-layout-key="capturedPieces"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Timers</span><span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Navigation</span><span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Opening</span><span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span></label>
+            </div>
+            <div class="panels-section hidden" data-panels-section="windows">
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Status</span><span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Eval Graph</span><span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Move List</span><span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Book</span><span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">GM Hints</span><span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">GM Coach</span><span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Commentary</span><span class="toggle-switch"><input type="checkbox" data-layout-key="coachArea"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Music</span><span class="toggle-switch"><input type="checkbox" data-layout-key="music"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Move Notes</span><span class="toggle-switch"><input type="checkbox" data-layout-key="moveNotes"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Match Notes</span><span class="toggle-switch"><input type="checkbox" data-layout-key="matchNotes"><span class="toggle-slider"></span></span></label>
+            </div>
+            <div class="panels-section hidden" data-panels-section="options">
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Legal Moves</span><span class="toggle-switch"><input type="checkbox" data-layout-key="showLegalMoves"><span class="toggle-slider"></span></span></label>
+              <button class="btn btn-sm btn-secondary" id="layout-reset" style="margin-top:6px;width:100%">Reset to Defaults</button>
+            </div>
+          </div>
+        </div>
         <div class="nav-menu" id="nav-menu">
           <div class="nav-menu-section">
             <span class="nav-menu-label">Play</span>
@@ -1089,7 +1125,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v120</div>
+          <div class="nav-menu-version" id="app-version">v121</div>
         </div>
       </nav>
     </header>
@@ -1369,83 +1405,6 @@
         <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
         </div>
 
-        <div class="drag-group" data-drag-id="panels" data-drag-label="Panels">
-        <div class="panels-box" id="panels-box">
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Eval Bar</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Black</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">White</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Captured</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="capturedPieces"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Timers</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Navigation</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Opening</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Status</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Eval Graph</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Move List</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Book</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">GM Hints</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">GM Coach</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Commentary</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachArea"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Music</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="music"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Move Notes</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveNotes"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Match Notes</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="matchNotes"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Legal Moves</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="showLegalMoves"><span class="toggle-slider"></span></span>
-          </label>
-          <button class="btn btn-sm btn-secondary" id="layout-reset" style="margin-top:6px;width:100%">Reset to Defaults</button>
-        </div>
-        </div>
       </div>
     </main>
   </div>
