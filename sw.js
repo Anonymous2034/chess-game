@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v138';
+const CACHE_NAME = 'grandmasters-v139';
 
 const PRECACHE_URLS = [
   './',

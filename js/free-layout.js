@@ -24,25 +24,47 @@ export class FreeLayout {
   };
 
   // Default positions as viewport fractions { x, y, w, h }
-  // Left col: black + board + white + nav + eval/music
-  // Mid col: status + moves + move-note + match-note
-  // Right col: hints + gm-coach + commentary
+  // All 16 windows — zero-gap, edge-to-edge tiled layout
+  //
+  //  Left col (45%)          Mid col (27.5%)        Right col (27.5%)
+  //  ┌──────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+  //  │ Black  (4%)      │   │ Status (4%)     │   │ Hints    (33%)  │
+  //  ├──────────────────┤   ├─────────────────┤   │                 │
+  //  │                  │   │                 │   │                 │
+  //  │ Board  (65.5%)   │   │ Moves  (38%)   │   ├─────────────────┤
+  //  │                  │   │                 │   │ GM Coach (33%)  │
+  //  │                  │   ├─────────────────┤   │                 │
+  //  ├──────────────────┤   │ Book   (20%)   │   │                 │
+  //  │ White  (4%)      │   ├─────────────────┤   ├─────────────────┤
+  //  ├────────┬─────────┤   │ Move Note(19%) │   │ Commentary(34%) │
+  //  │Nav     │Clock    │   ├─────────────────┤   │                 │
+  //  │ (5.5%) │ (5.5%)  │   │ Match Note(19%)│   │                 │
+  //  ├────────┼─────────┤   └─────────────────┘   └─────────────────┘
+  //  │EvalGrph│ Music   │
+  //  │ (21%)  │ (21%)   │
+  //  └────────┴─────────┘
+  //
   static DEFAULT_POSITIONS = {
-    black:        { x: 0.005, y: 0.005, w: 0.44,  h: 0.045 },
-    board:        { x: 0.005, y: 0.055, w: 0.44,  h: 0.66  },
-    white:        { x: 0.005, y: 0.72,  w: 0.44,  h: 0.045 },
-    navigation:   { x: 0.005, y: 0.77,  w: 0.22,  h: 0.06  },
-    clock:        { x: 0.23,  y: 0.77,  w: 0.215, h: 0.06  },
-    'eval-graph': { x: 0.005, y: 0.835, w: 0.22,  h: 0.16  },
-    music:        { x: 0.23,  y: 0.835, w: 0.215, h: 0.16  },
-    status:       { x: 0.45,  y: 0.005, w: 0.27,  h: 0.045 },
-    moves:        { x: 0.45,  y: 0.055, w: 0.27,  h: 0.38  },
-    book:         { x: 0.45,  y: 0.44,  w: 0.27,  h: 0.22  },
-    'move-note':  { x: 0.45,  y: 0.665, w: 0.27,  h: 0.165 },
-    'match-note': { x: 0.45,  y: 0.835, w: 0.27,  h: 0.16  },
-    hints:        { x: 0.725, y: 0.005, w: 0.27,  h: 0.33  },
-    'gm-coach':   { x: 0.725, y: 0.34,  w: 0.27,  h: 0.33  },
-    coach:        { x: 0.725, y: 0.675, w: 0.27,  h: 0.32  },
+    // --- Left column: board area (x: 0, w: 0.45) ---
+    black:        { x: 0,     y: 0,     w: 0.45,  h: 0.04  },
+    board:        { x: 0,     y: 0.04,  w: 0.45,  h: 0.655 },
+    white:        { x: 0,     y: 0.695, w: 0.45,  h: 0.04  },
+    navigation:   { x: 0,     y: 0.735, w: 0.225, h: 0.055 },
+    clock:        { x: 0.225, y: 0.735, w: 0.225, h: 0.055 },
+    'eval-graph': { x: 0,     y: 0.79,  w: 0.225, h: 0.21  },
+    music:        { x: 0.225, y: 0.79,  w: 0.225, h: 0.21  },
+
+    // --- Middle column: moves & notes (x: 0.45, w: 0.275) ---
+    status:       { x: 0.45,  y: 0,     w: 0.275, h: 0.04  },
+    moves:        { x: 0.45,  y: 0.04,  w: 0.275, h: 0.38  },
+    book:         { x: 0.45,  y: 0.42,  w: 0.275, h: 0.20  },
+    'move-note':  { x: 0.45,  y: 0.62,  w: 0.275, h: 0.19  },
+    'match-note': { x: 0.45,  y: 0.81,  w: 0.275, h: 0.19  },
+
+    // --- Right column: coaching & analysis (x: 0.725, w: 0.275) ---
+    hints:        { x: 0.725, y: 0,     w: 0.275, h: 0.33  },
+    'gm-coach':   { x: 0.725, y: 0.33,  w: 0.275, h: 0.33  },
+    coach:        { x: 0.725, y: 0.66,  w: 0.275, h: 0.34  },
   };
 
   constructor() {
