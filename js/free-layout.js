@@ -6,19 +6,21 @@ export class FreeLayout {
 
   // Window definitions: which drag-groups go into each window
   static WINDOW_DEFS = {
-    board:        { label: 'Board',      icon: '\u265A', groups: ['board'],                                  minW: 200, minH: 200 },
-    white:        { label: 'White',      icon: '\u2659', groups: ['player-bottom'],                          minW: 180, minH: 32  },
-    black:        { label: 'Black',      icon: '\u265F', groups: ['player-top'],                             minW: 180, minH: 32  },
-    navigation:   { label: 'Navigation', icon: '\u2194', groups: ['nav', 'opening'],                        minW: 200, minH: 50  },
-    'eval-graph': { label: 'Eval Graph', icon: '\u2191', groups: ['eval-graph'],                             minW: 150, minH: 60  },
-    music:        { label: 'Music',      icon: '\u266B', groups: ['music'],                                  minW: 200, minH: 40  },
-    status:       { label: 'Status',     icon: '\u2139', groups: ['status'],                                 minW: 200, minH: 36  },
-    moves:        { label: 'Moves',      icon: '\u2610', groups: ['tab-bar', 'moves', 'book'],               minW: 220, minH: 160 },
-    hints:        { label: 'GM Hints',   icon: '\u2605', groups: ['hints'],                                  minW: 220, minH: 120 },
-    'gm-coach':   { label: 'GM Coach',   icon: '\u265B', groups: ['gm-coach-tab'],                           minW: 220, minH: 120 },
-    coach:        { label: 'Commentary',  icon: '\u270D', groups: ['coach-area'],                             minW: 200, minH: 60  },
-    'move-note':  { label: 'Move Notes', icon: '\u270E', groups: ['move-note'],                              minW: 180, minH: 60  },
-    'match-note': { label: 'Match Notes',icon: '\u2709', groups: ['match-note'],                             minW: 180, minH: 60  },
+    'eval-bar':   { label: 'Eval Bar',   icon: '▐', groups: ['eval-bar'],                                  minW: 30,  minH: 200 },
+    board:        { label: 'Board',      icon: '♚', groups: ['board'],                                      minW: 200, minH: 200 },
+    white:        { label: 'White',      icon: '♙', groups: ['player-bottom'],                              minW: 180, minH: 32  },
+    black:        { label: 'Black',      icon: '♟', groups: ['player-top'],                                 minW: 180, minH: 32  },
+    navigation:   { label: 'Navigation', icon: '↔', groups: ['nav', 'opening'],                            minW: 200, minH: 50  },
+    'eval-graph': { label: 'Eval Graph', icon: '↑', groups: ['eval-graph'],                                 minW: 150, minH: 60  },
+    music:        { label: 'Music',      icon: '♫', groups: ['music'],                                      minW: 200, minH: 40  },
+    status:       { label: 'Status',     icon: 'ℹ', groups: ['status'],                                     minW: 200, minH: 36  },
+    moves:        { label: 'Moves',      icon: '☐', groups: ['tab-bar', 'moves', 'book'],                   minW: 220, minH: 160 },
+    hints:        { label: 'GM Hints',   icon: '★', groups: ['hints'],                                      minW: 220, minH: 120 },
+    'gm-coach':   { label: 'GM Coach',   icon: '♛', groups: ['gm-coach-tab'],                               minW: 220, minH: 120 },
+    coach:        { label: 'Commentary',  icon: '✍', groups: ['coach-area'],                                 minW: 200, minH: 60  },
+    'move-note':  { label: 'Move Notes', icon: '✎', groups: ['move-note'],                                  minW: 180, minH: 60  },
+    'match-note': { label: 'Match Notes',icon: '✉', groups: ['match-note'],                                 minW: 180, minH: 60  },
+    panels:       { label: 'Panels',     icon: '⚙', groups: ['panels'],                                     minW: 180, minH: 200 },
   };
 
   // Default positions as viewport fractions { x, y, w, h }
@@ -26,10 +28,11 @@ export class FreeLayout {
   // Mid col: status + moves + move-note + match-note
   // Right col: hints + gm-coach + commentary
   static DEFAULT_POSITIONS = {
-    black:        { x: 0.005, y: 0.005, w: 0.44,  h: 0.045 },
-    board:        { x: 0.005, y: 0.055, w: 0.44,  h: 0.66  },
-    white:        { x: 0.005, y: 0.72,  w: 0.44,  h: 0.045 },
-    navigation:   { x: 0.005, y: 0.77,  w: 0.44,  h: 0.06  },
+    'eval-bar':   { x: 0.005, y: 0.055, w: 0.025, h: 0.66  },
+    black:        { x: 0.035, y: 0.005, w: 0.41,  h: 0.045 },
+    board:        { x: 0.035, y: 0.055, w: 0.41,  h: 0.66  },
+    white:        { x: 0.035, y: 0.72,  w: 0.41,  h: 0.045 },
+    navigation:   { x: 0.035, y: 0.77,  w: 0.41,  h: 0.06  },
     'eval-graph': { x: 0.005, y: 0.835, w: 0.22,  h: 0.16  },
     music:        { x: 0.23,  y: 0.835, w: 0.215, h: 0.16  },
     status:       { x: 0.45,  y: 0.005, w: 0.27,  h: 0.045 },
@@ -39,6 +42,7 @@ export class FreeLayout {
     hints:        { x: 0.725, y: 0.005, w: 0.27,  h: 0.33  },
     'gm-coach':   { x: 0.725, y: 0.34,  w: 0.27,  h: 0.33  },
     coach:        { x: 0.725, y: 0.675, w: 0.27,  h: 0.32  },
+    panels:       { x: 0.005, y: 0.005, w: 0.025, h: 0.045, hidden: true },
   };
 
   constructor() {
@@ -167,8 +171,8 @@ export class FreeLayout {
     if (!boardArea || !sidePanel) return;
 
     // Restore groups to their original containers
-    const boardOrder = ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
-    const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note'];
+    const boardOrder = ['eval-bar', 'player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
+    const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note', 'panels'];
 
     for (const gId of boardOrder) {
       const g = document.querySelector(`[data-drag-id="${gId}"]`);
@@ -486,10 +490,9 @@ export class FreeLayout {
 
     // Available space inside the content area
     const contentRect = content.getBoundingClientRect();
-    // Reserve width for eval bar (~22px) if visible
-    const evalBar = document.getElementById('eval-bar');
-    const evalW = (evalBar && !evalBar.classList.contains('layout-hidden') && evalBar.offsetParent) ? 22 : 0;
-    const availW = contentRect.width - evalW;
+    // Reserve width for rank coords (~14px)
+    const rankW = 14; // rank labels column
+    const availW = contentRect.width - rankW;
     const availH = contentRect.height - 18; // file coords (a-h) below board
 
     // Board should be square — use min of available w and h

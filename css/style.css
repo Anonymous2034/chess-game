@@ -7872,6 +7872,8 @@ body.free-layout-on .drag-group {
 }
 
 /* === Board-specific: fill window, stay square === */
+/* Grid: [ranks 1-8] [board]
+                      [files a-h] */
 body.free-layout-on [data-drag-id="board"] #board-container {
   flex: 1;
   min-height: 0;
@@ -7883,18 +7885,36 @@ body.free-layout-on [data-drag-id="board"] #board-container {
   margin-left: 0;
 }
 
-body.free-layout-on [data-drag-id="board"] .eval-bar {
-  grid-row: 1;
-  grid-column: 1;
-  height: var(--board-size);
-  align-self: start;
-}
-
 body.free-layout-on [data-drag-id="board"] #board {
   grid-row: 1;
   grid-column: 2;
   width: var(--board-size);
   height: var(--board-size);
+}
+
+/* Rank coords (1-8) — own column left of board */
+body.free-layout-on .coords-ranks {
+  grid-row: 1;
+  grid-column: 1;
+  position: relative;
+  left: auto;
+  top: auto;
+  bottom: auto;
+  height: var(--board-size);
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  padding-right: 2px;
+}
+body.free-layout-on .coords-ranks .coord-label {
+  width: auto;
+  height: calc(var(--board-size) / 8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--text-color);
+  opacity: 0.7;
 }
 
 /* File coords (a-h) below the board */
@@ -7910,25 +7930,21 @@ body.free-layout-on .coords-files {
   justify-content: space-around;
   padding: 2px 0;
 }
-/* Rank coords (1-8) overlay on left edge of board, aligned to squares */
-body.free-layout-on .coords-ranks {
-  grid-row: 1;
-  grid-column: 2;
-  position: absolute;
-  left: 1px;
-  top: 0;
-  height: var(--board-size);
+
+/* Eval bar — standalone window, vertical fill */
+body.free-layout-on [data-drag-id="eval-bar"] .eval-bar {
+  height: 100%;
+  position: relative;
+}
+
+/* Panels window — scrollable toggle list */
+body.free-layout-on [data-drag-id="panels"] .panels-box {
   display: flex;
   flex-direction: column;
-}
-body.free-layout-on .coords-ranks .coord-label {
-  width: auto;
-  height: calc(var(--board-size) / 8);
-  display: flex;
-  align-items: center;
-  font-size: 0.65rem;
-  color: rgba(255,255,255,0.55);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+  gap: 2px;
+  padding: 4px;
+  overflow: auto;
+  height: 100%;
 }
 
 body.free-layout-on .player-info {
@@ -7937,14 +7953,31 @@ body.free-layout-on .player-info {
   padding: 2px 6px;
 }
 
-/* Tab content in analysis window should fill and scroll */
+/* Tab content — fill and scroll in free layout */
 body.free-layout-on [data-drag-id="moves"] .panel-content,
-body.free-layout-on [data-drag-id="book"] .panel-content,
-body.free-layout-on [data-drag-id="hints"] .panel-content,
-body.free-layout-on [data-drag-id="gm-coach-tab"] .panel-content {
+body.free-layout-on [data-drag-id="book"] .panel-content {
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+/* GM Hints and GM Coach — always visible in their own windows */
+body.free-layout-on [data-drag-id="hints"] .panel-content,
+body.free-layout-on [data-drag-id="gm-coach-tab"] .panel-content {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Eval graph — force visible in its own window */
+body.free-layout-on [data-drag-id="eval-graph"] .eval-graph-container {
+  display: block !important;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
 }
 
 body.free-layout-on .move-history-container {

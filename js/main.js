@@ -4954,28 +4954,16 @@ class ChessApp {
     this._loadLayoutSettings();
     this._applyAllLayoutSettings();
 
-    const openLayoutBtn = document.getElementById('settings-open-layout');
-    if (openLayoutBtn) openLayoutBtn.addEventListener('click', () => {
-      this._syncLayoutCheckboxes();
-      show(document.getElementById('layout-dialog'));
-    });
-
-    // Direct menu item for Panels
+    // Panels menu button — toggle the panels window in free layout
     const layoutMenuBtn = document.getElementById('btn-settings-layout');
     if (layoutMenuBtn) {
       layoutMenuBtn.addEventListener('click', () => {
         this._syncLayoutCheckboxes();
-        show(document.getElementById('layout-dialog'));
+        if (this._freeLayout?.active) {
+          this._freeLayout.showWindow('panels');
+        }
       });
     }
-
-    document.getElementById('close-layout-dialog').addEventListener('click', () => {
-      hide(document.getElementById('layout-dialog'));
-    });
-
-    document.getElementById('layout-dialog').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) hide(document.getElementById('layout-dialog'));
-    });
 
     document.getElementById('layout-reset').addEventListener('click', () => {
       this._layout = { ...ChessApp._LAYOUT_DEFAULTS };
@@ -4990,7 +4978,7 @@ class ChessApp {
       }
     });
 
-    document.getElementById('layout-dialog').addEventListener('change', (e) => {
+    document.getElementById('panels-box').addEventListener('change', (e) => {
       const cb = e.target.closest('[data-layout-key]');
       if (!cb) return;
       const key = cb.dataset.layoutKey;
@@ -5031,6 +5019,9 @@ class ChessApp {
         if (visible) { this._showEvalBar(); } else { this._hideEvalBar(); }
         this._evalBarEnabled = visible;
         { const cb = document.getElementById('settings-eval-bar'); if (cb) cb.checked = visible; }
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('eval-bar') : this._freeLayout.hideWindow('eval-bar');
+        }
         break;
       case 'playerInfoTop':
         toggle(document.getElementById('player-top'));
@@ -5173,7 +5164,7 @@ class ChessApp {
   }
 
   _syncLayoutCheckboxes() {
-    document.querySelectorAll('#layout-dialog [data-layout-key]').forEach(cb => {
+    document.querySelectorAll('#panels-box [data-layout-key]').forEach(cb => {
       cb.checked = this._layout[cb.dataset.layoutKey] !== false;
     });
   }

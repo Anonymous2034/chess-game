@@ -530,99 +530,6 @@
       </div>
     </div>
 
-    <!-- Panels Dialog -->
-    <div id="layout-dialog" class="dialog-overlay hidden">
-      <div class="dialog">
-        <h2>Panels</h2>
-        <p class="layout-dialog-desc">Show or hide panels and windows.</p>
-        <div class="layout-section">
-          <h4 class="layout-section-title">Board</h4>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Eval Bar</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Black (Top Player)</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">White (Bottom Player)</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Captured Pieces</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="capturedPieces"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Timers</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Navigation</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Opening Label</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span>
-          </label>
-        </div>
-        <div class="layout-section">
-          <h4 class="layout-section-title">Windows</h4>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Status Bar</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Eval Graph</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Move List</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Opening Explorer</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">GM Hints</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">GM Coach</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Commentary</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachArea"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Music Player</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="music"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Move Notes</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveNotes"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Match Notes</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="matchNotes"><span class="toggle-slider"></span></span>
-          </label>
-        </div>
-        <div class="layout-section">
-          <h4 class="layout-section-title">Options</h4>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Legal Move Hints</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="showLegalMoves"><span class="toggle-slider"></span></span>
-          </label>
-        </div>
-        <div class="dialog-actions">
-          <button class="btn btn-secondary" id="layout-reset">Reset to Defaults</button>
-          <button class="btn btn-primary" id="close-layout-dialog">Done</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Settings Dialog -->
     <!-- Settings: Sound Dialog -->
     <div id="settings-sound-dialog" class="dialog-overlay hidden">
@@ -1182,7 +1089,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v113</div>
+          <div class="nav-menu-version" id="app-version">v114</div>
         </div>
       </nav>
     </header>
@@ -1206,13 +1113,16 @@
         </div>
         </div>
 
+        <div class="drag-group" data-drag-id="eval-bar" data-drag-label="Eval Bar">
+        <div class="eval-bar" id="eval-bar">
+          <div class="eval-bar-white" id="eval-bar-white"></div>
+          <div class="eval-bar-label" id="eval-bar-label">0.0</div>
+        </div>
+        </div>
+
         <div class="drag-group" data-drag-id="board" data-drag-label="Board">
         <!-- Chess Board -->
         <div id="board-container">
-          <div class="eval-bar" id="eval-bar">
-            <div class="eval-bar-white" id="eval-bar-white"></div>
-            <div class="eval-bar-label" id="eval-bar-label">0.0</div>
-          </div>
           <div id="board" class="board"></div>
           <!-- Coordinate labels -->
           <div class="coords coords-files" id="coords-files"></div>
@@ -1355,8 +1265,6 @@
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="moves">Moves</button>
           <button class="panel-tab" data-tab="book">Book</button>
-          <button class="panel-tab" data-tab="ideas">GM Hints</button>
-          <button class="panel-tab" data-tab="gm-coach">GM Coach</button>
         </div>
         </div>
 
@@ -1406,58 +1314,40 @@
         </div>
 
         <div class="drag-group" data-drag-id="hints" data-drag-label="GM Hints">
-        <!-- Ideas Tab (GM Hints) -->
-        <div class="panel-content hidden" id="tab-ideas">
-          <div class="ideas-split">
-            <!-- Left: Moves -->
-            <div class="ideas-moves-pane">
-              <div class="split-pane-label">Moves</div>
-              <div class="ideas-moves-list" id="ideas-moves-list"></div>
+        <!-- GM Hints -->
+        <div class="panel-content" id="tab-ideas">
+          <div class="ideas-panel" id="ideas-panel">
+            <div class="advisor-picker" id="advisor-picker"></div>
+            <div class="ideas-list" id="ideas-list">
+              <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
             </div>
-            <!-- Right: Hints -->
-            <div class="ideas-panel" id="ideas-panel">
-              <div class="advisor-picker" id="advisor-picker"></div>
-              <div class="ideas-list" id="ideas-list">
-                <div class="ideas-empty">Pick grandmasters or engines to see their ideas for each position.</div>
-              </div>
-              <div class="advisor-annotations" id="advisor-annotations"></div>
-              <div class="ideas-coach-area" id="ideas-coach-area"></div>
-            </div>
+            <div class="advisor-annotations" id="advisor-annotations"></div>
+            <div class="ideas-coach-area" id="ideas-coach-area"></div>
           </div>
-          <div class="resize-handle resize-handle-h" id="resize-handle-ideas" title="Drag to resize GM Hints"></div>
         </div>
         </div>
 
         <div class="drag-group" data-drag-id="gm-coach-tab" data-drag-label="GM Coach">
-        <!-- GM Coach Tab -->
-        <div class="panel-content hidden" id="tab-gm-coach">
-          <div class="gm-coach-split" id="gm-coach-split">
-            <!-- Left: Moves -->
-            <div class="gm-coach-moves-pane">
-              <div class="split-pane-label">Moves</div>
-              <div class="gm-coach-moves-list" id="gm-coach-moves-list"></div>
+        <!-- GM Coach -->
+        <div class="panel-content" id="tab-gm-coach">
+          <div class="gm-coach-panel" id="gm-coach-panel">
+            <div class="gm-coach-header">
+              <span class="split-pane-label" style="padding:0">Coach</span>
+              <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
             </div>
-            <!-- Right: Coach -->
-            <div class="gm-coach-panel" id="gm-coach-panel">
-              <div class="gm-coach-header">
-                <span class="split-pane-label" style="padding:0">Coach</span>
-                <button class="btn btn-sm" id="btn-coach-settings" title="Settings">&#x2699;</button>
-              </div>
-              <div class="gm-coach-picker" id="gm-coach-picker"></div>
-              <div class="gm-coach-cards" id="gm-coach-cards">
-                <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
-              </div>
-              <div class="gm-coach-chat">
-                <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>
-                <div class="gm-coach-chat-input">
-                  <input type="text" id="gm-coach-input" placeholder="Ask your coaches...">
-                  <button class="btn btn-sm btn-primary" id="btn-gm-coach-send">Send</button>
-                </div>
-              </div>
-              <div class="gm-coach-status" id="gm-coach-status"></div>
+            <div class="gm-coach-picker" id="gm-coach-picker"></div>
+            <div class="gm-coach-cards" id="gm-coach-cards">
+              <div class="gm-coach-empty">Pick a grandmaster or engine to receive personalized coaching.</div>
             </div>
+            <div class="gm-coach-chat">
+              <div class="gm-coach-chat-messages" id="gm-coach-chat-messages"></div>
+              <div class="gm-coach-chat-input">
+                <input type="text" id="gm-coach-input" placeholder="Ask your coaches...">
+                <button class="btn btn-sm btn-primary" id="btn-gm-coach-send">Send</button>
+              </div>
+            </div>
+            <div class="gm-coach-status" id="gm-coach-status"></div>
           </div>
-          <div class="resize-handle resize-handle-h" id="resize-handle-coach" title="Drag to resize GM Coach"></div>
         </div>
         </div>
 
@@ -1480,6 +1370,84 @@
           <button class="notes-save-btn" id="btn-save-game" title="Save game to My Games">Save</button>
         </div>
         <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
+        </div>
+
+        <div class="drag-group" data-drag-id="panels" data-drag-label="Panels" style="display:none">
+        <div class="panels-box" id="panels-box">
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Eval Bar</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Black</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">White</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Captured</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="capturedPieces"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Timers</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Navigation</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Opening</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Status</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Eval Graph</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Move List</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Book</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">GM Hints</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">GM Coach</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Commentary</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="coachArea"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Music</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="music"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Move Notes</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveNotes"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Match Notes</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="matchNotes"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Legal Moves</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="showLegalMoves"><span class="toggle-slider"></span></span>
+          </label>
+          <button class="btn btn-sm btn-secondary" id="layout-reset" style="margin-top:6px;width:100%">Reset to Defaults</button>
+        </div>
         </div>
       </div>
     </main>
