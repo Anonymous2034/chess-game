@@ -12,7 +12,9 @@ export class PlayerStats {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
-        this.games = JSON.parse(data);
+        const parsed = JSON.parse(data);
+        // Handle both formats: plain array or {games: [...]} from DataService
+        this.games = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.games) ? parsed.games : [];
       }
     } catch {
       this.games = [];

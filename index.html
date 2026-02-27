@@ -31,16 +31,6 @@
   </script>
 </head>
 <body>
-  <!-- Debug: show JS errors visually (remove after debugging) -->
-  <div id="err-log" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:999999;background:rgba(200,0,0,0.95);color:#fff;font:12px monospace;padding:8px;max-height:30vh;overflow:auto"></div>
-  <script>
-  (function(){
-    var el=document.getElementById('err-log');
-    function show(m){el.style.display='block';el.textContent+=m+'\n';}
-    window.onerror=function(msg,src,line,col,err){show('ERR: '+msg+' ('+src+':'+line+')');};
-    window.addEventListener('unhandledrejection',function(e){show('REJECT: '+(e.reason?.message||e.reason));});
-  })();
-  </script>
   <!-- Password gate — blocks casual access -->
   <div id="password-gate" style="display:none;position:fixed;inset:0;z-index:99999;background:#1a1a1a;align-items:center;justify-content:center;flex-direction:column;font-family:system-ui,sans-serif">
     <div style="text-align:center;color:#e0d6c2;max-width:340px;padding:24px">
