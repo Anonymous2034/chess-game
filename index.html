@@ -1077,6 +1077,7 @@
             <div class="panels-section hidden" data-panels-section="windows">
               <label class="layout-toggle-row"><span class="layout-toggle-label">Status</span><span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span></label>
               <label class="layout-toggle-row"><span class="layout-toggle-label">Eval Graph</span><span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span></label>
+              <label class="layout-toggle-row"><span class="layout-toggle-label">Clock</span><span class="toggle-switch"><input type="checkbox" data-layout-key="clockWindow"><span class="toggle-slider"></span></span></label>
               <label class="layout-toggle-row"><span class="layout-toggle-label">Move List</span><span class="toggle-switch"><input type="checkbox" data-layout-key="moveList"><span class="toggle-slider"></span></span></label>
               <label class="layout-toggle-row"><span class="layout-toggle-label">Book</span><span class="toggle-switch"><input type="checkbox" data-layout-key="openingExplorer"><span class="toggle-slider"></span></span></label>
               <label class="layout-toggle-row"><span class="layout-toggle-label">GM Hints</span><span class="toggle-switch"><input type="checkbox" data-layout-key="advisorsTab"><span class="toggle-slider"></span></span></label>
@@ -1125,7 +1126,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v122</div>
+          <div class="nav-menu-version" id="app-version">v123</div>
         </div>
       </nav>
     </header>
@@ -1215,6 +1216,23 @@
         <div class="eval-graph-container hidden" id="eval-graph-container"></div>
         </div>
 
+        <div class="drag-group" data-drag-id="clock" data-drag-label="Clock">
+        <!-- Chess Clock -->
+        <div class="clock-window" id="clock-window">
+          <div class="cw-display cw-display-left" id="cw-left">
+            <span class="cw-label" id="cw-label-left">White</span>
+            <span class="cw-time" id="cw-time-left">--:--</span>
+            <span class="cw-move-time" id="cw-move-left"></span>
+          </div>
+          <div class="cw-divider"></div>
+          <div class="cw-display cw-display-right" id="cw-right">
+            <span class="cw-label" id="cw-label-right">Black</span>
+            <span class="cw-time" id="cw-time-right">--:--</span>
+            <span class="cw-move-time" id="cw-move-right"></span>
+          </div>
+        </div>
+        </div>
+
         <div class="drag-group" data-drag-id="music" data-drag-label="Music">
         <!-- Mini Music Player -->
         <div class="mini-music" id="mini-music">
@@ -1294,15 +1312,24 @@
         <div class="analysis-summary hidden" id="analysis-summary"></div>
 
         <div class="drag-group" data-drag-id="tab-bar" data-drag-label="Tab Bar">
-        <!-- Side Panel Tabs -->
-        <div class="panel-tabs">
-          <button class="panel-tab active" data-tab="moves">Moves</button>
+        <!-- Move navigation buttons -->
+        <div class="moves-nav-bar">
+          <button class="btn btn-sm" id="btn-first2" title="First move">&laquo;</button>
+          <button class="btn btn-sm" id="btn-prev2" title="Previous move">&lsaquo;</button>
+          <button class="btn btn-sm" id="btn-next2" title="Next move">&rsaquo;</button>
+          <button class="btn btn-sm" id="btn-last2" title="Last move">&raquo;</button>
+          <button class="btn btn-sm" id="btn-flip2" title="Flip board">&#8693;</button>
         </div>
         </div>
 
         <div class="drag-group" data-drag-id="moves" data-drag-label="Moves">
         <!-- Moves Tab -->
         <div class="panel-content" id="tab-moves">
+          <!-- Match Info Header -->
+          <div class="match-info-header" id="match-info-header">
+            <span class="match-info-label" id="match-info-label"></span>
+            <span class="match-info-opening" id="match-info-opening"></span>
+          </div>
           <!-- Opening Training Bar -->
           <div class="opening-training-bar hidden" id="opening-training-bar">
             <div class="ot-title" id="ot-title"></div>

@@ -296,6 +296,7 @@ class ChessApp {
     this.board.setLastMove(move);
     this.board.update();
     this.updateTimers(this.game.timers);
+    this._syncMatchInfo();
 
     // Update captured pieces
     this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
@@ -560,6 +561,9 @@ class ChessApp {
     }
     this._gameOverSoundPlayed = false;
 
+    // Update eval bar for terminal position
+    this._updateEvalBarGameEnd();
+
     // Show analyze button
     if (this.engineInitialized) {
       show(document.getElementById('analyze-group'));
@@ -683,6 +687,98 @@ class ChessApp {
     }
 
     this._syncFloatingClock();
+    this._syncClockWindow();
+  }
+
+  _syncClockWindow() {
+    const cw = document.getElementById('clock-window');
+    if (!cw) return;
+    if (!this.board || !this.chess || !this.game) return;
+
+    const turn = this.chess.turn();
+    const isOver = this.game.gameOver;
+    const timers = this.game.timers;
+
+    const cwTimeLeft = document.getElementById('cw-time-left');
+    const cwTimeRight = document.getElementById('cw-time-right');
+    const cwMoveLeft = document.getElementById('cw-move-left');
+    const cwMoveRight = document.getElementById('cw-move-right');
+    const cwLabelLeft = document.getElementById('cw-label-left');
+    const cwLabelRight = document.getElementById('cw-label-right');
+    const cwLeft = document.getElementById('cw-left');
+    const cwRight = document.getElementById('cw-right');
+
+    // Left = White, Right = Black (always)
+    const leftColor = 'w';
+    const rightColor = 'b';
+
+    if (this.game.timeControl > 0) {
+      cwTimeLeft.textContent = this.game.getTimerDisplay(leftColor);
+      cwTimeRight.textContent = this.game.getTimerDisplay(rightColor);
+    } else {
+      cwTimeLeft.textContent = (turn === leftColor && !isOver) ? '\u25CF' : '--:--';
+      cwTimeRight.textContent = (turn === rightColor && !isOver) ? '\u25CF' : '--:--';
+    }
+
+    // Active / low states
+    cwLeft.classList.toggle('active', turn === leftColor && !isOver);
+    cwRight.classList.toggle('active', turn === rightColor && !isOver);
+    cwLeft.classList.toggle('low', timers[leftColor] <= 30 && timers[leftColor] > 0 && this.game.timeControl > 0);
+    cwRight.classList.toggle('low', timers[rightColor] <= 30 && timers[rightColor] > 0 && this.game.timeControl > 0);
+
+    // Move clock
+    if (this._moveClockColor) {
+      const elapsed = (Date.now() - this._moveClockStart) / 1000;
+      let moveText;
+      if (elapsed < 60) {
+        moveText = `${Math.floor(elapsed)}s`;
+      } else {
+        moveText = `${Math.floor(elapsed / 60)}:${Math.floor(elapsed % 60).toString().padStart(2, '0')}`;
+      }
+      if (this._moveClockColor === leftColor) {
+        cwMoveLeft.textContent = moveText;
+        cwMoveRight.textContent = '';
+      } else {
+        cwMoveRight.textContent = moveText;
+        cwMoveLeft.textContent = '';
+      }
+    } else {
+      cwMoveLeft.textContent = '';
+      cwMoveRight.textContent = '';
+    }
+
+    // Labels
+    if (this.activeBot && this.game.mode === 'engine') {
+      const botColor = this.game.playerColor === 'w' ? 'b' : 'w';
+      const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
+      const botLabel = `${gmPrefix}${this.activeBot.name}`;
+      cwLabelLeft.textContent = leftColor === botColor ? botLabel : 'You';
+      cwLabelRight.textContent = rightColor === botColor ? botLabel : 'You';
+    } else {
+      cwLabelLeft.textContent = 'White';
+      cwLabelRight.textContent = 'Black';
+    }
+  }
+
+  _syncMatchInfo() {
+    const label = document.getElementById('match-info-label');
+    const opening = document.getElementById('match-info-opening');
+    if (!label) return;
+
+    // Match label: opponent name or "Two Player"
+    if (this.activeBot && this.game.mode === 'engine') {
+      const gmPrefix = this.activeBot.tier === 'grandmaster' ? 'GM ' : '';
+      label.textContent = `vs ${gmPrefix}${this.activeBot.name}`;
+    } else if (this.game.mode === 'local') {
+      label.textContent = 'Two Player';
+    } else {
+      label.textContent = '';
+    }
+
+    // Opening name
+    if (opening) {
+      opening.textContent = this.lastOpeningName || '';
+    }
   }
 
   // === Navigation ===
@@ -761,6 +857,27 @@ class ChessApp {
 
     document.getElementById('btn-last').addEventListener('click', () => {
       this.navigateToMove(this.game.moveHistory.length - 1);
+    });
+
+    // Duplicate nav buttons in moves window
+    document.getElementById('btn-first2')?.addEventListener('click', () => {
+      this.navigateToMove(-1);
+    });
+    document.getElementById('btn-prev2')?.addEventListener('click', () => {
+      const idx = Math.max(-1, this.notation.currentIndex - 1);
+      this.navigateToMove(idx);
+    });
+    document.getElementById('btn-next2')?.addEventListener('click', () => {
+      const idx = Math.min(this.game.moveHistory.length - 1, this.notation.currentIndex + 1);
+      this.navigateToMove(idx);
+    });
+    document.getElementById('btn-last2')?.addEventListener('click', () => {
+      this.navigateToMove(this.game.moveHistory.length - 1);
+    });
+    document.getElementById('btn-flip2')?.addEventListener('click', () => {
+      this._flipBoard();
+      const flipCb = document.getElementById('settings-flip');
+      if (flipCb) flipCb.checked = this.board.flipped;
     });
 
     // Keyboard navigation
@@ -2947,6 +3064,27 @@ class ChessApp {
     label.textContent = labelText;
   }
 
+  _updateEvalBarGameEnd() {
+    const bar = document.getElementById('eval-bar-white');
+    const label = document.getElementById('eval-bar-label');
+    if (!bar || !label) return;
+
+    if (this.chess.in_checkmate()) {
+      // Side to move is checkmated — the other side won
+      const loser = this.chess.turn(); // side that is in checkmate
+      if (loser === 'b') {
+        bar.style.height = '97%';
+        label.textContent = 'M0';
+      } else {
+        bar.style.height = '3%';
+        label.textContent = 'M0';
+      }
+    } else if (this.chess.in_stalemate() || this.chess.in_draw()) {
+      bar.style.height = '50%';
+      label.textContent = '0.0';
+    }
+  }
+
   // === New Game Dialog ===
 
   setupNewGameDialog() {
@@ -3221,6 +3359,7 @@ class ChessApp {
 
     this.board.update();
     this.updateTimers(this.game.timers);
+    this._syncMatchInfo();
 
     // Show/hide engine status
     const engineStatusEl = document.getElementById('engine-status');
@@ -4029,6 +4168,10 @@ class ChessApp {
         labelEl.onclick = null;
       }
     }
+
+    // Sync match info in moves window
+    const matchOpening = document.getElementById('match-info-opening');
+    if (matchOpening) matchOpening.textContent = name;
 
     // GM avatars
     if (gmRowEl) {
@@ -4945,7 +5088,7 @@ class ChessApp {
       capturedPieces: true, timers: true, openingLabel: true,
       evalGraph: true, navControls: true, statusBar: true,
       moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
-      coachArea: true, music: true, moveNotes: true, matchNotes: true,
+      coachArea: true, music: true, clockWindow: true, moveNotes: true, matchNotes: true,
       showLegalMoves: false
     };
   }
@@ -5146,6 +5289,13 @@ class ChessApp {
         toggle(document.getElementById('match-notes'));
         if (this._freeLayout?.active) {
           visible ? this._freeLayout.showWindow('match-note') : this._freeLayout.hideWindow('match-note');
+        }
+        break;
+      }
+      case 'clockWindow': {
+        toggle(document.getElementById('clock-window'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('clock') : this._freeLayout.hideWindow('clock');
         }
         break;
       }

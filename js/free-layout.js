@@ -13,10 +13,11 @@ export class FreeLayout {
     'eval-graph': { label: 'Eval Graph', icon: '↑', groups: ['eval-graph'],                                 minW: 150, minH: 60  },
     music:        { label: 'Music',      icon: '♫', groups: ['music'],                                      minW: 200, minH: 40  },
     status:       { label: 'Status',     icon: 'ℹ', groups: ['status'],                                     minW: 200, minH: 36  },
-    moves:        { label: 'Moves',      icon: '☐', groups: ['tab-bar', 'moves'],                            minW: 220, minH: 160 },
+    moves:        { label: 'Moves',      icon: '☐', groups: ['moves', 'tab-bar'],                            minW: 220, minH: 160 },
     book:         { label: 'Book',       icon: '♮', groups: ['book'],                                       minW: 220, minH: 120 },
     hints:        { label: 'GM Hints',   icon: '★', groups: ['hints'],                                      minW: 220, minH: 120 },
     'gm-coach':   { label: 'GM Coach',   icon: '♛', groups: ['gm-coach-tab'],                               minW: 220, minH: 120 },
+    clock:        { label: 'Clock',       icon: '⏱', groups: ['clock'],                                      minW: 180, minH: 50  },
     coach:        { label: 'Commentary',  icon: '✍', groups: ['coach-area'],                                 minW: 200, minH: 60  },
     'move-note':  { label: 'Move Notes', icon: '✎', groups: ['move-note'],                                  minW: 180, minH: 60  },
     'match-note': { label: 'Match Notes',icon: '✉', groups: ['match-note'],                                 minW: 180, minH: 60  },
@@ -30,7 +31,8 @@ export class FreeLayout {
     black:        { x: 0.005, y: 0.005, w: 0.44,  h: 0.045 },
     board:        { x: 0.005, y: 0.055, w: 0.44,  h: 0.66  },
     white:        { x: 0.005, y: 0.72,  w: 0.44,  h: 0.045 },
-    navigation:   { x: 0.005, y: 0.77,  w: 0.44,  h: 0.06  },
+    navigation:   { x: 0.005, y: 0.77,  w: 0.22,  h: 0.06  },
+    clock:        { x: 0.23,  y: 0.77,  w: 0.215, h: 0.06  },
     'eval-graph': { x: 0.005, y: 0.835, w: 0.22,  h: 0.16  },
     music:        { x: 0.23,  y: 0.835, w: 0.215, h: 0.16  },
     status:       { x: 0.45,  y: 0.005, w: 0.27,  h: 0.045 },
@@ -215,7 +217,7 @@ export class FreeLayout {
 
   // === Magnetic snap — collect edges of other windows + container ===
 
-  static SNAP_DIST = 12; // px threshold for snapping
+  static SNAP_DIST = 18; // px threshold for magnetic snapping
 
   _getSnapEdges(skipWinId) {
     const mainEl = document.querySelector('main');

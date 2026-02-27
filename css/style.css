@@ -2537,6 +2537,54 @@ main {
 }
 
 /* === Panel Tabs === */
+/* Match info header in moves window */
+.match-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.02);
+  font-size: 0.72rem;
+  min-height: 22px;
+}
+
+.match-info-label {
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 0.3px;
+}
+
+.match-info-opening {
+  color: rgba(255,255,255,0.45);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+  text-align: right;
+}
+
+/* Move nav buttons in moves window */
+.moves-nav-bar {
+  display: flex;
+  gap: 4px;
+  padding: 4px 6px;
+  justify-content: center;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.02);
+}
+
+.moves-nav-bar .btn {
+  flex: 1;
+  max-width: 48px;
+  min-width: 0;
+  padding: 4px 0;
+  font-size: 1rem;
+}
+
 .panel-tabs {
   display: flex;
   gap: 0;
@@ -4561,6 +4609,69 @@ body.clock-modern .fc-display.low .fc-time {
   color: #ff5555;
 }
 body.clock-modern .fc-divider { background: #4a4a52; }
+
+/* === Clock Window (free layout) === */
+.clock-window {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  gap: 0;
+  background: linear-gradient(145deg, rgba(40,38,35,0.98), rgba(28,26,24,0.98));
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.cw-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  transition: background 0.2s;
+}
+
+.cw-display.active {
+  background: rgba(201,168,76,0.1);
+}
+.cw-display.active .cw-time {
+  color: var(--accent, #c9a84c);
+}
+.cw-display.low {
+  background: rgba(200,50,50,0.15);
+}
+.cw-display.low .cw-time {
+  color: #ff6b6b;
+}
+
+.cw-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 2px;
+}
+
+.cw-time {
+  font-family: 'Courier New', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  color: var(--text-light);
+}
+
+.cw-move-time {
+  font-size: 0.6rem;
+  opacity: 0.5;
+  min-height: 12px;
+}
+
+.cw-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.1);
+  align-self: stretch;
+}
 
 .piece-preview img {
   width: 28px;

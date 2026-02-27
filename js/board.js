@@ -344,6 +344,12 @@ export class Board {
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup', onPointerUp);
       document.removeEventListener('pointercancel', onPointerCancel);
+      // Restore opacity on any piece that was hidden during drag
+      if (startSquare) {
+        const sq = this.squares[startSquare];
+        const img = sq?.querySelector('.piece');
+        if (img) img.style.opacity = '';
+      }
       if (dragImg) {
         dragImg.remove();
         dragImg = null;
