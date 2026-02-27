@@ -7686,11 +7686,13 @@ body.free-layout-on .resize-handle {
   display: none !important;
 }
 
-/* Drag-groups inside free windows behave as block elements */
+/* Drag-groups inside free windows — fill available space */
 body.free-layout-on .drag-group {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 /* === Free Window === */
