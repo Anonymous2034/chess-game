@@ -7875,24 +7875,32 @@ body.free-layout-on .drag-group {
 body.free-layout-on [data-drag-id="board"] #board-container {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
   width: 100%;
+  height: 100%;
   margin-left: 0;
 }
 
-body.free-layout-on [data-drag-id="board"] #board {
-  width: var(--board-size);
+body.free-layout-on [data-drag-id="board"] .eval-bar {
+  grid-row: 1;
+  grid-column: 1;
   height: var(--board-size);
-  max-width: 100%;
-  max-height: 100%;
+  align-self: start;
 }
 
-/* File coords (a-h) below the board, inside the window */
+body.free-layout-on [data-drag-id="board"] #board {
+  grid-row: 1;
+  grid-column: 2;
+  width: var(--board-size);
+  height: var(--board-size);
+}
+
+/* File coords (a-h) below the board */
 body.free-layout-on .coords-files {
+  grid-row: 2;
+  grid-column: 2;
   position: relative;
   bottom: auto;
   left: auto;
@@ -7900,15 +7908,24 @@ body.free-layout-on .coords-files {
   width: var(--board-size);
   display: flex;
   justify-content: space-around;
+  padding: 2px 0;
 }
-/* Rank coords (1-8) overlay on board left edge */
+/* Rank coords (1-8) overlay on left edge of board, aligned to squares */
 body.free-layout-on .coords-ranks {
-  left: 2px;
+  grid-row: 1;
+  grid-column: 2;
+  position: absolute;
+  left: 1px;
   top: 0;
-  bottom: 0;
+  height: var(--board-size);
+  display: flex;
+  flex-direction: column;
 }
 body.free-layout-on .coords-ranks .coord-label {
   width: auto;
+  height: calc(var(--board-size) / 8);
+  display: flex;
+  align-items: center;
   font-size: 0.65rem;
   color: rgba(255,255,255,0.55);
   text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -7964,9 +7981,12 @@ body.free-layout-on .eval-graph-container {
   min-height: 0;
 }
 
-body.free-layout-on .move-notes {
+body.free-layout-on .move-notes,
+body.free-layout-on .match-notes {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 body.free-layout-on .move-notes-input {

@@ -13,25 +13,32 @@ export class FreeLayout {
     'eval-graph': { label: 'Eval Graph', icon: '\u2191', groups: ['eval-graph'],                             minW: 150, minH: 60  },
     music:        { label: 'Music',      icon: '\u266B', groups: ['music'],                                  minW: 200, minH: 40  },
     status:       { label: 'Status',     icon: '\u2139', groups: ['status'],                                 minW: 200, minH: 36  },
-    analysis:     { label: 'Analysis',   icon: '\u2610', groups: ['tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab'], minW: 250, minH: 200 },
-    coach:        { label: 'Coach',      icon: '\u2605', groups: ['coach-area'],                             minW: 200, minH: 60  },
-    notes:        { label: 'Notes',      icon: '\u270E', groups: ['notes'],                                  minW: 200, minH: 80  },
+    moves:        { label: 'Moves',      icon: '\u2610', groups: ['tab-bar', 'moves', 'book'],               minW: 220, minH: 160 },
+    hints:        { label: 'GM Hints',   icon: '\u2605', groups: ['hints'],                                  minW: 220, minH: 120 },
+    'gm-coach':   { label: 'GM Coach',   icon: '\u265B', groups: ['gm-coach-tab'],                           minW: 220, minH: 120 },
+    coach:        { label: 'Commentary',  icon: '\u270D', groups: ['coach-area'],                             minW: 200, minH: 60  },
+    'move-note':  { label: 'Move Notes', icon: '\u270E', groups: ['move-note'],                              minW: 180, minH: 60  },
+    'match-note': { label: 'Match Notes',icon: '\u2709', groups: ['match-note'],                             minW: 180, minH: 60  },
   };
 
   // Default positions as viewport fractions { x, y, w, h }
-  // Left: black + board (large) + white + nav + eval/music
-  // Right: status + analysis (tall) + coach + notes
+  // Left col: black + board + white + nav + eval/music
+  // Mid col: status + moves + move-note + match-note
+  // Right col: hints + gm-coach + commentary
   static DEFAULT_POSITIONS = {
-    black:        { x: 0.005, y: 0.005, w: 0.48,  h: 0.05  },
-    board:        { x: 0.005, y: 0.06,  w: 0.48,  h: 0.68  },
-    white:        { x: 0.005, y: 0.745, w: 0.48,  h: 0.05  },
-    navigation:   { x: 0.005, y: 0.80,  w: 0.48,  h: 0.06  },
-    'eval-graph': { x: 0.005, y: 0.865, w: 0.24,  h: 0.13  },
-    music:        { x: 0.25,  y: 0.865, w: 0.235, h: 0.13  },
-    status:       { x: 0.49,  y: 0.005, w: 0.505, h: 0.05  },
-    analysis:     { x: 0.49,  y: 0.06,  w: 0.505, h: 0.52  },
-    coach:        { x: 0.49,  y: 0.585, w: 0.505, h: 0.12  },
-    notes:        { x: 0.49,  y: 0.71,  w: 0.505, h: 0.285 },
+    black:        { x: 0.005, y: 0.005, w: 0.44,  h: 0.045 },
+    board:        { x: 0.005, y: 0.055, w: 0.44,  h: 0.66  },
+    white:        { x: 0.005, y: 0.72,  w: 0.44,  h: 0.045 },
+    navigation:   { x: 0.005, y: 0.77,  w: 0.44,  h: 0.06  },
+    'eval-graph': { x: 0.005, y: 0.835, w: 0.22,  h: 0.16  },
+    music:        { x: 0.23,  y: 0.835, w: 0.215, h: 0.16  },
+    status:       { x: 0.45,  y: 0.005, w: 0.27,  h: 0.045 },
+    moves:        { x: 0.45,  y: 0.055, w: 0.27,  h: 0.48  },
+    'move-note':  { x: 0.45,  y: 0.54,  w: 0.27,  h: 0.225 },
+    'match-note': { x: 0.45,  y: 0.77,  w: 0.27,  h: 0.225 },
+    hints:        { x: 0.725, y: 0.005, w: 0.27,  h: 0.33  },
+    'gm-coach':   { x: 0.725, y: 0.34,  w: 0.27,  h: 0.33  },
+    coach:        { x: 0.725, y: 0.675, w: 0.27,  h: 0.32  },
   };
 
   constructor() {
@@ -159,9 +166,9 @@ export class FreeLayout {
     const sidePanel = document.querySelector('.side-panel');
     if (!boardArea || !sidePanel) return;
 
-    // Use _DRAG_LAYOUT_DEFAULTS order to restore groups
+    // Restore groups to their original containers
     const boardOrder = ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
-    const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'notes'];
+    const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note'];
 
     for (const gId of boardOrder) {
       const g = document.querySelector(`[data-drag-id="${gId}"]`);

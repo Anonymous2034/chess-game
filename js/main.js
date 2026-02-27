@@ -4945,7 +4945,7 @@ class ChessApp {
       capturedPieces: true, timers: true, openingLabel: true,
       evalGraph: true, navControls: true, statusBar: true,
       moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
-      coachArea: true, music: true, notes: true,
+      coachArea: true, music: true, moveNotes: true, matchNotes: true,
       showLegalMoves: false
     };
   }
@@ -5077,24 +5077,39 @@ class ChessApp {
         toggle(document.querySelector('.panel-tab[data-tab="moves"]'));
         toggle(document.getElementById('tab-moves'));
         if (!visible) this._activateFirstVisibleTab();
+        if (this._freeLayout?.active) {
+          // Moves + Book + tab-bar live in the 'moves' window
+          const anyMovesTab = this._layout.moveList || this._layout.openingExplorer;
+          anyMovesTab ? this._freeLayout.showWindow('moves') : this._freeLayout.hideWindow('moves');
+        }
         break;
       }
       case 'advisorsTab': {
         toggle(document.querySelector('.panel-tab[data-tab="ideas"]'));
         if (!visible) toggle(document.getElementById('tab-ideas'));
         if (!visible) this._activateFirstVisibleTab();
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('hints') : this._freeLayout.hideWindow('hints');
+        }
         break;
       }
       case 'coachTab': {
         toggle(document.querySelector('.panel-tab[data-tab="gm-coach"]'));
         if (!visible) toggle(document.getElementById('tab-gm-coach'));
         if (!visible) this._activateFirstVisibleTab();
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('gm-coach') : this._freeLayout.hideWindow('gm-coach');
+        }
         break;
       }
       case 'openingExplorer': {
         toggle(document.querySelector('.panel-tab[data-tab="book"]'));
         if (!visible) toggle(document.getElementById('tab-book'));
         if (!visible) this._activateFirstVisibleTab();
+        if (this._freeLayout?.active) {
+          const anyMovesTab = this._layout.moveList || this._layout.openingExplorer;
+          anyMovesTab ? this._freeLayout.showWindow('moves') : this._freeLayout.hideWindow('moves');
+        }
         break;
       }
       case 'coachArea': {
@@ -5115,12 +5130,17 @@ class ChessApp {
         }
         break;
       }
-      case 'notes': {
+      case 'moveNotes': {
         toggle(document.getElementById('move-notes'));
-        const notesGroup = document.querySelector('.drag-group[data-drag-id="notes"]');
-        if (notesGroup) toggle(notesGroup);
         if (this._freeLayout?.active) {
-          visible ? this._freeLayout.showWindow('notes') : this._freeLayout.hideWindow('notes');
+          visible ? this._freeLayout.showWindow('move-note') : this._freeLayout.hideWindow('move-note');
+        }
+        break;
+      }
+      case 'matchNotes': {
+        toggle(document.getElementById('match-notes'));
+        if (this._freeLayout?.active) {
+          visible ? this._freeLayout.showWindow('match-note') : this._freeLayout.hideWindow('match-note');
         }
         break;
       }
@@ -5129,16 +5149,6 @@ class ChessApp {
         break;
     }
 
-    // Sync free layout windows for tab-based panels
-    if (this._freeLayout?.active && ['moveList', 'advisorsTab', 'coachTab', 'openingExplorer'].includes(key)) {
-      // These all live in the 'analysis' window — show it if any tab is visible, hide if all gone
-      const anyTabVisible = this._layout.moveList || this._layout.advisorsTab || this._layout.coachTab || this._layout.openingExplorer;
-      if (anyTabVisible) {
-        this._freeLayout.showWindow('analysis');
-      } else {
-        this._freeLayout.hideWindow('analysis');
-      }
-    }
   }
 
   _applyAllLayoutSettings() {

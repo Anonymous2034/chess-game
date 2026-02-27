@@ -542,11 +542,11 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="evalBar"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Player Info (Top)</span>
+            <span class="layout-toggle-label">Black (Top Player)</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoTop"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Player Info (Bottom)</span>
+            <span class="layout-toggle-label">White (Bottom Player)</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="playerInfoBottom"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
@@ -558,23 +558,23 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="timers"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Navigation</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
             <span class="layout-toggle-label">Opening Label</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="openingLabel"><span class="toggle-slider"></span></span>
+          </label>
+        </div>
+        <div class="layout-section">
+          <h4 class="layout-section-title">Windows</h4>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Status Bar</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
             <span class="layout-toggle-label">Eval Graph</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="evalGraph"><span class="toggle-slider"></span></span>
-          </label>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Nav Controls</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="navControls"><span class="toggle-slider"></span></span>
-          </label>
-        </div>
-        <div class="layout-section">
-          <h4 class="layout-section-title">Panels</h4>
-          <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Status Bar</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="statusBar"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
             <span class="layout-toggle-label">Move List</span>
@@ -593,7 +593,7 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="coachTab"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Coach Commentary</span>
+            <span class="layout-toggle-label">Commentary</span>
             <span class="toggle-switch"><input type="checkbox" data-layout-key="coachArea"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
@@ -601,8 +601,12 @@
             <span class="toggle-switch"><input type="checkbox" data-layout-key="music"><span class="toggle-slider"></span></span>
           </label>
           <label class="layout-toggle-row">
-            <span class="layout-toggle-label">Notes</span>
-            <span class="toggle-switch"><input type="checkbox" data-layout-key="notes"><span class="toggle-slider"></span></span>
+            <span class="layout-toggle-label">Move Notes</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="moveNotes"><span class="toggle-slider"></span></span>
+          </label>
+          <label class="layout-toggle-row">
+            <span class="layout-toggle-label">Match Notes</span>
+            <span class="toggle-switch"><input type="checkbox" data-layout-key="matchNotes"><span class="toggle-slider"></span></span>
           </label>
         </div>
         <div class="layout-section">
@@ -1178,7 +1182,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v112</div>
+          <div class="nav-menu-version" id="app-version">v113</div>
         </div>
       </nav>
     </header>
@@ -1462,16 +1466,17 @@
         <div class="panel-coach-area hidden" id="panel-coach-area"></div>
         </div>
 
-        <div class="drag-group" data-drag-id="notes" data-drag-label="Notes">
+        <div class="drag-group" data-drag-id="move-note" data-drag-label="Move Notes">
         <div class="move-notes" id="move-notes">
-          <div class="move-notes-half">
-            <div class="move-notes-label" id="move-notes-label">Move</div>
-            <textarea class="move-notes-input" id="move-notes-input" placeholder="Add note..."></textarea>
-          </div>
-          <div class="move-notes-half">
-            <div class="move-notes-label" id="match-notes-label">Match</div>
-            <textarea class="move-notes-input" id="match-notes-input" placeholder="Add note..."></textarea>
-          </div>
+          <div class="move-notes-label" id="move-notes-label">Move</div>
+          <textarea class="move-notes-input" id="move-notes-input" placeholder="Add note for this move..."></textarea>
+        </div>
+        </div>
+
+        <div class="drag-group" data-drag-id="match-note" data-drag-label="Match Notes">
+        <div class="match-notes" id="match-notes">
+          <div class="move-notes-label" id="match-notes-label">Match</div>
+          <textarea class="move-notes-input" id="match-notes-input" placeholder="Add note for this match..."></textarea>
           <button class="notes-save-btn" id="btn-save-game" title="Save game to My Games">Save</button>
         </div>
         <div class="resize-handle resize-handle-h" id="resize-handle-notes" title="Drag to resize notes"></div>
