@@ -694,6 +694,41 @@ export class FreeLayout {
     localStorage.removeItem(FreeLayout.STORAGE_KEY);
   }
 
+  // === Named layout presets ===
+  static PRESETS_KEY = 'chess_layout_presets';
+
+  static getSavedPresets() {
+    try {
+      const raw = localStorage.getItem(FreeLayout.PRESETS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  }
+
+  static savePreset(name) {
+    const presets = FreeLayout.getSavedPresets();
+    const raw = localStorage.getItem(FreeLayout.STORAGE_KEY);
+    if (!raw) return;
+    presets[name] = JSON.parse(raw);
+    localStorage.setItem(FreeLayout.PRESETS_KEY, JSON.stringify(presets));
+  }
+
+  static deletePreset(name) {
+    const presets = FreeLayout.getSavedPresets();
+    delete presets[name];
+    localStorage.setItem(FreeLayout.PRESETS_KEY, JSON.stringify(presets));
+  }
+
+  loadPreset(name) {
+    const presets = FreeLayout.getSavedPresets();
+    const preset = presets[name];
+    if (!preset || !preset.positions) return false;
+    localStorage.setItem(FreeLayout.STORAGE_KEY, JSON.stringify(preset));
+    // Re-apply
+    this.deactivate();
+    this.activate();
+    return true;
+  }
+
   // === Reset to default positions ===
 
   resetLayout() {

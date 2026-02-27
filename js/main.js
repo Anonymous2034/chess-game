@@ -5143,6 +5143,15 @@ class ChessApp {
       }
     });
 
+    // Layout presets — save
+    document.getElementById('layout-save')?.addEventListener('click', () => {
+      const name = prompt('Layout name:');
+      if (!name || !name.trim()) return;
+      FreeLayout.savePreset(name.trim());
+      this._renderLayoutPresets();
+    });
+    this._renderLayoutPresets();
+
     document.getElementById('panels-box').addEventListener('change', (e) => {
       const cb = e.target.closest('[data-layout-key]');
       if (!cb) return;
@@ -5150,6 +5159,42 @@ class ChessApp {
       this._layout[key] = cb.checked;
       this._saveLayoutSettings();
       this._applyLayoutSetting(key, cb.checked);
+    });
+  }
+
+  _renderLayoutPresets() {
+    const list = document.getElementById('layout-presets-list');
+    if (!list) return;
+    const presets = FreeLayout.getSavedPresets();
+    const names = Object.keys(presets);
+    if (names.length === 0) {
+      list.innerHTML = '<span class="presets-empty">No saved layouts</span>';
+      return;
+    }
+    list.innerHTML = '';
+    names.forEach(name => {
+      const row = document.createElement('div');
+      row.className = 'preset-row';
+      const label = document.createElement('button');
+      label.className = 'btn btn-xs preset-load';
+      label.textContent = name;
+      label.title = `Load "${name}"`;
+      label.addEventListener('click', () => {
+        if (this._freeLayout) {
+          this._freeLayout.loadPreset(name);
+        }
+      });
+      const del = document.createElement('button');
+      del.className = 'btn btn-xs preset-delete';
+      del.textContent = '\u00D7';
+      del.title = `Delete "${name}"`;
+      del.addEventListener('click', () => {
+        FreeLayout.deletePreset(name);
+        this._renderLayoutPresets();
+      });
+      row.appendChild(label);
+      row.appendChild(del);
+      list.appendChild(row);
     });
   }
 

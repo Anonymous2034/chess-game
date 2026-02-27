@@ -2569,20 +2569,76 @@ main {
 /* Move nav buttons in moves window */
 .moves-nav-bar {
   display: flex;
-  gap: 4px;
-  padding: 4px 6px;
+  gap: 3px;
+  padding: 5px 8px;
   justify-content: center;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
-  background: rgba(255,255,255,0.02);
+  background: linear-gradient(to top, rgba(255,255,255,0.03), transparent);
 }
 
 .moves-nav-bar .btn {
   flex: 1;
-  max-width: 48px;
+  max-width: 44px;
   min-width: 0;
-  padding: 4px 0;
-  font-size: 1rem;
+  padding: 5px 0;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  transition: background 0.15s, color 0.15s;
+}
+
+.moves-nav-bar .btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.moves-nav-bar .btn:active {
+  background: var(--accent, #c9a84c);
+  color: #1a1816;
+}
+
+/* Layout presets */
+.layout-presets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.layout-presets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.presets-empty {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+}
+
+.preset-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.preset-load {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preset-delete {
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+  color: rgba(255,100,100,0.6);
 }
 
 .panel-tabs {
@@ -7833,6 +7889,11 @@ body.free-layout-on .drag-group {
   align-items: stretch;
   flex: 1;
   min-height: 0;
+}
+
+/* Nav bar at bottom of moves — don't grow */
+body.free-layout-on [data-drag-id="tab-bar"] {
+  flex: 0 0 auto;
 }
 
 /* === Free Window === */

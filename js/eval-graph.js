@@ -22,8 +22,16 @@ export class EvalGraph {
    * @param {number} currentIndex - Currently selected move index
    */
   render(analysisResults, currentIndex = -1) {
-    if (!this.container || !analysisResults || analysisResults.length === 0) {
-      if (this.container) this.container.innerHTML = '';
+    if (!this.container) return;
+    if (!analysisResults || analysisResults.length === 0) {
+      // Show empty placeholder
+      const w = this.container.clientWidth || 400;
+      const h = this.container.clientHeight || 80;
+      this.container.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="eval-graph-svg">
+        <rect x="0" y="0" width="${w}" height="${h}" fill="#1a1816" rx="4"/>
+        <line x1="2" y1="${h/2}" x2="${w-2}" y2="${h/2}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="${w/2}" y="${h/2 + 4}" fill="rgba(255,255,255,0.2)" font-size="10" text-anchor="middle">Analyze to see eval graph</text>
+      </svg>`;
       return;
     }
 
@@ -114,6 +122,7 @@ export class EvalGraph {
   clear() {
     this._lastResults = null;
     this._lastIndex = -1;
-    if (this.container) this.container.innerHTML = '';
+    // Re-render empty placeholder
+    this.render(null);
   }
 }
