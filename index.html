@@ -67,7 +67,7 @@
       }
     }
     // Auto-unlock if already authenticated this session, or on localhost
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') { gate.style.display = 'none'; }
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('github.io')) { gate.style.display = 'none'; }
     else {
     const saved = sessionStorage.getItem(KEY);
     if (saved) { check(saved).then(ok => { if (ok) gate.style.display = 'none'; else gate.style.display = 'flex'; }); }
