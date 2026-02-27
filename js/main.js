@@ -32,6 +32,7 @@ import { COMPOSER_PROFILES, COMPOSER_ERAS } from './composer-profiles.js';
 import { ChessNews } from './chess-news.js';
 import { PositionCommentary } from './position-commentary.js';
 import { LayoutManager } from './layout-manager.js';
+import { FreeLayout } from './free-layout.js';
 
 class ChessApp {
   constructor() {
@@ -158,6 +159,7 @@ class ChessApp {
     this.setupLayoutEditor();
     this.setupDragLayout();
     this.setupGridLayout();
+    this.setupFreeLayout();
     this.setupSettings();
     this._loadClockTheme();
     this.setupResizeHandles();
@@ -5422,6 +5424,58 @@ class ChessApp {
         // Open grid layout manager
         this._layoutManager.open();
       });
+    }
+  }
+
+  // === Free-Floating Layout (Chessmaster-style) ===
+
+  setupFreeLayout() {
+    this._freeLayout = new FreeLayout();
+
+    // Board resize callback — redraw board when window is resized
+    this._freeLayout.onWindowResize = (winId) => {
+      if (winId === 'board' && this.board) {
+        this.board.update();
+      }
+    };
+
+    // Wire the hamburger menu button
+    const freeBtn = document.getElementById('btn-free-layout');
+    if (freeBtn) {
+      freeBtn.addEventListener('click', () => {
+        // Close nav menu
+        const menu = document.getElementById('nav-menu');
+        if (menu) menu.classList.remove('open');
+        const toggle = document.getElementById('btn-menu-toggle');
+        if (toggle) toggle.classList.remove('open');
+
+        if (this._freeLayout.active) {
+          // Deactivate free layout
+          this._freeLayout.deactivate();
+          FreeLayout.clearSaved();
+          freeBtn.classList.remove('active');
+          // Re-sync panel height for classic layout
+          this._syncPanelHeight();
+        } else {
+          // Deactivate grid layout if it's on
+          if (document.body.classList.contains('grid-layout-on')) {
+            document.body.classList.remove('grid-layout-on');
+          }
+          // Exit drag mode if active
+          if (document.body.classList.contains('drag-mode')) {
+            this._exitDragMode();
+          }
+          // Activate free layout
+          this._freeLayout.activate();
+          freeBtn.classList.add('active');
+        }
+      });
+    }
+
+    // Auto-activate if a saved free layout exists
+    if (FreeLayout.hasSavedLayout()) {
+      this._freeLayout.activate();
+      if (freeBtn) freeBtn.classList.add('active');
     }
   }
 

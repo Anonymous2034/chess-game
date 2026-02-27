@@ -8187,3 +8187,258 @@ body.grid-layout-on .resize-handle {
     font-size: 0.7rem;
   }
 }
+
+/* ============================================================
+   FREE-FLOATING LAYOUT (Chessmaster-style)
+   ============================================================ */
+
+/* Container mode */
+body.free-layout-on main {
+  position: relative;
+  display: block;
+  height: calc(100dvh - 50px);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Hide the normal flex containers */
+body.free-layout-on .board-area,
+body.free-layout-on .side-panel,
+body.free-layout-on #resize-handle-main,
+body.free-layout-on .resize-handle {
+  display: none !important;
+}
+
+/* Drag-groups inside free windows behave as block elements */
+body.free-layout-on .drag-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* === Free Window === */
+.free-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  overflow: hidden;
+  user-select: none;
+}
+
+.free-window-active {
+  border-color: rgba(129,182,76,0.5);
+  box-shadow: 0 0 12px rgba(129,182,76,0.15), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* === Title Bar — Chessmaster brown gradient === */
+.free-window-titlebar {
+  height: 22px;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  background: linear-gradient(180deg, #6b4c2a 0%, #4a3218 100%);
+  color: #d4b896;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.free-window-titlebar:active {
+  cursor: grabbing;
+}
+
+.free-window-icon {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.free-window-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.free-window-btns {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.free-window-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 2px;
+  color: #d4b896;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.free-window-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.free-close-btn:hover {
+  background: #c33;
+  color: #fff;
+}
+
+/* === Window Content === */
+.free-window-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Minimized state — collapse to title bar === */
+.free-window-minimized .free-window-content,
+.free-window-minimized .free-resize-handle {
+  display: none;
+}
+
+.free-window-minimized {
+  height: 22px !important;
+  min-height: 22px;
+  overflow: hidden;
+}
+
+/* === 8 Resize Handles === */
+.free-resize-handle {
+  position: absolute;
+  z-index: 2;
+}
+
+/* Edges */
+.free-resize-n  { top: -3px;    left: 6px;   right: 6px;  height: 6px; cursor: n-resize; }
+.free-resize-s  { bottom: -3px; left: 6px;   right: 6px;  height: 6px; cursor: s-resize; }
+.free-resize-e  { right: -3px;  top: 6px;    bottom: 6px; width: 6px;  cursor: e-resize; }
+.free-resize-w  { left: -3px;   top: 6px;    bottom: 6px; width: 6px;  cursor: w-resize; }
+
+/* Corners */
+.free-resize-ne { top: -3px;    right: -3px;  width: 10px; height: 10px; cursor: ne-resize; }
+.free-resize-nw { top: -3px;    left: -3px;   width: 10px; height: 10px; cursor: nw-resize; }
+.free-resize-se { bottom: -3px; right: -3px;  width: 10px; height: 10px; cursor: se-resize; }
+.free-resize-sw { bottom: -3px; left: -3px;   width: 10px; height: 10px; cursor: sw-resize; }
+
+/* Dragging state */
+.free-window-dragging {
+  opacity: 0.9;
+  transition: none;
+}
+
+.free-window-resizing {
+  transition: none;
+}
+
+/* === Board-specific: fill window, stay square === */
+body.free-layout-on [data-drag-id="board"] #board-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-left: 0;
+}
+
+body.free-layout-on [data-drag-id="board"] #board {
+  width: var(--board-size);
+  height: var(--board-size);
+  max-width: 100%;
+  max-height: 100%;
+}
+
+body.free-layout-on .player-info {
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 2px 6px;
+}
+
+/* Tab content in analysis window should fill and scroll */
+body.free-layout-on [data-drag-id="moves"] .panel-content,
+body.free-layout-on [data-drag-id="book"] .panel-content,
+body.free-layout-on [data-drag-id="hints"] .panel-content,
+body.free-layout-on [data-drag-id="gm-coach-tab"] .panel-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+body.free-layout-on .move-history-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: none;
+}
+
+body.free-layout-on .ideas-split,
+body.free-layout-on .gm-coach-split {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+body.free-layout-on .status-bar {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+body.free-layout-on .nav-controls {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+body.free-layout-on .mini-music {
+  flex: 1;
+  min-height: 0;
+}
+
+body.free-layout-on .eval-graph-container {
+  flex: 1;
+  min-height: 0;
+}
+
+body.free-layout-on .move-notes {
+  flex: 1;
+  min-height: 0;
+}
+
+body.free-layout-on .move-notes-input {
+  flex: 1;
+  min-height: 30px;
+}
+
+body.free-layout-on .panel-coach-area {
+  flex: 1;
+  overflow: auto;
+}
+
+body.free-layout-on .book-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* === Mobile guard: hide free layout on narrow screens === */
+@media (max-width: 768px) {
+  #btn-free-layout {
+    display: none !important;
+  }
+}
