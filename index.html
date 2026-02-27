@@ -633,6 +633,18 @@
             <span class="layout-toggle-label">Coordinates</span>
             <span class="toggle-switch"><input type="checkbox" id="settings-coords" checked><span class="toggle-slider"></span></span>
           </label>
+          <label class="settings-toggle-row">
+            <span class="layout-toggle-label">Blunder Alerts</span>
+            <span class="toggle-switch"><input type="checkbox" id="settings-blunder-alerts" checked><span class="toggle-slider"></span></span>
+          </label>
+          <label class="settings-toggle-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+            <span class="layout-toggle-label">Takeback Policy</span>
+            <select id="settings-takeback-policy" class="settings-select" style="width:100%;padding:4px 8px;border-radius:4px;background:var(--bg);color:var(--text);border:1px solid var(--border, #444)">
+              <option value="personality">Personality-based</option>
+              <option value="always">Always allow</option>
+              <option value="never">Never allow</option>
+            </select>
+          </label>
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings-display">Done</button>
@@ -1114,6 +1126,7 @@
             <span class="nav-menu-label">Tools</span>
             <button class="btn" id="btn-database">Database</button>
             <button class="btn" id="btn-stats">Stats</button>
+            <button class="btn" id="btn-history">History</button>
             <button class="btn" id="btn-import-pgn">PGN Import/Export</button>
           </div>
           <div class="nav-menu-section">
@@ -1134,7 +1147,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v125</div>
+          <div class="nav-menu-version" id="app-version">v138</div>
         </div>
       </nav>
     </header>
@@ -1164,6 +1177,18 @@
           <div class="eval-bar" id="eval-bar">
             <div class="eval-bar-white" id="eval-bar-white"></div>
             <div class="eval-bar-label" id="eval-bar-label">0.0</div>
+            <div id="accuracy-bars" class="accuracy-bars hidden">
+              <div class="accuracy-bar-row">
+                <span class="accuracy-bar-label">W</span>
+                <div class="accuracy-bar-track"><div class="accuracy-bar-fill accuracy-bar-white" id="accuracy-bar-white"></div></div>
+                <span class="accuracy-bar-pct" id="accuracy-pct-white">—</span>
+              </div>
+              <div class="accuracy-bar-row">
+                <span class="accuracy-bar-label">B</span>
+                <div class="accuracy-bar-track"><div class="accuracy-bar-fill accuracy-bar-black" id="accuracy-bar-black"></div></div>
+                <span class="accuracy-bar-pct" id="accuracy-pct-black">—</span>
+              </div>
+            </div>
           </div>
           <div class="coords coords-ranks" id="coords-ranks"></div>
           <div id="board" class="board"></div>
@@ -1306,6 +1331,8 @@
               <option value="22">Deep (~15s/move)</option>
             </select>
           </div>
+          <button class="btn btn-sm hidden" id="btn-takeback" title="Request takeback">↩ Take Back</button>
+          <button class="btn btn-sm hidden" id="btn-rematch" title="Rematch">⟳ Rematch</button>
           <button class="btn btn-sm hidden" id="btn-resign-mp">Resign</button>
           <button class="btn btn-sm hidden" id="btn-draw-mp">Offer Draw</button>
           <span class="mp-opponent-status hidden" id="mp-opponent-status"></span>
@@ -1343,6 +1370,7 @@
             <div class="ot-title" id="ot-title"></div>
             <div class="ot-actions">
               <button class="btn btn-sm ot-btn ot-btn-primary" id="ot-practice">Practice Moves</button>
+              <button class="btn btn-sm ot-btn ot-btn-primary" id="ot-quiz">Quiz</button>
               <button class="btn btn-sm ot-btn ot-btn-accent" id="ot-play">Play vs GM</button>
               <button class="btn btn-sm ot-btn" id="ot-continue">Free Play</button>
               <button class="btn btn-sm ot-btn ot-btn-exit" id="ot-exit">Exit</button>
@@ -1441,6 +1469,55 @@
 
       </div>
     </main>
+
+    <!-- History Dialog (Feature 13) -->
+    <div id="history-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Game History</h2>
+        <div class="history-filters">
+          <input type="text" id="history-search" class="history-search" placeholder="Search opponent or opening...">
+          <select id="history-filter-result" class="history-filter-select">
+            <option value="all">All Results</option>
+            <option value="win">Wins</option>
+            <option value="loss">Losses</option>
+            <option value="draw">Draws</option>
+          </select>
+        </div>
+        <div class="history-list" id="history-list"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="history-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Result Banner (Feature 12) -->
+    <div id="game-result-banner" class="game-result-banner hidden">
+      <div class="result-banner-content">
+        <div class="result-banner-text" id="result-banner-text">Game Over</div>
+        <div class="result-banner-accuracy" id="result-banner-accuracy"></div>
+        <div class="result-banner-actions">
+          <button class="btn btn-primary" id="result-btn-review">Review Game</button>
+          <button class="btn btn-accent" id="result-btn-rematch">Rematch</button>
+          <button class="btn btn-secondary" id="result-btn-new">New Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blunder Alert (Feature 11) -->
+    <div id="blunder-alert" class="blunder-alert hidden">
+      <span class="blunder-alert-icon"></span>
+      <span class="blunder-alert-text" id="blunder-alert-text"></span>
+      <a class="blunder-alert-takeback" id="blunder-alert-takeback">Take back?</a>
+      <button class="blunder-alert-dismiss" id="blunder-alert-dismiss">&times;</button>
+    </div>
+
+    <!-- Countdown Overlay (Feature 6) -->
+    <div id="countdown-overlay" class="countdown-overlay hidden">
+      <div class="countdown-number" id="countdown-number">3</div>
+    </div>
+
+    <!-- Takeback Button (Feature 5) — in status bar area -->
+
   </div>
 
   <!-- Scripts -->

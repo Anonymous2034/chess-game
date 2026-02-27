@@ -21,10 +21,17 @@ export class Board {
     this.pendingPromotion = null;
     this.promotionResolve = null;
 
+    // User arrow annotations (Feature 9)
+    this._userArrows = [];       // [{ from, to, color }]
+    this._userHighlights = [];   // [{ square, color }]
+    this._positionArrows = {};   // FEN -> { arrows, highlights }
+    this._arrowStart = null;     // square where right-click started
+
     this.showLegalMoves = false;
     this.squares = {};
     this.render();
     this.setupDragAndDrop();
+    this.setupRightClickArrows();
     this.renderCoordinates();
   }
 
@@ -635,5 +642,126 @@ export class Board {
     Object.values(this.squares).forEach(div => {
       div.classList.remove('analysis-best', 'analysis-blunder', 'analysis-mistake', 'analysis-inaccuracy');
     });
+  }
+
+  // === Feature 9: Right-click arrow annotations ===
+
+  setupRightClickArrows() {
+    // Prevent context menu on the board
+    this.container.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    this.container.addEventListener('pointerdown', (e) => {
+      if (e.button !== 2) return; // right-click only
+      e.preventDefault();
+      const sq = e.target.closest('.square')?.dataset.square;
+      if (!sq) return;
+      this._arrowStart = sq;
+    });
+
+    this.container.addEventListener('pointerup', (e) => {
+      if (e.button !== 2 || !this._arrowStart) return;
+      e.preventDefault();
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      const sq = target?.closest('.square')?.dataset.square;
+      if (!sq) { this._arrowStart = null; return; }
+
+      // Determine color: default green, +Shift red, +Ctrl yellow, +Alt blue
+      let color = 'rgba(76,175,80,0.8)';
+      if (e.shiftKey) color = 'rgba(244,67,54,0.8)';
+      else if (e.ctrlKey || e.metaKey) color = 'rgba(255,235,59,0.8)';
+      else if (e.altKey) color = 'rgba(33,150,243,0.8)';
+
+      if (sq === this._arrowStart) {
+        // Same square: if shift held, toggle highlight; otherwise clear all
+        if (e.shiftKey) {
+          this._toggleUserHighlight(sq, color);
+        } else {
+          this._userArrows = [];
+          this._userHighlights = [];
+        }
+      } else {
+        // Different square: add arrow
+        // Remove existing arrow with same from/to
+        this._userArrows = this._userArrows.filter(a => !(a.from === this._arrowStart && a.to === sq));
+        this._userArrows.push({ from: this._arrowStart, to: sq, color });
+      }
+
+      this._arrowStart = null;
+      this._savePositionArrows();
+      this._renderUserArrows();
+    });
+  }
+
+  _toggleUserHighlight(sq, color) {
+    const idx = this._userHighlights.findIndex(h => h.square === sq);
+    if (idx >= 0) {
+      this._userHighlights.splice(idx, 1);
+    } else {
+      this._userHighlights.push({ square: sq, color });
+    }
+  }
+
+  _renderUserArrows() {
+    // Clear existing user arrows SVG
+    const existing = this.container.querySelector('.board-user-arrows');
+    if (existing) existing.remove();
+
+    // Clear existing highlight overlays
+    this.container.querySelectorAll('.square-highlight').forEach(el => el.remove());
+
+    if (this._userArrows.length === 0 && this._userHighlights.length === 0) return;
+
+    // Draw highlights
+    for (const h of this._userHighlights) {
+      const div = this.squares[h.square];
+      if (!div) continue;
+      const overlay = document.createElement('div');
+      overlay.className = 'square-highlight';
+      overlay.style.background = h.color;
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      div.appendChild(overlay);
+    }
+
+    // Draw arrows
+    if (this._userArrows.length > 0) {
+      for (const a of this._userArrows) {
+        this.drawArrow(a.from, a.to, a.color, 0.8);
+      }
+      // Tag the SVG so we can identify user arrows
+      const svg = this.container.querySelector('.board-arrows');
+      if (svg) svg.classList.add('board-user-arrows');
+    }
+  }
+
+  _savePositionArrows() {
+    const fen = this.game.chess.fen();
+    if (this._userArrows.length === 0 && this._userHighlights.length === 0) {
+      delete this._positionArrows[fen];
+    } else {
+      this._positionArrows[fen] = {
+        arrows: [...this._userArrows],
+        highlights: [...this._userHighlights]
+      };
+    }
+  }
+
+  loadPositionArrows() {
+    const fen = this.game.chess.fen();
+    const saved = this._positionArrows[fen];
+    if (saved) {
+      this._userArrows = [...saved.arrows];
+      this._userHighlights = [...saved.highlights];
+    } else {
+      this._userArrows = [];
+      this._userHighlights = [];
+    }
+    this._renderUserArrows();
+  }
+
+  clearUserArrows() {
+    this._userArrows = [];
+    this._userHighlights = [];
+    this._renderUserArrows();
   }
 }

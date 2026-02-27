@@ -434,28 +434,43 @@ export class FreeLayout {
           const dy = ev.clientY - startY;
 
           let l = startRect.l, t = startRect.t, w = startRect.w, h = startRect.h;
+          const snap = FreeLayout.SNAP_DIST;
+          const edges = this._getSnapEdges(winId);
 
-          // Horizontal
+          // Horizontal — east (drag right edge)
           if (dir.includes('e')) {
             w = Math.max(def.minW, startRect.w + dx);
             if (l + w > maxW) w = maxW - l;
+            // Snap the right edge
+            const snappedR = this._snap(l + w, edges.x, snap);
+            if (snappedR !== l + w) w = snappedR - l;
           }
+          // Horizontal — west (drag left edge)
           if (dir.includes('w')) {
             const newW = Math.max(def.minW, startRect.w - dx);
             l = startRect.l + startRect.w - newW;
             if (l < 0) { l = 0; w = startRect.l + startRect.w; } else { w = newW; }
+            // Snap the left edge
+            const snappedL = this._snap(l, edges.x, snap);
+            if (snappedL !== l) { w += (l - snappedL); l = snappedL; }
           }
 
-          // Vertical — south
+          // Vertical — south (drag bottom edge)
           if (dir === 's' || dir === 'se' || dir === 'sw') {
             h = Math.max(def.minH, startRect.h + dy);
             if (t + h > maxH) h = maxH - t;
+            // Snap the bottom edge
+            const snappedB = this._snap(t + h, edges.y, snap);
+            if (snappedB !== t + h) h = snappedB - t;
           }
-          // Vertical — north
+          // Vertical — north (drag top edge)
           if (dir === 'n' || dir === 'ne' || dir === 'nw') {
             const newH = Math.max(def.minH, startRect.h - dy);
             t = startRect.t + startRect.h - newH;
             if (t < 0) { t = 0; h = startRect.t + startRect.h; } else { h = newH; }
+            // Snap the top edge
+            const snappedT = this._snap(t, edges.y, snap);
+            if (snappedT !== t) { h += (t - snappedT); t = snappedT; }
           }
 
           win.style.left = l + 'px';

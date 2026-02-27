@@ -18,7 +18,7 @@ export class Notation {
     this.moves.push(move);
     this.currentIndex = this.moves.length - 1;
     this.render();
-    this.scrollToBottom();
+    this.scrollToActive();
   }
 
   setMoves(moves) {
@@ -30,6 +30,7 @@ export class Notation {
   setCurrentIndex(index) {
     this.currentIndex = index;
     this.render();
+    this.scrollToActive();
   }
 
   undo() {
@@ -155,12 +156,26 @@ export class Notation {
     return cell;
   }
 
+  scrollToActive() {
+    const active = this.container.querySelector('.move-cell.active');
+    if (active) {
+      active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    } else {
+      this.scrollToBottom();
+    }
+  }
+
   scrollToBottom() {
     this.container.scrollTop = this.container.scrollHeight;
   }
 
   toPGN(headers = {}) {
     let pgn = '';
+
+    // Classification → PGN annotation glyph
+    const ANNOTATION_GLYPHS = {
+      best: '!', great: '!!', good: '', inaccuracy: '?!', mistake: '?', blunder: '??'
+    };
 
     // Headers
     const defaultHeaders = {
@@ -174,17 +189,40 @@ export class Notation {
     };
 
     const allHeaders = { ...defaultHeaders, ...headers };
+
+    // Add annotator header when classifications exist
+    if (this.classifications && this.classifications.length > 0) {
+      allHeaders.Annotator = 'Grandmasters Chess';
+    }
+
     for (const [key, val] of Object.entries(allHeaders)) {
       pgn += `[${key} "${val}"]\n`;
     }
     pgn += '\n';
 
-    // Moves
+    // Moves with optional annotations
     for (let i = 0; i < this.moves.length; i++) {
       if (i % 2 === 0) {
         pgn += `${Math.floor(i / 2) + 1}. `;
       }
-      pgn += this.moves[i].san + ' ';
+      pgn += this.moves[i].san;
+
+      // Append annotation glyph and comment if classifications exist
+      if (this.classifications && this.classifications[i]) {
+        const cls = this.classifications[i];
+        const glyph = ANNOTATION_GLYPHS[cls.classification] || '';
+        if (glyph) pgn += glyph;
+
+        // Add eval comment for non-best moves
+        if (cls.classification !== 'best' && cls.classification !== 'great' && cls.cpLoss > 0) {
+          const parts = [];
+          if (cls.cpLoss) parts.push(`cpLoss: ${cls.cpLoss}`);
+          if (cls.bestMove) parts.push(`best: ${cls.bestMove}`);
+          if (parts.length > 0) pgn += ` {${parts.join(', ')}}`;
+        }
+      }
+
+      pgn += ' ';
     }
 
     pgn += allHeaders.Result;

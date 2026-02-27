@@ -415,6 +415,31 @@ export const OPENING_COMMENTARY = {
   ],
 };
 
+/**
+ * Get a random opening suitable for quiz mode (5+ mainline moves).
+ * @returns {{ eco: string, name: string, moves: string[] } | null}
+ */
+export function getRandomOpeningForQuiz() {
+  const OPENING_NAMES = {
+    'A10': 'English Opening', 'A60': 'Modern Benoni', 'B02': "Alekhine's Defence",
+    'B10': 'Caro-Kann', 'B17': 'Caro-Kann Karpov', 'B30': 'Sicilian Sveshnikov',
+    'B80': 'Sicilian Scheveningen', 'B90': 'Sicilian Najdorf', 'C00': 'French Defense',
+    'C15': 'French Winawer', 'C25': 'Vienna Game', 'C30': "King's Gambit",
+    'C41': 'Philidor Defense', 'C42': 'Petroff Defense', 'C44': 'Scotch Game',
+    'C47': 'Four Knights', 'C51': 'Evans Gambit', 'C60': 'Ruy Lopez',
+    'C62': 'Ruy Lopez Steinitz', 'C65': 'Ruy Lopez Berlin', 'C84': 'Ruy Lopez Closed',
+    'D00': 'London System', 'D06': "Queen's Gambit", 'D10': 'Slav Defense',
+    'D30': 'QGD', 'D32': 'Tarrasch Defense', 'D69': 'QGD Capablanca',
+    'D70': 'Grunfeld Defense', 'E00': 'Catalan Opening', 'E12': "Queen's Indian",
+    'E20': 'Nimzo-Indian', 'E60': "King's Indian"
+  };
+  const eligible = Object.entries(OPENING_MAINLINES)
+    .filter(([, moves]) => moves.length >= 5)
+    .map(([eco, moves]) => ({ eco, name: OPENING_NAMES[eco] || eco, moves }));
+  if (eligible.length === 0) return null;
+  return eligible[Math.floor(Math.random() * eligible.length)];
+}
+
 // Per-GM opening book system
 // Matches the current move history against a GM's preferred opening lines
 // and returns a book move if found, or null to fall back to Stockfish.

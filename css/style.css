@@ -8339,3 +8339,142 @@ body.free-layout-on .book-panel {
     display: none !important;
   }
 }
+
+/* === Feature 13: Game History Dialog === */
+.history-filters {
+  display: flex; gap: 8px; margin-bottom: 10px;
+}
+.history-search {
+  flex: 1; padding: 6px 10px; border-radius: 4px; border: 1px solid #444;
+  background: var(--panel-bg, #1a1a2e); color: var(--text, #e0e0e0); font-size: 0.85rem;
+}
+.history-filter-select {
+  padding: 6px 8px; border-radius: 4px; border: 1px solid #444;
+  background: var(--panel-bg, #1a1a2e); color: var(--text, #e0e0e0); font-size: 0.85rem;
+}
+.history-list {
+  max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+}
+.history-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 4px;
+  cursor: pointer; font-size: 0.82rem; transition: background 0.15s;
+}
+.history-row:hover { background: rgba(255,255,255,0.07); }
+.history-row-date { color: #888; min-width: 70px; }
+.history-row-opponent { flex: 1; }
+.history-row-opening { flex: 1; color: #aaa; }
+.history-row-result {
+  padding: 2px 8px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;
+}
+.history-row-result.win { background: #2e7d32; color: #fff; }
+.history-row-result.loss { background: #c62828; color: #fff; }
+.history-row-result.draw { background: #555; color: #ccc; }
+
+/* === Feature 12: Game Result Banner === */
+.game-result-banner {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 900;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+}
+.game-result-banner.hidden { display: none; }
+.result-banner-content {
+  text-align: center; padding: 28px 36px; border-radius: 12px;
+  background: var(--panel-bg, #1a1a2e); border: 1px solid #333;
+  min-width: 280px; max-width: 400px;
+}
+.result-banner-text { font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; }
+.result-banner-accuracy {
+  display: flex; gap: 16px; justify-content: center; margin-bottom: 16px;
+}
+.result-banner-acc-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.result-banner-acc-label { font-size: 0.75rem; color: #aaa; }
+.result-banner-acc-value { font-size: 1.1rem; font-weight: 600; }
+.result-banner-acc-bar {
+  width: 80px; height: 6px; background: #333; border-radius: 3px; overflow: hidden;
+}
+.result-banner-acc-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #f44336, #ffc107, #4caf50);
+}
+.result-banner-actions { display: flex; gap: 8px; justify-content: center; }
+.result-banner-actions .btn { min-width: 100px; }
+.btn-accent { background: #c9a227; color: #000; border: none; cursor: pointer; padding: 6px 14px; border-radius: 4px; font-weight: 600; }
+.btn-accent:hover { background: #d4af37; }
+
+/* === Feature 11: Blunder Alert === */
+.blunder-alert {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 800;
+  display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px;
+  font-size: 0.85rem; animation: blunderSlideUp 0.3s ease;
+}
+.blunder-alert.hidden { display: none; }
+.blunder-alert.blunder-level-blunder { background: #c62828; color: #fff; }
+.blunder-alert.blunder-level-mistake { background: #e65100; color: #fff; }
+.blunder-alert.blunder-level-inaccuracy { background: #f57f17; color: #000; }
+.blunder-alert-icon { font-size: 1.1rem; }
+.blunder-alert-takeback {
+  color: inherit; text-decoration: underline; cursor: pointer; font-weight: 600;
+}
+.blunder-alert-dismiss {
+  background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1rem; padding: 0 4px;
+}
+@keyframes blunderSlideUp {
+  from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* === Feature 10: Eval Sparkline & Accuracy Bars === */
+.eval-sparkline { display: block; margin-top: 4px; }
+.accuracy-bars {
+  position: absolute; bottom: 4px; left: 0; right: 0; padding: 0 3px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.accuracy-bars.hidden { display: none; }
+.accuracy-bar-row { display: flex; align-items: center; gap: 3px; font-size: 0.6rem; }
+.accuracy-bar-label { width: 10px; text-align: center; color: #aaa; }
+.accuracy-bar-track { flex: 1; height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+.accuracy-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.accuracy-bar-white { background: linear-gradient(90deg, #f44336, #ffc107, #4caf50); }
+.accuracy-bar-black { background: linear-gradient(90deg, #f44336, #ffc107, #4caf50); }
+.accuracy-bar-pct { width: 28px; text-align: right; color: #ccc; }
+
+/* === Feature 9: Board Arrows & Square Highlights === */
+.board-highlight-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+}
+.square-highlight {
+  position: absolute; opacity: 0.5; border-radius: 2px; pointer-events: none;
+}
+
+/* === Feature 6: Pre-Game Countdown === */
+.countdown-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 950;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+}
+.countdown-overlay.hidden { display: none; }
+.countdown-number {
+  font-size: 6rem; font-weight: 800; color: #fff;
+  animation: countdownPulse 0.8s ease;
+}
+.countdown-number.go { color: var(--accent, #81b64c); font-size: 4rem; }
+@keyframes countdownPulse {
+  0% { transform: scale(1.6); opacity: 0; }
+  50% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 1; }
+}
+
+/* === Feature 7: Rematch Button === */
+#btn-rematch { background: #c9a227; color: #000; font-weight: 600; border: none; }
+#btn-rematch:hover { background: #d4af37; }
+
+/* === Feature 5: Takeback Button === */
+#btn-takeback { }
+
+/* === Feature 1: Window Minimize to Title Bar === */
+.free-window-minimized { height: 16px !important; min-height: 16px !important; overflow: hidden; }
+.free-window-minimized .free-window-content,
+.free-window-minimized .free-resize-handle { display: none; }

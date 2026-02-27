@@ -6,7 +6,7 @@ import { Notation } from './notation.js';
 import { Database } from './database.js';
 import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS } from './bots.js';
 import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
-import { OpeningBook, OPENING_MAINLINES, OPENING_COMMENTARY } from './openings.js';
+import { OpeningBook, OPENING_MAINLINES, OPENING_COMMENTARY, getRandomOpeningForQuiz } from './openings.js';
 import { CapturedPieces } from './captured.js';
 import { GameAnalyzer } from './analysis.js';
 import { EvalGraph } from './eval-graph.js';
@@ -89,6 +89,19 @@ class ChessApp {
     this._moveClockInterval = null;
     this._moveClockColor = 'w'; // whose turn is being timed
 
+    // Feature 7: Rematch — last game settings
+    this._lastGameSettings = null;
+
+    // Feature 10: Eval sparkline + running accuracy
+    this._evalHistory = [];
+    this._playerAccuracy = { w: { totalCpLoss: 0, moves: 0 }, b: { totalCpLoss: 0, moves: 0 } };
+
+    // Feature 11: Blunder alerts
+    this._blunderAlertsEnabled = localStorage.getItem('chess_blunder_alerts') !== 'false';
+
+    // Feature 5: Takeback policy
+    this._takebackPolicy = localStorage.getItem('chess_takeback_policy') || 'personality';
+
     this.init();
   }
 
@@ -163,6 +176,11 @@ class ChessApp {
     this.setupPlayerNameClicks();
     this.setupNotes();
     this.setupOpeningExplorerCollapse();
+    this.setupHistoryDialog();
+    this.setupGameResultBanner();
+    this.setupBlunderAlerts();
+    this.setupTakebackButton();
+    this.setupRematchButton();
 
     // Load database in background, then restore saved imports
     this.database.loadCollections().then(async (categories) => {
@@ -331,6 +349,10 @@ class ChessApp {
 
     // If playing vs engine and it's engine's turn
     if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor) {
+      // Player just moved — queue blunder check before engine responds
+      if (this._blunderAlertsEnabled && this.game.moveHistory.length >= 2) {
+        this._checkForBlunder();
+      }
       this.requestEngineMove();
       // DON'T run analysis while engine needs to move — wait for handleEngineMove()
     } else {
@@ -588,7 +610,8 @@ class ChessApp {
         opening: this.lastOpeningName || 'Unknown',
         playerColor: this.game.playerColor,
         moveCount: this.game.moveHistory.length,
-        timeControl: this.game.timeControl
+        timeControl: this.game.timeControl,
+        pgn: this.notation.toPGN({ Result: gameResult?.result || '*' })
       };
       this.stats.recordGame(gameRecord);
 
@@ -623,11 +646,26 @@ class ChessApp {
       );
     }
 
+    // Show rematch and takeback buttons
+    if (this.game.mode === 'engine') {
+      const rematchBtn = document.getElementById('btn-rematch');
+      if (rematchBtn) rematchBtn.classList.remove('hidden');
+    }
+    const takebackBtn = document.getElementById('btn-takeback');
+    if (takebackBtn) takebackBtn.classList.add('hidden');
+
     // Auto-run analysis after game ends (delayed to let UI settle)
     if (this.engineInitialized && this.game.moveHistory.length >= 4) {
       setTimeout(() => {
         // Only run if game is still over (user didn't start a new one)
-        if (this.game.gameOver) this.runAnalysis();
+        if (this.game.gameOver) {
+          this.runAnalysis().then(() => {
+            // Show result banner after analysis completes (Feature 12)
+            if (this.game.gameOver && this.analysisResults) {
+              this._showGameResultBanner();
+            }
+          });
+        }
       }, 1000);
     }
   }
@@ -811,6 +849,9 @@ class ChessApp {
       // At the end of moves, re-enable if game is not over
       this.board.setInteractive(!this.game.gameOver);
     }
+
+    // Load user arrows for this position (Feature 9)
+    this.board.loadPositionArrows();
 
     // Show per-move insight if analysis is available
     this._updateMoveInsight(index);
@@ -1989,6 +2030,17 @@ class ChessApp {
       practiceBtn.parentNode.replaceChild(np, practiceBtn);
       np.addEventListener('click', () => this._startOpeningDrill());
     }
+    // Quiz button (Feature 8)
+    const quizBtn = document.getElementById('ot-quiz');
+    if (quizBtn) {
+      const nq = quizBtn.cloneNode(true);
+      quizBtn.parentNode.replaceChild(nq, quizBtn);
+      nq.addEventListener('click', () => {
+        const eco = this._openingTraining?.opening?.eco;
+        this._exitOpeningTraining();
+        this._startOpeningQuiz(eco);
+      });
+    }
     if (playBtn) {
       const np = playBtn.cloneNode(true);
       playBtn.parentNode.replaceChild(np, playBtn);
@@ -3076,6 +3128,25 @@ class ChessApp {
 
     bar.style.height = `${whitePct}%`;
     label.textContent = labelText;
+
+    // Feature 10a: Track eval history and render sparkline
+    this._evalHistory.push({ cp: scoreWhite, moveIndex: this.game.moveHistory.length });
+    this._renderEvalSparkline();
+
+    // Feature 10b: Update running accuracy if we can compare before/after
+    if (this.game.moveHistory.length >= 2) {
+      const lastMove = this.game.moveHistory[this.game.moveHistory.length - 1];
+      if (lastMove && this._evalHistory.length >= 2) {
+        const prev = this._evalHistory[this._evalHistory.length - 2];
+        const curr = this._evalHistory[this._evalHistory.length - 1];
+        const isWhiteMove = lastMove.color === 'w';
+        const cpLoss = isWhiteMove ? Math.max(0, prev.cp - curr.cp) : Math.max(0, curr.cp - prev.cp);
+        const side = lastMove.color;
+        this._playerAccuracy[side].totalCpLoss += cpLoss;
+        this._playerAccuracy[side].moves++;
+        this._updateAccuracyBars();
+      }
+    }
   }
 
   _updateEvalBarGameEnd() {
@@ -3265,6 +3336,21 @@ class ChessApp {
   async _startNewGame(settings) {
     this._gameOverSoundPlayed = false;
 
+    // Store for rematch (Feature 7)
+    this._lastGameSettings = { ...settings };
+
+    // Hide result banner and rematch button
+    const resultBanner = document.getElementById('game-result-banner');
+    if (resultBanner) resultBanner.classList.add('hidden');
+    const rematchBtn = document.getElementById('btn-rematch');
+    if (rematchBtn) rematchBtn.classList.add('hidden');
+
+    // Reset eval tracking (Feature 10)
+    this._evalHistory = [];
+    this._playerAccuracy = { w: { totalCpLoss: 0, moves: 0 }, b: { totalCpLoss: 0, moves: 0 } };
+    this._clearEvalSparkline();
+    this._updateAccuracyBars();
+
     // Exit puzzle mode if active
     this._exitPuzzleMode();
     // Exit endgame trainer if active
@@ -3406,11 +3492,6 @@ class ChessApp {
       hide(document.getElementById('dgt-engine-move'));
     }
 
-    // If engine goes first (player is black)
-    if (settings.mode === 'engine' && color === 'b') {
-      this.requestEngineMove();
-    }
-
     // Play game start sound
     this.sound.playGameStartSound();
 
@@ -3437,6 +3518,31 @@ class ChessApp {
 
     // Clear move insight
     hide(document.getElementById('move-insight'));
+
+    // Show takeback button for engine games (Feature 5)
+    const takebackBtn = document.getElementById('btn-takeback');
+    if (takebackBtn) {
+      if (settings.mode === 'engine') takebackBtn.classList.remove('hidden');
+      else takebackBtn.classList.add('hidden');
+    }
+
+    // Pre-game countdown for timed games (Feature 6)
+    if (settings.time > 0 && settings.mode === 'engine') {
+      this.game.stopTimer();
+      this.board.setInteractive(false);
+      await this._showCountdown();
+      if (!this.game.gameOver) {
+        this.board.setInteractive(true);
+        this.game.handleTimer();
+        // If engine goes first (player is black), request engine move after countdown
+        if (color === 'b') {
+          this.requestEngineMove();
+        }
+      }
+    } else if (settings.mode === 'engine' && color === 'b') {
+      // No timer — engine goes first immediately
+      this.requestEngineMove();
+    }
   }
 
   renderBotPicker(settings) {
@@ -5613,6 +5719,26 @@ class ChessApp {
     if (savedVoice === null) {
       localStorage.setItem('chess_voice_enabled', 'true');
     }
+
+    // Blunder Alerts toggle (Feature 11)
+    const blunderCb = document.getElementById('settings-blunder-alerts');
+    if (blunderCb) {
+      blunderCb.checked = this._blunderAlertsEnabled;
+      blunderCb.addEventListener('change', () => {
+        this._blunderAlertsEnabled = blunderCb.checked;
+        localStorage.setItem('chess_blunder_alerts', blunderCb.checked ? 'true' : 'false');
+      });
+    }
+
+    // Takeback policy (Feature 5)
+    const takebackSel = document.getElementById('settings-takeback-policy');
+    if (takebackSel) {
+      takebackSel.value = this._takebackPolicy;
+      takebackSel.addEventListener('change', () => {
+        this._takebackPolicy = takebackSel.value;
+        localStorage.setItem('chess_takeback_policy', takebackSel.value);
+      });
+    }
   }
 
   _syncSettingsState() {
@@ -5639,6 +5765,12 @@ class ChessApp {
     if (coordsCb) coordsCb.checked = this._coordsEnabled;
     // Flip
     document.getElementById('settings-flip').checked = this.board.flipped;
+    // Blunder alerts
+    const blunderCb = document.getElementById('settings-blunder-alerts');
+    if (blunderCb) blunderCb.checked = this._blunderAlertsEnabled;
+    // Takeback policy
+    const takebackSel = document.getElementById('settings-takeback-policy');
+    if (takebackSel) takebackSel.value = this._takebackPolicy;
   }
 
   // === Clickable Player Names ===
@@ -9519,6 +9651,625 @@ class ChessApp {
   _hideTournamentButton() {
     const btn = document.getElementById('btn-tournament');
     if (btn) btn.style.borderColor = '';
+  }
+
+  // ============================================================
+  // Feature 13: Game History Browser
+  // ============================================================
+
+  setupHistoryDialog() {
+    const btn = document.getElementById('btn-history');
+    const dialog = document.getElementById('history-dialog');
+    if (!btn || !dialog) return;
+
+    btn.addEventListener('click', () => {
+      this._renderHistoryList();
+      show(dialog);
+    });
+
+    document.getElementById('history-close').addEventListener('click', () => hide(dialog));
+    dialog.addEventListener('click', (e) => { if (e.target === e.currentTarget) hide(dialog); });
+
+    // Live filtering
+    document.getElementById('history-search').addEventListener('input', () => this._renderHistoryList());
+    document.getElementById('history-filter-result').addEventListener('change', () => this._renderHistoryList());
+  }
+
+  _renderHistoryList() {
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const search = (document.getElementById('history-search')?.value || '').toLowerCase();
+    const resultFilter = document.getElementById('history-filter-result')?.value || 'all';
+
+    let games = [...this.stats.games].reverse();
+    if (resultFilter !== 'all') {
+      games = games.filter(g => g.result === resultFilter);
+    }
+    if (search) {
+      games = games.filter(g =>
+        (g.opponent || '').toLowerCase().includes(search) ||
+        (g.opening || '').toLowerCase().includes(search)
+      );
+    }
+
+    if (games.length === 0) {
+      list.innerHTML = '<div style="padding:12px;color:#888;text-align:center">No games found</div>';
+      return;
+    }
+
+    for (const g of games) {
+      const row = document.createElement('div');
+      row.className = 'history-row';
+      const d = g.date ? new Date(g.date).toLocaleDateString() : '—';
+      row.innerHTML = `
+        <span class="history-row-date">${d}</span>
+        <span class="history-row-opponent">${g.opponent || 'Unknown'}</span>
+        <span class="history-row-opening">${g.opening || ''}</span>
+        <span class="history-row-result ${g.result}">${g.result}</span>
+      `;
+      row.addEventListener('click', () => this._loadGameFromHistory(g));
+      list.appendChild(row);
+    }
+  }
+
+  _loadGameFromHistory(record) {
+    hide(document.getElementById('history-dialog'));
+    if (record.pgn) {
+      const moves = this.game.loadPGN(record.pgn);
+      if (moves) {
+        this.notation.setMoves(moves);
+        this.board.setLastMove(moves.length > 0 ? moves[moves.length - 1] : null);
+        this.board.update();
+        this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+        this.showToast(`Loaded game vs ${record.opponent}`);
+        return;
+      }
+    }
+    this.showToast('No PGN data for this game');
+  }
+
+  // ============================================================
+  // Feature 12: Post-Game Review Auto-Launch (Result Banner)
+  // ============================================================
+
+  setupGameResultBanner() {
+    const banner = document.getElementById('game-result-banner');
+    if (!banner) return;
+
+    document.getElementById('result-btn-review')?.addEventListener('click', () => {
+      banner.classList.add('hidden');
+      this.navigateToMove(0);
+    });
+
+    document.getElementById('result-btn-rematch')?.addEventListener('click', () => {
+      banner.classList.add('hidden');
+      this._rematch();
+    });
+
+    document.getElementById('result-btn-new')?.addEventListener('click', () => {
+      banner.classList.add('hidden');
+      show(document.getElementById('new-game-dialog'));
+    });
+  }
+
+  _showGameResultBanner() {
+    const banner = document.getElementById('game-result-banner');
+    if (!banner) return;
+
+    const gameResult = this.game.getGameResult();
+    const textEl = document.getElementById('result-banner-text');
+    if (textEl) {
+      textEl.textContent = gameResult ? gameResult.message : 'Game Over';
+    }
+
+    const accEl = document.getElementById('result-banner-accuracy');
+    if (accEl && this.analysisResults) {
+      const wa = this.analysisResults.white.accuracy;
+      const ba = this.analysisResults.black.accuracy;
+      accEl.innerHTML = `
+        <div class="result-banner-acc-item">
+          <span class="result-banner-acc-label">White</span>
+          <span class="result-banner-acc-value">${wa}%</span>
+          <div class="result-banner-acc-bar"><div class="result-banner-acc-fill" style="width:${wa}%"></div></div>
+        </div>
+        <div class="result-banner-acc-item">
+          <span class="result-banner-acc-label">Black</span>
+          <span class="result-banner-acc-value">${ba}%</span>
+          <div class="result-banner-acc-bar"><div class="result-banner-acc-fill" style="width:${ba}%"></div></div>
+        </div>
+      `;
+    }
+
+    banner.classList.remove('hidden');
+  }
+
+  // ============================================================
+  // Feature 11: Blunder Alerts
+  // ============================================================
+
+  setupBlunderAlerts() {
+    const dismissBtn = document.getElementById('blunder-alert-dismiss');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        document.getElementById('blunder-alert')?.classList.add('hidden');
+      });
+    }
+
+    const takebackLink = document.getElementById('blunder-alert-takeback');
+    if (takebackLink) {
+      takebackLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('blunder-alert')?.classList.add('hidden');
+        this._requestTakeback();
+      });
+    }
+  }
+
+  async _checkForBlunder() {
+    if (!this.engine || !this.engine.ready) return;
+    if (!this._blunderAlertsEnabled) return;
+
+    const moveIdx = this.game.moveHistory.length - 1;
+    if (moveIdx < 1) return;
+
+    // Get FEN before and after the player's last move
+    const fenBefore = this.game.fens[moveIdx]; // position before player moved
+    const fenAfter = this.game.fens[moveIdx + 1]; // position after player moved
+
+    const abortId = this._evalBarAbortId; // use eval bar abort for cancellation
+
+    // Wait for engine to be free
+    let waited = 0;
+    while (this.engine.thinking && waited < 3000) {
+      await new Promise(r => setTimeout(r, 100));
+      waited += 100;
+    }
+    if (this.engine.thinking) return;
+    if (abortId !== this._evalBarAbortId) return;
+
+    // Analyze position before player's move
+    this.engine.resetOptions();
+    const beforeResult = await this.engine.analyzePosition(fenBefore, 12);
+    if (abortId !== this._evalBarAbortId) return;
+
+    // Analyze position after player's move
+    const afterResult = await this.engine.analyzePosition(fenAfter, 12);
+    if (abortId !== this._evalBarAbortId) return;
+
+    // Restore bot personality
+    if (this.activeBot) this.engine.applyPersonality(this.activeBot);
+    this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+    this.engine.onNoMove = () => this._handleEngineNoMove();
+
+    // Calculate cp loss from player's perspective
+    const isWhite = this.game.moveHistory[moveIdx].color === 'w';
+    const bestEval = isWhite ? beforeResult.score : -beforeResult.score;
+    const playedEval = isWhite ? -afterResult.score : afterResult.score;
+    const cpLoss = Math.max(0, bestEval - playedEval);
+
+    if (cpLoss > 100) {
+      this._showBlunderAlert(cpLoss);
+    }
+  }
+
+  _showBlunderAlert(cpLoss) {
+    const alert = document.getElementById('blunder-alert');
+    const text = document.getElementById('blunder-alert-text');
+    if (!alert || !text) return;
+
+    alert.classList.remove('hidden', 'blunder-level-blunder', 'blunder-level-mistake', 'blunder-level-inaccuracy');
+
+    if (cpLoss > 150) {
+      alert.classList.add('blunder-level-blunder');
+      text.textContent = `Blunder! (−${(cpLoss / 100).toFixed(1)})`;
+      document.getElementById('blunder-alert-icon').textContent = '⚠';
+    } else {
+      alert.classList.add('blunder-level-inaccuracy');
+      text.textContent = `Inaccuracy (−${(cpLoss / 100).toFixed(1)})`;
+      document.getElementById('blunder-alert-icon').textContent = '⚡';
+    }
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => alert.classList.add('hidden'), 5000);
+  }
+
+  // ============================================================
+  // Feature 10: Eval Sparkline + Accuracy Bars
+  // ============================================================
+
+  _renderEvalSparkline() {
+    const bar = document.getElementById('eval-bar');
+    if (!bar) return;
+
+    // Remove old sparkline
+    bar.querySelector('.eval-sparkline')?.remove();
+
+    const history = this._evalHistory.slice(-15);
+    if (history.length < 2) return;
+
+    const svgW = 20, svgH = 60;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'eval-sparkline');
+    svg.setAttribute('width', svgW);
+    svg.setAttribute('height', svgH);
+    svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+    svg.style.position = 'absolute';
+    svg.style.bottom = '28px';
+    svg.style.left = '1px';
+    svg.style.opacity = '0.7';
+
+    const points = history.map((h, i) => {
+      const x = (i / (history.length - 1)) * svgW;
+      const cp = h.cp / 100;
+      const pct = 50 + 50 * (2 / (1 + Math.exp(-0.4 * cp)) - 1);
+      const y = svgH - (pct / 100) * svgH;
+      return `${x},${y}`;
+    }).join(' ');
+
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.setAttribute('points', points);
+    polyline.setAttribute('fill', 'none');
+    polyline.setAttribute('stroke', '#4caf50');
+    polyline.setAttribute('stroke-width', '1.5');
+    svg.appendChild(polyline);
+
+    bar.appendChild(svg);
+  }
+
+  _clearEvalSparkline() {
+    document.getElementById('eval-bar')?.querySelector('.eval-sparkline')?.remove();
+  }
+
+  _updateAccuracyBars() {
+    const container = document.getElementById('accuracy-bars');
+    if (!container) return;
+
+    const wData = this._playerAccuracy.w;
+    const bData = this._playerAccuracy.b;
+
+    if (wData.moves === 0 && bData.moves === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+    container.classList.remove('hidden');
+
+    const wAvg = wData.moves > 0 ? wData.totalCpLoss / wData.moves : 0;
+    const bAvg = bData.moves > 0 ? bData.totalCpLoss / bData.moves : 0;
+    const wAcc = Math.max(0, Math.min(100, 100 - wAvg * 0.5));
+    const bAcc = Math.max(0, Math.min(100, 100 - bAvg * 0.5));
+
+    const wBar = document.getElementById('accuracy-bar-white');
+    const bBar = document.getElementById('accuracy-bar-black');
+    const wPct = document.getElementById('accuracy-pct-white');
+    const bPct = document.getElementById('accuracy-pct-black');
+
+    if (wBar) wBar.style.width = wAcc + '%';
+    if (bBar) bBar.style.width = bAcc + '%';
+    if (wPct) wPct.textContent = wData.moves > 0 ? Math.round(wAcc) + '%' : '—';
+    if (bPct) bPct.textContent = bData.moves > 0 ? Math.round(bAcc) + '%' : '—';
+  }
+
+  // ============================================================
+  // Feature 8: Opening Trainer Quiz Mode
+  // ============================================================
+
+  _startOpeningQuiz(eco) {
+    let opening;
+    if (eco) {
+      const moves = OPENING_MAINLINES[eco];
+      if (!moves) return;
+      opening = { eco, name: eco, moves };
+    } else {
+      opening = getRandomOpeningForQuiz();
+      if (!opening) { this.showToast('No openings available for quiz'); return; }
+    }
+
+    this._openingTraining = {
+      gm: null,
+      opening,
+      moves: opening.moves,
+      phase: 'quiz',
+      currentStep: 0,
+      quizCorrect: 0,
+      quizTotal: 0,
+      quizStreak: 0
+    };
+
+    // Reset board to starting position
+    this.game.newGame({ mode: 'local', color: 'w' });
+    this.notation.clear();
+    this.board.setLastMove(null);
+    this.board.setInteractive(true);
+    this.board.setFlipped(false);
+    this.board.update();
+    this.captured.clear();
+    this.activeBot = null;
+
+    // Show quiz info
+    const bar = document.getElementById('opening-training-bar');
+    const titleEl = document.getElementById('ot-title');
+    if (bar) bar.classList.remove('hidden');
+    if (titleEl) titleEl.textContent = `Quiz: ${opening.name} (${opening.eco}) — Play the mainline!`;
+
+    this._wireOpeningTrainingButtons();
+    this._openingTrainingMoveHandler = (move) => this._handleQuizMove(move);
+
+    this.showToast(`Quiz: Play the ${opening.name} mainline from memory!`);
+  }
+
+  _handleQuizMove(move) {
+    const t = this._openingTraining;
+    if (!t || t.phase !== 'quiz') return;
+
+    const expected = t.moves[t.currentStep];
+    const isCorrect = move.san === expected;
+
+    this.sound.playMoveSound(move);
+    this.notation.addMove(move);
+    this.board.setLastMove(move);
+    this.board.update();
+    t.quizTotal++;
+
+    if (isCorrect) {
+      t.quizCorrect++;
+      t.quizStreak++;
+      t.currentStep++;
+      this.board.flashSquare(move.to, 'puzzle-correct');
+
+      // If it's the opponent's response, play it automatically
+      if (t.currentStep < t.moves.length && t.currentStep % 2 === 1) {
+        // Auto-play the opponent's move after a short delay
+        setTimeout(() => {
+          const opMove = t.moves[t.currentStep];
+          const legalMoves = this.chess.moves({ verbose: true });
+          const match = legalMoves.find(m => m.san === opMove);
+          if (match) {
+            const m = this.game.makeMove(match.from, match.to, match.promotion);
+            if (m) {
+              this.notation.addMove(m);
+              this.board.setLastMove(m);
+              this.board.update();
+              t.currentStep++;
+            }
+          }
+          // Check if quiz is complete
+          if (t.currentStep >= t.moves.length) {
+            this._showQuizResults();
+          }
+        }, 400);
+      } else if (t.currentStep >= t.moves.length) {
+        this._showQuizResults();
+      }
+    } else {
+      t.quizStreak = 0;
+      this.board.flashSquare(move.to, 'puzzle-wrong');
+      // Show the correct move briefly
+      this.showToast(`Expected: ${expected}`);
+
+      // Undo the wrong move and play the correct one
+      setTimeout(() => {
+        this.game.chess.undo();
+        this.game.moveHistory.pop();
+        this.game.fens.pop();
+        this.game.currentMoveIndex--;
+        this.notation.removeLast();
+
+        // Play correct move
+        const legalMoves = this.chess.moves({ verbose: true });
+        const match = legalMoves.find(m => m.san === expected);
+        if (match) {
+          const m = this.game.makeMove(match.from, match.to, match.promotion);
+          if (m) {
+            this.notation.addMove(m);
+            this.board.setLastMove(m);
+            this.board.update();
+            t.currentStep++;
+
+            // Auto-play opponent reply if applicable
+            if (t.currentStep < t.moves.length && t.currentStep % 2 === 1) {
+              setTimeout(() => {
+                const opMove = t.moves[t.currentStep];
+                const legal2 = this.chess.moves({ verbose: true });
+                const match2 = legal2.find(m2 => m2.san === opMove);
+                if (match2) {
+                  const m2 = this.game.makeMove(match2.from, match2.to, match2.promotion);
+                  if (m2) {
+                    this.notation.addMove(m2);
+                    this.board.setLastMove(m2);
+                    this.board.update();
+                    t.currentStep++;
+                  }
+                }
+                if (t.currentStep >= t.moves.length) this._showQuizResults();
+              }, 400);
+            } else if (t.currentStep >= t.moves.length) {
+              this._showQuizResults();
+            }
+          }
+        }
+      }, 800);
+    }
+  }
+
+  _showQuizResults() {
+    const t = this._openingTraining;
+    if (!t) return;
+
+    const pct = t.quizTotal > 0 ? Math.round((t.quizCorrect / t.quizTotal) * 100) : 0;
+    this.showToast(`Quiz Complete! ${t.quizCorrect}/${t.quizTotal} correct — ${pct}%`);
+
+    // Save quiz stats
+    try {
+      const key = 'chess_opening_quiz_stats';
+      const stats = JSON.parse(localStorage.getItem(key) || '{}');
+      const eco = t.opening.eco;
+      if (!stats[eco]) stats[eco] = { attempts: 0, bestScore: 0, lastDate: null };
+      stats[eco].attempts++;
+      stats[eco].bestScore = Math.max(stats[eco].bestScore, pct);
+      stats[eco].lastDate = new Date().toISOString();
+      localStorage.setItem(key, JSON.stringify(stats));
+    } catch { /* ignore */ }
+
+    // Clean up
+    this._openingTraining = null;
+    this._openingTrainingMoveHandler = null;
+    const bar = document.getElementById('opening-training-bar');
+    if (bar) bar.classList.add('hidden');
+    this.board.setInteractive(false);
+  }
+
+  // ============================================================
+  // Feature 7: Rematch Button
+  // ============================================================
+
+  setupRematchButton() {
+    const btn = document.getElementById('btn-rematch');
+    if (!btn) return;
+    btn.addEventListener('click', () => this._rematch());
+  }
+
+  _rematch() {
+    if (!this._lastGameSettings) {
+      this.showToast('No previous game to rematch');
+      return;
+    }
+    const s = { ...this._lastGameSettings };
+    // Swap color
+    if (s.color === 'w') s.color = 'b';
+    else if (s.color === 'b') s.color = 'w';
+    // random stays random
+
+    this._startNewGame(s);
+  }
+
+  // ============================================================
+  // Feature 6: Pre-Game Countdown
+  // ============================================================
+
+  _showCountdown() {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('countdown-overlay');
+      const numberEl = document.getElementById('countdown-number');
+      if (!overlay || !numberEl) { resolve(); return; }
+
+      overlay.classList.remove('hidden');
+      let count = 3;
+
+      const tick = () => {
+        if (count > 0) {
+          numberEl.textContent = count;
+          numberEl.className = 'countdown-number';
+          // Force reflow for animation restart
+          void numberEl.offsetWidth;
+          numberEl.style.animation = 'none';
+          void numberEl.offsetWidth;
+          numberEl.style.animation = '';
+          count--;
+          setTimeout(tick, 900);
+        } else {
+          numberEl.textContent = 'GO';
+          numberEl.className = 'countdown-number go';
+          void numberEl.offsetWidth;
+          numberEl.style.animation = 'none';
+          void numberEl.offsetWidth;
+          numberEl.style.animation = '';
+          setTimeout(() => {
+            overlay.classList.add('hidden');
+            resolve();
+          }, 600);
+        }
+      };
+
+      tick();
+    });
+  }
+
+  // ============================================================
+  // Feature 5: Takeback with Personality
+  // ============================================================
+
+  setupTakebackButton() {
+    const btn = document.getElementById('btn-takeback');
+    if (!btn) return;
+    btn.addEventListener('click', () => this._requestTakeback());
+  }
+
+  _requestTakeback() {
+    // Only in engine mode, during game
+    if (this.game.mode !== 'engine' || this.game.gameOver) return;
+
+    // Not in rated games
+    if (this.game.rated) {
+      this.showToast('Not available in rated games');
+      return;
+    }
+
+    const policy = this._takebackPolicy;
+
+    if (policy === 'never') {
+      this.showToast('Takebacks disabled');
+      return;
+    }
+
+    if (policy === 'always') {
+      this._undoPlayerMove();
+      return;
+    }
+
+    // Personality-based
+    if (!this.activeBot) {
+      this._undoPlayerMove();
+      return;
+    }
+
+    const styles = this.activeBot.styles || {};
+    let acceptChance = 0.5 +
+      ((styles.defense || 5) - (styles.aggression || 5)) * 0.05 +
+      ((styles.positional || 5) - (styles.tactical || 5)) * 0.03;
+    acceptChance = Math.max(0.1, Math.min(0.9, acceptChance));
+
+    // Show "thinking" indicator
+    this.showToast(`${this.activeBot.name} is considering your request...`);
+
+    const delay = 500 + Math.random() * 1500;
+    setTimeout(() => {
+      if (Math.random() < acceptChance) {
+        this.showToast(`${this.activeBot.name} allows the takeback`);
+        this._undoPlayerMove();
+      } else {
+        this.showToast(`${this.activeBot.name} refuses the takeback!`);
+      }
+    }, delay);
+  }
+
+  _undoPlayerMove() {
+    if (this.game.currentMoveIndex < 0) return;
+    // Stop engine if thinking
+    if (this.engine && this.engine.thinking) {
+      this.engine.stop();
+    }
+    this._clearEngineMoveTimer();
+    this._setEngineThinking(false);
+    this.board.clearPremove();
+    this.board.setPremoveAllowed(false);
+
+    this.game.undo();
+    this.notation.setMoves(this.game.moveHistory.slice(0, this.game.currentMoveIndex + 1));
+    this.notation.setCurrentIndex(this.game.currentMoveIndex);
+
+    if (this.game.currentMoveIndex >= 0) {
+      this.board.setLastMove(this.game.moveHistory[this.game.currentMoveIndex]);
+    } else {
+      this.board.setLastMove(null);
+    }
+    this.board.setInteractive(true);
+    this.board.update();
+    this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+
+    // Hide blunder alert
+    document.getElementById('blunder-alert')?.classList.add('hidden');
   }
 }
 
