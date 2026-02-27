@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html><head><style>
+body { background:#1a1a1a; color:#ccc; font-family:monospace; padding:20px; font-size:14px; margin:0; }
+.pass { color:#4caf50; } .fail { color:#f44336; } .info { color:#e8a735; }
+#log { white-space:pre-wrap; line-height:1.6; max-height:50vh; overflow-y:auto; }
+iframe { width:100%; height:45vh; border:1px solid #444; margin-top:10px; }
+</style></head>
+<body>
+<h2>Feature Tests — v146-v152</h2>
+<pre id="log"></pre>
+<iframe id="app-frame" src="index.html"></iframe>
+
+<script>
+const log = document.getElementById('log');
+function l(msg, cls) {
+  const span = document.createElement('span');
+  span.className = cls || '';
+  span.textContent = msg + '\n';
+  log.appendChild(span);
+}
+function pass(msg) { l('  PASS: ' + msg, 'pass'); }
+function fail(msg) { l('  FAIL: ' + msg, 'fail'); }
+function info(msg) { l(msg, 'info'); }
+function check(cond, msg) { cond ? pass(msg) : fail(msg); return cond; }
+
+const frame = document.getElementById('app-frame');
+
+frame.addEventListener('load', () => {
+  l('App iframe loaded, waiting for init...', 'info');
+
+  // Wait for the app to fully initialize
+  const poll = setInterval(() => {
+    const app = frame.contentWindow.app;
+    if (!app) return;
+    clearInterval(poll);
+    runTests(app, frame.contentDocument);
+  }, 500);
+
+  // Timeout after 15s
+  setTimeout(() => { clearInterval(poll); if (!frame.contentWindow.app) fail('App did not init within 15s'); }, 15000);
+});
+
+function runTests(app, doc) {
+  pass('App initialized');
+
+  // ================================================================
+  info('\n--- Feature 1: Opening Repertoire Trainer (v146) ---');
+  // ================================================================
+  try {
+    check(app.repertoire, 'RepertoireTrainer instance exists');
+    check(typeof app.repertoire.addCustomLine === 'function', 'addCustomLine method');
+    check(typeof app.repertoire.getDueLines === 'function', 'getDueLines method');
+    check(typeof app.repertoire.startDrill === 'function', 'startDrill method');
+    check(typeof app.repertoire.completeDrill === 'function', 'completeDrill method');
+
+    const line = app.repertoire.addCustomLine('Test Italian', ['e4','e5','Nf3','Nc6','Bc4'], 'w');
+    check(line && line.id, 'addCustomLine returns line with id');
+    check(line.moves.length === 5, 'Line has 5 moves');
+
+    const drill = app.repertoire.startDrill(line.id);
+    check(drill && drill.lineId === line.id, 'startDrill returns drill state');
+
+    const res1 = app.repertoire.validateDrillMove(drill, 'e4');
+    check(res1.correct === true, 'Correct move accepted');
+
+    const res2 = app.repertoire.validateDrillMove(drill, 'd4');
+    check(res2.correct === false, 'Wrong move rejected');
+    check(res2.expected === 'e5', 'Expected move returned');
+
+    const stats = app.repertoire.getStats();
+    check(stats.total >= 1, 'Stats shows lines');
+
+    app.repertoire.removeLine(line.id);
+    check(!app.repertoire.getLine(line.id), 'Line removed');
+
+    check(doc.getElementById('btn-repertoire'), 'Repertoire nav button');
+    check(doc.getElementById('repertoire-dialog'), 'Repertoire dialog');
+    check(doc.getElementById('repertoire-drill-bar'), 'Drill bar');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n--- Feature 2: Engine Multi-PV Lines (v147) ---');
+  // ================================================================
+  try {
+    check(typeof app._multiPVEnabled !== 'undefined', '_multiPVEnabled property');
+    check(typeof app._updateMultiPVLines === 'function', '_updateMultiPVLines method');
+    check(typeof app._renderMultiPVLines === 'function', '_renderMultiPVLines method');
+
+    if (app.engine) {
+      check(typeof app.engine.setMultiPV === 'function', 'engine.setMultiPV method');
+      check(typeof app.engine.analyzePositionMultiPV === 'function', 'engine.analyzePositionMultiPV method');
+    } else {
+      l('  SKIP: Engine not loaded yet', 'info');
+    }
+
+    check(doc.getElementById('tab-engine-lines'), 'Engine Lines panel');
+    check(doc.getElementById('multi-pv-lines'), 'Multi-PV lines container');
+    check(doc.getElementById('toggle-multi-pv'), 'Multi-PV toggle');
+
+    app._renderMultiPVLines([
+      { pvIndex: 0, score: 45, mate: null, pv: 'e2e4 e7e5 g1f3', bestMove: 'e2e4' },
+      { pvIndex: 1, score: 20, mate: null, pv: 'd2d4 d7d5 c2c4', bestMove: 'd2d4' },
+      { pvIndex: 2, score: -10, mate: null, pv: 'c2c4 e7e5 b1c3', bestMove: 'c2c4' },
+    ], false);
+    const pvLines = doc.querySelectorAll('#multi-pv-lines .multi-pv-line');
+    check(pvLines.length === 3, 'Rendered 3 PV lines');
+
+    const evalBadge = pvLines[0]?.querySelector('.multi-pv-eval');
+    check(evalBadge && evalBadge.textContent === '+0.5', 'First line eval shows +0.5');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n--- Feature 3: Tablebase Endgame Lookup (v148) ---');
+  // ================================================================
+  try {
+    check(app.tablebase, 'TablebaseLookup instance');
+    check(typeof app.tablebase.query === 'function', 'query method');
+    check(typeof app.tablebase.shouldQuery === 'function', 'shouldQuery method');
+
+    check(app.tablebase.getPieceCount('8/8/4k3/8/8/4K3/4P3/8 w - - 0 1') === 3, 'KPvK = 3 pieces');
+    check(app.tablebase.getPieceCount('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') === 32, 'Start = 32 pieces');
+    check(app.tablebase.shouldQuery('8/8/4k3/8/8/4K3/4P3/8 w - - 0 1') === true, 'shouldQuery true for 3 pieces');
+    check(app.tablebase.shouldQuery('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') === false, 'shouldQuery false for 32 pieces');
+
+    check(doc.getElementById('tablebase-indicator'), 'Tablebase indicator');
+    check(doc.getElementById('tb-badge'), 'TB badge');
+
+    app._renderTablebaseResult({ category: 'WIN', dtz: 12, bestMoveSan: 'Kf2' });
+    check(doc.getElementById('tb-badge').textContent === 'WIN', 'Badge shows WIN');
+    check(doc.getElementById('tb-badge').classList.contains('tb-win'), 'Badge has win class');
+    check(doc.getElementById('tb-move').textContent === 'Kf2', 'Best move shows Kf2');
+    app._clearTablebaseDisplay();
+    check(doc.getElementById('tablebase-indicator').classList.contains('hidden'), 'Indicator hidden after clear');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n--- Feature 4: Manual Game Annotations (v149) ---');
+  // ================================================================
+  try {
+    check(typeof app.notation.setAnnotation === 'function', 'setAnnotation method');
+    check(typeof app.notation.getAnnotation === 'function', 'getAnnotation method');
+    check(typeof app.notation.clearAnnotation === 'function', 'clearAnnotation method');
+    check(typeof app.notation.clearAllAnnotations === 'function', 'clearAllAnnotations method');
+    check(typeof app.notation.importAnnotations === 'function', 'importAnnotations method');
+    check(typeof app.notation.onAnnotate === 'function', 'onAnnotate callback wired');
+
+    app.notation.setAnnotation(0, 'Great move', '!');
+    const ann = app.notation.getAnnotation(0);
+    check(ann && ann.comment === 'Great move', 'Comment stored');
+    check(ann && ann.nag === '!', 'NAG stored');
+
+    if (app.notation.moves.length > 0) {
+      const pgn = app.notation.toPGN({});
+      check(pgn.includes('!'), 'PGN includes NAG');
+      check(pgn.includes('{Great move}'), 'PGN includes comment');
+      // Check NAG span rendered in notation
+      const nagSpan = doc.querySelector('.move-nag');
+      check(nagSpan && nagSpan.textContent === '!', 'NAG span rendered in notation');
+      // Check comment row rendered
+      const commentRow = doc.querySelector('.move-comment-row');
+      check(commentRow && commentRow.textContent === 'Great move', 'Comment row rendered');
+    }
+
+    app.notation.clearAnnotation(0);
+    check(!app.notation.getAnnotation(0), 'Annotation cleared');
+
+    check(doc.getElementById('annotation-popup'), 'Annotation popup');
+    check(doc.querySelectorAll('.ann-nag-btn').length === 6, '6 NAG buttons');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n--- Feature 5: Lichess Game Import (v150) ---');
+  // ================================================================
+  try {
+    check(typeof app._fetchLichessGames === 'function', '_fetchLichessGames method');
+    check(typeof app._lichessGameToPGN === 'function', '_lichessGameToPGN method');
+    check(typeof app._importSelectedLichessGames === 'function', '_importSelectedLichessGames method');
+
+    const mockGame = {
+      players: { white: { user: { name: 'Alice' } }, black: { user: { name: 'Bob' } } },
+      winner: 'white', createdAt: 1700000000000,
+      opening: { eco: 'C50', name: 'Italian Game' },
+      moves: 'e2e4 e7e5 g1f3 b8c6 f1c4'
+    };
+    const pgn = app._lichessGameToPGN(mockGame);
+    check(pgn.includes('[White "Alice"]'), 'PGN White header');
+    check(pgn.includes('[Black "Bob"]'), 'PGN Black header');
+    check(pgn.includes('[Result "1-0"]'), 'PGN Result');
+    check(pgn.includes('[ECO "C50"]'), 'PGN ECO');
+    check(pgn.includes('1. e4'), 'PGN has move 1. e4');
+
+    check(doc.getElementById('btn-lichess-import'), 'Lichess Import nav button');
+    check(doc.getElementById('lichess-import-dialog'), 'Lichess Import dialog');
+    check(doc.getElementById('lichess-username'), 'Username input');
+    check(doc.getElementById('btn-lichess-fetch'), 'Fetch button');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n--- Feature 6: Export Animated GIF (v151) ---');
+  // ================================================================
+  try {
+    check(typeof app._exportGIF === 'function', '_exportGIF method');
+    check(typeof app._renderBoardToCanvas === 'function', '_renderBoardToCanvas method');
+    check(typeof app._preloadPieceSVGs === 'function', '_preloadPieceSVGs method');
+    check(typeof app._loadGifJS === 'function', '_loadGifJS method');
+
+    // Canvas rendering smoke test
+    const canvas = doc.createElement('canvas');
+    canvas.width = 400; canvas.height = 430;
+    const ctx = canvas.getContext('2d');
+    app._renderBoardToCanvas(ctx, 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+      { from: 'e2', to: 'e4' }, '1. e4', 400, 50, '#f0d9b5', '#b58863', {});
+    // Check pixels were drawn (not all black)
+    const pixel = ctx.getImageData(200, 200, 1, 1).data;
+    check(pixel[0] > 0 || pixel[1] > 0 || pixel[2] > 0, 'Canvas has rendered pixels');
+
+    check(doc.getElementById('gif-export-dialog'), 'GIF export dialog');
+    check(doc.getElementById('btn-export-gif'), 'Export GIF button (PGN dialog)');
+    check(doc.getElementById('btn-gif-export'), 'Export GIF action button');
+    check(doc.getElementById('gif-frame-delay'), 'Frame delay slider');
+    check(doc.getElementById('gif-board-size'), 'Board size selector');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n--- Feature 7: Correspondence / Saved Games (v152) ---');
+  // ================================================================
+  try {
+    check(typeof app._saveCurrentGame === 'function', '_saveCurrentGame method');
+    check(typeof app._loadSavedGame === 'function', '_loadSavedGame method');
+    check(typeof app._deleteSavedGame === 'function', '_deleteSavedGame method');
+    check(typeof app._autoSaveGame === 'function', '_autoSaveGame method');
+    check(typeof app._getSavedGames === 'function', '_getSavedGames method');
+    check(typeof app._autoSaveEnabled !== 'undefined', '_autoSaveEnabled property');
+
+    if (app.game.moveHistory.length > 0) {
+      const before = app._getSavedGames().length;
+      app._saveCurrentGame();
+      const after = app._getSavedGames().length;
+      check(after === before + 1, 'Save increases count');
+
+      const saved = app._getSavedGames()[0];
+      check(saved.moveHistory.length > 0, 'Saved game has moves');
+      check(saved.opponent, 'Saved game has opponent');
+      check(saved.date, 'Saved game has date');
+
+      app._deleteSavedGame(saved.id);
+      check(app._getSavedGames().length === before, 'Delete restores count');
+    } else {
+      l('  SKIP: No moves for save/load test', 'info');
+    }
+
+    check(doc.getElementById('btn-saved-games'), 'Saved Games nav button');
+    check(doc.getElementById('saved-games-dialog'), 'Saved Games dialog');
+    check(doc.getElementById('toggle-auto-save'), 'Auto-save toggle');
+    check(doc.getElementById('btn-save-game'), 'Save button');
+  } catch(e) { fail('Exception: ' + e.message); }
+
+  // ================================================================
+  info('\n=== SUMMARY ===');
+  const passes = log.querySelectorAll('.pass').length;
+  const fails = log.querySelectorAll('.fail').length;
+  l(`${passes} passed, ${fails} failed`, fails > 0 ? 'fail' : 'pass');
+}
+</script>
+</body></html>
