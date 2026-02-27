@@ -7871,6 +7871,16 @@ body.free-layout-on .drag-group {
   transition: none;
 }
 
+/* Alignment guide lines */
+.free-guide-line {
+  position: absolute;
+  z-index: 99999;
+  pointer-events: none;
+}
+.free-guide-double {
+  border-style: dotted !important;
+}
+
 /* === Board-specific: fill window, stay square === */
 /* Grid: [ranks 1-8] [board]
                       [files a-h] */

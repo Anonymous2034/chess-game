@@ -245,6 +245,92 @@ export class FreeLayout {
     return bestDist <= threshold ? best : val;
   }
 
+  // === Alignment guide lines ===
+
+  _showGuides(winId) {
+    this._clearGuides();
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
+
+    const win = this._windows[winId]?.el;
+    if (!win) return;
+    const snap = FreeLayout.SNAP_DIST;
+    const mW = mainEl.clientWidth;
+    const mH = mainEl.clientHeight;
+
+    const wl = win.offsetLeft, wt = win.offsetTop;
+    const wr = wl + win.offsetWidth, wb = wt + win.offsetHeight;
+    const ww = win.offsetWidth, wh = win.offsetHeight;
+
+    const guides = [];
+
+    for (const [id, { el }] of Object.entries(this._windows)) {
+      if (id === winId || el.style.display === 'none') continue;
+      const ol = el.offsetLeft, ot = el.offsetTop;
+      const or_ = ol + el.offsetWidth, ob = ot + el.offsetHeight;
+      const ow = el.offsetWidth, oh = el.offsetHeight;
+
+      // Vertical guides — matching left/right edges
+      if (Math.abs(wl - ol) < 2) guides.push({ dir: 'v', pos: wl, min: Math.min(wt, ot), max: Math.max(wb, ob) });
+      if (Math.abs(wr - or_) < 2) guides.push({ dir: 'v', pos: wr, min: Math.min(wt, ot), max: Math.max(wb, ob) });
+      if (Math.abs(wl - or_) < 2) guides.push({ dir: 'v', pos: wl, min: Math.min(wt, ot), max: Math.max(wb, ob) });
+      if (Math.abs(wr - ol) < 2) guides.push({ dir: 'v', pos: wr, min: Math.min(wt, ot), max: Math.max(wb, ob) });
+
+      // Horizontal guides — matching top/bottom edges
+      if (Math.abs(wt - ot) < 2) guides.push({ dir: 'h', pos: wt, min: Math.min(wl, ol), max: Math.max(wr, or_) });
+      if (Math.abs(wb - ob) < 2) guides.push({ dir: 'h', pos: wb, min: Math.min(wl, ol), max: Math.max(wr, or_) });
+      if (Math.abs(wt - ob) < 2) guides.push({ dir: 'h', pos: wt, min: Math.min(wl, ol), max: Math.max(wr, or_) });
+      if (Math.abs(wb - ot) < 2) guides.push({ dir: 'h', pos: wb, min: Math.min(wl, ol), max: Math.max(wr, or_) });
+
+      // Same width indicator — horizontal line at bottom of both
+      if (Math.abs(ww - ow) < 3) {
+        guides.push({ dir: 'h', pos: wb, min: Math.min(wl, ol), max: Math.max(wr, or_), style: 'double' });
+      }
+      // Same height indicator — vertical line at right of both
+      if (Math.abs(wh - oh) < 3) {
+        guides.push({ dir: 'v', pos: wr, min: Math.min(wt, ot), max: Math.max(wb, ob), style: 'double' });
+      }
+    }
+
+    // Container edge guides
+    if (wl < 2) guides.push({ dir: 'v', pos: 0, min: 0, max: mH });
+    if (wr > mW - 2) guides.push({ dir: 'v', pos: mW, min: 0, max: mH });
+    if (wt < 2) guides.push({ dir: 'h', pos: 0, min: 0, max: mW });
+    if (wb > mH - 2) guides.push({ dir: 'h', pos: mH, min: 0, max: mW });
+
+    this._guideEls = [];
+    for (const g of guides) {
+      const line = document.createElement('div');
+      line.className = 'free-guide-line' + (g.style === 'double' ? ' free-guide-double' : '');
+      if (g.dir === 'v') {
+        line.style.left = g.pos + 'px';
+        line.style.top = g.min + 'px';
+        line.style.width = '0';
+        line.style.height = (g.max - g.min) + 'px';
+        line.style.borderLeft = '1px dashed rgba(100,180,255,0.6)';
+      } else {
+        line.style.left = g.min + 'px';
+        line.style.top = g.pos + 'px';
+        line.style.width = (g.max - g.min) + 'px';
+        line.style.height = '0';
+        line.style.borderTop = '1px dashed rgba(100,180,255,0.6)';
+      }
+      if (g.style === 'double') {
+        line.style.borderWidth = '2px';
+        line.style.borderColor = 'rgba(100,220,100,0.6)';
+      }
+      mainEl.appendChild(line);
+      this._guideEls.push(line);
+    }
+  }
+
+  _clearGuides() {
+    if (this._guideEls) {
+      this._guideEls.forEach(el => el.remove());
+      this._guideEls = null;
+    }
+  }
+
   // === Title bar drag-to-move ===
 
   _setupTitleBarDrag(win, titleBar, winId) {
@@ -297,10 +383,13 @@ export class FreeLayout {
 
       win.style.left = nx + 'px';
       win.style.top = ny + 'px';
+
+      this._showGuides(winId);
     };
 
     const onPointerUp = () => {
       win.classList.remove('free-window-dragging');
+      this._clearGuides();
       this._updatePos(winId);
       this._saveLayout();
     };
@@ -377,10 +466,13 @@ export class FreeLayout {
           if (winId === 'board' && this.onWindowResize) {
             this.onWindowResize(winId, { l, t, w, h });
           }
+
+          this._showGuides(winId);
         };
 
         const onUp = () => {
           win.classList.remove('free-window-resizing');
+          this._clearGuides();
           handle.removeEventListener('pointermove', onMove);
           handle.removeEventListener('pointerup', onUp);
           handle.removeEventListener('pointercancel', onUp);
