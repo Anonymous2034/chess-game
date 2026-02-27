@@ -33,6 +33,8 @@ import { ChessNews } from './chess-news.js';
 import { PositionCommentary } from './position-commentary.js';
 import { FreeLayout } from './free-layout.js';
 import { AchievementManager } from './achievements.js';
+import { RepertoireTrainer } from './repertoire.js';
+import { TablebaseLookup } from './tablebase.js';
 
 class ChessApp {
   constructor() {
@@ -108,6 +110,20 @@ class ChessApp {
 
     // Move times tracking (Feature 8: Time Management Graph)
     this._moveTimes = [];
+
+    // Feature: Opening Repertoire Trainer (v146)
+    this.repertoire = new RepertoireTrainer();
+    this._repertoireDrillState = null;
+    this._repertoireDrillHandler = null;
+
+    // Feature: Multi-PV Lines (v147)
+    this._multiPVEnabled = localStorage.getItem('chess_multi_pv') === 'true';
+
+    // Feature: Tablebase Endgame Lookup (v148)
+    this.tablebase = new TablebaseLookup();
+
+    // Feature: Correspondence / Saved Games (v152)
+    this._autoSaveEnabled = localStorage.getItem('chess_auto_save') === 'true';
 
     this.init();
   }
@@ -189,6 +205,13 @@ class ChessApp {
     this.setupTakebackButton();
     this.setupRematchButton();
     this.setupPositionEditor();
+    this.setupRepertoire();
+    this.setupMultiPV();
+    this.setupTablebase();
+    this.setupAnnotations();
+    this.setupLichessImport();
+    this.setupGifExport();
+    this.setupCorrespondence();
 
     // Load database in background, then restore saved imports
     this.database.loadCollections().then(async (categories) => {
@@ -310,6 +333,12 @@ class ChessApp {
       return;
     }
 
+    // Repertoire drill interception
+    if (this._repertoireDrillHandler) {
+      this._repertoireDrillHandler(move);
+      return;
+    }
+
     // Opening training drill interception
     if (this._openingTrainingMoveHandler) {
       this._openingTrainingMoveHandler(move);
@@ -372,6 +401,8 @@ class ChessApp {
       // Safe to analyze — it's the player's turn or local/multiplayer mode
       this._updateAdvisorAnalysis();
       this._updateEvalBar();
+      this._updateMultiPVLines();
+      this._checkTablebase();
       // Update GM Coach if visible
       if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
         this._updateGMCoachCommentary();
@@ -383,6 +414,11 @@ class ChessApp {
 
     // Update time graph
     this._renderTimeGraph();
+
+    // Auto-save game (v152)
+    if (this._autoSaveEnabled && !this.puzzleActive && !this.endgameActive) {
+      this._autoSaveGame();
+    }
   }
 
   get chess() {
@@ -556,6 +592,8 @@ class ChessApp {
           this._startMoveClock(this.chess.turn());
           this._updateAdvisorAnalysis();
           this._updateEvalBar();
+          this._updateMultiPVLines();
+          this._checkTablebase();
           if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
             this._updateGMCoachCommentary();
           }
@@ -565,6 +603,8 @@ class ChessApp {
         this._startMoveClock(this.chess.turn());
         this._updateAdvisorAnalysis();
         this._updateEvalBar();
+        this._updateMultiPVLines();
+        this._checkTablebase();
         if (!document.getElementById('tab-gm-coach')?.classList.contains('hidden')) {
           this._updateGMCoachCommentary();
         }
@@ -3449,10 +3489,11 @@ class ChessApp {
     this._clearEvalSparkline();
     this._updateAccuracyBars();
 
-    // Exit puzzle mode if active
+    // Exit active drill modes
     this._exitPuzzleMode();
-    // Exit endgame trainer if active
     this._exitEndgameMode();
+    this._exitRepertoireDrill();
+    this._clearTablebaseDisplay();
 
     // Disconnect any active multiplayer game
     if (this.multiplayer) {
@@ -10694,6 +10735,1049 @@ class ChessApp {
         this.showToast(`${this.activeBot.name} refuses the takeback!`);
       }
     }, delay);
+  }
+
+  // ============================================================
+  // FEATURE 1: Opening Repertoire Trainer (v146)
+  // ============================================================
+  setupRepertoire() {
+    const btn = document.getElementById('btn-repertoire');
+    if (btn) btn.addEventListener('click', () => this._openRepertoireDialog());
+
+    const closeBtn = document.getElementById('repertoire-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => hide(document.getElementById('repertoire-dialog')));
+
+    // Tab switching
+    document.querySelectorAll('.rep-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.rep-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const tabName = tab.dataset.repTab;
+        ['lines', 'drill', 'stats'].forEach(t => {
+          const el = document.getElementById(`rep-tab-${t}`);
+          if (el) el.classList.toggle('hidden', t !== tabName);
+        });
+        if (tabName === 'drill') this._renderRepDrillTab();
+        if (tabName === 'stats') this._renderRepStatsTab();
+      });
+    });
+
+    // Add from mainlines
+    const addMainlineBtn = document.getElementById('btn-rep-add-mainline');
+    if (addMainlineBtn) addMainlineBtn.addEventListener('click', () => this._openRepEcoPicker());
+
+    // Add current game
+    const addCurrentBtn = document.getElementById('btn-rep-add-current');
+    if (addCurrentBtn) addCurrentBtn.addEventListener('click', () => this._addCurrentGameToRepertoire());
+
+    // ECO picker cancel
+    const ecoCancel = document.getElementById('rep-eco-cancel');
+    if (ecoCancel) ecoCancel.addEventListener('click', () => hide(document.getElementById('rep-eco-picker')));
+
+    // Drill exit
+    const exitBtn = document.getElementById('btn-rep-drill-exit');
+    if (exitBtn) exitBtn.addEventListener('click', () => this._exitRepertoireDrill());
+  }
+
+  _openRepertoireDialog() {
+    const dialog = document.getElementById('repertoire-dialog');
+    if (!dialog) return;
+    show(dialog);
+    this._renderRepertoireLines();
+  }
+
+  _renderRepertoireLines() {
+    const list = document.getElementById('repertoire-list');
+    if (!list) return;
+    const lines = this.repertoire.getLines();
+    if (lines.length === 0) {
+      list.innerHTML = '<div style="color:#888;font-size:0.8rem;padding:10px">No lines added yet. Add from openings or from your current game.</div>';
+      return;
+    }
+    const now = Date.now();
+    list.innerHTML = lines.map(line => {
+      const pct = line.accuracy || 0;
+      const barClass = pct >= 70 ? 'good' : 'bad';
+      const due = line.nextReview <= now;
+      return `<div class="rep-line-card" data-line-id="${line.id}">
+        <span class="rep-color-indicator">${line.color === 'w' ? '&#9812;' : '&#9818;'}</span>
+        ${line.eco ? `<span class="rep-eco-badge">${line.eco}</span>` : ''}
+        <span class="rep-line-name">${line.name}</span>
+        <div class="rep-accuracy-bar"><div class="rep-accuracy-bar-fill ${barClass}" style="width:${pct}%"></div></div>
+        <span style="font-size:0.7rem;color:#aaa">${pct}%</span>
+        ${due ? '<span class="rep-due-badge">Due</span>' : ''}
+        <button class="btn btn-sm" data-drill-id="${line.id}" title="Start drill">Drill</button>
+        <button class="rep-line-delete" data-del-id="${line.id}" title="Remove">&times;</button>
+      </div>`;
+    }).join('');
+
+    // Drill buttons
+    list.querySelectorAll('[data-drill-id]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hide(document.getElementById('repertoire-dialog'));
+        this._startRepertoireDrill(btn.dataset.drillId);
+      });
+    });
+
+    // Delete buttons
+    list.querySelectorAll('[data-del-id]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.repertoire.removeLine(btn.dataset.delId);
+        this._renderRepertoireLines();
+      });
+    });
+  }
+
+  _openRepEcoPicker() {
+    const dialog = document.getElementById('rep-eco-picker');
+    if (!dialog) return;
+    show(dialog);
+    const list = document.getElementById('rep-eco-list');
+    if (!list) return;
+
+    // Show available openings from OPENING_MAINLINES
+    const entries = Object.entries(OPENING_MAINLINES);
+    if (entries.length === 0) {
+      list.innerHTML = '<div style="color:#888;font-size:0.8rem">No opening mainlines available.</div>';
+      return;
+    }
+    list.innerHTML = entries.map(([eco, data]) => {
+      const name = data.name || eco;
+      return `<div class="rep-eco-item" data-eco="${eco}" data-name="${name}">${eco}: ${name}</div>`;
+    }).join('');
+
+    list.querySelectorAll('.rep-eco-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const eco = item.dataset.eco;
+        const name = item.dataset.name;
+        const color = document.getElementById('rep-eco-color')?.value || 'w';
+        const mainline = OPENING_MAINLINES[eco];
+        const moves = mainline?.moves || [];
+        this.repertoire.addLineFromMainlines(eco, color, name, moves);
+        hide(document.getElementById('rep-eco-picker'));
+        this._renderRepertoireLines();
+        this.showToast(`Added ${name} to repertoire`);
+      });
+    });
+  }
+
+  _addCurrentGameToRepertoire() {
+    const moves = this.game.moveHistory.map(m => m.san);
+    if (moves.length < 2) {
+      this.showToast('Play at least 2 moves first');
+      return;
+    }
+    const name = this.lastOpeningName || 'Custom Line';
+    const color = this.game.playerColor || 'w';
+    this.repertoire.addCustomLine(name, moves.slice(0, Math.min(moves.length, 20)), color);
+    this._renderRepertoireLines();
+    this.showToast(`Added ${moves.length} moves to repertoire`);
+  }
+
+  _startRepertoireDrill(lineId) {
+    const drillState = this.repertoire.startDrill(lineId);
+    if (!drillState) {
+      this.showToast('Cannot start drill — line has no moves');
+      return;
+    }
+    this._repertoireDrillState = drillState;
+
+    // Set up board for drill
+    this.game.newGame({ mode: 'local', color: drillState.color, time: 0, increment: 0 });
+    this.notation.clear();
+    this.board.setLastMove(null);
+    this.board.setInteractive(true);
+    if (drillState.color === 'b') this.board.setFlipped(true);
+    else this.board.setFlipped(false);
+    this.board.update();
+
+    // Show drill bar
+    const drillBar = document.getElementById('repertoire-drill-bar');
+    if (drillBar) {
+      drillBar.classList.remove('hidden');
+      document.getElementById('rep-drill-name').textContent = drillState.lineName;
+      document.getElementById('rep-drill-progress').textContent = `0/${drillState.moves.length}`;
+    }
+
+    // If it's the opponent's turn first, auto-play their move
+    const isPlayerTurn = (this.chess.turn() === drillState.color);
+    if (!isPlayerTurn) {
+      this._playRepertoireOpponentMove();
+    }
+
+    // Set drill handler
+    this._repertoireDrillHandler = (move) => this._handleRepertoireDrillMove(move);
+  }
+
+  _handleRepertoireDrillMove(move) {
+    const ds = this._repertoireDrillState;
+    if (!ds) return;
+
+    const result = this.repertoire.validateDrillMove(ds, move.san);
+
+    if (result.correct) {
+      this.sound.playMoveSound(move);
+      this.notation.addMove(move);
+      this.board.setLastMove(move);
+      this.board.update();
+
+      // Update progress
+      const progressEl = document.getElementById('rep-drill-progress');
+      if (progressEl) progressEl.textContent = `${ds.currentMoveIndex}/${ds.moves.length}`;
+
+      if (ds.completed) {
+        // Drill complete
+        this.repertoire.completeDrill(ds.lineId, ds.errors === 0);
+        this.showToast(ds.errors === 0 ? 'Perfect! Line completed!' : `Completed with ${ds.errors} error(s)`);
+        this._exitRepertoireDrill();
+        return;
+      }
+
+      // Auto-play opponent's next move
+      setTimeout(() => this._playRepertoireOpponentMove(), 300);
+    } else {
+      // Wrong move — undo it and show feedback
+      this.game.undo();
+      this.board.update();
+      this.showToast(`Expected: ${result.expected}`);
+    }
+  }
+
+  _playRepertoireOpponentMove() {
+    const ds = this._repertoireDrillState;
+    if (!ds || ds.completed) return;
+
+    const opponentMove = this.repertoire.getNextOpponentMove(ds);
+    if (!opponentMove) return;
+
+    // Play the opponent's move
+    try {
+      const move = this.chess.move(opponentMove);
+      if (move) {
+        this.game.moveHistory.push(move);
+        this.game.currentMoveIndex++;
+        this.game.fens.push(this.chess.fen());
+        ds.currentMoveIndex++;
+        this.sound.playMoveSound(move);
+        this.notation.addMove(move);
+        this.board.setLastMove(move);
+        this.board.update();
+
+        const progressEl = document.getElementById('rep-drill-progress');
+        if (progressEl) progressEl.textContent = `${ds.currentMoveIndex}/${ds.moves.length}`;
+
+        if (ds.completed) {
+          this.repertoire.completeDrill(ds.lineId, ds.errors === 0);
+          this.showToast(ds.errors === 0 ? 'Perfect! Line completed!' : `Completed with ${ds.errors} error(s)`);
+          this._exitRepertoireDrill();
+        }
+      }
+    } catch { /* invalid move */ }
+  }
+
+  _exitRepertoireDrill() {
+    this._repertoireDrillState = null;
+    this._repertoireDrillHandler = null;
+    const drillBar = document.getElementById('repertoire-drill-bar');
+    if (drillBar) drillBar.classList.add('hidden');
+    this.board.setInteractive(true);
+  }
+
+  _renderRepDrillTab() {
+    const summary = document.getElementById('rep-drill-summary');
+    const dueContainer = document.getElementById('rep-drill-due');
+    if (!summary || !dueContainer) return;
+
+    const dueLines = this.repertoire.getDueLines();
+    const total = this.repertoire.getLines().length;
+    summary.textContent = `${dueLines.length} of ${total} lines due for review`;
+
+    if (dueLines.length === 0) {
+      dueContainer.innerHTML = '<div style="color:#888;font-size:0.8rem">No lines due for review right now.</div>';
+      return;
+    }
+    dueContainer.innerHTML = dueLines.map(line =>
+      `<div class="rep-line-card" style="cursor:pointer" data-drill-id="${line.id}">
+        <span class="rep-color-indicator">${line.color === 'w' ? '&#9812;' : '&#9818;'}</span>
+        ${line.eco ? `<span class="rep-eco-badge">${line.eco}</span>` : ''}
+        <span class="rep-line-name">${line.name}</span>
+        <span class="rep-due-badge">Due</span>
+      </div>`
+    ).join('');
+
+    dueContainer.querySelectorAll('[data-drill-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        hide(document.getElementById('repertoire-dialog'));
+        this._startRepertoireDrill(card.dataset.drillId);
+      });
+    });
+  }
+
+  _renderRepStatsTab() {
+    const container = document.getElementById('rep-stats-overview');
+    if (!container) return;
+    const stats = this.repertoire.getStats();
+    container.innerHTML = `
+      <div>Total lines: <strong>${stats.total}</strong></div>
+      <div>Lines due: <strong>${stats.due}</strong></div>
+      <div>Total drills: <strong>${stats.totalAttempts}</strong></div>
+      <div>Correct: <strong>${stats.totalCorrect}</strong></div>
+      <div>Average accuracy: <strong>${stats.avgAccuracy}%</strong></div>
+    `;
+  }
+
+  // ============================================================
+  // FEATURE 2: Engine Multi-PV Lines (v147)
+  // ============================================================
+  setupMultiPV() {
+    const toggle = document.getElementById('toggle-multi-pv');
+    if (toggle) {
+      toggle.checked = this._multiPVEnabled;
+      toggle.addEventListener('change', () => {
+        this._multiPVEnabled = toggle.checked;
+        localStorage.setItem('chess_multi_pv', toggle.checked ? 'true' : 'false');
+        const panel = document.getElementById('tab-engine-lines');
+        if (panel) panel.classList.toggle('hidden', !toggle.checked);
+        if (toggle.checked) this._updateMultiPVLines();
+      });
+    }
+    const panel = document.getElementById('tab-engine-lines');
+    if (panel && this._multiPVEnabled) panel.classList.remove('hidden');
+  }
+
+  async _updateMultiPVLines() {
+    if (!this._multiPVEnabled) return;
+    if (!this.engine || !this.engine.ready) return;
+    if (this.game.gameOver) return;
+    if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor) return;
+
+    const fen = this.chess.fen();
+    const isBlack = this.chess.turn() === 'b';
+
+    // Wait for engine to be free
+    let waited = 0;
+    while (this.engine.thinking && waited < 3000) {
+      await new Promise(r => setTimeout(r, 200));
+      waited += 200;
+    }
+    if (this.engine.thinking) return;
+
+    this.engine.resetOptions();
+    const lines = await this.engine.analyzePositionMultiPV(fen, 14, 3);
+
+    // Restore bot personality after analysis
+    if (this.activeBot) this.engine.applyPersonality(this.activeBot);
+    this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
+    this.engine.onNoMove = () => this._handleEngineNoMove();
+    // Reset MultiPV to 1 for normal play
+    this.engine.send('setoption name MultiPV value 1');
+    this.engine.multiPV = 1;
+
+    this._renderMultiPVLines(lines, isBlack);
+  }
+
+  _renderMultiPVLines(lines, isBlackToMove) {
+    const container = document.getElementById('multi-pv-lines');
+    if (!container) return;
+    if (!lines || lines.length === 0) {
+      container.innerHTML = '<div style="color:#888;font-size:0.8rem;padding:8px">No lines available</div>';
+      return;
+    }
+
+    container.innerHTML = lines.map((line, i) => {
+      let score = line.score;
+      let mate = line.mate;
+      if (isBlackToMove) { score = -score; if (mate !== null) mate = -mate; }
+
+      let evalText, evalClass;
+      if (mate !== null) {
+        evalText = `M${Math.abs(mate)}`;
+        evalClass = mate > 0 ? 'positive' : 'negative';
+      } else {
+        const cp = score / 100;
+        evalText = `${cp > 0 ? '+' : ''}${cp.toFixed(1)}`;
+        evalClass = cp > 0.2 ? 'positive' : cp < -0.2 ? 'negative' : 'neutral';
+      }
+
+      // Show first 6 moves of PV
+      const pvMoves = (line.pv || '').split(' ').slice(0, 6).join(' ');
+      return `<div class="multi-pv-line" data-pv="${line.pv || ''}">
+        <span class="multi-pv-eval ${evalClass}">${evalText}</span>
+        <span class="multi-pv-moves">${pvMoves}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ============================================================
+  // FEATURE 3: Tablebase Endgame Lookup (v148)
+  // ============================================================
+  setupTablebase() {
+    // Tablebase is enabled by default, no toggle needed in the current UI
+    // but can be disabled via localStorage
+  }
+
+  async _checkTablebase() {
+    const fen = this.chess.fen();
+    if (!this.tablebase.shouldQuery(fen)) {
+      this._clearTablebaseDisplay();
+      return;
+    }
+
+    const result = await this.tablebase.query(fen);
+    if (result) {
+      this._renderTablebaseResult(result);
+    } else {
+      this._clearTablebaseDisplay();
+    }
+  }
+
+  _renderTablebaseResult(result) {
+    const indicator = document.getElementById('tablebase-indicator');
+    if (!indicator) return;
+    indicator.classList.remove('hidden');
+
+    const badge = document.getElementById('tb-badge');
+    const detail = document.getElementById('tb-detail');
+    const moveEl = document.getElementById('tb-move');
+
+    if (badge) {
+      badge.textContent = result.category;
+      badge.className = 'tb-badge';
+      if (result.category === 'WIN') badge.classList.add('tb-win');
+      else if (result.category === 'LOSS') badge.classList.add('tb-loss');
+      else badge.classList.add('tb-draw');
+    }
+
+    if (detail) {
+      detail.textContent = result.dtz !== null ? `DTZ:${Math.abs(result.dtz)}` : '';
+    }
+
+    if (moveEl) {
+      moveEl.textContent = result.bestMoveSan ? result.bestMoveSan : '';
+    }
+  }
+
+  _clearTablebaseDisplay() {
+    const indicator = document.getElementById('tablebase-indicator');
+    if (indicator) indicator.classList.add('hidden');
+  }
+
+  // ============================================================
+  // FEATURE 4: Manual Game Annotations (v149)
+  // ============================================================
+  setupAnnotations() {
+    this.notation.onAnnotate = (index, event) => this._showAnnotationPopup(index, event);
+
+    const popup = document.getElementById('annotation-popup');
+    if (!popup) return;
+
+    // NAG buttons
+    popup.querySelectorAll('.ann-nag-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        popup.querySelectorAll('.ann-nag-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    document.getElementById('ann-save')?.addEventListener('click', () => {
+      const index = parseInt(popup.dataset.moveIndex);
+      const nag = popup.querySelector('.ann-nag-btn.active')?.dataset.nag || '';
+      const comment = document.getElementById('ann-comment')?.value || '';
+      this.notation.setAnnotation(index, comment, nag);
+      popup.classList.add('hidden');
+    });
+
+    document.getElementById('ann-cancel')?.addEventListener('click', () => {
+      popup.classList.add('hidden');
+    });
+
+    document.getElementById('ann-clear')?.addEventListener('click', () => {
+      const index = parseInt(popup.dataset.moveIndex);
+      this.notation.clearAnnotation(index);
+      popup.classList.add('hidden');
+    });
+  }
+
+  _showAnnotationPopup(moveIndex, event) {
+    const popup = document.getElementById('annotation-popup');
+    if (!popup) return;
+
+    popup.dataset.moveIndex = moveIndex;
+
+    // Pre-fill existing annotation
+    const ann = this.notation.getAnnotation(moveIndex);
+    popup.querySelectorAll('.ann-nag-btn').forEach(b => {
+      b.classList.toggle('active', ann && b.dataset.nag === ann.nag);
+    });
+    const commentEl = document.getElementById('ann-comment');
+    if (commentEl) commentEl.value = ann?.comment || '';
+
+    // Position near clicked element
+    const rect = event.target.getBoundingClientRect();
+    popup.style.top = `${rect.bottom + 4}px`;
+    popup.style.left = `${Math.min(rect.left, window.innerWidth - 240)}px`;
+    popup.classList.remove('hidden');
+  }
+
+  // ============================================================
+  // FEATURE 5: Lichess Game Import (v150)
+  // ============================================================
+  setupLichessImport() {
+    const btn = document.getElementById('btn-lichess-import');
+    if (btn) btn.addEventListener('click', () => this._openLichessImportDialog());
+
+    const closeBtn = document.getElementById('lichess-import-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => hide(document.getElementById('lichess-import-dialog')));
+
+    const fetchBtn = document.getElementById('btn-lichess-fetch');
+    if (fetchBtn) fetchBtn.addEventListener('click', () => {
+      const username = document.getElementById('lichess-username')?.value?.trim();
+      if (username) this._fetchLichessGames(username);
+    });
+
+    const selectAll = document.getElementById('lichess-select-all');
+    if (selectAll) selectAll.addEventListener('change', () => {
+      document.querySelectorAll('#lichess-game-list input[type="checkbox"]').forEach(cb => {
+        cb.checked = selectAll.checked;
+      });
+    });
+
+    const importBtn = document.getElementById('btn-lichess-import-selected');
+    if (importBtn) importBtn.addEventListener('click', () => this._importSelectedLichessGames());
+  }
+
+  _openLichessImportDialog() {
+    const dialog = document.getElementById('lichess-import-dialog');
+    if (dialog) show(dialog);
+  }
+
+  async _fetchLichessGames(username) {
+    const status = document.getElementById('lichess-import-status');
+    if (status) status.textContent = `Fetching games for ${username}...`;
+
+    try {
+      const resp = await fetch(`https://lichess.org/api/games/user/${encodeURIComponent(username)}?max=50&pgnInJson=true&opening=true`, {
+        headers: { 'Accept': 'application/x-ndjson' }
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const text = await resp.text();
+      const games = text.split('\n').filter(l => l.trim()).map(l => {
+        try { return JSON.parse(l); } catch { return null; }
+      }).filter(Boolean);
+
+      this._lichessGames = games;
+      this._lichessUsername = username;
+      this._renderLichessGameList(games, username);
+      if (status) status.textContent = `Found ${games.length} games`;
+    } catch (err) {
+      if (status) status.textContent = `Error: ${err.message}`;
+    }
+  }
+
+  _renderLichessGameList(games, username) {
+    const list = document.getElementById('lichess-game-list');
+    const controls = document.getElementById('lichess-game-controls');
+    if (!list) return;
+    if (controls) controls.classList.remove('hidden');
+
+    list.innerHTML = games.map((g, i) => {
+      const white = g.players?.white?.user?.name || 'Anonymous';
+      const black = g.players?.black?.user?.name || 'Anonymous';
+      const isWhite = white.toLowerCase() === username.toLowerCase();
+      const opponent = isWhite ? black : white;
+      const winner = g.winner;
+      let resultBadge = 'draw';
+      let resultText = 'Draw';
+      if (winner === 'white') {
+        resultBadge = isWhite ? 'win' : 'loss';
+        resultText = isWhite ? 'Won' : 'Lost';
+      } else if (winner === 'black') {
+        resultBadge = isWhite ? 'loss' : 'win';
+        resultText = isWhite ? 'Lost' : 'Won';
+      }
+      const opening = g.opening?.name || '';
+      const date = g.createdAt ? new Date(g.createdAt).toLocaleDateString() : '';
+
+      return `<div class="lichess-game-row">
+        <input type="checkbox" data-game-index="${i}" checked>
+        <span class="lichess-game-players">vs ${opponent}</span>
+        <span class="lichess-result-badge ${resultBadge}">${resultText}</span>
+        <span class="lichess-game-opening">${opening}</span>
+        <span class="lichess-game-date">${date}</span>
+      </div>`;
+    }).join('');
+  }
+
+  _importSelectedLichessGames() {
+    if (!this._lichessGames) return;
+    const checkboxes = document.querySelectorAll('#lichess-game-list input[type="checkbox"]:checked');
+    const indices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.gameIndex));
+    const selected = indices.map(i => this._lichessGames[i]).filter(Boolean);
+
+    if (selected.length === 0) {
+      this.showToast('No games selected');
+      return;
+    }
+
+    const pgnText = selected.map(g => this._lichessGameToPGN(g)).join('\n\n');
+    this.database.importAllGames(pgnText, `Lichess: ${this._lichessUsername}`).then(count => {
+      this.showToast(`Imported ${count} games from Lichess`);
+      this.database.buildOpeningIndex();
+      this.populateCategoryTabs();
+      this.populateCollectionFilter();
+    });
+
+    hide(document.getElementById('lichess-import-dialog'));
+  }
+
+  _lichessGameToPGN(game) {
+    const headers = [];
+    headers.push(`[Event "${game.speed || 'Lichess'}"]`);
+    headers.push(`[Site "lichess.org"]`);
+    headers.push(`[Date "${game.createdAt ? new Date(game.createdAt).toISOString().split('T')[0].replace(/-/g, '.') : '?'}"]`);
+    headers.push(`[Round "?"]`);
+    headers.push(`[White "${game.players?.white?.user?.name || '?'}"]`);
+    headers.push(`[Black "${game.players?.black?.user?.name || '?'}"]`);
+    const result = game.winner === 'white' ? '1-0' : game.winner === 'black' ? '0-1' : '1/2-1/2';
+    headers.push(`[Result "${result}"]`);
+    if (game.opening?.eco) headers.push(`[ECO "${game.opening.eco}"]`);
+
+    let moves = '';
+    if (game.pgn) {
+      moves = game.pgn;
+    } else if (game.moves) {
+      // Lichess moves format: space-separated UCI moves
+      const uciMoves = game.moves.split(' ');
+      const chess = new Chess();
+      const sanMoves = [];
+      for (const uci of uciMoves) {
+        try {
+          const move = chess.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
+          if (move) sanMoves.push(move.san);
+        } catch { break; }
+      }
+      for (let i = 0; i < sanMoves.length; i++) {
+        if (i % 2 === 0) moves += `${Math.floor(i / 2) + 1}. `;
+        moves += sanMoves[i] + ' ';
+      }
+      moves += result;
+    }
+
+    return headers.join('\n') + '\n\n' + moves;
+  }
+
+  // ============================================================
+  // FEATURE 6: Export Animated GIF (v151)
+  // ============================================================
+  setupGifExport() {
+    const exportBtn = document.getElementById('btn-gif-export');
+    if (exportBtn) exportBtn.addEventListener('click', () => this._exportGIF());
+
+    const closeBtn = document.getElementById('gif-export-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => hide(document.getElementById('gif-export-dialog')));
+
+    // Open GIF dialog from PGN dialog
+    const openBtn = document.getElementById('btn-export-gif');
+    if (openBtn) openBtn.addEventListener('click', () => {
+      hide(document.getElementById('pgn-dialog'));
+      const dialog = document.getElementById('gif-export-dialog');
+      if (dialog) {
+        show(dialog);
+        const countEl = document.getElementById('gif-move-count');
+        if (countEl) countEl.textContent = `${this.game.moveHistory.length} moves`;
+      }
+    });
+
+    // Frame delay slider label
+    const slider = document.getElementById('gif-frame-delay');
+    if (slider) {
+      slider.addEventListener('input', () => {
+        const label = document.getElementById('gif-delay-label');
+        if (label) label.textContent = `${slider.value}ms`;
+      });
+    }
+  }
+
+  async _exportGIF() {
+    const moves = this.game.moveHistory;
+    if (moves.length === 0) { this.showToast('No moves to export'); return; }
+
+    const delay = parseInt(document.getElementById('gif-frame-delay')?.value || '1000');
+    const size = parseInt(document.getElementById('gif-board-size')?.value || '600');
+    const sqSize = size / 8;
+
+    // Show progress
+    const progressEl = document.getElementById('gif-progress');
+    const fillEl = document.getElementById('gif-progress-fill');
+    const textEl = document.getElementById('gif-progress-text');
+    const previewEl = document.getElementById('gif-preview');
+    if (progressEl) progressEl.classList.remove('hidden');
+    if (previewEl) previewEl.classList.add('hidden');
+    if (fillEl) fillEl.style.width = '0%';
+    if (textEl) textEl.textContent = 'Loading GIF encoder...';
+
+    // Load gif.js dynamically
+    await this._loadGifJS();
+
+    // Pre-load piece SVGs
+    if (textEl) textEl.textContent = 'Loading piece images...';
+    const pieceImages = await this._preloadPieceSVGs(sqSize);
+
+    // Get theme colors
+    const style = getComputedStyle(document.documentElement);
+    const lightColor = style.getPropertyValue('--light-square').trim() || '#f0d9b5';
+    const darkColor = style.getPropertyValue('--dark-square').trim() || '#b58863';
+
+    // Create GIF
+    const gif = new GIF({
+      workers: 2,
+      quality: 10,
+      width: size,
+      height: size + 30,
+      workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+    });
+
+    // Replay all positions
+    const chess = new Chess();
+    const positions = [chess.fen()];
+    const lastMoves = [null];
+    const moveTexts = ['Start'];
+
+    for (const move of moves) {
+      const m = chess.move(move.san);
+      positions.push(chess.fen());
+      lastMoves.push(m ? { from: m.from, to: m.to } : null);
+      const moveNum = Math.ceil(positions.length / 2);
+      moveTexts.push(`${moveNum}${positions.length % 2 === 0 ? '.' : '...'} ${move.san}`);
+    }
+
+    // Render frames
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size + 30;
+    const ctx = canvas.getContext('2d');
+    const totalFrames = positions.length;
+
+    for (let i = 0; i < totalFrames; i++) {
+      this._renderBoardToCanvas(ctx, positions[i], lastMoves[i], moveTexts[i], size, sqSize, lightColor, darkColor, pieceImages);
+      gif.addFrame(ctx, { copy: true, delay: i === 0 ? delay * 2 : delay });
+      if (fillEl) fillEl.style.width = `${Math.round(((i + 1) / totalFrames) * 80)}%`;
+      if (textEl) textEl.textContent = `Rendering frame ${i + 1}/${totalFrames}`;
+    }
+
+    if (textEl) textEl.textContent = 'Encoding GIF...';
+
+    gif.on('finished', (blob) => {
+      if (fillEl) fillEl.style.width = '100%';
+      if (textEl) textEl.textContent = 'Done!';
+
+      // Show preview
+      const url = URL.createObjectURL(blob);
+      const previewImg = document.getElementById('gif-preview-img');
+      if (previewImg) previewImg.src = url;
+      if (previewEl) previewEl.classList.remove('hidden');
+
+      // Trigger download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chess_game_${Date.now()}.gif`;
+      a.click();
+    });
+
+    gif.render();
+  }
+
+  _renderBoardToCanvas(ctx, fen, lastMove, moveText, size, sqSize, lightColor, darkColor, pieceImages) {
+    const placement = fen.split(' ')[0];
+    const flipped = this.board?.flipped || false;
+
+    // Draw squares
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const isLight = (row + col) % 2 === 0;
+        ctx.fillStyle = isLight ? lightColor : darkColor;
+        ctx.fillRect(col * sqSize, row * sqSize, sqSize, sqSize);
+      }
+    }
+
+    // Highlight last move
+    if (lastMove) {
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+      const fromCoords = this._squareToCanvasCoords(lastMove.from, sqSize, flipped);
+      const toCoords = this._squareToCanvasCoords(lastMove.to, sqSize, flipped);
+      ctx.fillRect(fromCoords.x, fromCoords.y, sqSize, sqSize);
+      ctx.fillRect(toCoords.x, toCoords.y, sqSize, sqSize);
+    }
+
+    // Draw pieces
+    const rows = placement.split('/');
+    for (let r = 0; r < 8; r++) {
+      let col = 0;
+      for (const ch of rows[r]) {
+        if (/\d/.test(ch)) { col += parseInt(ch); continue; }
+        const color = ch === ch.toUpperCase() ? 'w' : 'b';
+        const piece = ch.toLowerCase();
+        const key = color + piece.toUpperCase();
+        const img = pieceImages[key];
+        const displayRow = flipped ? 7 - r : r;
+        const displayCol = flipped ? 7 - col : col;
+        if (img) {
+          ctx.drawImage(img, displayCol * sqSize, displayRow * sqSize, sqSize, sqSize);
+        }
+        col++;
+      }
+    }
+
+    // Draw move text bar
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, size, size, 30);
+    ctx.fillStyle = '#ccc';
+    ctx.font = `${Math.round(sqSize * 0.25)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(moveText || '', size / 2, size + 15);
+  }
+
+  _squareToCanvasCoords(square, sqSize, flipped) {
+    let col = square.charCodeAt(0) - 97; // a=0, h=7
+    let row = 8 - parseInt(square[1]);   // 8=0, 1=7
+    if (flipped) { col = 7 - col; row = 7 - row; }
+    return { x: col * sqSize, y: row * sqSize };
+  }
+
+  async _preloadPieceSVGs(sqSize) {
+    const pieces = ['wK','wQ','wR','wB','wN','wP','bK','bQ','bR','bB','bN','bP'];
+    const basePath = this.themes?.getPieceBasePath() || 'assets/pieces/';
+    const images = {};
+
+    await Promise.all(pieces.map(key => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => { images[key] = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = `${basePath}${key}.svg`;
+    })));
+
+    return images;
+  }
+
+  async _loadGifJS() {
+    if (window.GIF) return;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  // ============================================================
+  // FEATURE 7: Correspondence / Saved Games (v152)
+  // ============================================================
+  setupCorrespondence() {
+    const savedBtn = document.getElementById('btn-saved-games');
+    if (savedBtn) savedBtn.addEventListener('click', () => this._openSavedGamesDialog());
+
+    const closeBtn = document.getElementById('saved-games-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => hide(document.getElementById('saved-games-dialog')));
+
+    const saveBtn = document.getElementById('btn-save-game');
+    if (saveBtn) saveBtn.addEventListener('click', () => this._saveCurrentGame());
+
+    const autoToggle = document.getElementById('toggle-auto-save');
+    if (autoToggle) {
+      autoToggle.checked = this._autoSaveEnabled;
+      autoToggle.addEventListener('change', () => {
+        this._autoSaveEnabled = autoToggle.checked;
+        localStorage.setItem('chess_auto_save', autoToggle.checked ? 'true' : 'false');
+      });
+    }
+  }
+
+  _saveCurrentGame() {
+    const moves = this.game.moveHistory;
+    if (moves.length === 0) { this.showToast('No moves to save'); return; }
+
+    const id = 'save_' + Date.now();
+    const entry = {
+      id,
+      date: new Date().toISOString(),
+      fen: this.chess.fen(),
+      moveHistory: moves.map(m => m.san),
+      mode: this.game.mode,
+      playerColor: this.game.playerColor,
+      botId: this.activeBot?.id || null,
+      timeControl: this.game.timeControl || 0,
+      increment: this.game.increment || 0,
+      timers: this.game.timers ? { ...this.game.timers } : null,
+      opponent: this.activeBot?.name || 'Local',
+      moveCount: moves.length,
+      annotations: { ...this.notation.annotations },
+      autoSave: false
+    };
+
+    const saved = this._getSavedGames();
+    saved.unshift(entry);
+    // Limit to 20 games
+    while (saved.length > 20) saved.pop();
+    localStorage.setItem('chess_saved_games', JSON.stringify(saved));
+
+    const saveBtn = document.getElementById('btn-save-game');
+    if (saveBtn) { saveBtn.textContent = 'Saved'; saveBtn.classList.add('saved'); }
+    this.showToast('Game saved');
+  }
+
+  _autoSaveGame() {
+    const moves = this.game.moveHistory;
+    if (moves.length === 0) return;
+
+    const saved = this._getSavedGames();
+    // Find existing auto-save entry and update it, or create new
+    const autoIdx = saved.findIndex(g => g.autoSave === true);
+    const entry = {
+      id: autoIdx >= 0 ? saved[autoIdx].id : 'auto_' + Date.now(),
+      date: new Date().toISOString(),
+      fen: this.chess.fen(),
+      moveHistory: moves.map(m => m.san),
+      mode: this.game.mode,
+      playerColor: this.game.playerColor,
+      botId: this.activeBot?.id || null,
+      timeControl: this.game.timeControl || 0,
+      increment: this.game.increment || 0,
+      timers: this.game.timers ? { ...this.game.timers } : null,
+      opponent: this.activeBot?.name || 'Local',
+      moveCount: moves.length,
+      annotations: { ...this.notation.annotations },
+      autoSave: true
+    };
+
+    if (autoIdx >= 0) {
+      saved[autoIdx] = entry;
+    } else {
+      saved.unshift(entry);
+      while (saved.length > 20) saved.pop();
+    }
+    localStorage.setItem('chess_saved_games', JSON.stringify(saved));
+  }
+
+  _getSavedGames() {
+    try {
+      return JSON.parse(localStorage.getItem('chess_saved_games') || '[]');
+    } catch { return []; }
+  }
+
+  _openSavedGamesDialog() {
+    const dialog = document.getElementById('saved-games-dialog');
+    if (dialog) show(dialog);
+    this._renderSavedGames();
+  }
+
+  _renderSavedGames() {
+    const list = document.getElementById('saved-games-list');
+    const countEl = document.getElementById('saved-games-count');
+    if (!list) return;
+
+    const games = this._getSavedGames();
+    if (countEl) countEl.textContent = `${games.length}/20 games`;
+
+    if (games.length === 0) {
+      list.innerHTML = '<div style="color:#888;font-size:0.8rem;padding:10px">No saved games.</div>';
+      return;
+    }
+
+    list.innerHTML = games.map(g => {
+      const date = new Date(g.date).toLocaleString();
+      const badge = g.autoSave ? '<span style="font-size:0.65rem;color:#e8a735">AUTO</span> ' : '';
+      return `<div class="saved-game-card">
+        <div class="saved-game-info">
+          <div class="saved-game-opponent">${badge}vs ${g.opponent}</div>
+          <div class="saved-game-meta">${date} &bull; ${g.mode}</div>
+        </div>
+        <span class="saved-game-moves-badge">${g.moveCount} moves</span>
+        <div class="saved-game-actions">
+          <button class="btn btn-sm btn-accent" data-resume-id="${g.id}">Resume</button>
+          <button class="btn btn-sm btn-secondary" data-delete-id="${g.id}">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('[data-resume-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._loadSavedGame(btn.dataset.resumeId);
+        hide(document.getElementById('saved-games-dialog'));
+      });
+    });
+
+    list.querySelectorAll('[data-delete-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._deleteSavedGame(btn.dataset.deleteId);
+        this._renderSavedGames();
+      });
+    });
+  }
+
+  _loadSavedGame(gameId) {
+    const saved = this._getSavedGames();
+    const game = saved.find(g => g.id === gameId);
+    if (!game) return;
+
+    // Find bot if it was an engine game
+    const bot = game.botId ? BOT_PERSONALITIES.find(b => b.id === game.botId) : null;
+
+    // Start a new game with the same settings
+    const settings = {
+      mode: game.mode || 'local',
+      color: game.playerColor || 'w',
+      botId: game.botId,
+      time: game.timeControl || 0,
+      increment: game.increment || 0
+    };
+
+    // Use _startNewGame to properly initialize
+    this._startNewGame(settings).then(() => {
+      // Replay all moves
+      const chess = this.game.chess;
+      for (const san of game.moveHistory) {
+        try {
+          const move = chess.move(san);
+          if (move) {
+            this.game.moveHistory.push(move);
+            this.game.currentMoveIndex++;
+            this.game.fens.push(chess.fen());
+            this.notation.addMove(move);
+          }
+        } catch { break; }
+      }
+
+      // Restore annotations
+      if (game.annotations) {
+        this.notation.importAnnotations(game.annotations);
+      }
+
+      // Update board
+      if (this.game.moveHistory.length > 0) {
+        this.board.setLastMove(this.game.moveHistory[this.game.moveHistory.length - 1]);
+      }
+      this.board.update();
+      this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+
+      // If it's the engine's turn, request engine move
+      if (this.game.mode === 'engine' && this.chess.turn() !== this.game.playerColor && !this.game.gameOver) {
+        this.requestEngineMove();
+      } else {
+        this.board.setInteractive(true);
+      }
+
+      this.showToast('Game resumed');
+    });
+  }
+
+  _deleteSavedGame(gameId) {
+    const saved = this._getSavedGames().filter(g => g.id !== gameId);
+    localStorage.setItem('chess_saved_games', JSON.stringify(saved));
   }
 
   _undoPlayerMove() {

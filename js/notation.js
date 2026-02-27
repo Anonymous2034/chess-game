@@ -6,8 +6,10 @@ export class Notation {
     this.moves = [];        // Full move list
     this.currentIndex = -1; // Currently viewed move index (-1 = start position)
     this.classifications = null; // Array of { classification, cpLoss, bestMove } per move
+    this.annotations = {};      // Map<moveIndex, { comment, nag }>
     this.onMoveClick = null; // callback(index)
     this.onMoveHover = null; // callback(index, event) for detail tooltip
+    this.onAnnotate = null;  // callback(index, event) for double-click annotation
   }
 
   addMove(move) {
@@ -83,10 +85,36 @@ export class Notation {
     this.render();
   }
 
+  // --- Annotations ---
+  setAnnotation(moveIndex, comment, nag) {
+    this.annotations[moveIndex] = { comment: comment || '', nag: nag || '' };
+    this.render();
+  }
+
+  getAnnotation(moveIndex) {
+    return this.annotations[moveIndex] || null;
+  }
+
+  clearAnnotation(moveIndex) {
+    delete this.annotations[moveIndex];
+    this.render();
+  }
+
+  clearAllAnnotations() {
+    this.annotations = {};
+    this.render();
+  }
+
+  importAnnotations(map) {
+    this.annotations = { ...map };
+    this.render();
+  }
+
   clear() {
     this.moves = [];
     this.currentIndex = -1;
     this.classifications = null;
+    this.annotations = {};
     this.render();
   }
 
@@ -122,6 +150,17 @@ export class Notation {
       }
 
       this.container.appendChild(row);
+
+      // Show annotation comments below the move row
+      for (let j = i; j <= i + 1 && j < this.moves.length; j++) {
+        const ann = this.annotations[j];
+        if (ann && ann.comment) {
+          const commentRow = document.createElement('div');
+          commentRow.className = 'move-comment-row';
+          commentRow.textContent = ann.comment;
+          this.container.appendChild(commentRow);
+        }
+      }
     }
 
     if (this.onRender) this.onRender();
@@ -133,6 +172,15 @@ export class Notation {
     cell.textContent = this.moves[index].san;
     if (index === this.currentIndex) cell.classList.add('active');
 
+    // Append manual NAG symbol if annotation exists
+    const ann = this.annotations[index];
+    if (ann && ann.nag) {
+      const nagSpan = document.createElement('span');
+      nagSpan.className = 'move-nag';
+      nagSpan.textContent = ann.nag;
+      cell.appendChild(nagSpan);
+    }
+
     // Apply classification color if available
     if (this.classifications && this.classifications[index]) {
       const cls = this.classifications[index].classification;
@@ -141,6 +189,12 @@ export class Notation {
 
     cell.addEventListener('click', () => {
       if (this.onMoveClick) this.onMoveClick(index);
+    });
+
+    // Double-click for annotation
+    cell.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      if (this.onAnnotate) this.onAnnotate(index, e);
     });
 
     // Hover for analysis detail
@@ -207,19 +261,31 @@ export class Notation {
       }
       pgn += this.moves[i].san;
 
-      // Append annotation glyph and comment if classifications exist
-      if (this.classifications && this.classifications[i]) {
+      // Manual annotation NAG (takes priority over classification glyph)
+      const ann = this.annotations[i];
+      if (ann && ann.nag) {
+        pgn += ann.nag;
+      } else if (this.classifications && this.classifications[i]) {
+        // Append classification annotation glyph
         const cls = this.classifications[i];
         const glyph = ANNOTATION_GLYPHS[cls.classification] || '';
         if (glyph) pgn += glyph;
+      }
 
-        // Add eval comment for non-best moves
+      // Add eval comment for classifications (non-best moves)
+      if (this.classifications && this.classifications[i]) {
+        const cls = this.classifications[i];
         if (cls.classification !== 'best' && cls.classification !== 'great' && cls.cpLoss > 0) {
-          const parts = [];
-          if (cls.cpLoss) parts.push(`cpLoss: ${cls.cpLoss}`);
-          if (cls.bestMove) parts.push(`best: ${cls.bestMove}`);
-          if (parts.length > 0) pgn += ` {${parts.join(', ')}}`;
+          const cparts = [];
+          if (cls.cpLoss) cparts.push(`cpLoss: ${cls.cpLoss}`);
+          if (cls.bestMove) cparts.push(`best: ${cls.bestMove}`);
+          if (cparts.length > 0) pgn += ` {${cparts.join(', ')}}`;
         }
+      }
+
+      // Manual comment
+      if (ann && ann.comment) {
+        pgn += ` {${ann.comment}}`;
       }
 
       pgn += ' ';

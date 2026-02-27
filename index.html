@@ -205,6 +205,7 @@
         <textarea id="pgn-input" placeholder="Paste PGN here or choose a file above..." rows="10"></textarea>
         <div class="dialog-actions">
           <button class="btn btn-secondary" id="btn-export-pgn">Export Current Game</button>
+          <button class="btn btn-secondary" id="btn-export-gif">Export GIF</button>
           <button class="btn btn-secondary" id="cancel-pgn">Cancel</button>
           <button class="btn btn-primary" id="load-pgn">Import</button>
         </div>
@@ -1207,6 +1208,7 @@
             <button class="btn" id="btn-endgames">Endgames</button>
             <button class="btn" id="btn-tournament">Tournament</button>
             <button class="btn" id="btn-bot-match">Bot Match</button>
+            <button class="btn" id="btn-repertoire">Repertoire</button>
           </div>
           <div class="nav-menu-section">
             <span class="nav-menu-label">Tools</span>
@@ -1215,6 +1217,8 @@
             <button class="btn" id="btn-history">History</button>
             <button class="btn" id="btn-import-pgn">PGN Import/Export</button>
             <button class="btn" id="btn-position-editor">Position Editor</button>
+            <button class="btn" id="btn-lichess-import">Lichess Import</button>
+            <button class="btn" id="btn-saved-games">Saved Games</button>
           </div>
           <div class="nav-menu-section">
             <span class="nav-menu-label">Discover</span>
@@ -1234,7 +1238,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v145</div>
+          <div class="nav-menu-version" id="app-version">v152</div>
         </div>
       </nav>
     </header>
@@ -1264,6 +1268,11 @@
           <div class="eval-bar" id="eval-bar">
             <div class="eval-bar-white" id="eval-bar-white"></div>
             <div class="eval-bar-label" id="eval-bar-label">0.0</div>
+            <div class="tablebase-indicator hidden" id="tablebase-indicator">
+              <span class="tb-badge" id="tb-badge"></span>
+              <span class="tb-detail" id="tb-detail"></span>
+              <span class="tb-move" id="tb-move"></span>
+            </div>
             <div id="accuracy-bars" class="accuracy-bars hidden">
               <div class="accuracy-bar-row">
                 <span class="accuracy-bar-label">W</span>
@@ -1307,6 +1316,16 @@
             <button class="btn btn-sm" id="btn-endgame-retry">Retry</button>
             <button class="btn btn-sm hidden" id="btn-endgame-next">Next</button>
             <button class="btn btn-sm" id="btn-endgame-exit">Exit</button>
+          </div>
+        </div>
+        <!-- Repertoire Drill Bar -->
+        <div class="repertoire-drill-bar hidden" id="repertoire-drill-bar">
+          <div class="rep-drill-info">
+            <span class="rep-drill-name" id="rep-drill-name"></span>
+            <span class="rep-drill-progress" id="rep-drill-progress"></span>
+          </div>
+          <div class="rep-drill-controls">
+            <button class="btn btn-sm" id="btn-rep-drill-exit">Exit Drill</button>
           </div>
         </div>
         </div>
@@ -1421,6 +1440,7 @@
           </div>
           <button class="btn btn-sm hidden" id="btn-takeback" title="Request takeback">↩ Take Back</button>
           <button class="btn btn-sm hidden" id="btn-rematch" title="Rematch">⟳ Rematch</button>
+          <button class="btn btn-sm" id="btn-save-game" title="Save current game">Save</button>
           <button class="btn btn-sm hidden" id="btn-resign-mp">Resign</button>
           <button class="btn btn-sm hidden" id="btn-draw-mp">Offer Draw</button>
           <span class="mp-opponent-status hidden" id="mp-opponent-status"></span>
@@ -1534,6 +1554,19 @@
         </div>
         </div>
 
+        <div class="drag-group" data-drag-id="engine-lines" data-drag-label="Engine Lines">
+        <!-- Multi-PV Engine Lines (v147) -->
+        <div class="panel-content hidden" id="tab-engine-lines">
+          <div class="multi-pv-panel" id="multi-pv-panel">
+            <div class="multi-pv-header">
+              <span class="split-pane-label" style="padding:0">Engine Lines</span>
+              <label class="layout-toggle-row" style="margin:0"><span class="toggle-switch" style="margin-left:8px"><input type="checkbox" id="toggle-multi-pv"><span class="toggle-slider"></span></span></label>
+            </div>
+            <div class="multi-pv-lines" id="multi-pv-lines"></div>
+          </div>
+        </div>
+        </div>
+
         <div class="drag-group" data-drag-id="coach-area" data-drag-label="Coach">
         <!-- GM Coach Commentary (always visible, outside tabs) -->
         <div class="panel-coach-area hidden" id="panel-coach-area"></div>
@@ -1605,6 +1638,138 @@
     </div>
 
     <!-- Takeback Button (Feature 5) — in status bar area -->
+
+    <!-- Repertoire Dialog (v146) -->
+    <div id="repertoire-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Opening Repertoire</h2>
+        <div class="rep-tabs">
+          <button class="rep-tab active" data-rep-tab="lines">My Lines</button>
+          <button class="rep-tab" data-rep-tab="drill">Drill</button>
+          <button class="rep-tab" data-rep-tab="stats">Stats</button>
+        </div>
+        <div class="rep-tab-content" id="rep-tab-lines">
+          <div class="rep-actions">
+            <button class="btn btn-sm btn-accent" id="btn-rep-add-mainline">Add from Openings</button>
+            <button class="btn btn-sm" id="btn-rep-add-current">Add Current Game</button>
+          </div>
+          <div class="repertoire-list" id="repertoire-list"></div>
+        </div>
+        <div class="rep-tab-content hidden" id="rep-tab-drill">
+          <div class="rep-drill-summary" id="rep-drill-summary"></div>
+          <div class="rep-drill-due" id="rep-drill-due"></div>
+        </div>
+        <div class="rep-tab-content hidden" id="rep-tab-stats">
+          <div class="rep-stats-overview" id="rep-stats-overview"></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="repertoire-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Repertoire ECO Picker Dialog -->
+    <div id="rep-eco-picker" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Add Opening Line</h2>
+        <div class="rep-eco-list" id="rep-eco-list"></div>
+        <div class="rep-color-pick">
+          <label>Play as: </label>
+          <select id="rep-eco-color"><option value="w">White</option><option value="b">Black</option></select>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="rep-eco-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-PV Lines Panel Content (v147) — inside side panel -->
+
+    <!-- Lichess Import Dialog (v150) -->
+    <div id="lichess-import-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Lichess Game Import</h2>
+        <div class="lichess-import-form">
+          <input type="text" class="lichess-username-input" id="lichess-username" placeholder="Lichess username...">
+          <button class="btn btn-primary" id="btn-lichess-fetch">Fetch Games</button>
+        </div>
+        <div class="lichess-game-controls hidden" id="lichess-game-controls">
+          <label><input type="checkbox" id="lichess-select-all"> Select All</label>
+          <button class="btn btn-sm btn-accent" id="btn-lichess-import-selected">Import Selected</button>
+        </div>
+        <div class="lichess-game-list" id="lichess-game-list"></div>
+        <div class="lichess-import-status" id="lichess-import-status"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="lichess-import-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GIF Export Dialog (v151) -->
+    <div id="gif-export-dialog" class="dialog-overlay hidden">
+      <div class="dialog">
+        <h2>Export Animated GIF</h2>
+        <div class="gif-settings">
+          <div class="gif-setting-row">
+            <label>Frame delay:</label>
+            <input type="range" id="gif-frame-delay" min="500" max="2000" value="1000" step="100">
+            <span id="gif-delay-label">1000ms</span>
+          </div>
+          <div class="gif-setting-row">
+            <label>Board size:</label>
+            <select id="gif-board-size">
+              <option value="400">400px</option>
+              <option value="600" selected>600px</option>
+            </select>
+          </div>
+          <div class="gif-setting-row">
+            <span id="gif-move-count"></span>
+          </div>
+        </div>
+        <div class="gif-progress hidden" id="gif-progress">
+          <div class="gif-progress-bar"><div class="gif-progress-fill" id="gif-progress-fill"></div></div>
+          <span id="gif-progress-text">Preparing...</span>
+        </div>
+        <div class="gif-preview hidden" id="gif-preview"><img id="gif-preview-img" alt="GIF preview"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-accent" id="btn-gif-export">Export GIF</button>
+          <button class="btn btn-secondary" id="gif-export-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Games Dialog (v152) -->
+    <div id="saved-games-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Saved Games</h2>
+        <div class="saved-games-header">
+          <label class="layout-toggle-row"><span class="layout-toggle-label">Auto-save</span><span class="toggle-switch"><input type="checkbox" id="toggle-auto-save"><span class="toggle-slider"></span></span></label>
+          <span class="saved-games-count" id="saved-games-count"></span>
+        </div>
+        <div class="saved-games-list" id="saved-games-list"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="saved-games-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotation Popup (v149) -->
+    <div id="annotation-popup" class="annotation-popup hidden">
+      <div class="ann-nag-row">
+        <button class="ann-nag-btn" data-nag="!">!</button>
+        <button class="ann-nag-btn" data-nag="?">?</button>
+        <button class="ann-nag-btn" data-nag="!!">!!</button>
+        <button class="ann-nag-btn" data-nag="??">??</button>
+        <button class="ann-nag-btn" data-nag="!?">!?</button>
+        <button class="ann-nag-btn" data-nag="?!">?!</button>
+      </div>
+      <textarea id="ann-comment" class="ann-comment" placeholder="Add comment..." rows="2"></textarea>
+      <div class="ann-actions">
+        <button class="btn btn-sm btn-secondary" id="ann-clear">Clear</button>
+        <button class="btn btn-sm btn-secondary" id="ann-cancel">Cancel</button>
+        <button class="btn btn-sm btn-primary" id="ann-save">Save</button>
+      </div>
+    </div>
 
   </div>
 

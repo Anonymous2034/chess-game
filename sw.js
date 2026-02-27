@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v145';
+const CACHE_NAME = 'grandmasters-v152';
 
 const PRECACHE_URLS = [
   './',
@@ -47,6 +47,8 @@ const PRECACHE_URLS = [
   './js/composer-profiles.js',
   './js/free-layout.js',
   './js/achievements.js',
+  './js/repertoire.js',
+  './js/tablebase.js',
 
   // Stockfish engine
   './lib/stockfish/stockfish.js',
@@ -226,8 +228,10 @@ self.addEventListener('fetch', (event) => {
   // Network-only for external API calls (let browser handle normally)
   if (url.hostname.includes('supabase.co') ||
       url.hostname.includes('lichess.ovh') ||
+      url.hostname.includes('lichess.org') ||
       url.hostname.includes('openai.com') ||
       url.hostname.includes('anthropic.com') ||
+      url.hostname.includes('cdn.jsdelivr.net') ||
       url.hostname.includes('esm.run')) {
     return;
   }

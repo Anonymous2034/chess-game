@@ -19,6 +19,12 @@ export class Engine {
     this._analysisCancelId = 0;
     this._analysisQueue = Promise.resolve();
     this._ignoreNextBestmove = false;
+
+    // Multi-PV state
+    this.multiPV = 1;
+    this._multiPVResults = [];
+    this._multiPVResolve = null;
+    this._multiPVAnalyzing = false;
   }
 
   async init() {
@@ -90,6 +96,18 @@ export class Engine {
       const parts = msg.split(' ');
       const bestMove = parts[1];
 
+      // Multi-PV analysis result
+      if (this._multiPVAnalyzing) {
+        this._multiPVAnalyzing = false;
+        if (this._multiPVResolve) {
+          const resolve = this._multiPVResolve;
+          this._multiPVResolve = null;
+          resolve(this._multiPVResults.filter(Boolean));
+        }
+        this._multiPVResults = [];
+        return;
+      }
+
       // Analysis result — route to analysis resolver, NOT to onBestMove
       if (this._analyzing) {
         this._analyzing = false;
@@ -115,8 +133,26 @@ export class Engine {
       }
 
     } else if (msg.startsWith('info')) {
-      if (this._analyzing && this._analysisResult) {
-        // Analysis info — update result object
+      // Multi-PV analysis mode
+      if (this._multiPVAnalyzing) {
+        const depthMatch = msg.match(/depth (\d+)/);
+        const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
+        const pvMatch = msg.match(/ pv (.+)/);
+        const mpvMatch = msg.match(/multipv (\d+)/);
+
+        if (depthMatch && scoreMatch) {
+          const pvIndex = mpvMatch ? parseInt(mpvMatch[1]) - 1 : 0;
+          const entry = {
+            pvIndex,
+            score: scoreMatch[1] === 'cp' ? parseInt(scoreMatch[2]) : (parseInt(scoreMatch[2]) > 0 ? 10000 : -10000),
+            mate: scoreMatch[1] === 'mate' ? parseInt(scoreMatch[2]) : null,
+            pv: pvMatch ? pvMatch[1] : '',
+            bestMove: pvMatch ? pvMatch[1].split(' ')[0] : ''
+          };
+          this._multiPVResults[pvIndex] = entry;
+        }
+      } else if (this._analyzing && this._analysisResult) {
+        // Standard single-PV analysis info — update result object
         const depthMatch = msg.match(/depth (\d+)/);
         const scoreMatch = msg.match(/score (cp|mate) (-?\d+)/);
         const pvMatch = msg.match(/ pv (.+)/);
@@ -153,6 +189,13 @@ export class Engine {
     }
   }
 
+  setMultiPV(n) {
+    this.multiPV = Math.max(1, Math.min(n, 5));
+    if (this.ready) {
+      this.send(`setoption name MultiPV value ${this.multiPV}`);
+    }
+  }
+
   setDifficulty(level) {
     this.depth = Math.max(1, Math.min(level, 20));
 
@@ -170,6 +213,8 @@ export class Engine {
     this.send('setoption name Skill Level value 20');
     this.send('setoption name Contempt value 0');
     this.send('setoption name UCI_LimitStrength value false');
+    this.send('setoption name MultiPV value 1');
+    this.multiPV = 1;
     this.depth = 20;
     this.moveTime = null;
   }
@@ -298,6 +343,40 @@ export class Engine {
     this._analysisQueue = this._analysisQueue
       .then(() => doAnalysis())
       .catch(() => ({ bestMove: null, score: 0, mate: null, pv: '' }));
+    return this._analysisQueue;
+  }
+
+  analyzePositionMultiPV(fen, depth = 14, numPV = 3) {
+    const cancelId = this._analysisCancelId;
+
+    const doAnalysis = () => new Promise((resolve) => {
+      if (!this.ready || this.thinking || cancelId !== this._analysisCancelId) {
+        resolve([]);
+        return;
+      }
+
+      this._multiPVAnalyzing = true;
+      this._multiPVResults = [];
+      this._multiPVResolve = resolve;
+
+      this.send(`setoption name MultiPV value ${numPV}`);
+      this.send('position fen ' + fen);
+      this.send(`go depth ${depth}`);
+
+      setTimeout(() => {
+        if (this._multiPVResolve === resolve) {
+          this._multiPVAnalyzing = false;
+          this._multiPVResolve = null;
+          const results = this._multiPVResults.filter(Boolean);
+          this._multiPVResults = [];
+          resolve(results);
+        }
+      }, 30000);
+    });
+
+    this._analysisQueue = this._analysisQueue
+      .then(() => doAnalysis())
+      .catch(() => []);
     return this._analysisQueue;
   }
 

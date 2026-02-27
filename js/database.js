@@ -128,6 +128,26 @@ export class Database {
     const lastHeaderEnd = text.lastIndexOf(']');
     let moveText = lastHeaderEnd >= 0 ? text.substring(lastHeaderEnd + 1).trim() : '';
 
+    // Extract comments before stripping them
+    const comments = {};
+    let moveIdx = 0;
+    const commentRegex = /\{([^}]*)\}/g;
+    let cmatch;
+    // Build a temporary stripped text to count moves before each comment
+    let tempText = moveText;
+    while ((cmatch = commentRegex.exec(moveText)) !== null) {
+      const before = moveText.substring(0, cmatch.index);
+      // Count SAN moves in the text before this comment
+      const beforeClean = before.replace(/\{[^}]*\}/g, '').replace(/\([^()]*\)/g, '');
+      const tokens = beforeClean.split(/\s+/)
+        .map(t => t.replace(/^\d+\./, ''))
+        .filter(t => t && !t.match(/^\d+\.?$/) && !t.match(/^(1-0|0-1|1\/2-1\/2|\*)$/) && !t.match(/^\$\d+$/))
+        .map(t => t.replace(/[!?]+$/, ''))
+        .filter(Boolean);
+      const idx = Math.max(0, tokens.length - 1);
+      comments[idx] = cmatch[1].trim();
+    }
+
     // Remove comments
     moveText = moveText.replace(/\{[^}]*\}/g, '');
     // Remove nested variations iteratively
@@ -156,6 +176,7 @@ export class Database {
       result: headers.Result || '*',
       eco: headers.ECO || '',
       moves: moveTokens,
+      comments,
       pgn: text,
       collection: '',
       category: '',
