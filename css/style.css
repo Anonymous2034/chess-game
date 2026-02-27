@@ -7876,10 +7876,14 @@ body.free-layout-on [data-drag-id="board"] #board-container {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   width: 100%;
+  height: calc(var(--board-size) + 20px);
   margin-left: 0;
+  padding-left: 16px;
+  padding-bottom: 20px;
+  box-sizing: border-box;
 }
 
 body.free-layout-on [data-drag-id="board"] #board {
@@ -7887,6 +7891,10 @@ body.free-layout-on [data-drag-id="board"] #board {
   height: var(--board-size);
   max-width: 100%;
   max-height: 100%;
+}
+
+body.free-layout-on .free-window[data-win-id="board"] .free-window-content {
+  overflow: visible;
 }
 
 body.free-layout-on .player-info {
