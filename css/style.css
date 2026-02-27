@@ -8478,3 +8478,272 @@ body.free-layout-on .book-panel {
 .free-window-minimized { height: 16px !important; min-height: 16px !important; overflow: hidden; }
 .free-window-minimized .free-window-content,
 .free-window-minimized .free-resize-handle { display: none; }
+
+/* === Feature 12: Achievement System === */
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+.achievement-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 8px;
+  background: var(--btn-bg);
+  border: 1px solid var(--border-color);
+  text-align: center;
+  transition: opacity 0.2s;
+}
+.achievement-badge.locked {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+.achievement-badge.unlocked {
+  border-color: #b8860b;
+  background: rgba(184, 134, 11, 0.12);
+}
+.achievement-badge-icon {
+  font-size: 1.5rem;
+}
+.achievement-badge-name {
+  font-size: 0.7rem;
+  color: var(--text-color);
+  line-height: 1.2;
+}
+.achievement-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-bg);
+  color: var(--text-light);
+  border: 2px solid #b8860b;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  z-index: 1100;
+  box-shadow: 0 4px 20px rgba(184, 134, 11, 0.3);
+  transition: opacity 0.4s;
+}
+.achievement-toast-icon {
+  font-size: 1.6rem;
+}
+
+/* === Feature 7 (plan): Head-to-Head Records === */
+.opponent-badges {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.opponent-badge {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--btn-bg);
+  border: 2px solid var(--border-color);
+  text-align: center;
+}
+.opponent-badge.nemesis { border-color: #c33; }
+.opponent-badge.easiest { border-color: #4caf50; }
+.opponent-badge-label { font-size: 0.65rem; text-transform: uppercase; color: #888; letter-spacing: 0.05em; }
+.opponent-badge-name { font-size: 0.9rem; font-weight: 600; color: var(--text-light); }
+.opponent-badge-rate { font-size: 0.75rem; color: var(--text-color); }
+.opponent-record-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+.opponent-record-name {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.opponent-bar {
+  flex: 1;
+  display: flex;
+  height: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--border-color);
+}
+.opponent-bar-w { background: #4caf50; }
+.opponent-bar-d { background: #888; }
+.opponent-bar-l { background: #c33; }
+.opponent-record-score {
+  font-size: 0.7rem;
+  color: var(--text-color);
+  white-space: nowrap;
+  width: 80px;
+  text-align: right;
+}
+.bot-h2h-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.6rem;
+  color: var(--text-color);
+  background: rgba(0,0,0,0.5);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.bot-list-card { position: relative; }
+
+/* === Feature 8: Time Management Graph === */
+.time-graph-container {
+  width: 100%;
+  height: 50px;
+  margin-top: 2px;
+  background: var(--panel-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.time-graph-container svg rect.time-bar:hover {
+  opacity: 0.7;
+}
+
+/* === Feature 4: Position Editor === */
+.pos-editor-dialog {
+  max-width: 700px;
+  width: 95vw;
+}
+.pos-editor-layout {
+  display: grid;
+  grid-template-columns: 80px 1fr 200px;
+  gap: 12px;
+  padding: 12px;
+}
+.pos-editor-palette {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  align-content: start;
+}
+.pos-palette-piece {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--btn-bg);
+}
+.pos-palette-piece img {
+  width: 30px;
+  height: 30px;
+}
+.pos-palette-piece.selected {
+  border-color: var(--accent);
+  background: rgba(129, 182, 76, 0.15);
+}
+.pos-palette-trash {
+  font-size: 1.2rem;
+}
+.pos-editor-board-wrap {
+  aspect-ratio: 1;
+  max-width: 360px;
+}
+.pos-editor-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pos-sq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.pos-sq.light { background: var(--light-square); }
+.pos-sq.dark { background: var(--dark-square); }
+.pos-sq img {
+  width: 80%;
+  height: 80%;
+  pointer-events: none;
+}
+.pos-sq:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pos-editor-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pos-editor-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+.pos-editor-turn-toggle {
+  display: flex;
+  gap: 4px;
+}
+.pos-turn-btn.selected {
+  background: var(--accent);
+  color: #fff;
+}
+.pos-editor-castling {
+  display: flex;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+.pos-editor-castling label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+.pos-fen-field {
+  width: 100%;
+  background: var(--btn-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-light);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+.pos-fen-invalid { border-color: #c33 !important; }
+.pos-editor-quick {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.pos-editor-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.pos-editor-actions .btn { flex: 1; font-size: 0.8rem; }
+
+@media (max-width: 600px) {
+  .pos-editor-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .pos-editor-palette {
+    grid-template-columns: repeat(7, 1fr);
+    justify-items: center;
+  }
+  .pos-editor-board-wrap {
+    max-width: 100%;
+  }
+}

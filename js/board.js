@@ -225,6 +225,7 @@ export class Board {
       this.lastMove = { from, to };
       this.clearSelection();
       this.render();
+      this.animateSnap(to);
       this.game.onMoveMade(move);
     } else {
       this.clearSelection();
@@ -345,6 +346,9 @@ export class Board {
   setupDragAndDrop() {
     let dragImg = null;
     let startSquare = null;
+    let startX = 0, startY = 0;
+    let dragStarted = false;
+    const DRAG_THRESHOLD = 10;
 
     // Clean up any active drag state
     const cleanupDrag = () => {
@@ -352,7 +356,7 @@ export class Board {
       document.removeEventListener('pointerup', onPointerUp);
       document.removeEventListener('pointercancel', onPointerCancel);
       // Restore opacity on any piece that was hidden during drag
-      if (startSquare) {
+      if (startSquare && dragStarted) {
         const sq = this.squares[startSquare];
         const img = sq?.querySelector('.piece');
         if (img) img.style.opacity = '';
@@ -364,6 +368,7 @@ export class Board {
       // Remove any stale drag elements that might be stuck
       document.querySelectorAll('.piece.dragging').forEach(el => el.remove());
       startSquare = null;
+      dragStarted = false;
     };
 
     const onPointerDown = (e) => {
@@ -393,20 +398,9 @@ export class Board {
 
       e.preventDefault();
       startSquare = sq;
-
-      // Create drag image
-      dragImg = pieceImg.cloneNode(true);
-      dragImg.classList.add('dragging');
-      document.body.appendChild(dragImg);
-
-      const rect = pieceImg.getBoundingClientRect();
-      const isTouch = e.pointerType === 'touch';
-      const offsetY = isTouch ? rect.height * 0.6 : rect.height / 2;
-      dragImg.style.left = (e.clientX - rect.width / 2) + 'px';
-      dragImg.style.top = (e.clientY - offsetY) + 'px';
-
-      // Hide original piece
-      pieceImg.style.opacity = '0';
+      startX = e.clientX;
+      startY = e.clientY;
+      dragStarted = false;
 
       document.addEventListener('pointermove', onPointerMove);
       document.addEventListener('pointerup', onPointerUp);
@@ -414,6 +408,26 @@ export class Board {
     };
 
     const onPointerMove = (e) => {
+      if (!startSquare) return;
+
+      // Check threshold before starting drag
+      if (!dragStarted) {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+
+        // Threshold met — create drag image
+        dragStarted = true;
+        const squareDiv = this.squares[startSquare];
+        const pieceImg = squareDiv?.querySelector('.piece');
+        if (!pieceImg) return;
+
+        dragImg = pieceImg.cloneNode(true);
+        dragImg.classList.add('dragging');
+        document.body.appendChild(dragImg);
+        pieceImg.style.opacity = '0';
+      }
+
       if (!dragImg) return;
       const size = parseFloat(getComputedStyle(dragImg).width);
       const isTouch = e.pointerType === 'touch';
@@ -424,7 +438,11 @@ export class Board {
 
     const onPointerUp = (e) => {
       const savedStart = startSquare;
+      const wasDrag = dragStarted;
       cleanupDrag();
+
+      // If drag didn't start (threshold not met), treat as click — square selection handled by click handler
+      if (!wasDrag) return;
 
       // Find target square
       const target = document.elementFromPoint(e.clientX, e.clientY);
@@ -514,8 +532,14 @@ export class Board {
   /**
    * Animate a piece from one square to another.
    * Returns a Promise that resolves after the animation completes.
+   * @param {string} from - source square
+   * @param {string} to - target square
+   * @param {object} options - { duration: ms, capture: boolean }
    */
-  animateMove(from, to) {
+  animateMove(from, to, options = {}) {
+    const duration = options.duration || 250;
+    const isCapture = options.capture || false;
+
     return new Promise((resolve) => {
       const fromDiv = this.squares[from];
       const toDiv = this.squares[to];
@@ -524,12 +548,20 @@ export class Board {
       const pieceImg = fromDiv.querySelector('.piece');
       if (!pieceImg) { resolve(); return; }
 
+      // Fade captured piece on target square
+      const capturedImg = toDiv.querySelector('.piece');
+      if (isCapture && capturedImg) {
+        capturedImg.style.transition = `opacity ${duration}ms ease`;
+        capturedImg.style.opacity = '0';
+      }
+
       const fromRect = fromDiv.getBoundingClientRect();
       const toRect = toDiv.getBoundingClientRect();
       const dx = toRect.left - fromRect.left;
       const dy = toRect.top - fromRect.top;
 
-      pieceImg.style.transition = 'transform 0.3s ease';
+      pieceImg.style.willChange = 'transform';
+      pieceImg.style.transition = `transform ${duration}ms ease`;
       pieceImg.style.transform = `translate(${dx}px, ${dy}px)`;
       pieceImg.style.zIndex = '10';
 
@@ -537,9 +569,36 @@ export class Board {
         pieceImg.style.transition = '';
         pieceImg.style.transform = '';
         pieceImg.style.zIndex = '';
+        pieceImg.style.willChange = '';
+        if (isCapture && capturedImg) {
+          capturedImg.style.transition = '';
+          capturedImg.style.opacity = '';
+        }
         resolve();
-      }, 320);
+      }, duration + 20);
     });
+  }
+
+  /**
+   * Subtle scale pulse when a piece lands after user drop.
+   */
+  animateSnap(square, duration = 100) {
+    const div = this.squares[square];
+    if (!div) return;
+    const img = div.querySelector('.piece');
+    if (!img) return;
+    img.style.willChange = 'transform';
+    img.style.transition = `transform ${duration}ms ease-out`;
+    img.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+      img.style.transition = `transform ${duration}ms ease-in`;
+      img.style.transform = 'scale(1)';
+      setTimeout(() => {
+        img.style.transition = '';
+        img.style.transform = '';
+        img.style.willChange = '';
+      }, duration + 10);
+    }, duration);
   }
 
   /**

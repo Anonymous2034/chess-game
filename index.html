@@ -1094,6 +1094,47 @@
     <!-- Move Analysis Tooltip -->
     <div id="move-tooltip" class="move-tooltip hidden"></div>
 
+    <!-- Position Editor Dialog -->
+    <div id="position-editor-dialog" class="dialog-overlay hidden">
+      <div class="dialog pos-editor-dialog">
+        <div class="dialog-header">
+          <h3>Position Editor</h3>
+          <button class="dialog-close" id="pos-editor-close">&times;</button>
+        </div>
+        <div class="pos-editor-layout">
+          <div class="pos-editor-palette" id="pos-editor-palette"></div>
+          <div class="pos-editor-board-wrap">
+            <div class="pos-editor-board" id="pos-editor-board"></div>
+          </div>
+          <div class="pos-editor-controls">
+            <label class="pos-editor-label">Side to move</label>
+            <div class="pos-editor-turn-toggle">
+              <button class="btn btn-sm pos-turn-btn selected" data-turn="w" id="pos-turn-w">White</button>
+              <button class="btn btn-sm pos-turn-btn" data-turn="b" id="pos-turn-b">Black</button>
+            </div>
+            <label class="pos-editor-label">Castling</label>
+            <div class="pos-editor-castling">
+              <label><input type="checkbox" id="pos-castle-K" checked> K</label>
+              <label><input type="checkbox" id="pos-castle-Q" checked> Q</label>
+              <label><input type="checkbox" id="pos-castle-k" checked> k</label>
+              <label><input type="checkbox" id="pos-castle-q" checked> q</label>
+            </div>
+            <label class="pos-editor-label">FEN</label>
+            <input type="text" class="pos-fen-field" id="pos-fen-field" spellcheck="false">
+            <div class="pos-editor-quick">
+              <button class="btn btn-sm" id="pos-clear">Clear Board</button>
+              <button class="btn btn-sm" id="pos-start">Starting Position</button>
+            </div>
+            <div class="pos-editor-actions">
+              <button class="btn" id="pos-cancel">Cancel</button>
+              <button class="btn" id="pos-analyze">Analyze</button>
+              <button class="btn btn-primary" id="pos-play">Play from here</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
     <header>
       <div class="header-brand">
@@ -1172,6 +1213,7 @@
             <button class="btn" id="btn-stats">Stats</button>
             <button class="btn" id="btn-history">History</button>
             <button class="btn" id="btn-import-pgn">PGN Import/Export</button>
+            <button class="btn" id="btn-position-editor">Position Editor</button>
           </div>
           <div class="nav-menu-section">
             <span class="nav-menu-label">Discover</span>
@@ -1191,7 +1233,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v140</div>
+          <div class="nav-menu-version" id="app-version">v145</div>
         </div>
       </nav>
     </header>
@@ -1291,6 +1333,7 @@
         <div class="drag-group" data-drag-id="eval-graph" data-drag-label="Eval Graph">
         <!-- Eval Graph (shown after analysis) -->
         <div class="eval-graph-container hidden" id="eval-graph-container"></div>
+        <div class="time-graph-container hidden" id="time-graph-container"></div>
         </div>
 
         <div class="drag-group" data-drag-id="clock" data-drag-label="Clock">

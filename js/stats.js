@@ -150,6 +150,49 @@ export class PlayerStats {
   }
 
   /**
+   * Get record vs a specific opponent
+   */
+  getOpponentRecord(name) {
+    let wins = 0, losses = 0, draws = 0;
+    for (const g of this.games) {
+      if (g.opponent !== name) continue;
+      if (g.result === 'win') wins++;
+      else if (g.result === 'loss') losses++;
+      else draws++;
+    }
+    const total = wins + losses + draws;
+    return { wins, losses, draws, total, winRate: total > 0 ? Math.round((wins / total) * 100) : 0 };
+  }
+
+  /**
+   * Get stats for all opponents, sorted by total games desc
+   */
+  getAllOpponentStats() {
+    const map = {};
+    for (const g of this.games) {
+      const name = g.opponent;
+      if (!map[name]) map[name] = { name, wins: 0, losses: 0, draws: 0, total: 0 };
+      map[name].total++;
+      if (g.result === 'win') map[name].wins++;
+      else if (g.result === 'loss') map[name].losses++;
+      else map[name].draws++;
+    }
+    return Object.values(map)
+      .sort((a, b) => b.total - a.total)
+      .map(o => ({ ...o, winRate: o.total > 0 ? Math.round((o.wins / o.total) * 100) : 0 }));
+  }
+
+  /**
+   * Get nemesis (worst winRate, min 3 games) and easiest opponent (best winRate, min 3 games)
+   */
+  getNemesisAndEasiest() {
+    const all = this.getAllOpponentStats().filter(o => o.total >= 3);
+    if (all.length === 0) return { nemesis: null, easiest: null };
+    const sorted = [...all].sort((a, b) => a.winRate - b.winRate);
+    return { nemesis: sorted[0], easiest: sorted[sorted.length - 1] };
+  }
+
+  /**
    * Get/set data for cloud sync
    */
   get data() {

@@ -13,7 +13,7 @@ import { EvalGraph } from './eval-graph.js';
 import { CoachManager } from './coach.js';
 import { PlayerStats } from './stats.js';
 import { Tournament } from './tournament.js';
-import { show, hide, debounce, setPieceBasePath } from './utils.js';
+import { show, hide, debounce, setPieceBasePath, pieceImagePath } from './utils.js';
 import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
 import { BotMatch } from './bot-match.js';
 import { initSupabase, isSupabaseConfigured, getSupabase } from './supabase-config.js';
@@ -32,6 +32,7 @@ import { COMPOSER_PROFILES, COMPOSER_ERAS } from './composer-profiles.js';
 import { ChessNews } from './chess-news.js';
 import { PositionCommentary } from './position-commentary.js';
 import { FreeLayout } from './free-layout.js';
+import { AchievementManager } from './achievements.js';
 
 class ChessApp {
   constructor() {
@@ -101,6 +102,12 @@ class ChessApp {
 
     // Feature 5: Takeback policy
     this._takebackPolicy = localStorage.getItem('chess_takeback_policy') || 'personality';
+
+    // Achievement system
+    this.achievements = new AchievementManager();
+
+    // Move times tracking (Feature 8: Time Management Graph)
+    this._moveTimes = [];
 
     this.init();
   }
@@ -181,6 +188,7 @@ class ChessApp {
     this.setupBlunderAlerts();
     this.setupTakebackButton();
     this.setupRematchButton();
+    this.setupPositionEditor();
 
     // Load database in background, then restore saved imports
     this.database.loadCollections().then(async (categories) => {
@@ -308,6 +316,10 @@ class ChessApp {
       return;
     }
 
+    // Track move time (Feature 8)
+    const moveTimeSec = (Date.now() - this._moveClockStart) / 1000;
+    this._moveTimes.push({ color: move.color, seconds: moveTimeSec, moveIndex: this.game.currentMoveIndex });
+
     this.sound.playMoveSound(move);
     this.sound.speakMove(move.san);
     this.notation.addMove(move);
@@ -322,6 +334,7 @@ class ChessApp {
     if (this.game.gameOver) {
       this._stopMoveClock();
       this.board.setInteractive(false);
+      this._renderTimeGraph();
       this._onGameEnd();
       return;
     }
@@ -367,6 +380,9 @@ class ChessApp {
 
     // Fetch opening explorer
     this.fetchOpeningExplorer();
+
+    // Update time graph
+    this._renderTimeGraph();
   }
 
   get chess() {
@@ -410,14 +426,20 @@ class ChessApp {
         // Simulate thinking delay (300-800ms) — book moves are instant
         this._clearEngineMoveTimer();
         const delay = 300 + Math.random() * 500;
-        setTimeout(() => {
+        setTimeout(async () => {
           this._setEngineThinking(false);
           // Find the UCI-style from/to for this SAN move
           const legalMoves = this.chess.moves({ verbose: true });
           const match = legalMoves.find(m => m.san === bookMove);
           if (match) {
+            // Animate book move
+            const capTarget = this.game.chess.get(match.to);
+            await this.board.animateMove(match.from, match.to, { capture: !!capTarget });
+
             const move = this.game.makeEngineMove(match.from, match.to, match.promotion);
             if (move) {
+              // Track book move time (simulated delay)
+              this._moveTimes.push({ color: move.color, seconds: delay / 1000, moveIndex: this.game.currentMoveIndex });
               this.sound.playMoveSound(move);
               this.sound.speakMove(move.san);
               this.notation.addMove(move);
@@ -426,6 +448,7 @@ class ChessApp {
               this.updateTimers(this.game.timers);
               this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
               this.fetchOpeningExplorer();
+              this._renderTimeGraph();
 
               // DGT: show book move on board LEDs
               if (this.dgtBoard?.isConnected()) {
@@ -472,13 +495,24 @@ class ChessApp {
     this.engine.requestMove(this.chess.fen());
   }
 
-  handleEngineMove(uciMove) {
+  async handleEngineMove(uciMove) {
     this._clearEngineMoveTimer();
     this._setEngineThinking(false);
+
+    // Track engine think time (Feature 8)
+    const engineTimeSec = (Date.now() - this._moveClockStart) / 1000;
+
     const parsed = Engine.parseUCIMove(uciMove);
+
+    // Animate the engine piece before making the move
+    const targetPiece = this.game.chess.get(parsed.to);
+    const isCapture = !!targetPiece;
+    await this.board.animateMove(parsed.from, parsed.to, { capture: isCapture });
+
     const move = this.game.makeEngineMove(parsed.from, parsed.to, parsed.promotion);
 
     if (move) {
+      this._moveTimes.push({ color: move.color, seconds: engineTimeSec, moveIndex: this.game.currentMoveIndex });
       this.sound.playMoveSound(move);
       this.sound.speakMove(move.san);
       this.notation.addMove(move);
@@ -535,10 +569,12 @@ class ChessApp {
           this._updateGMCoachCommentary();
         }
       }
+      this._renderTimeGraph();
     } else {
       this.board.clearPremove();
       this.board.setPremoveAllowed(false);
       this._stopMoveClock();
+      this._renderTimeGraph();
       this._onGameEnd();
     }
   }
@@ -614,6 +650,17 @@ class ChessApp {
         pgn: this.notation.toPGN({ Result: gameResult?.result || '*' })
       };
       this.stats.recordGame(gameRecord);
+
+      // Check achievements
+      const achFlags = {};
+      if (result === 'win') {
+        if (this.chess.in_checkmate()) achFlags.checkmateWin = true;
+        // Time win: game is over but not checkmate/stalemate/draw by chess rules
+        if (!this.chess.in_checkmate() && !this.chess.in_stalemate() && !this.chess.in_draw()) achFlags.timeWin = true;
+        if (this.activeBot?.tier === 'grandmaster') achFlags.beatGM = true;
+        if (this.activeBot?.tier === 'machine') achFlags.beatMachine = true;
+      }
+      this._checkAchievements(achFlags);
 
       // Save to cloud
       if (this.dataService) {
@@ -1274,6 +1321,53 @@ class ChessApp {
       const secs = Math.floor(elapsed % 60);
       el.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
     }
+  }
+
+  // === Time Management Graph (Feature 8) ===
+
+  _renderTimeGraph() {
+    const container = document.getElementById('time-graph-container');
+    if (!container) return;
+    if (this._moveTimes.length < 2) { hide(container); return; }
+
+    show(container);
+    const times = this._moveTimes;
+    const maxTime = Math.max(...times.map(t => t.seconds), 1);
+    const barWidth = Math.max(4, Math.min(20, 300 / times.length));
+    const svgWidth = times.length * (barWidth + 2) + 4;
+    const midY = 25;
+    const halfH = 24;
+
+    // Average time for time pressure detection
+    const avgTime = times.reduce((s, t) => s + t.seconds, 0) / times.length;
+    const pressureThreshold = avgTime * 1.8;
+
+    let bars = '';
+    for (let i = 0; i < times.length; i++) {
+      const t = times[i];
+      const h = (t.seconds / maxTime) * halfH;
+      const x = 2 + i * (barWidth + 2);
+      const isWhite = t.color === 'w';
+      const y = isWhite ? midY - h : midY;
+      const isPressure = t.seconds > pressureThreshold;
+      const fill = isPressure ? '#c33' : (isWhite ? '#e8e8e8' : '#555');
+      const label = `Move ${Math.floor(i / 2) + 1}${isWhite ? '' : '...'}: ${t.seconds.toFixed(1)}s`;
+      bars += `<rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(1, h)}" fill="${fill}" rx="1" class="time-bar" data-move-idx="${t.moveIndex}"><title>${label}</title></rect>`;
+    }
+
+    // Midline
+    const midline = `<line x1="0" y1="${midY}" x2="${svgWidth}" y2="${midY}" stroke="#666" stroke-width="0.5"/>`;
+
+    container.innerHTML = `<svg width="100%" height="50" viewBox="0 0 ${svgWidth} 50" preserveAspectRatio="none">${midline}${bars}</svg>`;
+
+    // Click handler for bars
+    container.querySelectorAll('.time-bar').forEach(bar => {
+      bar.style.cursor = 'pointer';
+      bar.addEventListener('click', () => {
+        const idx = parseInt(bar.dataset.moveIdx);
+        if (!isNaN(idx)) this.navigateToMove(idx);
+      });
+    });
   }
 
   _setEngineThinking(thinking) {
@@ -3345,6 +3439,10 @@ class ChessApp {
     const rematchBtn = document.getElementById('btn-rematch');
     if (rematchBtn) rematchBtn.classList.add('hidden');
 
+    // Reset move times (Feature 8)
+    this._moveTimes = [];
+    hide(document.getElementById('time-graph-container'));
+
     // Reset eval tracking (Feature 10)
     this._evalHistory = [];
     this._playerAccuracy = { w: { totalCpLoss: 0, moves: 0 }, b: { totalCpLoss: 0, moves: 0 } };
@@ -3564,12 +3662,15 @@ class ChessApp {
         card.dataset.botId = bot.id;
 
         const gmTag = bot.tier === 'grandmaster' ? 'GM ' : '';
+        const h2h = this.stats.getOpponentRecord(bot.name);
+        const h2hBadge = h2h.total > 0 ? `<span class="bot-h2h-badge">${h2h.wins}W/${h2h.losses}L</span>` : '';
         card.innerHTML = `
           <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
           <div class="bot-list-info">
             <div class="bot-list-name">${gmTag}${bot.name}</div>
             <div class="bot-list-elo">${bot.peakElo}</div>
           </div>
+          ${h2hBadge}
         `;
 
         card.addEventListener('click', () => {
@@ -6550,6 +6651,7 @@ class ChessApp {
       // Puzzle solved!
       this.puzzleManager.completePuzzle();
       this.board.setInteractive(false);
+      this._checkAchievements();
 
       const summary = this.puzzleManager.getProgressSummary();
       document.getElementById('game-status').textContent = 'Puzzle solved!';
@@ -6580,6 +6682,7 @@ class ChessApp {
       // Check if that was the last move
       if (this.puzzleManager.moveIndex >= this.puzzleManager.currentPuzzle.moves.length) {
         this.puzzleManager.completePuzzle();
+        this._checkAchievements();
         const summary = this.puzzleManager.getProgressSummary();
         document.getElementById('game-status').textContent = 'Puzzle solved!';
         document.getElementById('puzzle-streak').textContent = `Streak: ${summary.streak}`;
@@ -6976,6 +7079,7 @@ class ChessApp {
   _endgameComplete(move) {
     this.endgameTrainer.completePosition(this.endgameTrainer.currentPosition.id);
     this.board.setInteractive(false);
+    this._checkAchievements();
 
     document.getElementById('game-status').textContent = 'Position solved! Well done!';
     show(document.getElementById('btn-endgame-next'));
@@ -9371,6 +9475,43 @@ class ChessApp {
         </div>`;
     }
 
+    // Opponents section
+    const { nemesis, easiest } = this.stats.getNemesisAndEasiest();
+    if (nemesis || easiest) {
+      html += '<div class="stats-opponents"><h4>Opponents</h4>';
+      if (nemesis || easiest) {
+        html += '<div class="opponent-badges">';
+        if (nemesis) html += `<div class="opponent-badge nemesis"><span class="opponent-badge-label">Nemesis</span><span class="opponent-badge-name">${nemesis.name}</span><span class="opponent-badge-rate">${nemesis.winRate}% win</span></div>`;
+        if (easiest) html += `<div class="opponent-badge easiest"><span class="opponent-badge-label">Easiest</span><span class="opponent-badge-name">${easiest.name}</span><span class="opponent-badge-rate">${easiest.winRate}% win</span></div>`;
+        html += '</div>';
+      }
+      const topOpponents = this.stats.getAllOpponentStats().slice(0, 10);
+      for (const o of topOpponents) {
+        const wPct = o.total > 0 ? (o.wins / o.total) * 100 : 0;
+        const dPct = o.total > 0 ? (o.draws / o.total) * 100 : 0;
+        const lPct = o.total > 0 ? (o.losses / o.total) * 100 : 0;
+        html += `<div class="opponent-record-item">
+          <span class="opponent-record-name">${o.name}</span>
+          <div class="opponent-bar">
+            <div class="opponent-bar-w" style="width:${wPct}%"></div>
+            <div class="opponent-bar-d" style="width:${dPct}%"></div>
+            <div class="opponent-bar-l" style="width:${lPct}%"></div>
+          </div>
+          <span class="opponent-record-score">${o.wins}W/${o.draws}D/${o.losses}L</span>
+        </div>`;
+      }
+      html += '</div>';
+    }
+
+    // Achievements grid
+    const allAch = this.achievements.getAll();
+    html += '<div class="stats-achievements"><h4>Achievements</h4><div class="achievement-grid">';
+    for (const a of allAch) {
+      const cls = a.unlocked ? 'achievement-badge unlocked' : 'achievement-badge locked';
+      html += `<div class="${cls}" title="${a.desc}"><span class="achievement-badge-icon">${a.icon}</span><span class="achievement-badge-name">${a.name}</span></div>`;
+    }
+    html += '</div></div>';
+
     // Opening stats
     const openingStats = this.stats.getOpeningStats();
     if (openingStats.length > 0) {
@@ -9407,6 +9548,52 @@ class ChessApp {
     }
 
     el.innerHTML = html;
+  }
+
+  // === Achievements ===
+
+  _buildAchievementSnapshot(extraFlags = {}) {
+    const record = this.stats.getRecord();
+    const puzzleSummary = this.puzzleManager.getProgressSummary();
+    const endgameSummary = this.endgameTrainer.getProgressSummary();
+    const rating = this.stats.estimateRating() || 0;
+    return {
+      wins: record.wins,
+      losses: record.losses,
+      draws: record.draws,
+      total: record.total,
+      rating,
+      puzzlesSolved: puzzleSummary.totalSolved || 0,
+      endgamesSolved: endgameSummary.solved || 0,
+      winStreak: this._computeCurrentWinStreak(),
+      ...extraFlags
+    };
+  }
+
+  _computeCurrentWinStreak() {
+    let streak = 0;
+    for (let i = this.stats.games.length - 1; i >= 0; i--) {
+      if (this.stats.games[i].result === 'win') streak++;
+      else break;
+    }
+    return streak;
+  }
+
+  _checkAchievements(extraFlags = {}) {
+    const snapshot = this._buildAchievementSnapshot(extraFlags);
+    const newlyUnlocked = this.achievements.checkAll(snapshot);
+    for (const ach of newlyUnlocked) {
+      this._showAchievementToast(ach);
+    }
+  }
+
+  _showAchievementToast(ach) {
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.innerHTML = `<span class="achievement-toast-icon">${ach.icon}</span><div><strong>${ach.name}</strong><br><small>${ach.desc}</small></div>`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; }, 3500);
+    setTimeout(() => toast.remove(), 4000);
   }
 
   // === Tournament ===
@@ -10142,6 +10329,250 @@ class ChessApp {
     // random stays random
 
     this._startNewGame(s);
+  }
+
+  // ============================================================
+  // Feature 4: Position Editor
+  // ============================================================
+
+  setupPositionEditor() {
+    this._posEditorChess = new Chess();
+    this._posEditorSelectedPiece = null; // { type, color } or 'trash'
+
+    document.getElementById('btn-position-editor').addEventListener('click', () => {
+      this._openPositionEditor();
+      // Close hamburger menu
+      hide(document.getElementById('nav-menu'));
+    });
+
+    document.getElementById('pos-editor-close').addEventListener('click', () => {
+      hide(document.getElementById('position-editor-dialog'));
+    });
+    document.getElementById('pos-cancel').addEventListener('click', () => {
+      hide(document.getElementById('position-editor-dialog'));
+    });
+
+    // Turn toggle
+    document.getElementById('pos-turn-w').addEventListener('click', () => {
+      document.getElementById('pos-turn-w').classList.add('selected');
+      document.getElementById('pos-turn-b').classList.remove('selected');
+      this._posEditorSyncFEN();
+    });
+    document.getElementById('pos-turn-b').addEventListener('click', () => {
+      document.getElementById('pos-turn-b').classList.add('selected');
+      document.getElementById('pos-turn-w').classList.remove('selected');
+      this._posEditorSyncFEN();
+    });
+
+    // Castling checkboxes
+    ['pos-castle-K', 'pos-castle-Q', 'pos-castle-k', 'pos-castle-q'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => this._posEditorSyncFEN());
+    });
+
+    // FEN field — live sync
+    document.getElementById('pos-fen-field').addEventListener('input', () => {
+      const fen = document.getElementById('pos-fen-field').value.trim();
+      const valid = this._posEditorValidateFEN(fen);
+      document.getElementById('pos-fen-field').classList.toggle('pos-fen-invalid', !valid);
+      if (valid) {
+        this._posEditorChess.load(fen);
+        this._posEditorRenderBoard();
+        this._posEditorSyncControlsFromFEN(fen);
+      }
+    });
+
+    // Quick actions
+    document.getElementById('pos-clear').addEventListener('click', () => {
+      this._posEditorChess.clear();
+      this._posEditorRenderBoard();
+      this._posEditorSyncFEN();
+      // Uncheck all castling
+      ['pos-castle-K', 'pos-castle-Q', 'pos-castle-k', 'pos-castle-q'].forEach(id => {
+        document.getElementById(id).checked = false;
+      });
+    });
+    document.getElementById('pos-start').addEventListener('click', () => {
+      this._posEditorChess.reset();
+      this._posEditorRenderBoard();
+      // Reset checkboxes and turn
+      ['pos-castle-K', 'pos-castle-Q', 'pos-castle-k', 'pos-castle-q'].forEach(id => {
+        document.getElementById(id).checked = true;
+      });
+      document.getElementById('pos-turn-w').classList.add('selected');
+      document.getElementById('pos-turn-b').classList.remove('selected');
+      this._posEditorSyncFEN();
+    });
+
+    // Play from here
+    document.getElementById('pos-play').addEventListener('click', () => {
+      const fen = document.getElementById('pos-fen-field').value.trim();
+      if (!this._posEditorValidateFEN(fen)) {
+        this.showToast('Invalid FEN position');
+        return;
+      }
+      hide(document.getElementById('position-editor-dialog'));
+      this.game.loadFromFEN(fen);
+      this.notation.clear();
+      this.board.setLastMove(null);
+      this.board.setFlipped(fen.split(' ')[1] === 'b');
+      this.board.update();
+      this.captured.clear();
+      this.lastOpeningName = '';
+      const labelEl = document.getElementById('opening-label');
+      if (labelEl) labelEl.textContent = '';
+      this._startMoveClock(fen.split(' ')[1] || 'w');
+    });
+
+    // Analyze
+    document.getElementById('pos-analyze').addEventListener('click', async () => {
+      const fen = document.getElementById('pos-fen-field').value.trim();
+      if (!this._posEditorValidateFEN(fen)) {
+        this.showToast('Invalid FEN position');
+        return;
+      }
+      hide(document.getElementById('position-editor-dialog'));
+      this.game.loadFromFEN(fen);
+      this.notation.clear();
+      this.board.setLastMove(null);
+      this.board.setFlipped(fen.split(' ')[1] === 'b');
+      this.board.update();
+      this.captured.clear();
+      this.lastOpeningName = '';
+      const labelEl = document.getElementById('opening-label');
+      if (labelEl) labelEl.textContent = '';
+      // Trigger eval bar
+      if (this._evalBarEnabled) {
+        await this.initEngine();
+        this._updateEvalBar();
+      }
+    });
+  }
+
+  _openPositionEditor() {
+    // Init from current game position
+    this._posEditorChess.load(this.chess.fen());
+    this._posEditorSelectedPiece = null;
+    this._posEditorUpdatePalette();
+    this._posEditorRenderBoard();
+    this._posEditorSyncControlsFromFEN(this.chess.fen());
+    this._posEditorSyncFEN();
+    show(document.getElementById('position-editor-dialog'));
+  }
+
+  _posEditorUpdatePalette() {
+    const palette = document.getElementById('pos-editor-palette');
+    const pieces = [
+      { color: 'w', type: 'k' }, { color: 'w', type: 'q' }, { color: 'w', type: 'r' },
+      { color: 'w', type: 'b' }, { color: 'w', type: 'n' }, { color: 'w', type: 'p' },
+      { color: 'b', type: 'k' }, { color: 'b', type: 'q' }, { color: 'b', type: 'r' },
+      { color: 'b', type: 'b' }, { color: 'b', type: 'n' }, { color: 'b', type: 'p' },
+    ];
+
+    let html = '';
+    for (const p of pieces) {
+      const imgPath = this._getPieceImagePath(p);
+      html += `<div class="pos-palette-piece" data-color="${p.color}" data-type="${p.type}"><img src="${imgPath}" alt="${p.color}${p.type}"></div>`;
+    }
+    html += `<div class="pos-palette-piece pos-palette-trash" data-tool="trash">🗑️</div>`;
+    palette.innerHTML = html;
+
+    // Click handlers
+    palette.querySelectorAll('.pos-palette-piece').forEach(el => {
+      el.addEventListener('click', () => {
+        palette.querySelectorAll('.pos-palette-piece').forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+        if (el.dataset.tool === 'trash') {
+          this._posEditorSelectedPiece = 'trash';
+        } else {
+          this._posEditorSelectedPiece = { color: el.dataset.color, type: el.dataset.type };
+        }
+      });
+    });
+  }
+
+  _getPieceImagePath(piece) {
+    return pieceImagePath(piece);
+  }
+
+  _posEditorRenderBoard() {
+    const boardEl = document.getElementById('pos-editor-board');
+    boardEl.innerHTML = '';
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const sq = String.fromCharCode(97 + col) + (8 - row);
+        const isLight = (row + col) % 2 === 0;
+        const div = document.createElement('div');
+        div.className = `pos-sq ${isLight ? 'light' : 'dark'}`;
+        div.dataset.square = sq;
+
+        const piece = this._posEditorChess.get(sq);
+        if (piece) {
+          const img = document.createElement('img');
+          img.src = this._getPieceImagePath(piece);
+          img.alt = `${piece.color}${piece.type}`;
+          img.draggable = false;
+          div.appendChild(img);
+        }
+
+        div.addEventListener('click', () => this._posEditorSquareClick(sq));
+        boardEl.appendChild(div);
+      }
+    }
+  }
+
+  _posEditorSquareClick(sq) {
+    if (!this._posEditorSelectedPiece) return;
+
+    if (this._posEditorSelectedPiece === 'trash') {
+      this._posEditorChess.remove(sq);
+    } else {
+      const { color, type } = this._posEditorSelectedPiece;
+      // Remove existing piece first
+      this._posEditorChess.remove(sq);
+      this._posEditorChess.put({ type, color }, sq);
+    }
+    this._posEditorRenderBoard();
+    this._posEditorSyncFEN();
+  }
+
+  _posEditorSyncFEN() {
+    // Build FEN from board + UI controls
+    const boardFen = this._posEditorChess.fen().split(' ')[0];
+    const turn = document.getElementById('pos-turn-w').classList.contains('selected') ? 'w' : 'b';
+    let castling = '';
+    if (document.getElementById('pos-castle-K').checked) castling += 'K';
+    if (document.getElementById('pos-castle-Q').checked) castling += 'Q';
+    if (document.getElementById('pos-castle-k').checked) castling += 'k';
+    if (document.getElementById('pos-castle-q').checked) castling += 'q';
+    if (!castling) castling = '-';
+    const fen = `${boardFen} ${turn} ${castling} - 0 1`;
+    document.getElementById('pos-fen-field').value = fen;
+    document.getElementById('pos-fen-field').classList.toggle('pos-fen-invalid', !this._posEditorValidateFEN(fen));
+  }
+
+  _posEditorSyncControlsFromFEN(fen) {
+    const parts = fen.split(' ');
+    if (parts.length < 3) return;
+    // Turn
+    const turn = parts[1];
+    document.getElementById('pos-turn-w').classList.toggle('selected', turn === 'w');
+    document.getElementById('pos-turn-b').classList.toggle('selected', turn === 'b');
+    // Castling
+    const castling = parts[2] || '-';
+    document.getElementById('pos-castle-K').checked = castling.includes('K');
+    document.getElementById('pos-castle-Q').checked = castling.includes('Q');
+    document.getElementById('pos-castle-k').checked = castling.includes('k');
+    document.getElementById('pos-castle-q').checked = castling.includes('q');
+  }
+
+  _posEditorValidateFEN(fen) {
+    try {
+      const temp = new Chess();
+      temp.load(fen);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // ============================================================

@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v140';
+const CACHE_NAME = 'grandmasters-v145';
 
 const PRECACHE_URLS = [
   './',
@@ -46,6 +46,7 @@ const PRECACHE_URLS = [
   './js/utils.js',
   './js/composer-profiles.js',
   './js/free-layout.js',
+  './js/achievements.js',
 
   // Stockfish engine
   './lib/stockfish/stockfish.js',
