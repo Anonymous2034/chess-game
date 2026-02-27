@@ -479,11 +479,11 @@ export class FreeLayout {
 
     // Available space inside the content area
     const contentRect = content.getBoundingClientRect();
-    // Reserve space: eval bar (~22px) + rank coords (~16px) horizontally, file coords (~20px) vertically
+    // Reserve width for eval bar (~22px) if visible
     const evalBar = document.getElementById('eval-bar');
     const evalW = (evalBar && !evalBar.classList.contains('layout-hidden') && evalBar.offsetParent) ? 22 : 0;
-    const availW = contentRect.width - evalW - 16; // ranks
-    const availH = contentRect.height - 20; // files
+    const availW = contentRect.width - evalW;
+    const availH = contentRect.height;
 
     // Board should be square — use min of available w and h
     const boardSize = Math.max(120, Math.min(availW, availH));
