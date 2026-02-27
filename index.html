@@ -66,10 +66,13 @@
         document.getElementById('gate-input').focus();
       }
     }
-    // Auto-unlock if already authenticated this session
+    // Auto-unlock if already authenticated this session, or on localhost
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') { gate.style.display = 'none'; }
+    else {
     const saved = sessionStorage.getItem(KEY);
     if (saved) { check(saved).then(ok => { if (ok) gate.style.display = 'none'; else gate.style.display = 'flex'; }); }
     else { gate.style.display = 'flex'; }
+    }
     document.getElementById('gate-btn').addEventListener('click', () => tryUnlock(document.getElementById('gate-input').value));
     document.getElementById('gate-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(e.target.value); });
   })();
@@ -1440,7 +1443,6 @@
           </div>
           <button class="btn btn-sm hidden" id="btn-takeback" title="Request takeback">↩ Take Back</button>
           <button class="btn btn-sm hidden" id="btn-rematch" title="Rematch">⟳ Rematch</button>
-          <button class="btn btn-sm" id="btn-save-game" title="Save current game">Save</button>
           <button class="btn btn-sm hidden" id="btn-resign-mp">Resign</button>
           <button class="btn btn-sm hidden" id="btn-draw-mp">Offer Draw</button>
           <span class="mp-opponent-status hidden" id="mp-opponent-status"></span>
@@ -1775,7 +1777,7 @@
 
   <!-- Scripts -->
   <script src="lib/chess.min.js"></script>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=152"></script>
   <script>
     if ('serviceWorker' in navigator && !window.Capacitor) {
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })

@@ -40,6 +40,7 @@ const PRECACHE_URLS = [
   './js/chess-news.js',
   './js/stats.js',
   './js/supabase-config.js',
+  './js/supabase-init.js',
   './js/themes.js',
   './js/tournament.js',
   './js/position-commentary.js',

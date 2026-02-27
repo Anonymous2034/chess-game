@@ -16,7 +16,7 @@ import { Tournament } from './tournament.js';
 import { show, hide, debounce, setPieceBasePath, pieceImagePath } from './utils.js';
 import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
 import { BotMatch } from './bot-match.js';
-import { initSupabase, isSupabaseConfigured, getSupabase } from './supabase-config.js';
+import { initSupabase, isSupabaseConfigured, getSupabase } from './supabase-init.js';
 import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';

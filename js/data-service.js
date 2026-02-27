@@ -1,5 +1,5 @@
 // Data service — abstracts Supabase + localStorage fallback
-import { getSupabase } from './supabase-config.js';
+import { getSupabase } from './supabase-init.js';
 
 export class DataService {
   constructor(auth) {

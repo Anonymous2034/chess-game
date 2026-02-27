@@ -1,5 +1,5 @@
 // Authentication manager — wraps Supabase Auth
-import { getSupabase } from './supabase-config.js';
+import { getSupabase } from './supabase-init.js';
 
 export class AuthManager {
   constructor() {
