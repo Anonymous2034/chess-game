@@ -8234,36 +8234,36 @@ body.free-layout-on .drag-group {
   box-shadow: 0 0 12px rgba(129,182,76,0.15), 0 4px 16px rgba(0,0,0,0.4);
 }
 
-/* === Title Bar — Chessmaster brown gradient with grip texture === */
+/* === Title Bar — slim dark bar === */
 .free-window-titlebar {
-  height: 28px;
-  min-height: 28px;
+  height: 20px;
+  min-height: 20px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 8px;
-  background: linear-gradient(180deg, #7b5c3a 0%, #5a4228 50%, #4a3218 100%);
-  color: #d4b896;
-  font-size: 0.75rem;
+  gap: 4px;
+  padding: 0 6px;
+  background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
+  color: #999;
+  font-size: 0.65rem;
   font-weight: 600;
   cursor: grab;
   flex-shrink: 0;
-  border-bottom: 1px solid #3a2810;
+  border-bottom: 1px solid #111;
   border-radius: 4px 4px 0 0;
 }
 
 /* Grip dots on the title bar — visual cue that it's draggable */
 .free-window-titlebar::before {
   content: '\u2847';
-  font-size: 1rem;
-  color: rgba(255,255,255,0.25);
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.18);
   line-height: 1;
-  margin-right: 2px;
+  margin-right: 1px;
 }
 
 .free-window-titlebar:active {
   cursor: grabbing;
-  background: linear-gradient(180deg, #8b6c4a 0%, #6a5238 50%, #5a4228 100%);
+  background: linear-gradient(180deg, #444 0%, #252525 100%);
 }
 
 .free-window-icon {
@@ -8285,24 +8285,24 @@ body.free-layout-on .drag-group {
 }
 
 .free-window-btn {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
   border: none;
   border-radius: 2px;
-  color: #d4b896;
-  font-size: 0.7rem;
+  color: #777;
+  font-size: 0.6rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
 }
 
 .free-window-btn:hover {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
+  background: rgba(255,255,255,0.15);
+  color: #ccc;
 }
 
 .free-close-btn:hover {
@@ -8328,8 +8328,8 @@ body.free-layout-on .drag-group {
 }
 
 .free-window-minimized {
-  height: 28px !important;
-  min-height: 28px;
+  height: 20px !important;
+  min-height: 20px;
   overflow: hidden;
 }
 

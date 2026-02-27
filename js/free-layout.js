@@ -201,6 +201,36 @@ export class FreeLayout {
     this._savedGroups = null;
   }
 
+  // === Magnetic snap — collect edges of other windows + container ===
+
+  static SNAP_DIST = 12; // px threshold for snapping
+
+  _getSnapEdges(skipWinId) {
+    const mainEl = document.querySelector('main');
+    const edges = { x: [0], y: [0] }; // container left/top
+    if (mainEl) {
+      edges.x.push(mainEl.clientWidth);  // container right
+      edges.y.push(mainEl.clientHeight); // container bottom
+    }
+    for (const [id, { el }] of Object.entries(this._windows)) {
+      if (id === skipWinId || el.style.display === 'none') continue;
+      const l = el.offsetLeft, t = el.offsetTop;
+      const r = l + el.offsetWidth, b = t + el.offsetHeight;
+      edges.x.push(l, r);
+      edges.y.push(t, b);
+    }
+    return edges;
+  }
+
+  _snap(val, targets, threshold) {
+    let best = val, bestDist = threshold + 1;
+    for (const t of targets) {
+      const d = Math.abs(val - t);
+      if (d < bestDist) { bestDist = d; best = t; }
+    }
+    return bestDist <= threshold ? best : val;
+  }
+
   // === Title bar drag-to-move ===
 
   _setupTitleBarDrag(win, titleBar, winId) {
@@ -231,8 +261,25 @@ export class FreeLayout {
       const maxX = mainEl.clientWidth - win.offsetWidth;
       const maxY = mainEl.clientHeight - win.offsetHeight;
 
-      const nx = Math.max(0, Math.min(maxX, startLeft + dx));
-      const ny = Math.max(0, Math.min(maxY, startTop + dy));
+      let nx = Math.max(0, Math.min(maxX, startLeft + dx));
+      let ny = Math.max(0, Math.min(maxY, startTop + dy));
+
+      // Magnetic snapping to other windows and container edges
+      const snap = FreeLayout.SNAP_DIST;
+      const edges = this._getSnapEdges(winId);
+      const w = win.offsetWidth, h = win.offsetHeight;
+
+      // Snap left edge and right edge
+      const snappedL = this._snap(nx, edges.x, snap);
+      const snappedR = this._snap(nx + w, edges.x, snap);
+      if (snappedL !== nx) nx = snappedL;
+      else if (snappedR !== nx + w) nx = snappedR - w;
+
+      // Snap top edge and bottom edge
+      const snappedT = this._snap(ny, edges.y, snap);
+      const snappedB = this._snap(ny + h, edges.y, snap);
+      if (snappedT !== ny) ny = snappedT;
+      else if (snappedB !== ny + h) ny = snappedB - h;
 
       win.style.left = nx + 'px';
       win.style.top = ny + 'px';
