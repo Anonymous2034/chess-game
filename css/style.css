@@ -4933,17 +4933,23 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   top: 0;
 }
 
+.nav-menu-backdrop {
+  display: none;
+}
+
 .nav-menu {
   display: none;
   position: absolute;
   top: 100%;
   right: 0;
-  width: 200px;
+  width: 220px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 8px;
-  z-index: 200;
+  z-index: 10001;
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -6516,13 +6522,46 @@ body.resizing-h {
     gap: 4px;
   }
 
+  .nav-menu-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+  }
+  .nav-menu-backdrop.open {
+    display: block;
+  }
+
   .nav-menu {
-    width: 200px;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: calc(100vh - 56px);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    z-index: 10001;
+  }
+
+  .nav-menu-section {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .nav-menu-section .btn {
+    flex: 1 1 auto;
+    min-width: 100px;
+    text-align: center;
   }
 
   .nav-menu-label {
     color: var(--accent);
     margin-bottom: 2px;
+    width: 100%;
   }
 
   /* --- Touch-friendly sizing --- */

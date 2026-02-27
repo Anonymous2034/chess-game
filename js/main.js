@@ -5322,6 +5322,8 @@ class ChessApp {
     const panelsToggle = document.getElementById('btn-panels-toggle');
     const panelsDropdown = document.getElementById('panels-dropdown');
     const togglePanels = () => {
+      // Close hamburger first (mutual exclusion)
+      if (this._closeHamburger) this._closeHamburger();
       this._syncLayoutCheckboxes();
       panelsDropdown.classList.toggle('hidden');
     };
@@ -7100,29 +7102,49 @@ class ChessApp {
   setupHamburgerMenu() {
     const toggle = document.getElementById('btn-menu-toggle');
     const menu = document.getElementById('nav-menu');
+    const backdrop = document.getElementById('nav-menu-backdrop');
     if (!toggle || !menu) return;
+
+    const openMenu = () => {
+      // Close panels dropdown first (mutual exclusion)
+      const pd = document.getElementById('panels-dropdown');
+      if (pd) pd.classList.add('hidden');
+      toggle.classList.add('open');
+      menu.classList.add('open');
+      if (backdrop) backdrop.classList.add('open');
+    };
+
+    const closeMenu = () => {
+      toggle.classList.remove('open');
+      menu.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('open');
+    };
+
+    // Expose close helper for panels toggle to use
+    this._closeHamburger = closeMenu;
 
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggle.classList.toggle('open');
-      menu.classList.toggle('open');
+      if (menu.classList.contains('open')) closeMenu();
+      else openMenu();
     });
 
     // Auto-close when a button inside the menu is clicked
     menu.addEventListener('click', (e) => {
       if (e.target.closest('.btn') || e.target.closest('button')) {
-        toggle.classList.remove('open');
-        menu.classList.remove('open');
+        closeMenu();
       }
     });
 
     // Close on outside click
     document.addEventListener('click', (e) => {
       if (!toggle.contains(e.target) && !menu.contains(e.target)) {
-        toggle.classList.remove('open');
-        menu.classList.remove('open');
+        closeMenu();
       }
     });
+
+    // Close on backdrop click (mobile)
+    if (backdrop) backdrop.addEventListener('click', closeMenu);
   }
 
   // === Offline Indicator ===
