@@ -751,4 +751,131 @@ export class FreeLayout {
     this._fitBoard();
     this._saveLayout();
   }
+
+  // === Auto-Arrange: tile all visible windows with zero overlap ===
+
+  autoArrange() {
+    if (!this._active) return;
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
+    const W = mainEl.clientWidth;
+    const H = mainEl.clientHeight;
+
+    // Collect visible windows
+    const visible = new Set();
+    for (const [id, { el }] of Object.entries(this._windows)) {
+      if (el.style.display !== 'none') visible.add(id);
+    }
+    if (visible.size === 0) return;
+
+    // --- Categorize by role ---
+    const boardStack = ['black', 'board', 'white'].filter(id => visible.has(id));
+    const boardBottom = ['navigation', 'clock'].filter(id => visible.has(id));
+    const midOrder = ['status', 'moves', 'book', 'move-note', 'match-note'];
+    const rightOrder = ['eval-graph', 'music', 'hints', 'gm-coach', 'coach'];
+    const midCol = midOrder.filter(id => visible.has(id));
+    const rightCol = rightOrder.filter(id => visible.has(id));
+
+    // Catch any uncategorized
+    const placed = new Set([...boardStack, ...boardBottom, ...midCol, ...rightCol]);
+    for (const id of visible) {
+      if (!placed.has(id)) rightCol.push(id);
+    }
+
+    const hasBoard = visible.has('board');
+    const TITLE_H = 16; // title bar height
+    const PLAYER_H = 32 + TITLE_H; // player window total height
+    const BOTTOM_H = boardBottom.length > 0 ? 36 + TITLE_H : 0;
+
+    // --- Calculate board column width ---
+    // Board needs: eval bar (22px) + rank labels (14px) + square board + border
+    // Board content height: window height - TITLE_H - file labels (18px)
+    const numCols = (midCol.length > 0 ? 1 : 0) + (rightCol.length > 0 ? 1 : 0);
+    let boardColW = 0;
+
+    if (hasBoard) {
+      const numPlayers = boardStack.filter(id => id !== 'board').length;
+      const boardWinH = H - numPlayers * PLAYER_H - BOTTOM_H;
+      const boardContentH = boardWinH - TITLE_H;
+      // Square board size from height: content height minus file labels
+      const squareFromH = boardContentH - 18;
+      // Max board column width: leave at least 220px per other column
+      const maxBoardColW = numCols > 0 ? W - numCols * 220 : W;
+      // Square board size from width: column width minus eval bar, rank labels
+      const squareFromW = maxBoardColW - 36;
+      const squareSize = Math.max(160, Math.min(squareFromW, squareFromH));
+      boardColW = squareSize + 36;
+      // Clamp to reasonable range
+      boardColW = Math.min(boardColW, Math.round(W * 0.55));
+      boardColW = Math.max(boardColW, 220);
+    }
+
+    // --- Right-side column widths ---
+    const rightAreaW = W - boardColW;
+    let midColW = 0, rightColW = 0;
+    if (midCol.length > 0 && rightCol.length > 0) {
+      midColW = Math.floor(rightAreaW / 2);
+      rightColW = rightAreaW - midColW;
+    } else if (midCol.length > 0) {
+      midColW = rightAreaW;
+    } else if (rightCol.length > 0) {
+      rightColW = rightAreaW;
+    }
+
+    // --- Place board column (perfect vertical stack, 0 gap) ---
+    if (hasBoard && boardStack.length > 0) {
+      const numPlayers = boardStack.filter(id => id !== 'board').length;
+      const boardWinH = H - numPlayers * PLAYER_H - BOTTOM_H;
+      let y = 0;
+      for (const id of boardStack) {
+        const h = id === 'board' ? boardWinH : PLAYER_H;
+        this._placeWindow(id, 0, y, boardColW, h);
+        y += h;
+      }
+      // Bottom row (nav + clock)
+      if (boardBottom.length > 0) {
+        const segW = Math.floor(boardColW / boardBottom.length);
+        let bx = 0;
+        for (let i = 0; i < boardBottom.length; i++) {
+          const w = i === boardBottom.length - 1 ? boardColW - bx : segW;
+          this._placeWindow(boardBottom[i], bx, y, w, BOTTOM_H);
+          bx += w;
+        }
+      }
+    }
+
+    // --- Helper: tile a column of panels with zero gap ---
+    const tileColumn = (panels, x, colW) => {
+      if (panels.length === 0) return;
+      const panelH = Math.floor(H / panels.length);
+      let y = 0;
+      for (let i = 0; i < panels.length; i++) {
+        const h = i === panels.length - 1 ? H - y : panelH;
+        this._placeWindow(panels[i], x, y, colW, h);
+        y += h;
+      }
+    };
+
+    // --- Place mid column ---
+    tileColumn(midCol, boardColW, midColW);
+
+    // --- Place right column ---
+    tileColumn(rightCol, boardColW + midColW, rightColW);
+
+    this._fitBoard();
+    this._saveLayout();
+  }
+
+  _placeWindow(winId, x, y, w, h) {
+    const win = this._windows[winId];
+    if (!win) return;
+    const el = win.el;
+    el.style.left = Math.round(x) + 'px';
+    el.style.top = Math.round(y) + 'px';
+    el.style.width = Math.round(w) + 'px';
+    el.style.height = Math.round(h) + 'px';
+    el.style.display = '';
+    el.classList.remove('free-window-minimized');
+    win.pos = { x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) };
+  }
 }

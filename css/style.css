@@ -168,6 +168,15 @@ nav {
   font-size: 0.8rem;
 }
 
+.btn-accent {
+  background: rgba(181,136,99,0.3);
+  border-color: var(--accent, #b58863);
+  color: #ffe0c0;
+}
+.btn-accent:hover {
+  background: rgba(181,136,99,0.5);
+}
+
 /* === Dropdown === */
 .dropdown {
   position: relative;
@@ -7916,27 +7925,27 @@ body.free-layout-on [data-drag-id="tab-bar"] {
 
 /* === Title Bar — slim dark bar === */
 .free-window-titlebar {
-  height: 20px;
-  min-height: 20px;
+  height: 16px;
+  min-height: 16px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 6px;
-  background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
-  color: #999;
-  font-size: 0.65rem;
+  gap: 3px;
+  padding: 0 5px;
+  background: linear-gradient(180deg, #2e2e2e 0%, #1a1a1a 100%);
+  color: #888;
+  font-size: 0.6rem;
   font-weight: 600;
   cursor: grab;
   flex-shrink: 0;
   border-bottom: 1px solid #111;
-  border-radius: 4px 4px 0 0;
+  border-radius: 3px 3px 0 0;
 }
 
 /* Grip dots on the title bar — visual cue that it's draggable */
 .free-window-titlebar::before {
   content: '\u2847';
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.18);
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.15);
   line-height: 1;
   margin-right: 1px;
 }

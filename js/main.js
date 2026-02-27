@@ -1250,20 +1250,34 @@ class ChessApp {
   // Watchdog: periodically check if the game is stuck
   _startEngineWatchdog() {
     if (this._engineWatchdog) clearInterval(this._engineWatchdog);
+    this._engineWatchdogTick = 0;
     this._engineWatchdog = setInterval(() => {
       if (this.game.gameOver || this.game.mode !== 'engine') return;
+      this._engineWatchdogTick++;
 
       const engineTurn = this.chess.turn() !== this.game.playerColor;
-      if (engineTurn && !this.engine.thinking && !this.board.interactive) {
-        console.warn('Watchdog: engine stuck — handler may have been lost. Re-requesting move.');
-        // Restore canonical handler first
+      if (!engineTurn) { this._engineWatchdogTick = 0; return; }
+
+      // Case 1: engine not thinking and board not interactive — completely stuck
+      if (!this.engine.thinking && !this.board.interactive) {
+        console.warn('Watchdog: engine stuck — re-requesting move.');
         this.engine.onBestMove = (uciMove) => this.handleEngineMove(uciMove);
         this.engine.onNoMove = () => this._handleEngineNoMove();
         if (this.activeBot) this.engine.applyPersonality(this.activeBot);
+        this.engine.thinking = false;
         this.engine.requestMove(this.chess.fen());
         this._startEngineMoveTimer();
+        this._engineWatchdogTick = 0;
+        return;
       }
-    }, 5000);
+
+      // Case 2: engine stuck thinking for too long (>12s from watchdog perspective)
+      if (this.engine.thinking && this._engineWatchdogTick >= 4) {
+        console.warn('Watchdog: engine thinking too long — forcing move.');
+        this._forceEngineMove();
+        this._engineWatchdogTick = 0;
+      }
+    }, 3000);
   }
 
   _stopEngineWatchdog() {
@@ -5140,6 +5154,13 @@ class ChessApp {
         FreeLayout.clearSaved();
         this._freeLayout.deactivate();
         this._freeLayout.activate();
+      }
+    });
+
+    // Auto-arrange
+    document.getElementById('layout-auto-arrange')?.addEventListener('click', () => {
+      if (this._freeLayout) {
+        this._freeLayout.autoArrange();
       }
     });
 
