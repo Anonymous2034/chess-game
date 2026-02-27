@@ -17,16 +17,17 @@ export class FreeLayout {
   };
 
   // Default positions as viewport fractions { x, y, w, h }
-  // Left column: board + nav + eval + music; Right column: status + analysis + coach + notes
+  // Left: board (large) + nav + eval graph + music
+  // Right: status + analysis (tall) + coach + notes
   static DEFAULT_POSITIONS = {
-    board:        { x: 0.01, y: 0.01, w: 0.46, h: 0.72 },
-    navigation:   { x: 0.01, y: 0.74, w: 0.46, h: 0.08 },
-    'eval-graph': { x: 0.01, y: 0.83, w: 0.23, h: 0.15 },
-    music:        { x: 0.25, y: 0.83, w: 0.22, h: 0.15 },
-    status:       { x: 0.49, y: 0.01, w: 0.46, h: 0.06 },
-    analysis:     { x: 0.49, y: 0.08, w: 0.46, h: 0.56 },
-    coach:        { x: 0.49, y: 0.65, w: 0.46, h: 0.10 },
-    notes:        { x: 0.49, y: 0.76, w: 0.46, h: 0.22 },
+    board:        { x: 0.005, y: 0.005, w: 0.48,  h: 0.76  },
+    navigation:   { x: 0.005, y: 0.77,  w: 0.48,  h: 0.07  },
+    'eval-graph': { x: 0.005, y: 0.85,  w: 0.24,  h: 0.14  },
+    music:        { x: 0.25,  y: 0.85,  w: 0.235, h: 0.14  },
+    status:       { x: 0.49,  y: 0.005, w: 0.505, h: 0.055 },
+    analysis:     { x: 0.49,  y: 0.065, w: 0.505, h: 0.52  },
+    coach:        { x: 0.49,  y: 0.59,  w: 0.505, h: 0.12  },
+    notes:        { x: 0.49,  y: 0.715, w: 0.505, h: 0.28  },
   };
 
   constructor() {

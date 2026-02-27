@@ -156,7 +156,6 @@ class ChessApp {
     this.setupBrowseDialogs();
     this.setupEvalBar();
     this.setupLayoutEditor();
-    this.setupDragLayout();
     this.setupFreeLayout();
     this.setupSettings();
     this._loadClockTheme();
@@ -4966,33 +4965,7 @@ class ChessApp {
     if (layoutMenuBtn) {
       layoutMenuBtn.addEventListener('click', () => {
         this._syncLayoutCheckboxes();
-        const t = document.getElementById('layout-drag-toggle');
-        if (t) t.checked = this._dragLayout?.enabled || false;
-        const ft = document.getElementById('layout-free-toggle');
-        if (ft) ft.checked = this._freeLayout?.active || false;
         show(document.getElementById('layout-dialog'));
-      });
-    }
-
-    // Free Layout toggle inside dialog
-    const freeToggle = document.getElementById('layout-free-toggle');
-    if (freeToggle) {
-      freeToggle.addEventListener('change', () => {
-        const freeBtn = document.getElementById('btn-free-layout');
-        if (freeToggle.checked) {
-          if (!this._freeLayout?.active) {
-            if (document.body.classList.contains('drag-mode')) this._exitDragMode();
-            this._freeLayout.activate();
-            if (freeBtn) freeBtn.classList.add('active');
-          }
-        } else {
-          if (this._freeLayout?.active) {
-            this._freeLayout.deactivate();
-            FreeLayout.clearSaved();
-            if (freeBtn) freeBtn.classList.remove('active');
-            this._syncPanelHeight();
-          }
-        }
       });
     }
 
@@ -5009,16 +4982,12 @@ class ChessApp {
       this._saveLayoutSettings();
       this._applyAllLayoutSettings();
       this._syncLayoutCheckboxes();
-      // Deactivate free layout on reset
-      if (this._freeLayout?.active) {
-        this._freeLayout.deactivate();
+      // Reset free layout to defaults
+      if (this._freeLayout) {
         FreeLayout.clearSaved();
-        const freeBtn = document.getElementById('btn-free-layout');
-        if (freeBtn) freeBtn.classList.remove('active');
-        this._syncPanelHeight();
+        this._freeLayout.deactivate();
+        this._freeLayout.activate();
       }
-      const ft = document.getElementById('layout-free-toggle');
-      if (ft) ft.checked = false;
     });
 
     document.getElementById('layout-dialog').addEventListener('change', (e) => {
@@ -5184,297 +5153,7 @@ class ChessApp {
     });
   }
 
-  // === Drag & Drop Layout Reorder ===
-
-  static get _DRAG_LAYOUT_DEFAULTS() {
-    return {
-      enabled: false,
-      boardArea: ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'nav', 'music'],
-      sidePanel: ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'notes']
-    };
-  }
-
-  setupDragLayout() {
-    this._loadDragLayout();
-    this._applyDragOrder();
-
-    const toggle = document.getElementById('layout-drag-toggle');
-    if (toggle) {
-      toggle.checked = this._dragLayout.enabled;
-      toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          this._dragLayout.enabled = true;
-          this._saveDragLayout();
-          this._enterDragMode();
-        } else {
-          this._exitDragMode();
-        }
-      });
-    }
-
-    const resetBtn = document.getElementById('layout-drag-reset');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        this._dragLayout = { ...ChessApp._DRAG_LAYOUT_DEFAULTS };
-        this._saveDragLayout();
-        this._applyDragOrder();
-        if (document.body.classList.contains('drag-mode')) {
-          this._exitDragMode();
-        }
-        const t = document.getElementById('layout-drag-toggle');
-        if (t) t.checked = false;
-      });
-    }
-  }
-
-  _loadDragLayout() {
-    const defaults = ChessApp._DRAG_LAYOUT_DEFAULTS;
-    try {
-      const saved = localStorage.getItem('chess_drag_layout');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        this._dragLayout = {
-          enabled: false, // always start with drag mode off
-          boardArea: Array.isArray(parsed.boardArea) ? parsed.boardArea : [...defaults.boardArea],
-          sidePanel: Array.isArray(parsed.sidePanel) ? parsed.sidePanel : [...defaults.sidePanel]
-        };
-      } else {
-        this._dragLayout = { ...defaults, boardArea: [...defaults.boardArea], sidePanel: [...defaults.sidePanel] };
-      }
-    } catch {
-      this._dragLayout = { ...defaults, boardArea: [...defaults.boardArea], sidePanel: [...defaults.sidePanel] };
-    }
-  }
-
-  _saveDragLayout() {
-    localStorage.setItem('chess_drag_layout', JSON.stringify(this._dragLayout));
-  }
-
-  _applyDragOrder() {
-    const boardArea = document.querySelector('.board-area');
-    const sidePanel = document.querySelector('.side-panel');
-    if (!boardArea || !sidePanel) return;
-
-    // Move drag-groups into their saved containers in order
-    for (const id of this._dragLayout.boardArea) {
-      const g = document.querySelector(`[data-drag-id="${id}"]`);
-      if (g) boardArea.appendChild(g);
-    }
-    for (const id of this._dragLayout.sidePanel) {
-      const g = document.querySelector(`[data-drag-id="${id}"]`);
-      if (g) sidePanel.appendChild(g);
-    }
-
-    // Keep #analysis-summary at top of side-panel (not draggable)
-    const summary = document.getElementById('analysis-summary');
-    if (summary && sidePanel.contains(summary)) {
-      sidePanel.prepend(summary);
-    }
-  }
-
-  _rebuildDragOrder() {
-    const boardArea = document.querySelector('.board-area');
-    const sidePanel = document.querySelector('.side-panel');
-    this._dragLayout.boardArea = [...boardArea.querySelectorAll(':scope > .drag-group')].map(g => g.dataset.dragId);
-    this._dragLayout.sidePanel = [...sidePanel.querySelectorAll(':scope > .drag-group')].map(g => g.dataset.dragId);
-    this._saveDragLayout();
-  }
-
-  _enterDragMode() {
-    // Close layout dialog
-    hide(document.getElementById('layout-dialog'));
-
-    document.body.classList.add('drag-mode');
-
-    // Create drop indicator
-    this._dragIndicator = document.createElement('div');
-    this._dragIndicator.className = 'drag-drop-indicator';
-
-    // Create floating Done button
-    this._dragDoneBtn = document.createElement('button');
-    this._dragDoneBtn.className = 'drag-done-btn';
-    this._dragDoneBtn.textContent = 'Done Rearranging';
-    this._dragDoneBtn.addEventListener('click', () => this._exitDragMode());
-    document.body.appendChild(this._dragDoneBtn);
-
-    // Attach pointer listeners to drag groups
-    this._dragGroupHandlers = new Map();
-    document.querySelectorAll('.drag-group').forEach(group => {
-      const handler = (e) => this._onDragGroupPointerDown(e, group);
-      group.addEventListener('pointerdown', handler);
-      this._dragGroupHandlers.set(group, handler);
-    });
-  }
-
-  _exitDragMode() {
-    document.body.classList.remove('drag-mode');
-
-    // Remove indicator
-    if (this._dragIndicator && this._dragIndicator.parentNode) {
-      this._dragIndicator.remove();
-    }
-    this._dragIndicator = null;
-
-    // Remove done button
-    if (this._dragDoneBtn) {
-      this._dragDoneBtn.remove();
-      this._dragDoneBtn = null;
-    }
-
-    // Detach pointer listeners
-    if (this._dragGroupHandlers) {
-      this._dragGroupHandlers.forEach((handler, group) => {
-        group.removeEventListener('pointerdown', handler);
-      });
-      this._dragGroupHandlers = null;
-    }
-
-    // Remove drag-over highlights
-    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-
-    this._dragLayout.enabled = false;
-    this._saveDragLayout();
-
-    const t = document.getElementById('layout-drag-toggle');
-    if (t) t.checked = false;
-  }
-
-  _onDragGroupPointerDown(e, group) {
-    // Only primary button
-    if (e.button !== 0) return;
-    e.preventDefault();
-    group.setPointerCapture(e.pointerId);
-
-    const rect = group.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
-
-    // Create floating clone
-    const clone = group.cloneNode(true);
-    clone.className = 'drag-clone';
-    clone.style.width = rect.width + 'px';
-    clone.style.transform = `translate(${e.clientX - offsetX}px, ${e.clientY - offsetY}px) scale(0.95)`;
-    document.body.appendChild(clone);
-
-    group.classList.add('dragging');
-
-    const boardArea = document.querySelector('.board-area');
-    const sidePanel = document.querySelector('.side-panel');
-
-    let lastX = e.clientX, lastY = e.clientY;
-    let rafId = 0;
-    let lastTarget = null;
-
-    const updatePosition = () => {
-      clone.style.transform = `translate(${lastX - offsetX}px, ${lastY - offsetY}px) scale(0.95)`;
-
-      const target = this._findDropTarget(lastX, lastY, group);
-      if (target) {
-        boardArea.classList.toggle('drag-over', target.container === boardArea);
-        sidePanel.classList.toggle('drag-over', target.container === sidePanel);
-
-        if (target.beforeElement) {
-          target.container.insertBefore(this._dragIndicator, target.beforeElement);
-        } else {
-          target.container.appendChild(this._dragIndicator);
-        }
-        lastTarget = target;
-      } else {
-        if (this._dragIndicator.parentNode) this._dragIndicator.remove();
-        boardArea.classList.remove('drag-over');
-        sidePanel.classList.remove('drag-over');
-        lastTarget = null;
-      }
-      rafId = 0;
-    };
-
-    const onPointerMove = (ev) => {
-      lastX = ev.clientX;
-      lastY = ev.clientY;
-      if (!rafId) rafId = requestAnimationFrame(updatePosition);
-    };
-
-    const onPointerUp = () => {
-      group.removeEventListener('pointermove', onPointerMove);
-      group.removeEventListener('pointerup', onPointerUp);
-      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-
-      clone.remove();
-      group.classList.remove('dragging');
-      if (this._dragIndicator.parentNode) this._dragIndicator.remove();
-      boardArea.classList.remove('drag-over');
-      sidePanel.classList.remove('drag-over');
-
-      // Use the last known target from pointermove (avoids stale recalculation)
-      if (lastTarget) {
-        this._performDrop(group, lastTarget);
-      }
-    };
-
-    group.addEventListener('pointermove', onPointerMove);
-    group.addEventListener('pointerup', onPointerUp);
-  }
-
-  _findDropTarget(clientX, clientY, draggedGroup) {
-    const boardArea = document.querySelector('.board-area');
-    const sidePanel = document.querySelector('.side-panel');
-    const dragId = draggedGroup.dataset.dragId;
-
-    // Determine which container the cursor is over
-    const bRect = boardArea.getBoundingClientRect();
-    const sRect = sidePanel.getBoundingClientRect();
-
-    let container = null;
-    if (clientX >= bRect.left && clientX <= bRect.right && clientY >= bRect.top && clientY <= bRect.bottom) {
-      container = boardArea;
-    } else if (clientX >= sRect.left && clientX <= sRect.right && clientY >= sRect.top && clientY <= sRect.bottom) {
-      container = sidePanel;
-    }
-
-    if (!container) return null;
-
-    // Constraint: 'board' must stay in board-area
-    if (dragId === 'board' && container !== boardArea) return null;
-
-    // Find insertion point based on Y midpoint
-    const groups = [...container.querySelectorAll('.drag-group:not(.dragging)')];
-    let beforeElement = null;
-    for (const g of groups) {
-      const r = g.getBoundingClientRect();
-      const midY = r.top + r.height / 2;
-      if (clientY < midY) {
-        beforeElement = g;
-        break;
-      }
-    }
-
-    return { container, beforeElement };
-  }
-
-  _performDrop(group, target) {
-    if (target.beforeElement) {
-      target.container.insertBefore(group, target.beforeElement);
-    } else {
-      target.container.appendChild(group);
-    }
-
-    // Brief settle flash
-    group.classList.add('drag-settling');
-    group.style.opacity = '0.6';
-    requestAnimationFrame(() => { group.style.opacity = ''; });
-    setTimeout(() => group.classList.remove('drag-settling'), 200);
-
-    // Keep analysis-summary at top of side-panel
-    const sidePanel = document.querySelector('.side-panel');
-    const summary = document.getElementById('analysis-summary');
-    if (summary && sidePanel.contains(summary)) {
-      sidePanel.prepend(summary);
-    }
-
-    this._rebuildDragOrder();
-  }
-
-  // === Free-Floating Layout (Chessmaster-style) ===
+  // === Free-Floating Layout (always on) ===
 
   setupFreeLayout() {
     this._freeLayout = new FreeLayout();
@@ -5486,45 +5165,8 @@ class ChessApp {
       }
     };
 
-    // Wire the hamburger menu button
-    const freeBtn = document.getElementById('btn-free-layout');
-    if (freeBtn) {
-      freeBtn.addEventListener('click', () => {
-        // Close nav menu
-        const menu = document.getElementById('nav-menu');
-        if (menu) menu.classList.remove('open');
-        const toggle = document.getElementById('btn-menu-toggle');
-        if (toggle) toggle.classList.remove('open');
-
-        if (this._freeLayout.active) {
-          // Deactivate free layout
-          this._freeLayout.deactivate();
-          FreeLayout.clearSaved();
-          freeBtn.classList.remove('active');
-          // Re-sync panel height for classic layout
-          this._syncPanelHeight();
-        } else {
-          // Exit drag mode if active
-          if (document.body.classList.contains('drag-mode')) {
-            this._exitDragMode();
-          }
-          // Activate free layout
-          this._freeLayout.activate();
-          freeBtn.classList.add('active');
-          // Show instruction toast on first use
-          if (!localStorage.getItem('chess_free_layout_seen')) {
-            localStorage.setItem('chess_free_layout_seen', '1');
-            this.showToast('Drag title bars to move windows. Grab edges or corners to resize.');
-          }
-        }
-      });
-    }
-
-    // Auto-activate if a saved free layout exists
-    if (FreeLayout.hasSavedLayout()) {
-      this._freeLayout.activate();
-      if (freeBtn) freeBtn.classList.add('active');
-    }
+    // Always activate free layout
+    this._freeLayout.activate();
   }
 
   // === Settings Dialogs (Sound / Display / Board) ===
