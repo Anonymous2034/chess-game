@@ -7893,22 +7893,30 @@ body.free-layout-on .drag-group {
 }
 
 /* === Board-specific: fill window, stay square === */
-/* Grid: [ranks 1-8] [board]
-                      [files a-h] */
+/* Grid: [eval-bar] [ranks 1-8] [board]
+                                 [files a-h] */
 body.free-layout-on [data-drag-id="board"] #board-container {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto auto 1fr;
   grid-template-rows: 1fr auto;
   width: 100%;
   height: 100%;
   margin-left: 0;
 }
 
+body.free-layout-on [data-drag-id="board"] .eval-bar {
+  grid-row: 1;
+  grid-column: 1;
+  height: var(--board-size);
+  align-self: start;
+  visibility: visible !important;
+}
+
 body.free-layout-on [data-drag-id="board"] #board {
   grid-row: 1;
-  grid-column: 2;
+  grid-column: 3;
   width: var(--board-size);
   height: var(--board-size);
 }
@@ -7916,7 +7924,7 @@ body.free-layout-on [data-drag-id="board"] #board {
 /* Rank coords (1-8) — own column left of board */
 body.free-layout-on .coords-ranks {
   grid-row: 1;
-  grid-column: 1;
+  grid-column: 2;
   position: relative;
   left: auto;
   top: auto;
@@ -7941,7 +7949,7 @@ body.free-layout-on .coords-ranks .coord-label {
 /* File coords (a-h) below the board */
 body.free-layout-on .coords-files {
   grid-row: 2;
-  grid-column: 2;
+  grid-column: 3;
   position: relative;
   bottom: auto;
   left: auto;
@@ -7950,33 +7958,6 @@ body.free-layout-on .coords-files {
   display: flex;
   justify-content: space-around;
   padding: 2px 0;
-}
-
-/* Eval bar — standalone window, fill entire window */
-body.free-layout-on [data-drag-id="eval-bar"] .eval-bar {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  margin-right: 0;
-  visibility: visible !important;
-  background: #333;
-  border-radius: 2px;
-  overflow: hidden;
-}
-body.free-layout-on [data-drag-id="eval-bar"] .eval-bar-white {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50%;
-  background: #eee;
-}
-body.free-layout-on [data-drag-id="eval-bar"] .eval-bar-label {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
 }
 
 /* Panels window — scrollable toggle list */

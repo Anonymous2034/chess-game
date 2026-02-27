@@ -1089,7 +1089,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v119</div>
+          <div class="nav-menu-version" id="app-version">v120</div>
         </div>
       </nav>
     </header>
@@ -1113,20 +1113,17 @@
         </div>
         </div>
 
-        <div class="drag-group" data-drag-id="eval-bar" data-drag-label="Eval Bar">
-        <div class="eval-bar" id="eval-bar">
-          <div class="eval-bar-white" id="eval-bar-white"></div>
-          <div class="eval-bar-label" id="eval-bar-label">0.0</div>
-        </div>
-        </div>
-
         <div class="drag-group" data-drag-id="board" data-drag-label="Board">
         <!-- Chess Board -->
         <div id="board-container">
+          <div class="eval-bar" id="eval-bar">
+            <div class="eval-bar-white" id="eval-bar-white"></div>
+            <div class="eval-bar-label" id="eval-bar-label">0.0</div>
+          </div>
+          <div class="coords coords-ranks" id="coords-ranks"></div>
           <div id="board" class="board"></div>
           <!-- Coordinate labels -->
           <div class="coords coords-files" id="coords-files"></div>
-          <div class="coords coords-ranks" id="coords-ranks"></div>
         </div>
         <!-- Puzzle Bar (shown during puzzle mode) -->
         <div class="puzzle-bar hidden" id="puzzle-bar">

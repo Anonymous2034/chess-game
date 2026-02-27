@@ -6,7 +6,6 @@ export class FreeLayout {
 
   // Window definitions: which drag-groups go into each window
   static WINDOW_DEFS = {
-    'eval-bar':   { label: 'Eval Bar',   icon: '▐', groups: ['eval-bar'],                                  minW: 30,  minH: 200 },
     board:        { label: 'Board',      icon: '♚', groups: ['board'],                                      minW: 200, minH: 200 },
     white:        { label: 'White',      icon: '♙', groups: ['player-bottom'],                              minW: 180, minH: 32  },
     black:        { label: 'Black',      icon: '♟', groups: ['player-top'],                                 minW: 180, minH: 32  },
@@ -28,11 +27,10 @@ export class FreeLayout {
   // Mid col: status + moves + move-note + match-note
   // Right col: hints + gm-coach + commentary
   static DEFAULT_POSITIONS = {
-    'eval-bar':   { x: 0.005, y: 0.055, w: 0.025, h: 0.66  },
-    black:        { x: 0.035, y: 0.005, w: 0.41,  h: 0.045 },
-    board:        { x: 0.035, y: 0.055, w: 0.41,  h: 0.66  },
-    white:        { x: 0.035, y: 0.72,  w: 0.41,  h: 0.045 },
-    navigation:   { x: 0.035, y: 0.77,  w: 0.41,  h: 0.06  },
+    black:        { x: 0.005, y: 0.005, w: 0.44,  h: 0.045 },
+    board:        { x: 0.005, y: 0.055, w: 0.44,  h: 0.66  },
+    white:        { x: 0.005, y: 0.72,  w: 0.44,  h: 0.045 },
+    navigation:   { x: 0.005, y: 0.77,  w: 0.44,  h: 0.06  },
     'eval-graph': { x: 0.005, y: 0.835, w: 0.22,  h: 0.16  },
     music:        { x: 0.23,  y: 0.835, w: 0.215, h: 0.16  },
     status:       { x: 0.45,  y: 0.005, w: 0.27,  h: 0.045 },
@@ -171,7 +169,7 @@ export class FreeLayout {
     if (!boardArea || !sidePanel) return;
 
     // Restore groups to their original containers
-    const boardOrder = ['eval-bar', 'player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
+    const boardOrder = ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
     const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note', 'panels'];
 
     for (const gId of boardOrder) {
@@ -582,9 +580,11 @@ export class FreeLayout {
 
     // Available space inside the content area
     const contentRect = content.getBoundingClientRect();
-    // Reserve width for rank coords (~14px)
+    // Reserve width for eval bar (~22px) + rank coords (~14px)
+    const evalBar = document.getElementById('eval-bar');
+    const evalW = (evalBar && !evalBar.classList.contains('layout-hidden') && evalBar.offsetParent) ? 22 : 0;
     const rankW = 14; // rank labels column
-    const availW = contentRect.width - rankW;
+    const availW = contentRect.width - evalW - rankW;
     const availH = contentRect.height - 18; // file coords (a-h) below board
 
     // Board should be square — use min of available w and h

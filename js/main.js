@@ -5019,9 +5019,6 @@ class ChessApp {
         if (visible) { this._showEvalBar(); } else { this._hideEvalBar(); }
         this._evalBarEnabled = visible;
         { const cb = document.getElementById('settings-eval-bar'); if (cb) cb.checked = visible; }
-        if (this._freeLayout?.active) {
-          visible ? this._freeLayout.showWindow('eval-bar') : this._freeLayout.hideWindow('eval-bar');
-        }
         break;
       case 'playerInfoTop':
         toggle(document.getElementById('player-top'));
