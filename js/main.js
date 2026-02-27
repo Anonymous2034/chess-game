@@ -9564,7 +9564,7 @@ class ChessApp {
       total: record.total,
       rating,
       puzzlesSolved: puzzleSummary.totalSolved || 0,
-      endgamesSolved: endgameSummary.solved || 0,
+      endgamesSolved: endgameSummary.totalSolved || 0,
       winStreak: this._computeCurrentWinStreak(),
       ...extraFlags
     };
@@ -10568,8 +10568,7 @@ class ChessApp {
   _posEditorValidateFEN(fen) {
     try {
       const temp = new Chess();
-      temp.load(fen);
-      return true;
+      return temp.load(fen) !== false;
     } catch {
       return false;
     }
