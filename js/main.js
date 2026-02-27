@@ -5088,9 +5088,7 @@ class ChessApp {
         toggle(document.getElementById('tab-moves'));
         if (!visible) this._activateFirstVisibleTab();
         if (this._freeLayout?.active) {
-          // Moves + Book + tab-bar live in the 'moves' window
-          const anyMovesTab = this._layout.moveList || this._layout.openingExplorer;
-          anyMovesTab ? this._freeLayout.showWindow('moves') : this._freeLayout.hideWindow('moves');
+          visible ? this._freeLayout.showWindow('moves') : this._freeLayout.hideWindow('moves');
         }
         break;
       }
@@ -5113,12 +5111,9 @@ class ChessApp {
         break;
       }
       case 'openingExplorer': {
-        toggle(document.querySelector('.panel-tab[data-tab="book"]'));
-        if (!visible) toggle(document.getElementById('tab-book'));
-        if (!visible) this._activateFirstVisibleTab();
+        toggle(document.getElementById('tab-book'));
         if (this._freeLayout?.active) {
-          const anyMovesTab = this._layout.moveList || this._layout.openingExplorer;
-          anyMovesTab ? this._freeLayout.showWindow('moves') : this._freeLayout.hideWindow('moves');
+          visible ? this._freeLayout.showWindow('book') : this._freeLayout.hideWindow('book');
         }
         break;
       }
@@ -5173,8 +5168,12 @@ class ChessApp {
     const activeTab = document.querySelector('.panel-tab.active');
     if (activeTab && !activeTab.classList.contains('layout-hidden')) return;
 
-    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.panel-content').forEach(c => c.classList.add('hidden'));
+    // Only toggle panel-content for actual tabs, not standalone windows
+    document.querySelectorAll('.panel-tab').forEach(t => {
+      t.classList.remove('active');
+      const panel = document.getElementById(`tab-${t.dataset.tab}`);
+      if (panel) panel.classList.add('hidden');
+    });
 
     tabs[0].classList.add('active');
     const tabId = tabs[0].dataset.tab;
@@ -8865,12 +8864,13 @@ class ChessApp {
     const target = document.querySelector(`.panel-tab[data-tab="${tabId}"]`);
     if (target) target.classList.add('active');
 
-    document.querySelectorAll('.panel-content').forEach(panel => {
-      if (panel.id === `tab-${tabId}`) {
-        show(panel);
-      } else {
-        hide(panel);
-      }
+    // Only toggle panel-content that belongs to an actual tab in the tab-bar
+    const tabIds = new Set([...document.querySelectorAll('.panel-tab')].map(t => `tab-${t.dataset.tab}`));
+    tabIds.add(`tab-${tabId}`);
+    tabIds.forEach(id => {
+      const panel = document.getElementById(id);
+      if (!panel) return;
+      id === `tab-${tabId}` ? show(panel) : hide(panel);
     });
 
     // Auto-trigger advisor analysis when switching to Ideas tab
