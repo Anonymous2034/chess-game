@@ -31,6 +31,50 @@
   </script>
 </head>
 <body>
+  <!-- Password gate — blocks casual access -->
+  <div id="password-gate" style="display:none;position:fixed;inset:0;z-index:99999;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:system-ui,sans-serif">
+    <div style="text-align:center;color:#e0d6c2;max-width:340px;padding:24px">
+      <div style="font-size:48px;margin-bottom:12px">♚</div>
+      <h1 style="font-size:22px;margin:0 0 6px;color:#f0e8d8">Grandmasters Chess</h1>
+      <p style="font-size:13px;color:#888;margin:0 0 20px">Private access — enter password to continue</p>
+      <input id="gate-input" type="password" placeholder="Password" autocomplete="off"
+        style="width:100%;padding:10px 14px;font-size:16px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#f0e8d8;outline:none;box-sizing:border-box;text-align:center">
+      <button id="gate-btn"
+        style="width:100%;margin-top:10px;padding:10px;font-size:15px;font-weight:600;border:none;border-radius:6px;background:#7b6f3e;color:#f0e8d8;cursor:pointer">Enter</button>
+      <p id="gate-error" style="color:#c44;font-size:13px;margin:8px 0 0;display:none">Incorrect password</p>
+    </div>
+  </div>
+  <script>
+  (function(){
+    const HASH = '2b4f742576fe2c08fab3561b5721497e995b79c444f39f23b987c37b3d10e6d6';
+    const KEY = 'chess_gate_pass';
+    const gate = document.getElementById('password-gate');
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+    async function check(val) {
+      return (await sha256(val)) === HASH;
+    }
+    async function tryUnlock(val) {
+      if (await check(val)) {
+        sessionStorage.setItem(KEY, val);
+        gate.style.display = 'none';
+      } else {
+        document.getElementById('gate-error').style.display = '';
+        document.getElementById('gate-input').value = '';
+        document.getElementById('gate-input').focus();
+      }
+    }
+    // Auto-unlock if already authenticated this session
+    const saved = sessionStorage.getItem(KEY);
+    if (saved) { check(saved).then(ok => { if (ok) gate.style.display = 'none'; else gate.style.display = 'flex'; }); }
+    else { gate.style.display = 'flex'; }
+    document.getElementById('gate-btn').addEventListener('click', () => tryUnlock(document.getElementById('gate-input').value));
+    document.getElementById('gate-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(e.target.value); });
+  })();
+  </script>
+
   <div class="offline-indicator" id="offline-indicator">You are offline — some features are unavailable</div>
   <div id="app">
     <!-- New Game Dialog -->
@@ -1147,7 +1191,7 @@
             <span class="auth-status hidden" id="auth-status"></span>
             <button class="btn" id="btn-auth">Login</button>
           </div>
-          <div class="nav-menu-version" id="app-version">v139</div>
+          <div class="nav-menu-version" id="app-version">v140</div>
         </div>
       </nav>
     </header>
