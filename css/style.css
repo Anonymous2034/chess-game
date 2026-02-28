@@ -6493,14 +6493,14 @@ body.resizing-h {
 /* === Responsive === */
 @media (max-width: 768px) {
   :root {
-    --board-size: min(95vw, calc(100dvh - 180px), 480px);
+    --board-size: min(92vw, calc(100dvh - 160px), 480px);
   }
 
   main {
     flex-direction: column;
     align-items: center;
-    padding: 6px;
-    gap: 6px;
+    padding: 4px;
+    gap: 4px;
     min-height: auto;
   }
 
@@ -6588,8 +6588,11 @@ body.resizing-h {
     padding: 10px 16px;
   }
 
+  .nav-controls {
+    height: 34px;
+  }
   .nav-controls .btn {
-    min-height: 44px;
+    min-height: 34px;
     font-size: 1rem;
   }
 
@@ -6618,35 +6621,34 @@ body.resizing-h {
   .side-panel {
     width: calc(var(--board-size) + 22px);
     height: auto;
-    max-height: 280px;
+    max-height: 220px;
+    min-height: unset;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .move-history {
-    max-height: 120px;
+    max-height: 100px;
   }
 
   .status-bar {
-    padding: 4px 8px;
-    font-size: 0.8rem;
+    padding: 3px 6px;
+    font-size: 0.78rem;
+    min-height: 28px;
   }
 
   .player-info {
-    padding: 3px 8px;
-    font-size: 0.82rem;
+    padding: 2px 6px;
+    font-size: 0.78rem;
   }
 
   .captured-pieces {
-    max-width: 90px;
+    max-width: 80px;
+    font-size: 0.7rem;
   }
 
   .opening-explorer {
     display: none;
-  }
-
-  .opening-label {
-    font-size: 0.72rem;
   }
 
   /* --- Dialog improvements --- */
@@ -6966,6 +6968,39 @@ body.resizing-h {
   .saved-game-actions .btn { min-height: 44px; }
   .saved-games-list { max-height: 50dvh; }
 
+  /* --- Mobile: hide non-essential panels, board is king --- */
+  [data-drag-id="clock"],
+  [data-drag-id="music"],
+  [data-drag-id="opening"],
+  [data-drag-id="eval-graph"],
+  [data-drag-id="move-note"],
+  [data-drag-id="match-note"],
+  [data-drag-id="coach-area"],
+  [data-drag-id="tab-bar"] {
+    display: none !important;
+  }
+
+  /* Side panel: slim and focused */
+  .side-panel {
+    gap: 4px;
+  }
+
+  /* Scroll panel tabs horizontally if many */
+  .panel-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .panel-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Resize handle: hide on mobile (stacked layout) */
+  .resize-handle-v {
+    display: none;
+  }
+
   /* --- Board settings dialog: scrollable on mobile --- */
   #settings-board-dialog .settings-section {
     max-height: calc(100dvh - 120px);
@@ -7067,20 +7102,25 @@ body.resizing-h {
 
 @media (max-width: 480px) {
   :root {
-    --board-size: calc(100vw - 34px); /* 12px margin + 22px eval bar */
+    --board-size: calc(100vw - 28px); /* 8px margin + 20px eval bar */
   }
 
   header {
-    padding: 4px 8px;
+    padding: 2px 6px;
   }
 
   header h1 {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .side-panel {
     height: auto;
-    max-height: 240px;
+    max-height: 180px;
+  }
+
+  .player-info {
+    padding: 1px 4px;
+    font-size: 0.72rem;
   }
 
   .coords-ranks {
