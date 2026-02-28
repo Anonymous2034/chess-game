@@ -21,7 +21,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=157">
+  <link rel="stylesheet" href="css/style.css?v=158">
   <script type="importmap">
   {
     "imports": {
@@ -279,7 +279,21 @@
         <div id="stats-content" class="stats-content"></div>
 
         <div class="dialog-actions">
+          <button class="btn" id="btn-training-plan">Training Plan</button>
           <button class="btn btn-secondary" id="close-stats">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training Plan Dialog -->
+    <div id="training-plan-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-wide">
+        <h2>Training Plan</h2>
+        <div id="training-plan-summary" class="tp-summary"></div>
+        <div id="training-plan-focus" class="tp-focus-areas"></div>
+        <div id="training-plan-weekly" class="tp-weekly"></div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" id="close-training-plan">Close</button>
         </div>
       </div>
     </div>
@@ -1866,7 +1880,7 @@
 
   <!-- Scripts -->
   <script src="lib/chess.min.js"></script>
-  <script type="module" src="js/main.js?v=157"></script>
+  <script type="module" src="js/main.js?v=158"></script>
   <script>
     // PWA install prompt
     var deferredInstallPrompt = null;

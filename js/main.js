@@ -36,6 +36,7 @@ import { FreeLayout } from './free-layout.js';
 import { AchievementManager } from './achievements.js';
 import { RepertoireTrainer } from './repertoire.js';
 import { TablebaseLookup } from './tablebase.js';
+import { TrainingPlanGenerator } from './training-plan.js';
 
 class ChessApp {
   constructor() {
@@ -9673,8 +9674,120 @@ class ChessApp {
       }
     });
 
+    // Training plan
+    document.getElementById('btn-training-plan').addEventListener('click', () => {
+      this._showTrainingPlan();
+    });
+    document.getElementById('close-training-plan').addEventListener('click', () => {
+      hide(document.getElementById('training-plan-dialog'));
+    });
+
     // Initialize rating graph
     this.ratingGraph = new RatingGraph(document.getElementById('rating-graph-container'));
+  }
+
+  _showTrainingPlan() {
+    const generator = new TrainingPlanGenerator(this.stats, this.puzzleManager, this.endgameTrainer, this.profile);
+    const plan = generator.generate();
+
+    // Summary
+    document.getElementById('training-plan-summary').textContent = plan.summary;
+
+    // Focus areas
+    const focusEl = document.getElementById('training-plan-focus');
+    if (plan.focusAreas.length === 0) {
+      focusEl.innerHTML = '<div class="tp-no-data">Play more games to generate personalized training recommendations.</div>';
+    } else {
+      focusEl.innerHTML = plan.focusAreas.map(area => `
+        <div class="tp-focus-card">
+          <div class="tp-focus-header">
+            <span class="tp-focus-icon">${area.icon}</span>
+            <span class="tp-focus-title">${area.title}</span>
+          </div>
+          <div class="tp-focus-desc">${area.description}</div>
+          <ul class="tp-focus-recs">
+            ${area.recommendations.map(r => `<li>${r}</li>`).join('')}
+          </ul>
+          ${area.actions.length > 0 ? `
+            <div class="tp-focus-actions">
+              ${area.actions.map(a => `<button class="tp-action-btn" data-action-type="${a.type}" data-action='${JSON.stringify(a.data || {})}'>${a.label}</button>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+
+      // Wire action buttons
+      focusEl.querySelectorAll('.tp-action-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.actionType;
+          const data = JSON.parse(btn.dataset.action || '{}');
+          this._handleTrainingAction(type, data);
+        });
+      });
+    }
+
+    // Weekly plan
+    const weeklyEl = document.getElementById('training-plan-weekly');
+    if (plan.weeklyPlan.length > 0) {
+      weeklyEl.innerHTML = `<h3>Weekly Practice Plan</h3>` +
+        plan.weeklyPlan.map(day => `
+          <div class="tp-day">
+            <span class="tp-day-name">${day.day}</span>
+            <div class="tp-day-activities">
+              ${day.activities.map(a => a.action
+                ? `<span class="tp-day-activity" data-action-type="${a.action.type}" data-action='${JSON.stringify(a.action.data || {})}'>${a.text}</span>`
+                : `<span>${a.text}</span>`
+              ).join('')}
+            </div>
+          </div>
+        `).join('');
+
+      // Wire weekly plan clicks
+      weeklyEl.querySelectorAll('.tp-day-activity').forEach(el => {
+        el.addEventListener('click', () => {
+          const type = el.dataset.actionType;
+          const data = JSON.parse(el.dataset.action || '{}');
+          this._handleTrainingAction(type, data);
+        });
+      });
+    } else {
+      weeklyEl.innerHTML = '';
+    }
+
+    hide(document.getElementById('stats-dialog'));
+    show(document.getElementById('training-plan-dialog'));
+  }
+
+  _handleTrainingAction(type, data) {
+    hide(document.getElementById('training-plan-dialog'));
+
+    switch (type) {
+      case 'puzzle':
+        if (data.daily) {
+          // Trigger daily puzzle
+          document.getElementById('btn-daily-puzzle')?.click();
+        } else {
+          // Open puzzle dialog with theme pre-selected
+          const themeSelect = document.getElementById('puzzle-theme-filter');
+          if (themeSelect && data.theme) {
+            themeSelect.value = data.theme;
+          }
+          show(document.getElementById('puzzle-dialog'));
+        }
+        break;
+      case 'endgame':
+        // Open endgame trainer
+        show(document.getElementById('endgame-dialog'));
+        break;
+      case 'tournament':
+        show(document.getElementById('tournament-setup-dialog'));
+        break;
+      case 'play':
+        show(document.getElementById('new-game-dialog'));
+        break;
+      default:
+        break;
+    }
   }
 
   _showAvatarPicker() {
