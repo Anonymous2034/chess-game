@@ -241,6 +241,20 @@ class ChessApp {
       this._showTournamentButton();
     }
 
+    // Handle PWA shortcuts (?action=new-game, ?action=puzzles)
+    const pwaAction = new URLSearchParams(window.location.search).get('action');
+    if (pwaAction) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('action');
+      window.history.replaceState({}, '', cleanUrl.toString());
+      if (pwaAction === 'puzzles') {
+        setTimeout(() => {
+          const puzzleBtn = document.getElementById('btn-puzzle');
+          if (puzzleBtn) puzzleBtn.click();
+        }, 500);
+      }
+    }
+
     // Start with default bot selected
     const gmBots = BOT_PERSONALITIES.filter(b => b.tier === 'grandmaster');
     const randomGM = gmBots[Math.floor(Math.random() * gmBots.length)];

@@ -8,6 +8,10 @@
   "background_color": "#312e2b",
   "theme_color": "#312e2b",
   "orientation": "any",
+  "categories": ["games", "entertainment"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icons/icon.svg",
@@ -29,6 +33,21 @@
       "src": "icons/apple-touch-icon.png",
       "type": "image/png",
       "sizes": "180x180"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Game",
+      "short_name": "Play",
+      "url": "./?action=new-game",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Puzzles",
+      "short_name": "Puzzles",
+      "url": "./?action=puzzles",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

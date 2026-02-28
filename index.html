@@ -21,7 +21,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=155">
+  <link rel="stylesheet" href="css/style.css?v=156">
   <script type="importmap">
   {
     "imports": {
@@ -79,6 +79,14 @@
   </script>
 
   <div class="offline-indicator" id="offline-indicator">You are offline — some features are unavailable</div>
+
+  <!-- PWA Install Banner -->
+  <div class="pwa-install-banner hidden" id="pwa-install-banner">
+    <span class="pwa-install-text">Install Grandmasters Chess for the best experience</span>
+    <button class="btn btn-sm btn-primary" id="pwa-install-btn">Install</button>
+    <button class="btn btn-sm pwa-install-dismiss" id="pwa-install-dismiss">&times;</button>
+  </div>
+
   <div id="app">
     <!-- New Game Dialog -->
     <div id="new-game-dialog" class="dialog-overlay hidden">
@@ -1850,8 +1858,26 @@
 
   <!-- Scripts -->
   <script src="lib/chess.min.js"></script>
-  <script type="module" src="js/main.js?v=155"></script>
+  <script type="module" src="js/main.js?v=156"></script>
   <script>
+    // PWA install prompt
+    var deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      // Show install banner after 30s if user hasn't installed
+      setTimeout(function() {
+        if (!deferredInstallPrompt) return;
+        var banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.classList.remove('hidden');
+      }, 30000);
+    });
+    window.addEventListener('appinstalled', function() {
+      deferredInstallPrompt = null;
+      var banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.classList.add('hidden');
+    });
+
     if ('serviceWorker' in navigator && !window.Capacitor) {
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
         .then(function(reg) {
@@ -1871,6 +1897,28 @@
           });
         })
         .catch(function() {});
+
+      // PWA install button handlers
+      var installBtn = document.getElementById('pwa-install-btn');
+      var dismissBtn = document.getElementById('pwa-install-dismiss');
+      if (installBtn) {
+        installBtn.addEventListener('click', function() {
+          if (!deferredInstallPrompt) return;
+          deferredInstallPrompt.prompt();
+          deferredInstallPrompt.userChoice.then(function() {
+            deferredInstallPrompt = null;
+            var banner = document.getElementById('pwa-install-banner');
+            if (banner) banner.classList.add('hidden');
+          });
+        });
+      }
+      if (dismissBtn) {
+        dismissBtn.addEventListener('click', function() {
+          var banner = document.getElementById('pwa-install-banner');
+          if (banner) banner.classList.add('hidden');
+          deferredInstallPrompt = null;
+        });
+      }
 
       // Listen for SW_UPDATED message — reload to get fresh assets
       navigator.serviceWorker.addEventListener('message', function(event) {

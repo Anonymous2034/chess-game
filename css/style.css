@@ -18,6 +18,40 @@
   transform: translateY(0);
 }
 
+/* === PWA Install Banner === */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--panel-bg, #1e1e3a);
+  border-top: 1px solid var(--accent, #4ecdc4);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 9999;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.4);
+}
+.pwa-install-banner.hidden {
+  display: none;
+}
+.pwa-install-text {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-color, #e0e0e0);
+}
+.pwa-install-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted, #888);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  min-width: unset;
+  min-height: unset;
+}
+
 /* === Reset & Base === */
 *, *::before, *::after {
   box-sizing: border-box;
