@@ -8138,20 +8138,18 @@ class ChessApp {
       await this.board.tryMove(detected.from, detected.to);
     };
 
-    // Connection change callback
+    // Connection change callback (settings always visible for preview)
     this.cuBoard.onConnectionChange = (connected) => {
       statusDot.classList.toggle('connected', connected);
       if (connected) {
         hide(connectOptions);
         show(connectedActions);
         show(boardStatusEl);
-        show(hwSettings);
         boardStatusEl.textContent = 'ChessUp: Connected';
       } else {
         show(connectOptions);
         hide(connectedActions);
         hide(boardStatusEl);
-        hide(hwSettings);
       }
     };
 
