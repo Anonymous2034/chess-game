@@ -4,7 +4,7 @@ import { Game } from './game.js';
 import { Engine } from './engine.js';
 import { Notation } from './notation.js';
 import { Database } from './database.js';
-import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS } from './bots.js';
+import { BOT_PERSONALITIES, GM_STYLES, BOT_TIERS, ratingToEngine, loadCustomBots, saveCustomBots, CUSTOM_BOT_PORTRAITS } from './bots.js';
 import { GM_COACH_PROFILES } from './gm-coach-profiles.js';
 import { OpeningBook, OPENING_MAINLINES, OPENING_COMMENTARY, getRandomOpeningForQuiz } from './openings.js';
 import { CapturedPieces } from './captured.js';
@@ -37,6 +37,7 @@ import { AchievementManager } from './achievements.js';
 import { RepertoireTrainer } from './repertoire.js';
 import { TablebaseLookup } from './tablebase.js';
 import { TrainingPlanGenerator } from './training-plan.js';
+import { BoardScanner } from './board-scanner.js';
 
 class ChessApp {
   constructor() {
@@ -128,6 +129,9 @@ class ChessApp {
     // Feature: Correspondence / Saved Games (v152)
     this._autoSaveEnabled = localStorage.getItem('chess_auto_save') === 'true';
 
+    // Feature: Board Scanner (v159)
+    this.scanner = null;
+
     this.init();
   }
 
@@ -165,8 +169,12 @@ class ChessApp {
     this.notation.onMoveClick = (index) => this.navigateToMove(index);
     this.notation.onMoveHover = (index, e) => this.showMoveTooltip(index, e);
 
+    // Load custom bots from localStorage before rendering
+    loadCustomBots();
+
     // Setup UI handlers
     this.setupNewGameDialog();
+    this.setupCustomBotBuilder();
     this.setupNavigationControls();
     this.setupGameControls();
     this.setupPGNHandlers();
@@ -216,6 +224,7 @@ class ChessApp {
     this.setupLichessImport();
     this.setupGifExport();
     this.setupCorrespondence();
+    this.setupBoardScanner();
 
     // Load database in background, then restore saved imports
     this.database.loadCollections().then(async (categories) => {
@@ -3339,6 +3348,7 @@ class ChessApp {
   setupNewGameDialog() {
     const dialog = document.getElementById('new-game-dialog');
     const settings = { mode: 'engine', color: 'w', botId: 'beginner-betty', time: 0, increment: 0, rated: false };
+    this._lastPickerSettings = settings;
 
     // Render bot picker
     this.renderBotPicker(settings);
@@ -3726,12 +3736,22 @@ class ChessApp {
 
     for (const tier of BOT_TIERS) {
       const tierBots = BOT_PERSONALITIES.filter(b => b.tier === tier.id);
-      if (tierBots.length === 0) continue;
+      // Always show Custom tier (for the Create button)
+      if (tierBots.length === 0 && tier.id !== 'custom') continue;
 
       const label = document.createElement('div');
       label.className = 'bot-tier-label';
       label.textContent = tier.name;
       listEl.appendChild(label);
+
+      // "Create Bot" button for custom tier
+      if (tier.id === 'custom') {
+        const createBtn = document.createElement('div');
+        createBtn.className = 'bot-list-card bot-create-card';
+        createBtn.innerHTML = `<span class="bot-create-plus">+</span><span class="bot-create-text">Create Bot</span>`;
+        createBtn.addEventListener('click', () => this._openBotBuilder());
+        listEl.appendChild(createBtn);
+      }
 
       for (const bot of tierBots) {
         const card = document.createElement('div');
@@ -3741,6 +3761,7 @@ class ChessApp {
         const gmTag = bot.tier === 'grandmaster' ? 'GM ' : '';
         const h2h = this.stats.getOpponentRecord(bot.name);
         const h2hBadge = h2h.total > 0 ? `<span class="bot-h2h-badge">${h2h.wins}W/${h2h.losses}L</span>` : '';
+        const editIcon = bot.tier === 'custom' ? `<span class="bot-edit-icon" data-edit-bot="${bot.id}" title="Edit">&#9998;</span>` : '';
         card.innerHTML = `
           <img class="bot-list-portrait" src="${bot.portrait}" alt="${bot.name}">
           <div class="bot-list-info">
@@ -3748,9 +3769,14 @@ class ChessApp {
             <div class="bot-list-elo">${bot.peakElo}</div>
           </div>
           ${h2hBadge}
+          ${editIcon}
         `;
 
-        card.addEventListener('click', () => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.bot-edit-icon')) {
+            this._openBotBuilder(bot.id);
+            return;
+          }
           listEl.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
           settings.botId = bot.id;
@@ -3911,6 +3937,236 @@ class ChessApp {
         this.showToast(`No mainline data for ${opening.name} — start a game to explore`);
       });
     });
+  }
+
+  // === Custom Bot Builder ===
+
+  setupCustomBotBuilder() {
+    loadCustomBots();
+
+    // Avatar options — dedicated avatar icons + all bot portraits
+    const avatarPaths = [
+      ...['bishop','crown','flame','king','knight','lightning','pawn','queen','rook','shield','star','sword'].map(f => `img/avatars/${f}.svg`),
+    ];
+    const grid = document.getElementById('bb-avatar-grid');
+    for (const path of avatarPaths) {
+      const opt = document.createElement('div');
+      opt.className = 'bb-avatar-opt';
+      opt.dataset.avatar = path;
+      opt.innerHTML = `<img src="${path}" alt="avatar">`;
+      opt.addEventListener('click', () => {
+        grid.querySelectorAll('.bb-avatar-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        this._bbUpdatePreview();
+      });
+      grid.appendChild(opt);
+    }
+
+    // Style sliders
+    const stylesEl = document.getElementById('bb-styles');
+    for (const style of GM_STYLES) {
+      const row = document.createElement('div');
+      row.className = 'bb-style-row';
+      row.innerHTML = `
+        <span class="bb-style-label">${style.name}</span>
+        <input type="range" class="bb-style-slider" data-style="${style.id}" min="0" max="10" value="5" step="1">
+        <span class="bb-style-val">5</span>
+      `;
+      const slider = row.querySelector('input');
+      const valEl = row.querySelector('.bb-style-val');
+      slider.addEventListener('input', () => {
+        valEl.textContent = slider.value;
+        this._bbUpdatePreview();
+      });
+      stylesEl.appendChild(row);
+    }
+
+    // Rating slider
+    const ratingSlider = document.getElementById('bb-rating');
+    const ratingVal = document.getElementById('bb-rating-val');
+    ratingSlider.addEventListener('input', () => {
+      ratingVal.textContent = ratingSlider.value;
+      this._bbUpdatePreview();
+    });
+
+    // Name/subtitle live preview
+    document.getElementById('bb-name').addEventListener('input', () => this._bbUpdatePreview());
+    document.getElementById('bb-subtitle').addEventListener('input', () => this._bbUpdatePreview());
+
+    // Cancel
+    document.getElementById('bb-cancel').addEventListener('click', () => {
+      hide(document.getElementById('bot-builder-dialog'));
+    });
+
+    // Save
+    document.getElementById('bb-save').addEventListener('click', () => this._bbSave());
+
+    // Delete
+    document.getElementById('bb-delete').addEventListener('click', () => this._bbDelete());
+  }
+
+  _openBotBuilder(editId) {
+    const dialog = document.getElementById('bot-builder-dialog');
+    const titleEl = document.getElementById('bot-builder-title');
+    const deleteBtn = document.getElementById('bb-delete');
+
+    this._bbEditId = editId || null;
+
+    if (editId) {
+      const bot = BOT_PERSONALITIES.find(b => b.id === editId);
+      if (!bot) return;
+      titleEl.textContent = 'Edit Custom Bot';
+      document.getElementById('bb-name').value = bot.name;
+      document.getElementById('bb-subtitle').value = bot.subtitle || '';
+      document.getElementById('bb-rating').value = bot.peakElo;
+      document.getElementById('bb-rating-val').textContent = bot.peakElo;
+
+      // Select avatar
+      const grid = document.getElementById('bb-avatar-grid');
+      grid.querySelectorAll('.bb-avatar-opt').forEach(o => {
+        o.classList.toggle('selected', o.dataset.avatar === bot.portrait);
+      });
+
+      // Set style sliders
+      document.querySelectorAll('#bb-styles .bb-style-slider').forEach(s => {
+        const val = bot.styles[s.dataset.style] || 5;
+        s.value = val;
+        s.nextElementSibling.textContent = val;
+      });
+
+      show(deleteBtn);
+    } else {
+      titleEl.textContent = 'Create Custom Bot';
+      document.getElementById('bb-name').value = '';
+      document.getElementById('bb-subtitle').value = '';
+      document.getElementById('bb-rating').value = 1200;
+      document.getElementById('bb-rating-val').textContent = '1200';
+
+      // Reset avatar
+      const grid = document.getElementById('bb-avatar-grid');
+      grid.querySelectorAll('.bb-avatar-opt').forEach(o => o.classList.remove('selected'));
+      const first = grid.querySelector('.bb-avatar-opt');
+      if (first) first.classList.add('selected');
+
+      // Reset style sliders to 5
+      document.querySelectorAll('#bb-styles .bb-style-slider').forEach(s => {
+        s.value = 5;
+        s.nextElementSibling.textContent = '5';
+      });
+
+      hide(deleteBtn);
+    }
+
+    this._bbUpdatePreview();
+    show(dialog);
+  }
+
+  _bbGetFormData() {
+    const name = document.getElementById('bb-name').value.trim();
+    const subtitle = document.getElementById('bb-subtitle').value.trim();
+    const rating = parseInt(document.getElementById('bb-rating').value);
+    const avatarEl = document.querySelector('#bb-avatar-grid .bb-avatar-opt.selected');
+    const portrait = avatarEl ? avatarEl.dataset.avatar : 'img/avatars/pawn.svg';
+
+    const styles = {};
+    document.querySelectorAll('#bb-styles .bb-style-slider').forEach(s => {
+      styles[s.dataset.style] = parseInt(s.value);
+    });
+
+    return { name, subtitle, rating, portrait, styles };
+  }
+
+  _bbUpdatePreview() {
+    const { name, subtitle, rating, portrait, styles } = this._bbGetFormData();
+    const previewEl = document.getElementById('bb-preview-card');
+
+    let stylesHtml = '';
+    for (const style of GM_STYLES) {
+      const val = styles[style.id] || 0;
+      const pct = val * 10;
+      const level = val <= 4 ? 'low' : val <= 7 ? 'mid' : 'high';
+      stylesHtml += `
+        <div class="bb-preview-srow">
+          <span class="bb-preview-slbl">${style.name}</span>
+          <div class="bb-preview-sbar"><div class="bb-preview-sfill ${level}" style="width:${pct}%"></div></div>
+        </div>`;
+    }
+
+    previewEl.innerHTML = `
+      <img class="bb-preview-portrait" src="${portrait}" alt="avatar">
+      <div class="bb-preview-name">${name || 'Unnamed'}</div>
+      <div class="bb-preview-sub">${subtitle || '...'}</div>
+      <div class="bb-preview-rating">Rating ${rating}</div>
+      <div class="bb-preview-styles">${stylesHtml}</div>
+    `;
+  }
+
+  _bbSave() {
+    const { name, subtitle, rating, portrait, styles } = this._bbGetFormData();
+    if (!name) {
+      this.showToast('Bot needs a name');
+      return;
+    }
+
+    const engine = ratingToEngine(rating);
+    const id = this._bbEditId || `custom-${Date.now()}`;
+
+    const bot = {
+      id,
+      name,
+      subtitle: subtitle || `Custom ${rating}-rated bot`,
+      tier: 'custom',
+      peakElo: rating,
+      stockfishElo: engine.stockfishElo,
+      portrait,
+      bio: { playingStyle: `Custom bot rated ${rating}` },
+      styles,
+      uci: engine.uci,
+      searchDepth: engine.searchDepth,
+      moveTime: null,
+    };
+
+    // Update or add to BOT_PERSONALITIES
+    const idx = BOT_PERSONALITIES.findIndex(b => b.id === id);
+    if (idx >= 0) {
+      BOT_PERSONALITIES[idx] = bot;
+    } else {
+      BOT_PERSONALITIES.push(bot);
+    }
+
+    saveCustomBots();
+
+    hide(document.getElementById('bot-builder-dialog'));
+    this.showToast(`${name} saved`);
+
+    // Refresh bot picker if new game dialog is open
+    const ngDialog = document.getElementById('new-game-dialog');
+    if (ngDialog && !ngDialog.classList.contains('hidden')) {
+      const settings = this._lastPickerSettings || { botId: id };
+      settings.botId = id;
+      this.renderBotPicker(settings);
+    }
+  }
+
+  _bbDelete() {
+    if (!this._bbEditId) return;
+    const bot = BOT_PERSONALITIES.find(b => b.id === this._bbEditId);
+    const name = bot ? bot.name : 'Bot';
+
+    const idx = BOT_PERSONALITIES.findIndex(b => b.id === this._bbEditId);
+    if (idx >= 0) BOT_PERSONALITIES.splice(idx, 1);
+
+    saveCustomBots();
+    hide(document.getElementById('bot-builder-dialog'));
+    this.showToast(`${name} deleted`);
+
+    // Refresh bot picker
+    const ngDialog = document.getElementById('new-game-dialog');
+    if (ngDialog && !ngDialog.classList.contains('hidden')) {
+      const settings = this._lastPickerSettings || { botId: 'beginner-betty' };
+      if (settings.botId === this._bbEditId) settings.botId = 'beginner-betty';
+      this.renderBotPicker(settings);
+    }
   }
 
   updateDialogVisibility(mode) {
@@ -12155,6 +12411,230 @@ class ChessApp {
 
     // Hide blunder alert
     document.getElementById('blunder-alert')?.classList.add('hidden');
+  }
+
+  // === Board Scanner (v159) ===
+
+  setupBoardScanner() {
+    this.scanner = new BoardScanner();
+    this._scannerBoard = null; // 8x8 array
+    this._scannerTurn = 'w';
+
+    const dialog = document.getElementById('scanner-dialog');
+    const cameraPhase = document.getElementById('scanner-camera-phase');
+    const resultsPhase = document.getElementById('scanner-results-phase');
+    const videoEl = document.getElementById('scanner-video');
+    const overlayCanvas = document.getElementById('scanner-overlay');
+
+    // Open scanner
+    document.getElementById('btn-board-scanner').addEventListener('click', async () => {
+      hide(document.getElementById('nav-menu'));
+      show(dialog);
+      cameraPhase.classList.remove('hidden');
+      resultsPhase.classList.add('hidden');
+      const err = await this.scanner.startCamera(videoEl, overlayCanvas);
+      if (err) {
+        this.showToast(err);
+        hide(dialog);
+        return;
+      }
+      this.scanner.setupGridControls(overlayCanvas);
+    });
+
+    // Close scanner
+    const closeScanner = () => {
+      this.scanner.stopCamera();
+      hide(dialog);
+    };
+    document.getElementById('scanner-close').addEventListener('click', closeScanner);
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) closeScanner(); });
+
+    // Orientation toggles
+    dialog.querySelectorAll('.scanner-orient-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        dialog.querySelectorAll('.scanner-orient-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.scanner.setOrientation(btn.dataset.orient);
+      });
+    });
+
+    // Calibrate empty
+    document.getElementById('scanner-calibrate').addEventListener('click', () => {
+      if (this.scanner.calibrateEmpty()) {
+        this.showToast('Empty board calibrated');
+      } else {
+        this.showToast('Camera not ready');
+      }
+    });
+
+    // Scan
+    document.getElementById('scanner-scan').addEventListener('click', () => {
+      const result = this.scanner.captureAndAnalyze();
+      this._scannerBoard = result.board;
+      this._scannerTurn = 'w';
+
+      // Switch to results phase
+      cameraPhase.classList.add('hidden');
+      resultsPhase.classList.remove('hidden');
+
+      // Update UI
+      document.getElementById('scanner-fen').value = result.fen;
+      const pct = Math.round(result.confidence * 100);
+      document.getElementById('scanner-confidence').textContent = `Confidence: ${pct}%`;
+      this._scannerRenderMiniBoard();
+
+      // Reset turn toggles
+      dialog.querySelectorAll('.scanner-turn-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.turn === 'w');
+      });
+    });
+
+    // Turn toggles
+    dialog.querySelectorAll('.scanner-turn-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        dialog.querySelectorAll('.scanner-turn-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this._scannerTurn = btn.dataset.turn;
+        this._scannerSyncFEN();
+      });
+    });
+
+    // FEN field — live sync
+    document.getElementById('scanner-fen').addEventListener('input', () => {
+      const fen = document.getElementById('scanner-fen').value.trim();
+      const valid = this._posEditorValidateFEN(fen);
+      document.getElementById('scanner-fen').classList.toggle('invalid', !valid);
+      if (valid) {
+        this._scannerBoard = this._scannerBoardFromFEN(fen);
+        this._scannerTurn = fen.split(' ')[1] || 'w';
+        this._scannerRenderMiniBoard();
+        // Sync turn toggle
+        dialog.querySelectorAll('.scanner-turn-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.turn === this._scannerTurn);
+        });
+      }
+    });
+
+    // Rescan
+    document.getElementById('scanner-rescan').addEventListener('click', () => {
+      resultsPhase.classList.add('hidden');
+      cameraPhase.classList.remove('hidden');
+      this.scanner.resumeRender();
+    });
+
+    // Edit in Position Editor
+    document.getElementById('scanner-to-editor').addEventListener('click', () => {
+      const fen = document.getElementById('scanner-fen').value.trim();
+      this.scanner.stopCamera();
+      hide(dialog);
+      // Transfer FEN to position editor
+      document.getElementById('pos-fen-field').value = fen;
+      document.getElementById('pos-fen-field').dispatchEvent(new Event('input'));
+      this._openPositionEditor();
+    });
+
+    // Play from here
+    document.getElementById('scanner-play').addEventListener('click', () => {
+      const fen = document.getElementById('scanner-fen').value.trim();
+      if (!this._posEditorValidateFEN(fen)) {
+        this.showToast('Invalid FEN position');
+        return;
+      }
+      this.scanner.stopCamera();
+      hide(dialog);
+      this.game.loadFromFEN(fen);
+      this.notation.clear();
+      this.board.setLastMove(null);
+      this.board.setFlipped(fen.split(' ')[1] === 'b');
+      this.board.update();
+      this.captured.clear();
+      this.lastOpeningName = '';
+      const labelEl = document.getElementById('opening-label');
+      if (labelEl) labelEl.textContent = '';
+      this._startMoveClock(fen.split(' ')[1] || 'w');
+    });
+  }
+
+  _scannerRenderMiniBoard() {
+    const container = document.getElementById('scanner-mini-board');
+    if (!this._scannerBoard) return;
+    let html = '';
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const isLight = (row + col) % 2 === 0;
+        const piece = this._scannerBoard[row][col];
+        let inner = '';
+        if (piece) {
+          const p = { color: piece[0], type: piece[1].toLowerCase() };
+          inner = `<img src="${this._getPieceImagePath(p)}" alt="${piece}" draggable="false">`;
+        }
+        html += `<div class="scanner-sq ${isLight ? 'light' : 'dark'}" data-row="${row}" data-col="${col}">${inner}</div>`;
+      }
+    }
+    container.innerHTML = html;
+
+    // Click to cycle piece, long-press to clear
+    container.querySelectorAll('.scanner-sq').forEach(sq => {
+      let pressTimer = null;
+      const row = +sq.dataset.row;
+      const col = +sq.dataset.col;
+
+      sq.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        pressTimer = setTimeout(() => {
+          pressTimer = 'long';
+          this._scannerBoard[row][col] = null;
+          this._scannerSyncFEN();
+          this._scannerRenderMiniBoard();
+        }, 500);
+      });
+      sq.addEventListener('pointerup', () => {
+        if (pressTimer === 'long') { pressTimer = null; return; }
+        clearTimeout(pressTimer);
+        pressTimer = null;
+        this._scannerSquareClick(row, col);
+      });
+      sq.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressTimer = null; });
+    });
+  }
+
+  _scannerSquareClick(row, col) {
+    const cycle = [
+      null, 'wP', 'wN', 'wB', 'wR', 'wQ', 'wK',
+      'bP', 'bN', 'bB', 'bR', 'bQ', 'bK'
+    ];
+    const current = this._scannerBoard[row][col];
+    const idx = cycle.indexOf(current);
+    this._scannerBoard[row][col] = cycle[(idx + 1) % cycle.length];
+    this._scannerSyncFEN();
+    this._scannerRenderMiniBoard();
+  }
+
+  _scannerSyncFEN() {
+    if (!this._scannerBoard) return;
+    const fen = this.scanner.boardToFEN(this._scannerBoard, this._scannerTurn);
+    document.getElementById('scanner-fen').value = fen;
+    document.getElementById('scanner-fen').classList.toggle('invalid', !this._posEditorValidateFEN(fen));
+  }
+
+  _scannerBoardFromFEN(fen) {
+    const board = [];
+    const ranks = fen.split(' ')[0].split('/');
+    const pieceMap = { p: 'P', n: 'N', b: 'B', r: 'R', q: 'Q', k: 'K' };
+    for (let row = 0; row < 8; row++) {
+      board[row] = [];
+      let col = 0;
+      for (const ch of (ranks[row] || '')) {
+        if (ch >= '1' && ch <= '8') {
+          for (let i = 0; i < +ch; i++) board[row][col++] = null;
+        } else {
+          const color = ch === ch.toUpperCase() ? 'w' : 'b';
+          board[row][col++] = color + pieceMap[ch.toLowerCase()];
+        }
+      }
+      while (col < 8) board[row][col++] = null;
+    }
+    return board;
   }
 }
 

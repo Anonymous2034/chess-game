@@ -21,7 +21,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=158">
+  <link rel="stylesheet" href="css/style.css?v=160">
   <script type="importmap">
   {
     "imports": {
@@ -88,6 +88,48 @@
   </div>
 
   <div id="app">
+    <!-- Bot Builder Dialog -->
+    <div id="bot-builder-dialog" class="dialog-overlay hidden">
+      <div class="dialog dialog-bot-builder">
+        <h2 id="bot-builder-title">Create Custom Bot</h2>
+        <div class="bot-builder-body">
+          <div class="bot-builder-left">
+            <div class="bb-field">
+              <label>Name</label>
+              <input type="text" id="bb-name" maxlength="24" placeholder="Bot name">
+            </div>
+            <div class="bb-field">
+              <label>Subtitle</label>
+              <input type="text" id="bb-subtitle" maxlength="40" placeholder="Short description">
+            </div>
+            <div class="bb-field">
+              <label>Avatar</label>
+              <div class="bb-avatar-grid" id="bb-avatar-grid"></div>
+            </div>
+            <div class="bb-field">
+              <label>Rating: <span id="bb-rating-val">1200</span></label>
+              <input type="range" id="bb-rating" min="400" max="3000" value="1200" step="50" class="bb-slider">
+              <div class="bb-range-labels"><span>400</span><span>3000</span></div>
+            </div>
+            <div class="bb-field">
+              <label>Style Profile</label>
+              <div class="bb-styles" id="bb-styles"></div>
+            </div>
+          </div>
+          <div class="bot-builder-right">
+            <label>Preview</label>
+            <div class="bb-preview-card" id="bb-preview-card"></div>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-danger hidden" id="bb-delete">Delete</button>
+          <span style="flex:1"></span>
+          <button class="btn btn-secondary" id="bb-cancel">Cancel</button>
+          <button class="btn btn-primary" id="bb-save">Save Bot</button>
+        </div>
+      </div>
+    </div>
+
     <!-- New Game Dialog -->
     <div id="new-game-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-new-game">
@@ -1241,6 +1283,65 @@
       </div>
     </div>
 
+    <!-- Board Scanner Dialog -->
+    <div id="scanner-dialog" class="dialog-overlay hidden">
+      <div class="dialog scanner-dialog">
+        <div class="dialog-header">
+          <h3>Board Scanner</h3>
+          <button class="dialog-close" id="scanner-close">&times;</button>
+        </div>
+
+        <!-- Phase 1: Camera -->
+        <div id="scanner-camera-phase">
+          <div class="scanner-preview-wrap">
+            <video id="scanner-video" autoplay playsinline muted></video>
+            <canvas id="scanner-overlay"></canvas>
+          </div>
+          <div class="scanner-controls">
+            <div class="scanner-orient-row">
+              <span class="scanner-label">Orientation</span>
+              <div class="btn-group">
+                <button class="btn btn-sm scanner-orient-btn active" data-orient="w">White</button>
+                <button class="btn btn-sm scanner-orient-btn" data-orient="b">Black</button>
+              </div>
+            </div>
+            <div class="scanner-actions">
+              <button class="btn btn-sm" id="scanner-calibrate">Calibrate Empty</button>
+              <button class="btn btn-primary" id="scanner-scan">Scan</button>
+            </div>
+            <p class="scanner-hint">Align your board with the grid. Drag to move, drag corners to resize.</p>
+          </div>
+        </div>
+
+        <!-- Phase 2: Results -->
+        <div id="scanner-results-phase" class="hidden">
+          <div class="scanner-mini-board" id="scanner-mini-board"></div>
+          <div class="scanner-result-controls">
+            <div class="scanner-fen-row">
+              <label class="scanner-label">FEN</label>
+              <input type="text" id="scanner-fen" class="scanner-fen-field" spellcheck="false">
+            </div>
+            <div class="scanner-meta-row">
+              <span class="scanner-confidence" id="scanner-confidence"></span>
+              <div class="scanner-turn-row">
+                <span class="scanner-label">Turn</span>
+                <div class="btn-group">
+                  <button class="btn btn-sm scanner-turn-btn active" data-turn="w">W</button>
+                  <button class="btn btn-sm scanner-turn-btn" data-turn="b">B</button>
+                </div>
+              </div>
+            </div>
+            <p class="scanner-hint">Click squares to cycle pieces. Long-press to clear.</p>
+            <div class="scanner-actions">
+              <button class="btn btn-sm" id="scanner-rescan">Rescan</button>
+              <button class="btn btn-sm" id="scanner-to-editor">Edit in Position Editor</button>
+              <button class="btn btn-primary btn-sm" id="scanner-play">Play from here</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
     <header>
       <div class="header-brand">
@@ -1322,6 +1423,7 @@
             <button class="btn" id="btn-history">History</button>
             <button class="btn" id="btn-import-pgn">PGN Import/Export</button>
             <button class="btn" id="btn-position-editor">Position Editor</button>
+            <button class="btn" id="btn-board-scanner">Board Scanner</button>
             <button class="btn" id="btn-lichess-import">Lichess Import</button>
             <button class="btn" id="btn-saved-games">Saved Games</button>
           </div>

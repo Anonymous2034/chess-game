@@ -1,9 +1,10 @@
-// Three-tier opponent system: Personalities, Grandmasters, Chess Machines
+// Four-tier opponent system: Personalities, Grandmasters, Chess Machines, Custom
 
 export const BOT_TIERS = [
   { id: 'personality', name: 'Personalities' },
   { id: 'grandmaster', name: 'Grandmasters' },
   { id: 'machine', name: 'Chess Machines' },
+  { id: 'custom', name: 'Custom' },
 ];
 
 export const GM_STYLES = [
@@ -993,4 +994,91 @@ export const BOT_PERSONALITIES = [
     searchDepth: 26,
     moveTime: null,
   },
+];
+
+// === Custom Bot Helpers ===
+
+/** Map a rating (400–3000) to Stockfish UCI config */
+export function ratingToEngine(rating) {
+  rating = Math.max(400, Math.min(3000, rating));
+  let skillLevel, depth;
+  if (rating <= 800) {
+    skillLevel = Math.round((rating - 400) / 400 * 3);
+    depth = Math.round(1 + (rating - 400) / 400 * 2);
+  } else if (rating <= 1200) {
+    skillLevel = Math.round(3 + (rating - 800) / 400 * 5);
+    depth = Math.round(4 + (rating - 800) / 400 * 4);
+  } else if (rating <= 1600) {
+    skillLevel = Math.round(8 + (rating - 1200) / 400 * 5);
+    depth = Math.round(8 + (rating - 1200) / 400 * 4);
+  } else if (rating <= 2000) {
+    skillLevel = Math.round(13 + (rating - 1600) / 400 * 4);
+    depth = Math.round(12 + (rating - 1600) / 400 * 4);
+  } else if (rating <= 2500) {
+    skillLevel = Math.round(17 + (rating - 2000) / 500 * 2);
+    depth = Math.round(16 + (rating - 2000) / 500 * 4);
+  } else {
+    skillLevel = 20;
+    depth = Math.round(20 + (rating - 2500) / 500 * 6);
+  }
+  return {
+    uci: { 'Skill Level': skillLevel },
+    searchDepth: depth,
+    stockfishElo: rating,
+  };
+}
+
+/** Load custom bots from localStorage and inject into BOT_PERSONALITIES */
+export function loadCustomBots() {
+  try {
+    const raw = localStorage.getItem('chess_custom_bots');
+    if (!raw) return;
+    const bots = JSON.parse(raw);
+    // Remove previous custom bots
+    for (let i = BOT_PERSONALITIES.length - 1; i >= 0; i--) {
+      if (BOT_PERSONALITIES[i].tier === 'custom') BOT_PERSONALITIES.splice(i, 1);
+    }
+    for (const bot of bots) {
+      bot.tier = 'custom';
+      BOT_PERSONALITIES.push(bot);
+    }
+  } catch (e) { /* ignore corrupt data */ }
+}
+
+/** Save custom bots from BOT_PERSONALITIES to localStorage */
+export function saveCustomBots() {
+  const customs = BOT_PERSONALITIES.filter(b => b.tier === 'custom');
+  localStorage.setItem('chess_custom_bots', JSON.stringify(customs));
+}
+
+/** Available portraits for custom bots */
+export const CUSTOM_BOT_PORTRAITS = [
+  'img/personalities/beginner-betty.svg',
+  'img/personalities/casual-carl.svg',
+  'img/personalities/club-charlie.svg',
+  'img/personalities/speed-demon.svg',
+  'img/personalities/tactician-tanya.svg',
+  'img/personalities/the-wall.svg',
+  'img/personalities/positional-pat.svg',
+  'img/personalities/candidate-master.svg',
+  'img/gm/tal.svg',
+  'img/gm/petrosian.svg',
+  'img/gm/capablanca.svg',
+  'img/gm/botvinnik.svg',
+  'img/gm/alekhine.svg',
+  'img/gm/karpov.svg',
+  'img/gm/fischer.svg',
+  'img/gm/anand.svg',
+  'img/gm/kasparov.svg',
+  'img/gm/carlsen.svg',
+  'img/gm/spassky.svg',
+  'img/gm/lasker.svg',
+  'img/gm/steinitz.svg',
+  'img/gm/kramnik.svg',
+  'img/gm/morphy.svg',
+  'img/gm/smyslov.svg',
+  'img/machines/komodo.svg',
+  'img/machines/leela.svg',
+  'img/machines/stockfish.svg',
+  'img/machines/alphazero.svg',
 ];
