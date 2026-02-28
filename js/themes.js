@@ -56,6 +56,7 @@ export class ThemeManager {
   constructor() {
     this.boardTheme = 'classic';
     this.pieceTheme = 'standard';
+    this.colorMode = 'dark'; // 'dark', 'light', 'system'
     this.onPieceThemeChange = null; // callback to re-render board
     this._load();
   }
@@ -70,6 +71,9 @@ export class ThemeManager {
         if (saved.pieces && PIECE_THEMES.find(t => t.id === saved.pieces)) {
           this.pieceTheme = saved.pieces;
         }
+        if (saved.colorMode) {
+          this.colorMode = saved.colorMode; // 'dark', 'light', 'system'
+        }
       }
     } catch {}
   }
@@ -78,7 +82,8 @@ export class ThemeManager {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         board: this.boardTheme,
-        pieces: this.pieceTheme
+        pieces: this.pieceTheme,
+        colorMode: this.colorMode
       }));
     } catch {}
   }
@@ -114,8 +119,33 @@ export class ThemeManager {
     if (this.onPieceThemeChange) this.onPieceThemeChange();
   }
 
+  /** Set color mode: 'dark', 'light', or 'system' */
+  setColorMode(mode) {
+    this.colorMode = mode;
+    this._applyColorMode();
+    this._save();
+  }
+
+  _applyColorMode() {
+    let effective = this.colorMode;
+    if (effective === 'system') {
+      effective = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    document.documentElement.setAttribute('data-theme', effective);
+    // Update theme-color meta tag
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.content = effective === 'light' ? '#f5f5f0' : '#312e2b';
+    }
+  }
+
   /** Apply saved themes on init */
   apply() {
     this.applyBoardTheme();
+    this._applyColorMode();
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if (this.colorMode === 'system') this._applyColorMode();
+    });
   }
 }

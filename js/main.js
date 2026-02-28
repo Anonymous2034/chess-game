@@ -9395,6 +9395,19 @@ class ChessApp {
         clockEl.appendChild(btn);
       }
     }
+
+    // Color mode (dark / light / system)
+    const colorModeGroup = document.getElementById('color-mode-group');
+    if (colorModeGroup) {
+      colorModeGroup.querySelectorAll('.btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === this.themes.colorMode);
+        btn.addEventListener('click', () => {
+          colorModeGroup.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.themes.setColorMode(btn.dataset.value);
+        });
+      });
+    }
   }
 
   _applyClockTheme(id) {
