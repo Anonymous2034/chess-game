@@ -21,6 +21,7 @@ import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';
 import { DGTBoard } from './dgt.js';
+import { ChessUpBoard } from './chessup.js';
 import { SoundManager } from './sound.js';
 import { MultiplayerManager } from './multiplayer.js';
 import { PuzzleManager } from './puzzle.js';
@@ -70,6 +71,7 @@ class ChessApp {
     this.adminPanel = null;
     this.firebaseReady = false;
     this.dgtBoard = null;
+    this.cuBoard = null;
     this.sound = new SoundManager();
     this._gameOverSoundPlayed = false;
     this.multiplayer = null;
@@ -181,6 +183,7 @@ class ChessApp {
     this.setupAuth();
     this.setupAdmin();
     this.setupDGT();
+    this.setupChessUp();
     this.setupMultiplayer();
     this.setupPuzzles();
     this.setupEndgameTrainer();
@@ -497,6 +500,12 @@ class ChessApp {
                 }
                 this.showToast(`Play ${move.san} on your DGT board`);
               }
+
+              // ChessUp: show book move LEDs
+              if (this.cuBoard?.isConnected()) {
+                this.cuBoard.pendingEngineMove = { from: move.from, to: move.to, san: move.san };
+                this.cuBoard.setLeds(move.from, move.to);
+              }
             }
             if (!this.game.gameOver) {
               // Check for queued pre-move
@@ -568,6 +577,12 @@ class ChessApp {
           show(engineMoveEl);
         }
         this.showToast(`Play ${move.san} on your DGT board`);
+      }
+
+      // ChessUp: show engine move LEDs
+      if (this.cuBoard?.isConnected()) {
+        this.cuBoard.pendingEngineMove = { from: move.from, to: move.to, san: move.san };
+        this.cuBoard.setLeds(move.from, move.to);
       }
     }
 
@@ -3629,6 +3644,12 @@ class ChessApp {
     if (this.dgtBoard?.isConnected()) {
       this.dgtBoard.syncToPosition(this.chess);
       hide(document.getElementById('dgt-engine-move'));
+    }
+
+    // Sync ChessUp board to new game
+    if (this.cuBoard?.isConnected()) {
+      this.cuBoard.pendingEngineMove = null;
+      this.cuBoard.clearLeds();
     }
 
     // Play game start sound
@@ -8053,6 +8074,196 @@ class ChessApp {
         this.dgtBoard._startPegasusPolling();
       }
       this.showToast('DGT settings reset to defaults');
+    });
+  }
+
+  // === ChessUp ===
+
+  setupChessUp() {
+    this.cuBoard = new ChessUpBoard();
+
+    const connectBtn = document.getElementById('cu-connect-ble');
+    const disconnectBtn = document.getElementById('cu-disconnect');
+    const resetBoardBtn = document.getElementById('cu-reset-board');
+    const statusDot = document.getElementById('cu-status-dot');
+    const statusText = document.getElementById('cu-status-text');
+    const connectOptions = document.getElementById('cu-connect-options');
+    const connectedActions = document.getElementById('cu-connected-actions');
+    const hwSettings = document.getElementById('cu-hardware-settings');
+    const boardStatusEl = document.getElementById('cu-board-status');
+
+    // Disable connect if no Web Bluetooth
+    if (!navigator.bluetooth) {
+      connectBtn.querySelector('.dgt-connect-desc').textContent =
+        'Requires Chrome or Chromium with Web Bluetooth enabled.';
+    }
+
+    // Status callback
+    this.cuBoard.onStatusChange = (msg) => {
+      if (statusText) statusText.textContent = msg;
+    };
+
+    // Physical board change callback — detect moves
+    this.cuBoard._onPhysicalBoardChanged = async () => {
+      const detected = this.cuBoard.getLastMove();
+      if (!detected) return;
+
+      // Validate legality
+      const legalMoves = this.chess.moves({ verbose: true });
+      const isLegal = legalMoves.some(m =>
+        m.from === detected.from && m.to === detected.to
+      );
+      if (!isLegal) {
+        console.log('[CU-main] Move not legal:', detected.from, '->', detected.to);
+        return;
+      }
+
+      // Enforce turn in engine mode
+      if (this.game.mode === 'engine') {
+        const turn = this.chess.turn();
+        if (turn !== this.game.playerColor) {
+          console.log('[CU-main] Not player turn');
+          return;
+        }
+      }
+
+      if (this.game.gameOver || this.game.replayMode) {
+        console.log('[CU-main] Rejected: gameOver or replay');
+        return;
+      }
+
+      // Default queen promotion
+      console.log('[CU-main] Executing tryMove:', detected.from, detected.to);
+      this.cuBoard.clearLeds();
+      await this.board.tryMove(detected.from, detected.to);
+    };
+
+    // Connection change callback
+    this.cuBoard.onConnectionChange = (connected) => {
+      statusDot.classList.toggle('connected', connected);
+      if (connected) {
+        hide(connectOptions);
+        show(connectedActions);
+        show(boardStatusEl);
+        show(hwSettings);
+        boardStatusEl.textContent = 'ChessUp: Connected';
+      } else {
+        show(connectOptions);
+        hide(connectedActions);
+        hide(boardStatusEl);
+        hide(hwSettings);
+      }
+    };
+
+    // Connect button
+    connectBtn.addEventListener('click', async () => {
+      try {
+        await this.cuBoard.connect();
+      } catch (err) {
+        console.error('[CU] connect error:', err);
+        if (statusText) statusText.textContent = 'Error: ' + err.message;
+      }
+    });
+
+    // Disconnect button
+    disconnectBtn.addEventListener('click', () => {
+      this.cuBoard.disconnect();
+    });
+
+    // Reset board
+    resetBoardBtn?.addEventListener('click', () => {
+      if (!this.cuBoard?.isConnected()) return;
+      this.cuBoard.pendingEngineMove = null;
+      this.cuBoard.clearLeds();
+      this.showToast('ChessUp board state reset');
+    });
+
+    // Discover services debug button
+    const discoverBtn = document.getElementById('cu-discover-services');
+    const servicesPanel = document.getElementById('cu-services-panel');
+    const servicesOutput = document.getElementById('cu-services-output');
+
+    discoverBtn?.addEventListener('click', async () => {
+      servicesOutput.textContent = 'Discovering...';
+      show(servicesPanel);
+      const result = await this.cuBoard.discoverServicesDebug();
+      servicesOutput.textContent = result;
+    });
+
+    // Hardware settings controls
+    const brightnessSlider = document.getElementById('cu-led-brightness');
+    const brightnessVal = document.getElementById('cu-led-brightness-val');
+    const assistSelect = document.getElementById('cu-assistance-level');
+    const playerLedSelect = document.getElementById('cu-player-led-mode');
+    const engineLedSelect = document.getElementById('cu-engine-led-mode');
+    const moveDelaySlider = document.getElementById('cu-move-delay');
+    const moveDelayVal = document.getElementById('cu-move-delay-val');
+    const autoReconnectCheckbox = document.getElementById('cu-auto-reconnect');
+    const bleTimeoutSlider = document.getElementById('cu-ble-timeout');
+    const bleTimeoutVal = document.getElementById('cu-ble-timeout-val');
+    const resetDefaultsBtn = document.getElementById('cu-reset-defaults');
+
+    // Initialize from saved values
+    brightnessSlider.value = this.cuBoard.ledBrightness;
+    brightnessVal.textContent = this.cuBoard.ledBrightness;
+    assistSelect.value = this.cuBoard.assistanceLevel;
+    playerLedSelect.value = this.cuBoard.playerLedMode;
+    engineLedSelect.value = this.cuBoard.engineLedMode;
+    moveDelaySlider.value = this.cuBoard.moveDelay;
+    moveDelayVal.textContent = this.cuBoard.moveDelay;
+    autoReconnectCheckbox.checked = this.cuBoard.autoReconnect;
+    bleTimeoutSlider.value = this.cuBoard.bleTimeout;
+    bleTimeoutVal.textContent = this.cuBoard.bleTimeout;
+
+    // Wire change handlers
+    brightnessSlider.addEventListener('input', () => {
+      const v = parseInt(brightnessSlider.value);
+      brightnessVal.textContent = v;
+      this.cuBoard.setHardwareSetting('ledBrightness', v);
+    });
+
+    assistSelect.addEventListener('change', () => {
+      this.cuBoard.setAssistanceLevel(assistSelect.value);
+    });
+
+    playerLedSelect.addEventListener('change', () => {
+      this.cuBoard.setHardwareSetting('playerLedMode', playerLedSelect.value);
+    });
+
+    engineLedSelect.addEventListener('change', () => {
+      this.cuBoard.setHardwareSetting('engineLedMode', engineLedSelect.value);
+    });
+
+    moveDelaySlider.addEventListener('input', () => {
+      const v = parseInt(moveDelaySlider.value);
+      moveDelayVal.textContent = v;
+      this.cuBoard.setHardwareSetting('moveDelay', v);
+    });
+
+    autoReconnectCheckbox.addEventListener('change', () => {
+      this.cuBoard.setHardwareSetting('autoReconnect', autoReconnectCheckbox.checked);
+    });
+
+    bleTimeoutSlider.addEventListener('input', () => {
+      const v = parseInt(bleTimeoutSlider.value);
+      bleTimeoutVal.textContent = v;
+      this.cuBoard.setHardwareSetting('bleTimeout', v);
+    });
+
+    // Reset defaults
+    resetDefaultsBtn.addEventListener('click', () => {
+      this.cuBoard.resetHardwareDefaults();
+      brightnessSlider.value = this.cuBoard.ledBrightness;
+      brightnessVal.textContent = this.cuBoard.ledBrightness;
+      assistSelect.value = this.cuBoard.assistanceLevel;
+      playerLedSelect.value = this.cuBoard.playerLedMode;
+      engineLedSelect.value = this.cuBoard.engineLedMode;
+      moveDelaySlider.value = this.cuBoard.moveDelay;
+      moveDelayVal.textContent = this.cuBoard.moveDelay;
+      autoReconnectCheckbox.checked = this.cuBoard.autoReconnect;
+      bleTimeoutSlider.value = this.cuBoard.bleTimeout;
+      bleTimeoutVal.textContent = this.cuBoard.bleTimeout;
+      this.showToast('ChessUp settings reset to defaults');
     });
   }
 

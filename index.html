@@ -863,6 +863,78 @@
             </label>
             <button class="btn btn-small btn-secondary" id="dgt-reset-defaults">Reset Defaults</button>
           </div>
+
+          <h4 class="settings-section-title" style="margin-top:18px;">ChessUp Board</h4>
+          <div class="dgt-status-indicator" id="cu-status-indicator">
+            <span class="dgt-status-dot" id="cu-status-dot"></span>
+            <span id="cu-status-text">Not connected</span>
+          </div>
+          <div class="dgt-connect-options" id="cu-connect-options">
+            <button class="dgt-connect-btn" id="cu-connect-ble">
+              <div class="dgt-connect-title">ChessUp (BLE)</div>
+              <div class="dgt-connect-desc">Connect via Bluetooth Low Energy.</div>
+            </button>
+          </div>
+          <div class="dgt-connected-actions hidden" id="cu-connected-actions">
+            <button class="btn btn-secondary" id="cu-disconnect">Disconnect</button>
+            <button class="btn btn-secondary" id="cu-reset-board">Reset Board</button>
+          </div>
+          <div class="cu-hardware-settings hidden" id="cu-hardware-settings">
+            <h5 class="dgt-hw-title">Display</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">LED Brightness</span>
+              <input type="range" id="cu-led-brightness" min="1" max="5" step="1" value="3">
+              <span class="dgt-hw-value" id="cu-led-brightness-val">3</span>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Assistance Level</span>
+              <select id="cu-assistance-level" class="dgt-hw-select">
+                <option value="none">None</option>
+                <option value="beginner">Beginner</option>
+                <option value="casual">Casual</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="master">Master</option>
+              </select>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">My moves</span>
+              <select id="cu-player-led-mode" class="dgt-hw-select">
+                <option value="both">From + To</option>
+                <option value="from">From only</option>
+                <option value="to">To only</option>
+              </select>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Engine moves</span>
+              <select id="cu-engine-led-mode" class="dgt-hw-select">
+                <option value="sequential">Sequential (from, then to)</option>
+                <option value="both">From + To</option>
+                <option value="to">To only</option>
+              </select>
+            </label>
+            <h5 class="dgt-hw-title" style="margin-top:12px">Timing</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Move delay (ms)</span>
+              <input type="range" id="cu-move-delay" min="0" max="2000" step="50" value="300">
+              <span class="dgt-hw-value" id="cu-move-delay-val">300</span>
+            </label>
+            <h5 class="dgt-hw-title" style="margin-top:12px">Connection</h5>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">Auto-reconnect</span>
+              <input type="checkbox" id="cu-auto-reconnect" checked>
+            </label>
+            <label class="dgt-hw-row">
+              <span class="dgt-hw-label">BLE timeout (ms)</span>
+              <input type="range" id="cu-ble-timeout" min="3000" max="30000" step="1000" value="10000">
+              <span class="dgt-hw-value" id="cu-ble-timeout-val">10000</span>
+            </label>
+            <button class="btn btn-small btn-secondary" id="cu-discover-services" style="margin-top:8px">Discover Services</button>
+            <div class="cu-services-panel hidden" id="cu-services-panel">
+              <pre class="cu-services-output" id="cu-services-output"></pre>
+            </div>
+            <button class="btn btn-small btn-secondary" id="cu-reset-defaults" style="margin-top:8px">Reset Defaults</button>
+          </div>
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" id="close-settings-board">Done</button>
@@ -1432,6 +1504,7 @@
           <span id="game-status">White to move</span>
           <span id="engine-status" class="hidden">Stockfish: Ready</span>
           <span id="dgt-board-status" class="dgt-board-status hidden">DGT: Connected</span>
+          <span id="cu-board-status" class="dgt-board-status hidden">ChessUp: Connected</span>
           <button class="btn btn-sm btn-force hidden" id="btn-force-move">Force Move</button>
           <div class="analyze-group hidden" id="analyze-group">
             <button class="btn btn-sm btn-primary" id="btn-analyze">Analyze</button>

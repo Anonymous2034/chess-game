@@ -6093,6 +6093,11 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   font-weight: 600;
 }
 
+/* === ChessUp Board === */
+.cu-hardware-settings { margin-top:12px; padding:10px 12px; background:var(--bg-dark,#1a1a2e); border-radius:6px; }
+.cu-services-panel { margin-top:8px; padding:8px; background:var(--bg-darker,#111); border-radius:4px; border:1px solid var(--border-color,#444); max-height:200px; overflow-y:auto; }
+.cu-services-output { font-family:var(--font-mono,monospace); font-size:0.72rem; color:var(--text-secondary,#aaa); white-space:pre-wrap; margin:0; }
+
 /* === Scrollbar === */
 ::-webkit-scrollbar {
   width: 6px;
