@@ -593,7 +593,8 @@ main {
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
-  height: 40px;
+  min-height: 40px;
+  height: auto;
   box-sizing: border-box;
   justify-content: center;
   border-left: 3px solid transparent;
@@ -6964,6 +6965,63 @@ body.resizing-h {
   .saved-game-actions { gap: 6px; }
   .saved-game-actions .btn { min-height: 44px; }
   .saved-games-list { max-height: 50dvh; }
+
+  /* --- Board settings dialog: scrollable on mobile --- */
+  #settings-board-dialog .settings-section {
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- DGT/ChessUp hardware settings: compact on mobile --- */
+  .dgt-hw-row {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+  .dgt-hw-label {
+    min-width: 70px;
+    font-size: 0.78rem;
+  }
+  .dgt-hw-row input[type="range"] {
+    min-width: 80px;
+    height: 6px;
+  }
+  .dgt-hw-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-height: unset;
+  }
+  .dgt-hw-select, .dgt-hw-input {
+    font-size: 14px;
+    min-height: 40px;
+  }
+  .dgt-hardware-settings,
+  .cu-hardware-settings {
+    padding: 8px 10px;
+  }
+  .dgt-connect-btn {
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+
+  /* --- Status bar: wrap badges gracefully --- */
+  .status-bar {
+    height: auto;
+    min-height: 32px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .dgt-board-status {
+    font-size: 0.7rem;
+  }
+
+  /* --- ChessUp services panel mobile --- */
+  .cu-services-panel {
+    max-height: 150px;
+  }
+  .cu-services-output {
+    font-size: 0.65rem;
+  }
 }
 
 /* === Landscape mobile === */
@@ -6995,6 +7053,15 @@ body.resizing-h {
 
   header h1 {
     font-size: 0.9rem;
+  }
+
+  /* Board settings dialog: use landscape space better */
+  #settings-board-dialog .dialog {
+    max-height: 95dvh;
+  }
+  #settings-board-dialog .settings-section {
+    max-height: calc(100dvh - 100px);
+    overflow-y: auto;
   }
 }
 
@@ -7028,6 +7095,94 @@ body.resizing-h {
 
   /* --- v146: Repertoire 480px --- */
   .rep-line-card { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  /* --- DGT/ChessUp hardware: stack label above control --- */
+  .dgt-hw-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+  .dgt-hw-label {
+    min-width: unset;
+    font-size: 0.75rem;
+  }
+  .dgt-hw-value {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 0.75rem;
+  }
+  .dgt-hw-row {
+    position: relative;
+    padding-right: 40px;
+  }
+  .dgt-hw-row input[type="range"] {
+    width: 100%;
+  }
+
+  /* --- Settings dialog: tighter on small phones --- */
+  #settings-board-dialog .dialog {
+    padding: 10px;
+  }
+  .settings-section-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* === Very small phones === */
+@media (max-width: 380px) {
+  :root {
+    --board-size: calc(100vw - 28px);
+  }
+
+  header h1 {
+    font-size: 0.85rem;
+  }
+
+  .side-panel {
+    max-height: 200px;
+  }
+
+  .dialog {
+    padding: 10px;
+    width: 98vw;
+  }
+
+  .dialog h2 {
+    font-size: 0.95rem;
+  }
+
+  .btn {
+    font-size: 0.78rem;
+    padding: 6px 8px;
+  }
+
+  .dgt-connect-title {
+    font-size: 0.8rem;
+  }
+
+  .dgt-connect-desc {
+    font-size: 0.68rem;
+  }
+
+  .player-info {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+
+  .captured-pieces {
+    max-width: 70px;
+  }
+
+  .nav-controls .btn {
+    font-size: 0.9rem;
+    min-width: 38px;
+  }
+
+  .panel-tab {
+    padding: 8px 8px;
+    font-size: 0.72rem;
+  }
 }
 
 /* === Touch device enhancements === */
