@@ -21,7 +21,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=155">
   <script type="importmap">
   {
     "imports": {
@@ -1850,12 +1850,15 @@
 
   <!-- Scripts -->
   <script src="lib/chess.min.js"></script>
-  <script type="module" src="js/main.js?v=152"></script>
+  <script type="module" src="js/main.js?v=155"></script>
   <script>
     if ('serviceWorker' in navigator && !window.Capacitor) {
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
         .then(function(reg) {
+          // Check for updates immediately and every 60s
           reg.update().catch(function() {});
+          setInterval(function() { reg.update().catch(function() {}); }, 60000);
+
           reg.addEventListener('updatefound', function() {
             var newSW = reg.installing;
             if (newSW) {
@@ -1868,6 +1871,13 @@
           });
         })
         .catch(function() {});
+
+      // Listen for SW_UPDATED message — reload to get fresh assets
+      navigator.serviceWorker.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          window.location.reload();
+        }
+      });
     }
   </script>
 </body>
