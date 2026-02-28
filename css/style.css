@@ -6976,29 +6976,38 @@ body.resizing-h {
   [data-drag-id="move-note"],
   [data-drag-id="match-note"],
   [data-drag-id="coach-area"],
-  [data-drag-id="tab-bar"] {
+  [data-drag-id="tab-bar"],
+  [data-drag-id="book"],
+  [data-drag-id="hints"],
+  [data-drag-id="gm-coach-tab"],
+  [data-drag-id="engine-lines"] {
     display: none !important;
   }
 
-  /* Side panel: slim and focused */
+  /* Side panel: slim, only status + moves */
   .side-panel {
-    gap: 4px;
+    gap: 2px;
   }
 
-  /* Scroll panel tabs horizontally if many */
+  /* Hide panel tabs row on mobile — only moves visible */
   .panel-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
+    display: none !important;
   }
-  .panel-tabs::-webkit-scrollbar {
+
+  /* Ensure moves panel is visible (tabs hidden, show moves directly) */
+  #tab-moves {
+    display: block !important;
+  }
+
+  /* Hide resize handles on mobile */
+  .resize-handle {
     display: none;
   }
 
-  /* Resize handle: hide on mobile (stacked layout) */
-  .resize-handle-v {
-    display: none;
+  /* Analysis summary compact */
+  .analysis-summary {
+    font-size: 0.75rem;
+    padding: 4px 8px;
   }
 
   /* --- Board settings dialog: scrollable on mobile --- */
