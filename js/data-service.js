@@ -1,5 +1,5 @@
-// Data service — abstracts Supabase + localStorage fallback
-import { getSupabase } from './supabase-init.js';
+// Data service — self-hosted backend + localStorage fallback
+import { apiFetch } from './api-client.js';
 
 export class DataService {
   constructor(auth) {
@@ -7,7 +7,7 @@ export class DataService {
   }
 
   _isOnline() {
-    return this.auth && this.auth.isLoggedIn() && getSupabase();
+    return this.auth && this.auth.isLoggedIn();
   }
 
   _uid() {
@@ -24,11 +24,9 @@ export class DataService {
 
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        await sb.from('user_stats').upsert({
-          user_id: this._uid(),
-          data: statsData,
-          updated_at: new Date().toISOString()
+        await apiFetch('/data/stats', {
+          method: 'PUT',
+          body: JSON.stringify({ data: statsData }),
         });
       } catch (err) {
         console.warn('Failed to save stats to cloud:', err);
@@ -39,18 +37,15 @@ export class DataService {
   async loadStats() {
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        const { data, error } = await sb
-          .from('user_stats')
-          .select('data')
-          .eq('user_id', this._uid())
-          .single();
-
-        if (data?.data) {
-          try {
-            localStorage.setItem('chess_game_stats', JSON.stringify(data.data));
-          } catch {}
-          return data.data;
+        const res = await apiFetch('/data/stats');
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data) {
+            try {
+              localStorage.setItem('chess_game_stats', JSON.stringify(data));
+            } catch {}
+            return data;
+          }
         }
       } catch (err) {
         console.warn('Failed to load stats from cloud:', err);
@@ -70,17 +65,18 @@ export class DataService {
   async saveGame(gameData) {
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        await sb.from('games').insert({
-          user_id: this._uid(),
-          opponent: gameData.opponent,
-          opponent_elo: gameData.opponentElo,
-          result: gameData.result,
-          pgn: gameData.pgn,
-          opening: gameData.opening,
-          player_color: gameData.playerColor,
-          move_count: gameData.moveCount,
-          time_control: gameData.timeControl
+        await apiFetch('/data/games', {
+          method: 'POST',
+          body: JSON.stringify({
+            opponent: gameData.opponent,
+            opponentElo: gameData.opponentElo,
+            result: gameData.result,
+            pgn: gameData.pgn,
+            opening: gameData.opening,
+            playerColor: gameData.playerColor,
+            moveCount: gameData.moveCount,
+            timeControl: gameData.timeControl,
+          }),
         });
       } catch (err) {
         console.warn('Failed to save game to cloud:', err);
@@ -91,27 +87,10 @@ export class DataService {
   async getGames(limitCount = 50) {
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        const { data, error } = await sb
-          .from('games')
-          .select('*')
-          .eq('user_id', this._uid())
-          .order('created_at', { ascending: false })
-          .limit(limitCount);
-
-        if (data) {
-          return data.map(g => ({
-            id: g.id,
-            opponent: g.opponent,
-            opponentElo: g.opponent_elo,
-            result: g.result,
-            pgn: g.pgn,
-            opening: g.opening,
-            playerColor: g.player_color,
-            moveCount: g.move_count,
-            timeControl: g.time_control,
-            date: g.created_at
-          }));
+        const res = await apiFetch(`/data/games?limit=${limitCount}`);
+        if (res.ok) {
+          const { data } = await res.json();
+          return data || [];
         }
       } catch (err) {
         console.warn('Failed to load games from cloud:', err);
@@ -129,11 +108,9 @@ export class DataService {
 
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        await sb.from('user_settings').upsert({
-          user_id: this._uid(),
-          data: settings,
-          updated_at: new Date().toISOString()
+        await apiFetch('/data/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ data: settings }),
         });
       } catch (err) {
         console.warn('Failed to save settings to cloud:', err);
@@ -144,16 +121,13 @@ export class DataService {
   async loadSettings() {
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        const { data } = await sb
-          .from('user_settings')
-          .select('data')
-          .eq('user_id', this._uid())
-          .single();
-
-        if (data?.data) {
-          try { localStorage.setItem('chess_app_settings', JSON.stringify(data.data)); } catch {}
-          return data.data;
+        const res = await apiFetch('/data/settings');
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data) {
+            try { localStorage.setItem('chess_app_settings', JSON.stringify(data)); } catch {}
+            return data;
+          }
         }
       } catch (err) {
         console.warn('Failed to load settings from cloud:', err);
@@ -173,11 +147,12 @@ export class DataService {
   async saveCoachChat(messages, gameContext) {
     if (this._isOnline() && messages.length > 0) {
       try {
-        const sb = getSupabase();
-        await sb.from('coach_chats').insert({
-          user_id: this._uid(),
-          messages: messages.slice(-50),
-          game_context: gameContext
+        await apiFetch('/data/coach-chats', {
+          method: 'POST',
+          body: JSON.stringify({
+            messages: messages.slice(-50),
+            gameContext,
+          }),
         });
       } catch (err) {
         console.warn('Failed to save coach chat:', err);
@@ -188,21 +163,10 @@ export class DataService {
   async getCoachChats(limitCount = 20) {
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        const { data } = await sb
-          .from('coach_chats')
-          .select('*')
-          .eq('user_id', this._uid())
-          .order('created_at', { ascending: false })
-          .limit(limitCount);
-
-        if (data) {
-          return data.map(c => ({
-            id: c.id,
-            messages: c.messages,
-            gameContext: c.game_context,
-            date: c.created_at
-          }));
+        const res = await apiFetch(`/data/coach-chats?limit=${limitCount}`);
+        if (res.ok) {
+          const { data } = await res.json();
+          return data || [];
         }
       } catch (err) {
         console.warn('Failed to load coach chats:', err);
@@ -220,11 +184,9 @@ export class DataService {
 
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        await sb.from('tournaments').upsert({
-          user_id: this._uid(),
-          data: tournamentData,
-          updated_at: new Date().toISOString()
+        await apiFetch('/data/tournaments', {
+          method: 'PUT',
+          body: JSON.stringify({ data: tournamentData }),
         });
       } catch (err) {
         console.warn('Failed to save tournament to cloud:', err);
@@ -235,16 +197,13 @@ export class DataService {
   async loadTournament() {
     if (this._isOnline()) {
       try {
-        const sb = getSupabase();
-        const { data } = await sb
-          .from('tournaments')
-          .select('data')
-          .eq('user_id', this._uid())
-          .single();
-
-        if (data?.data) {
-          try { localStorage.setItem('chess_tournament', JSON.stringify(data.data)); } catch {}
-          return data.data;
+        const res = await apiFetch('/data/tournaments');
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data) {
+            try { localStorage.setItem('chess_tournament', JSON.stringify(data)); } catch {}
+            return data;
+          }
         }
       } catch (err) {
         console.warn('Failed to load tournament from cloud:', err);
@@ -259,55 +218,32 @@ export class DataService {
     }
   }
 
-  // === Migration: move localStorage data to Supabase on first login ===
+  // === Migration: move localStorage data to server on first login ===
 
   async migrateLocalData() {
     if (!this._isOnline()) return;
 
-    const sb = getSupabase();
-
-    // Check if migration already done
     try {
-      const { data } = await sb
-        .from('migrations')
-        .select('user_id')
-        .eq('user_id', this._uid())
-        .single();
-      if (data) return; // Already migrated
-    } catch {}
+      let stats = null;
+      let tournament = null;
 
-    // Migrate stats
-    try {
-      const statsStr = localStorage.getItem('chess_game_stats');
-      if (statsStr) {
-        const stats = JSON.parse(statsStr);
-        await sb.from('user_stats').upsert({
-          user_id: this._uid(),
-          data: stats,
-          updated_at: new Date().toISOString()
-        });
-      }
-    } catch {}
+      try {
+        const statsStr = localStorage.getItem('chess_game_stats');
+        if (statsStr) stats = JSON.parse(statsStr);
+      } catch {}
 
-    // Migrate tournament
-    try {
-      const tournStr = localStorage.getItem('chess_tournament');
-      if (tournStr) {
-        const tourn = JSON.parse(tournStr);
-        await sb.from('tournaments').upsert({
-          user_id: this._uid(),
-          data: tourn,
-          updated_at: new Date().toISOString()
-        });
-      }
-    } catch {}
+      try {
+        const tournStr = localStorage.getItem('chess_tournament');
+        if (tournStr) tournament = JSON.parse(tournStr);
+      } catch {}
 
-    // Mark as migrated
-    try {
-      await sb.from('migrations').insert({
-        user_id: this._uid()
+      await apiFetch('/data/migrate', {
+        method: 'POST',
+        body: JSON.stringify({ stats, tournament }),
       });
-    } catch {}
+    } catch (err) {
+      console.warn('Migration failed:', err);
+    }
   }
 
   // === Admin Methods ===
@@ -315,18 +251,10 @@ export class DataService {
   async getAllUsers() {
     if (!this._isOnline()) return [];
     try {
-      const sb = getSupabase();
-      const { data, error } = await sb
-        .from('profiles')
-        .select('*');
-      if (data) {
-        return data.map(p => ({
-          uid: p.id,
-          displayName: p.display_name,
-          email: p.email,
-          isAdmin: p.is_admin,
-          createdAt: p.created_at
-        }));
+      const res = await apiFetch('/admin/users');
+      if (res.ok) {
+        const { data } = await res.json();
+        return data || [];
       }
     } catch (err) {
       console.warn('Failed to fetch all users:', err);
@@ -337,37 +265,24 @@ export class DataService {
   async getUserStats(uid) {
     if (!this._isOnline()) return null;
     try {
-      const sb = getSupabase();
-      const { data } = await sb
-        .from('user_stats')
-        .select('data')
-        .eq('user_id', uid)
-        .single();
-      return data?.data || null;
+      const res = await apiFetch(`/admin/users/${uid}/stats`);
+      if (res.ok) {
+        const { data } = await res.json();
+        return data || null;
+      }
     } catch {
       return null;
     }
+    return null;
   }
 
   async getUserGames(uid, limitCount = 50) {
     if (!this._isOnline()) return [];
     try {
-      const sb = getSupabase();
-      const { data } = await sb
-        .from('games')
-        .select('*')
-        .eq('user_id', uid)
-        .order('created_at', { ascending: false })
-        .limit(limitCount);
-
-      if (data) {
-        return data.map(g => ({
-          id: g.id,
-          opponent: g.opponent,
-          opponentElo: g.opponent_elo,
-          result: g.result,
-          date: g.created_at
-        }));
+      const res = await apiFetch(`/admin/users/${uid}/games?limit=${limitCount}`);
+      if (res.ok) {
+        const { data } = await res.json();
+        return data || [];
       }
     } catch {
       return [];

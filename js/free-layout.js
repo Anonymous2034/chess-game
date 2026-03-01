@@ -697,7 +697,12 @@ export class FreeLayout {
   // === Persistence ===
 
   _saveLayout() {
-    const data = { active: true, positions: {} };
+    const mainEl = document.querySelector('main');
+    const data = {
+      active: true,
+      positions: {},
+      viewport: mainEl ? { w: mainEl.clientWidth, h: mainEl.clientHeight } : null,
+    };
     for (const [id, { pos }] of Object.entries(this._windows)) {
       data.positions[id] = pos;
     }
@@ -711,7 +716,36 @@ export class FreeLayout {
       const raw = localStorage.getItem(FreeLayout.STORAGE_KEY);
       if (!raw) return {};
       const data = JSON.parse(raw);
-      return data.positions || {};
+      const positions = data.positions || {};
+      if (!data.viewport || !Object.keys(positions).length) return positions;
+
+      // Scale saved pixel positions to current viewport if dimensions changed
+      const mainEl = document.querySelector('main');
+      if (!mainEl) return positions;
+      const curW = mainEl.clientWidth;
+      const curH = mainEl.clientHeight;
+      const savedW = data.viewport.w;
+      const savedH = data.viewport.h;
+
+      // Only rescale if viewport differs by more than 10%
+      const diffW = Math.abs(curW - savedW) / savedW;
+      const diffH = Math.abs(curH - savedH) / savedH;
+      if (diffW < 0.1 && diffH < 0.1) return positions;
+
+      const scaleX = curW / savedW;
+      const scaleY = curH / savedH;
+      const scaled = {};
+      for (const [id, pos] of Object.entries(positions)) {
+        const def = FreeLayout.WINDOW_DEFS[id];
+        scaled[id] = {
+          ...pos,
+          x: Math.round(pos.x * scaleX),
+          y: Math.round(pos.y * scaleY),
+          w: Math.max(def?.minW || 150, Math.round(pos.w * scaleX)),
+          h: Math.max(def?.minH || 40, Math.round(pos.h * scaleY)),
+        };
+      }
+      return scaled;
     } catch {
       return {};
     }

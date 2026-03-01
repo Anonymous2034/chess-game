@@ -1,104 +1,159 @@
-// Authentication manager — wraps Supabase Auth
-import { getSupabase } from './supabase-init.js';
+// Authentication manager — self-hosted backend
+import { apiFetch, setTokens, clearTokens, hasTokens, getAccessToken, getRefreshTokenValue } from './api-client.js';
 
 export class AuthManager {
   constructor() {
     this.user = null;
     this.profile = null;
     this.onAuthChange = null; // callback(user)
-    this.onPasswordRecovery = null; // callback() — show new-password UI
+    this.onPasswordRecovery = null; // unused now (no magic link/password reset)
     this._initialized = false;
   }
 
   /**
-   * Start listening for auth state changes
+   * Check for existing session on startup
    */
-  init() {
-    const sb = getSupabase();
-    if (!sb) return;
+  async init() {
+    if (!hasTokens()) {
+      this._initialized = true;
+      if (this.onAuthChange) this.onAuthChange(null);
+      return;
+    }
 
-    sb.auth.onAuthStateChange(async (event, session) => {
-      this.user = session?.user || null;
-      if (this.user) {
-        await this._loadProfile(this.user.id);
+    // Try to load profile from stored token
+    try {
+      const res = await apiFetch('/auth/me', {}, () => this._onSessionExpired());
+      if (res.ok) {
+        const data = await res.json();
+        this.user = {
+          id: data.uid,
+          email: data.email,
+          created_at: data.createdAt,
+        };
+        this.profile = {
+          id: data.uid,
+          display_name: data.displayName,
+          email: data.email,
+          is_admin: data.isAdmin,
+        };
       } else {
+        clearTokens();
+        this.user = null;
         this.profile = null;
       }
-      this._initialized = true;
+    } catch {
+      this.user = null;
+      this.profile = null;
+    }
 
-      // Handle password recovery redirect — show in-app form
-      if (event === 'PASSWORD_RECOVERY') {
-        if (this.onPasswordRecovery) this.onPasswordRecovery();
-      }
-
-      if (this.onAuthChange) this.onAuthChange(this.user);
-    });
+    this._initialized = true;
+    if (this.onAuthChange) this.onAuthChange(this.user);
   }
 
   /**
    * Register a new user
    */
   async register(email, password, displayName) {
-    const sb = getSupabase();
-    if (!sb) throw new Error('Supabase not configured');
-
-    const { data, error } = await sb.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { display_name: displayName },
-        emailRedirectTo: 'https://anonymous2034.github.io/chess-game/'
-      }
+    const res = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, displayName }),
     });
 
-    if (error) throw error;
-    return data.user;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+    setTokens(data.accessToken, data.refreshToken);
+    this.user = {
+      id: data.user.uid,
+      email: data.user.email,
+      created_at: data.user.createdAt,
+    };
+    this.profile = {
+      id: data.user.uid,
+      display_name: data.user.displayName,
+      email: data.user.email,
+      is_admin: data.user.isAdmin,
+    };
+
+    if (this.onAuthChange) this.onAuthChange(this.user);
+    return this.user;
   }
 
   /**
    * Login with email and password
    */
   async login(email, password) {
-    const sb = getSupabase();
-    if (!sb) throw new Error('Supabase not configured');
+    const res = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
 
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data.user;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    setTokens(data.accessToken, data.refreshToken);
+    this.user = {
+      id: data.user.uid,
+      email: data.user.email,
+      created_at: data.user.createdAt,
+    };
+    this.profile = {
+      id: data.user.uid,
+      display_name: data.user.displayName,
+      email: data.user.email,
+      is_admin: data.user.isAdmin,
+    };
+
+    if (this.onAuthChange) this.onAuthChange(this.user);
+    return this.user;
+  }
+
+  /**
+   * Login with Google ID token
+   */
+  async loginWithGoogle(credential) {
+    const res = await apiFetch('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Google login failed');
+
+    setTokens(data.accessToken, data.refreshToken);
+    this.user = {
+      id: data.user.uid,
+      email: data.user.email,
+      created_at: data.user.createdAt,
+    };
+    this.profile = {
+      id: data.user.uid,
+      display_name: data.user.displayName,
+      email: data.user.email,
+      is_admin: data.user.isAdmin,
+    };
+
+    if (this.onAuthChange) this.onAuthChange(this.user);
+    return this.user;
   }
 
   /**
    * Logout
    */
   async logout() {
-    const sb = getSupabase();
-    if (!sb) return;
-    await sb.auth.signOut();
-  }
-
-  /**
-   * Send magic link (passwordless login)
-   */
-  async sendMagicLink(email) {
-    const sb = getSupabase();
-    if (!sb) throw new Error('Supabase not configured');
-
-    const redirectTo = 'https://anonymous2034.github.io/chess-game/';
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
-    if (error) throw error;
-  }
-
-  /**
-   * Send password reset email
-   */
-  async resetPassword(email) {
-    const sb = getSupabase();
-    if (!sb) throw new Error('Supabase not configured');
-
-    // Always redirect to the production URL (must be whitelisted in Supabase dashboard)
-    const redirectTo = 'https://anonymous2034.github.io/chess-game/';
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
-    if (error) throw error;
+    try {
+      const refreshToken = getRefreshTokenValue();
+      await apiFetch('/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      // Always clear locally even if server call fails
+    }
+    clearTokens();
+    this.user = null;
+    this.profile = null;
+    if (this.onAuthChange) this.onAuthChange(null);
   }
 
   /**
@@ -109,7 +164,7 @@ export class AuthManager {
     return {
       uid: this.user.id,
       email: this.user.email,
-      displayName: this.profile?.display_name || this.user.user_metadata?.display_name || this.user.email
+      displayName: this.profile?.display_name || this.user.email,
     };
   }
 
@@ -128,57 +183,28 @@ export class AuthManager {
   }
 
   /**
-   * Load profile from profiles table
+   * Update display name
    */
-  async _loadProfile(uid) {
-    try {
-      const sb = getSupabase();
-      if (!sb) return;
+  async updateDisplayName(name) {
+    if (!this.user) return;
 
-      const { data, error } = await sb
-        .from('profiles')
-        .select('*')
-        .eq('id', uid)
-        .single();
+    const res = await apiFetch('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ displayName: name }),
+    });
 
-      if (error && error.code === 'PGRST116') {
-        // Profile doesn't exist — create it
-        // (normally the trigger handles this, but fallback just in case)
-        this.profile = {
-          id: uid,
-          display_name: this.user.user_metadata?.display_name || this.user.email,
-          email: this.user.email,
-          is_admin: false
-        };
-        await sb.from('profiles').insert(this.profile);
-      } else if (data) {
-        this.profile = data;
-      }
-    } catch (err) {
-      console.warn('Failed to load profile:', err);
+    if (res.ok && this.profile) {
+      this.profile.display_name = name;
     }
   }
 
   /**
-   * Update display name
+   * Handle session expiry (called by apiFetch on unrecoverable 401)
    */
-  async updateDisplayName(name) {
-    const sb = getSupabase();
-    if (!sb || !this.user) return;
-
-    await sb.auth.updateUser({ data: { display_name: name } });
-    await sb.from('profiles').update({ display_name: name }).eq('id', this.user.id);
-
-    if (this.profile) this.profile.display_name = name;
-  }
-
-  /**
-   * Set a new password (used after PASSWORD_RECOVERY redirect)
-   */
-  async setPassword(newPassword) {
-    const sb = getSupabase();
-    if (!sb) throw new Error('Supabase not configured');
-    const { error } = await sb.auth.updateUser({ password: newPassword });
-    if (error) throw error;
+  _onSessionExpired() {
+    this.user = null;
+    this.profile = null;
+    clearTokens();
+    if (this.onAuthChange) this.onAuthChange(null);
   }
 }

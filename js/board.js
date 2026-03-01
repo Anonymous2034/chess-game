@@ -410,6 +410,9 @@ export class Board {
     const onPointerMove = (e) => {
       if (!startSquare) return;
 
+      // Disable drag on touch devices — use tap-to-move only
+      if (e.pointerType === 'touch') return;
+
       // Check threshold before starting drag
       if (!dragStarted) {
         const dx = e.clientX - startX;

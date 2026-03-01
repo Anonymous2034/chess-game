@@ -19,35 +19,77 @@
 }
 
 /* === PWA Install Banner === */
-.pwa-install-banner {
+/* === Download App Dialog === */
+.download-dialog {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--panel-bg, #1e1e3a);
-  border-top: 1px solid var(--accent, #4ecdc4);
-  padding: 10px 16px;
+  inset: 0;
+  z-index: 99998;
+  background: rgba(0,0,0,0.85);
   display: flex;
   align-items: center;
-  gap: 10px;
-  z-index: 9999;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.4);
+  justify-content: center;
+  padding: 20px;
 }
-.pwa-install-banner.hidden {
+.download-dialog.hidden {
   display: none;
 }
-.pwa-install-text {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--text-color, #e0e0e0);
+.download-dialog-content {
+  background: #1a1a2e;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px 28px;
+  text-align: center;
+  max-width: 340px;
+  width: 100%;
 }
-.pwa-install-dismiss {
+.download-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  margin-bottom: 16px;
+}
+.download-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f0e8d8;
+  margin: 0 0 8px;
+}
+.download-desc {
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0 0 24px;
+  line-height: 1.4;
+}
+.download-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  min-height: 50px;
+}
+.download-ios-hint {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+.download-ios-hint.hidden {
+  display: none;
+}
+.download-share-icon {
+  display: inline-block;
+  font-size: 1.1rem;
+  vertical-align: middle;
+}
+.download-skip {
   background: none;
   border: none;
-  color: var(--text-muted, #888);
-  font-size: 1.2rem;
+  color: #666;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 8px 16px;
   min-width: unset;
   min-height: unset;
 }
@@ -4070,6 +4112,26 @@ main {
 }
 
 /* === Auth === */
+.google-signin-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+  color: #888;
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #555;
+}
 .auth-error {
   color: #c33;
   font-size: 0.78rem;
@@ -6672,15 +6734,41 @@ body.resizing-h {
 /* === Responsive === */
 @media (max-width: 768px) {
   :root {
-    --board-size: min(92vw, calc(100dvh - 160px), 480px);
+    --board-size: min(calc(100vw - 22px), calc(100dvh - 210px), 480px);
   }
 
   main {
     flex-direction: column;
     align-items: center;
     padding: 4px;
+    padding-bottom: 54px; /* space for fixed mobile nav */
     gap: 4px;
     min-height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Thin eval bar on mobile, center the board */
+  .eval-bar {
+    width: 6px;
+    margin-right: 1px;
+  }
+  .eval-bar-label {
+    display: none;
+  }
+  #board-container {
+    margin-left: 2px;
+  }
+  .board-area {
+    width: calc(var(--board-size) + 10px); /* 6px eval + 2px margin + 2px */
+    align-self: center;
+    touch-action: none;
+  }
+
+  /* Hide panels/settings gear button on mobile — use hamburger menu instead */
+  .btn-panels-toggle {
+    display: none;
   }
 
   /* --- Header user badge: avatar only on mobile --- */
@@ -6798,16 +6886,19 @@ body.resizing-h {
 
   /* --- Compact mobile layout --- */
   .side-panel {
-    width: calc(var(--board-size) + 22px);
+    width: calc(var(--board-size) + 14px);
     height: auto;
-    max-height: 220px;
-    min-height: unset;
+    flex: 1;
+    min-height: 0;
+    max-height: none;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .move-history {
-    max-height: 100px;
+    max-height: none;
+    flex: 1;
+    min-height: 0;
   }
 
   .status-bar {
@@ -6822,8 +6913,25 @@ body.resizing-h {
   }
 
   .captured-pieces {
-    max-width: 80px;
+    max-width: none;
+    flex: 1;
+    justify-content: flex-end;
     font-size: 0.7rem;
+  }
+  .captured-piece-img {
+    width: 14px;
+    height: 14px;
+    margin-left: -4px;
+  }
+  .player-info {
+    display: flex;
+    justify-content: space-between;
+  }
+  .player-info-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
   }
 
   .opening-explorer {
@@ -7049,7 +7157,7 @@ body.resizing-h {
 
   /* --- Other mobile adjustments --- */
   .nav-controls {
-    width: calc(var(--board-size) + 22px);
+    width: 100%;
   }
 
   .db-category-tabs {
@@ -7071,7 +7179,7 @@ body.resizing-h {
   }
 
   .eval-graph-container {
-    width: calc(var(--board-size) + 22px);
+    width: 100%;
   }
 
   .coach-messages {
@@ -7092,9 +7200,9 @@ body.resizing-h {
 
   /* --- Safe area insets --- */
   main {
-    padding-left: max(6px, env(safe-area-inset-left));
-    padding-right: max(6px, env(safe-area-inset-right));
-    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    padding-left: max(4px, env(safe-area-inset-left));
+    padding-right: max(4px, env(safe-area-inset-right));
+    padding-bottom: calc(54px + env(safe-area-inset-bottom));
   }
 
   body {
@@ -7147,35 +7255,69 @@ body.resizing-h {
   .saved-game-actions .btn { min-height: 44px; }
   .saved-games-list { max-height: 50dvh; }
 
-  /* --- Mobile: hide non-essential panels, board is king --- */
-  [data-drag-id="clock"],
-  [data-drag-id="music"],
-  [data-drag-id="opening"],
-  [data-drag-id="eval-graph"],
-  [data-drag-id="move-note"],
-  [data-drag-id="match-note"],
-  [data-drag-id="coach-area"],
-  [data-drag-id="tab-bar"],
-  [data-drag-id="book"],
-  [data-drag-id="hints"],
-  [data-drag-id="gm-coach-tab"],
-  [data-drag-id="engine-lines"] {
+  /* ============================================================
+     MOBILE TAB SYSTEM — hide EVERYTHING in side-panel by default.
+     Only the active tab's content is shown via body[data-mobile-tab].
+     ============================================================ */
+
+  /* Hide board-area extras */
+  .board-area [data-drag-id="clock"],
+  .board-area [data-drag-id="music"],
+  .board-area [data-drag-id="opening"],
+  .board-area [data-drag-id="eval-graph"] {
     display: none !important;
   }
 
-  /* Side panel: slim, only status + moves */
-  .side-panel {
-    gap: 2px;
+  /* Hide ALL side-panel drag-groups and loose children by default */
+  .side-panel > .drag-group,
+  .side-panel > .analysis-summary {
+    display: none !important;
   }
 
-  /* Hide panel tabs row on mobile — only moves visible */
+  /* Hide panel tabs row — replaced by bottom nav */
   .panel-tabs {
     display: none !important;
   }
 
-  /* Ensure moves panel is visible (tabs hidden, show moves directly) */
-  #tab-moves {
+  /* Hide resize handle between board and side panel */
+  #resize-handle-main {
+    display: none !important;
+  }
+
+  /* Side panel: column below the board, fills remaining space */
+  .side-panel {
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+    max-height: none !important;
+  }
+
+  /* --- Tab: MOVES — status + moves only --- */
+  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="status"],
+  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="moves"] {
     display: block !important;
+  }
+
+  /* --- Tab: ANALYZE — engine lines + book + hints + analysis summary --- */
+  body[data-mobile-tab="analyze"] .side-panel > [data-drag-id="engine-lines"],
+  body[data-mobile-tab="analyze"] .side-panel > [data-drag-id="book"],
+  body[data-mobile-tab="analyze"] .side-panel > [data-drag-id="hints"],
+  body[data-mobile-tab="analyze"] .side-panel > .analysis-summary {
+    display: block !important;
+  }
+
+  /* --- Tab: COACH — coach area + gm-coach --- */
+  body[data-mobile-tab="coach"] .side-panel > [data-drag-id="coach-area"],
+  body[data-mobile-tab="coach"] .side-panel > [data-drag-id="gm-coach-tab"] {
+    display: block !important;
+  }
+
+  /* --- Tab: BOARD — hide entire side panel, maximize board --- */
+  body[data-mobile-tab="board"] .side-panel {
+    display: none !important;
+  }
+  body[data-mobile-tab="board"] .board-area {
+    --board-size: min(92vw, calc(100dvh - 120px), 520px);
   }
 
   /* Hide resize handles on mobile */
@@ -7257,6 +7399,17 @@ body.resizing-h {
     flex-direction: row;
     align-items: flex-start;
     gap: 8px;
+    padding-bottom: 4px;
+    overflow: visible;
+  }
+
+  #board-container {
+    margin-left: 16px;
+  }
+
+  .board-area {
+    width: calc(var(--board-size) + 38px);
+    align-self: flex-start;
   }
 
   .side-panel {
@@ -7290,7 +7443,7 @@ body.resizing-h {
 
 @media (max-width: 480px) {
   :root {
-    --board-size: calc(100vw - 28px); /* 8px margin + 20px eval bar */
+    --board-size: calc(100vw - 22px); /* 8px padding + 14px board-area extra */
   }
 
   header {
@@ -7303,7 +7456,7 @@ body.resizing-h {
 
   .side-panel {
     height: auto;
-    max-height: 180px;
+    max-height: none;
   }
 
   .player-info {
@@ -7368,7 +7521,7 @@ body.resizing-h {
   }
 
   .side-panel {
-    max-height: 200px;
+    max-height: none;
   }
 
   .dialog {
@@ -7399,7 +7552,7 @@ body.resizing-h {
   }
 
   .captured-pieces {
-    max-width: 70px;
+    max-width: none;
   }
 
   .nav-controls .btn {
@@ -9643,4 +9796,78 @@ body.free-layout-on .book-panel {
   .bot-builder-right { width: 100%; }
   .dialog-bot-builder { max-width: 100vw; }
   .bb-avatar-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* =================================================================
+   Mobile Bottom Tab Navigation
+   ================================================================= */
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9000;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+    padding-bottom: env(safe-area-inset-bottom);
+    height: 50px;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .mobile-nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 4px 0;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+
+  .mobile-nav-tab .tab-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .mobile-nav-tab.active {
+    color: #d4af37;
+  }
+
+  .mobile-nav-tab.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 25%;
+    right: 25%;
+    height: 2px;
+    background: #d4af37;
+    border-radius: 0 0 2px 2px;
+  }
+
+  .mobile-nav-tab:active {
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* When in landscape, hide mobile nav (side panel is visible) */
+  @media (orientation: landscape) {
+    .mobile-nav {
+      display: none;
+    }
+  }
 }

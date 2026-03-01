@@ -1,7 +1,9 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v160';
+const CACHE_NAME = 'grandmasters-v174';
 
-const PRECACHE_URLS = [
+// Full precache list removed — was ~260 URLs causing memory crashes on mobile.
+// Assets are now lazy-cached on first use via the fetch handler.
+const _UNUSED = [
   './',
   './index.html',
   './manifest.json',
@@ -40,8 +42,7 @@ const PRECACHE_URLS = [
   './js/music.js',
   './js/chess-news.js',
   './js/stats.js',
-  './js/supabase-config.js',
-  './js/supabase-init.js',
+  './js/api-client.js',
   './js/themes.js',
   './js/tournament.js',
   './js/position-commentary.js',
@@ -193,72 +194,73 @@ const PRECACHE_URLS = [
   './icons/apple-touch-icon.png'
 ];
 
-// Install — precache assets (resilient: individual failures don't block install)
+// Install — precache core assets only (lazy-cache the rest on fetch)
+const CORE_URLS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './css/style.css',
+  './lib/chess.min.js',
+  './js/main.js',
+  './js/board.js',
+  './js/game.js',
+  './js/engine.js',
+  './js/notation.js',
+  './js/utils.js',
+  './js/themes.js',
+  './js/api-client.js',
+  './js/auth.js',
+  './js/sound.js',
+  './js/bots.js',
+  './icons/icon-192.png',
+  './assets/favicon.svg',
+  './lib/stockfish/stockfish.js',
+];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache =>
         Promise.all(
-          PRECACHE_URLS.map(url =>
+          CORE_URLS.map(url =>
             cache.add(url).catch(err =>
               console.warn('SW: failed to cache', url, err)
             )
           )
         )
       )
-      .then(() => self.skipWaiting())
+    // Don't call skipWaiting — let the new SW wait until all tabs are closed.
+    // This prevents mid-session cache wipes that cause reload loops.
   );
 });
 
-// Activate — clean old caches and force reload all open tabs
+// Activate — clean old caches (runs only after all old tabs are closed)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
         keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       ))
-      .then(() => self.clients.claim())
-      .then(() => self.clients.matchAll({ type: 'window' }))
-      .then(clients => {
-        clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' }));
-      })
+    // Don't call clients.claim — let pages continue using the SW they started with.
   );
 });
 
-// Fetch — cache-first for local, stale-while-revalidate for esm.sh, network-only for APIs
+// Fetch — network-first for code, cache-first for assets, skip APIs
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only for external API calls (let browser handle normally)
-  if (url.hostname.includes('supabase.co') ||
-      url.hostname.includes('lichess.ovh') ||
-      url.hostname.includes('lichess.org') ||
-      url.hostname.includes('openai.com') ||
-      url.hostname.includes('anthropic.com') ||
-      url.hostname.includes('cdn.jsdelivr.net') ||
-      url.hostname.includes('esm.run')) {
-    return;
-  }
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
 
-  // Stale-while-revalidate for esm.sh (Supabase client modules)
-  if (url.hostname === 'esm.sh') {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(cache =>
-        cache.match(event.request).then(cached => {
-          const fetchPromise = fetch(event.request).then(response => {
-            if (response.ok) cache.put(event.request, response.clone());
-            return response;
-          }).catch(() => cached);
-          return cached || fetchPromise;
-        })
-      )
-    );
-    return;
-  }
+  // Network-only for API calls and WebSocket
+  if (url.pathname.startsWith('/api/') || url.pathname === '/ws') return;
 
-  // Network-first for HTML, JS, JSON (ensures updates reach users)
-  // Cache-first for static assets (images, fonts, wasm)
+  // Network-only for external services
+  if (url.hostname !== self.location.hostname) return;
+
   const path = url.pathname;
+
+  // Network-first for HTML, JS, CSS, JSON (ensures updates reach users)
   if (path.endsWith('.html') || path.endsWith('.js') || path.endsWith('.json') ||
       path.endsWith('.css') || path === '/' || path.endsWith('/')) {
     event.respondWith(
@@ -276,7 +278,17 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Cache-first for static assets (SVG, PNG, WASM, PGN, audio)
+  // Also lazy-cache on first fetch so they're available offline
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      });
+    })
   );
 });

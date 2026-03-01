@@ -1,9 +1,10 @@
-// Multiplayer — Supabase Realtime (Broadcast + Presence) for online play
+// Multiplayer — Native WebSocket for online play
+import { apiFetch, getAccessToken, getWsBase } from './api-client.js';
 
 export class MultiplayerManager {
-  constructor(supabase) {
-    this._sb = supabase;
-    this.channel = null;
+  constructor() {
+    this._ws = null;
+    this.channel = null; // kept for isActive() compat — set to ws
     this.gameCode = null;
     this.gameId = null;
     this.role = null;       // 'host' or 'guest'
@@ -36,29 +37,25 @@ export class MultiplayerManager {
     this.role = 'host';
     this.myColor = color;
 
-    // Insert game row
     try {
-      const { data, error } = await this._sb
-        .from('multiplayer_games')
-        .insert({
-          code,
-          host_id: await this._uid(),
-          host_color: color,
-          time_control: timeControl,
-          increment,
-          status: 'waiting'
-        })
-        .select('id')
-        .single();
+      const res = await apiFetch('/multiplayer/games', {
+        method: 'POST',
+        body: JSON.stringify({ code, color, timeControl, increment }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to create game');
+      }
+
+      const data = await res.json();
       this.gameId = data.id;
     } catch (err) {
       if (this.onError) this.onError('Failed to create game: ' + err.message);
       return null;
     }
 
-    await this._subscribe(code, playerName);
+    await this._connect(code, playerName);
     return { code, color };
   }
 
@@ -71,114 +68,77 @@ export class MultiplayerManager {
     this.gameCode = code;
     this.role = 'guest';
 
-    // Find waiting game
-    let gameRow;
+    let gameData;
     try {
-      const { data, error } = await this._sb
-        .from('multiplayer_games')
-        .select('*')
-        .eq('code', code)
-        .eq('status', 'waiting')
-        .single();
+      const res = await apiFetch('/multiplayer/games/join', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      });
 
-      if (error || !data) {
-        if (this.onError) this.onError('Game not found or already started');
+      if (!res.ok) {
+        const data = await res.json();
+        if (this.onError) this.onError(data.error || 'Game not found or already started');
         return null;
       }
-      gameRow = data;
+
+      gameData = await res.json();
     } catch (err) {
       if (this.onError) this.onError('Failed to find game: ' + err.message);
       return null;
     }
 
-    // Update game row
-    try {
-      await this._sb
-        .from('multiplayer_games')
-        .update({ guest_id: await this._uid(), status: 'playing' })
-        .eq('id', gameRow.id);
-    } catch (err) {
-      if (this.onError) this.onError('Failed to join game: ' + err.message);
-      return null;
-    }
+    this.gameId = gameData.id;
+    this.myColor = gameData.hostColor === 'w' ? 'b' : 'w';
 
-    this.gameId = gameRow.id;
-    this.myColor = gameRow.host_color === 'w' ? 'b' : 'w';
-
-    await this._subscribe(code, playerName);
+    await this._connect(code, playerName);
 
     // Notify host that we joined
-    this.channel.send({
-      type: 'broadcast',
-      event: 'player-joined',
-      payload: { name: playerName }
-    });
+    this._send({ event: 'player-joined', payload: { name: playerName } });
 
     return {
       color: this.myColor,
-      timeControl: gameRow.time_control,
-      increment: gameRow.increment
+      timeControl: gameData.timeControl,
+      increment: gameData.increment,
     };
   }
 
   /** Send a move to the opponent. */
   sendMove(move) {
-    if (!this.channel) return;
-    this.channel.send({
-      type: 'broadcast',
+    this._send({
       event: 'move',
-      payload: { from: move.from, to: move.to, promotion: move.promotion, san: move.san }
+      payload: { from: move.from, to: move.to, promotion: move.promotion, san: move.san },
     });
   }
 
   /** Send resignation. */
   sendResign() {
-    if (!this.channel) return;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'resign',
-      payload: {}
-    });
+    this._send({ event: 'resign', payload: {} });
   }
 
   /** Send draw offer. */
   sendDrawOffer() {
-    if (!this.channel) return;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'draw-offer',
-      payload: {}
-    });
+    this._send({ event: 'draw-offer', payload: {} });
   }
 
   /** Send draw response. */
   sendDrawResponse(accepted) {
-    if (!this.channel) return;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'draw-response',
-      payload: { accepted }
-    });
+    this._send({ event: 'draw-response', payload: { accepted } });
   }
 
   /** Send timer sync (host only). */
   sendTimerSync(timers) {
-    if (!this.channel || this.role !== 'host') return;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'timer-sync',
-      payload: { timers }
-    });
+    if (this.role !== 'host') return;
+    this._send({ event: 'timer-sync', payload: { timers } });
   }
 
   /** Archive game result to database. */
   async archiveGame(result, pgn) {
     if (!this.gameId) return;
     try {
-      await this._sb
-        .from('multiplayer_games')
-        .update({ result, pgn, status: 'finished' })
-        .eq('id', this.gameId);
+      await apiFetch(`/multiplayer/games/${this.gameId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ result, pgn }),
+      });
     } catch (err) {
       console.warn('Failed to archive multiplayer game:', err);
     }
@@ -190,10 +150,11 @@ export class MultiplayerManager {
       clearInterval(this._timerSyncInterval);
       this._timerSyncInterval = null;
     }
-    if (this.channel) {
-      this._sb.removeChannel(this.channel);
-      this.channel = null;
+    if (this._ws) {
+      this._ws.close();
+      this._ws = null;
     }
+    this.channel = null;
     this.gameCode = null;
     this.gameId = null;
     this.role = null;
@@ -204,19 +165,10 @@ export class MultiplayerManager {
 
   /** Check if currently in a multiplayer game. */
   isActive() {
-    return this.channel !== null;
+    return this._ws !== null;
   }
 
   // === Private ===
-
-  async _uid() {
-    try {
-      const { data } = await this._sb.auth.getUser();
-      return data?.user?.id || null;
-    } catch {
-      return null;
-    }
-  }
 
   _generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -227,65 +179,108 @@ export class MultiplayerManager {
     return code;
   }
 
-  _subscribe(code, playerName) {
-    return new Promise((resolve) => {
-      const channelName = `game:${code}`;
+  _send(msg) {
+    if (this._ws && this._ws.readyState === WebSocket.OPEN) {
+      this._ws.send(JSON.stringify(msg));
+    }
+  }
 
-      this.channel = this._sb.channel(channelName, {
-        config: { broadcast: { self: false } }
+  _connect(code, playerName) {
+    return new Promise((resolve, reject) => {
+      const token = getAccessToken();
+      const wsBase = getWsBase();
+      const params = new URLSearchParams({
+        game: code,
+        token,
+        name: playerName,
+        role: this.role,
       });
 
-      // Broadcast listeners
-      this.channel.on('broadcast', { event: 'move' }, ({ payload }) => {
-        if (this.onOpponentMove) this.onOpponentMove(payload);
-      });
+      const ws = new WebSocket(`${wsBase}?${params}`);
+      this._ws = ws;
+      this.channel = ws; // for isActive() compat
 
-      this.channel.on('broadcast', { event: 'resign' }, () => {
-        if (this.onOpponentResigned) this.onOpponentResigned();
-      });
+      ws.onopen = () => {
+        this.connected = true;
+        resolve();
+      };
 
-      this.channel.on('broadcast', { event: 'draw-offer' }, () => {
-        if (this.onDrawOffered) this.onDrawOffered();
-      });
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          this._handleMessage(msg);
+        } catch {
+          // Ignore malformed messages
+        }
+      };
 
-      this.channel.on('broadcast', { event: 'draw-response' }, ({ payload }) => {
-        if (this.onDrawResponse) this.onDrawResponse(payload.accepted);
-      });
+      ws.onclose = () => {
+        if (this._ws === ws) {
+          this.connected = false;
+          // Only fire disconnect if we still think we're in a game
+          if (this.gameCode) {
+            if (this.onOpponentDisconnected) this.onOpponentDisconnected();
+          }
+        }
+      };
 
-      this.channel.on('broadcast', { event: 'timer-sync' }, ({ payload }) => {
-        if (this.onTimerSync) this.onTimerSync(payload.timers);
-      });
+      ws.onerror = (err) => {
+        console.warn('WebSocket error:', err);
+        if (this.onError) this.onError('Connection error');
+        reject(err);
+      };
+    });
+  }
 
-      this.channel.on('broadcast', { event: 'player-joined' }, ({ payload }) => {
+  _handleMessage(msg) {
+    const { event, payload } = msg;
+
+    switch (event) {
+      case 'player-joined':
         this.opponentName = payload.name;
         this.connected = true;
         if (this.onOpponentJoined) this.onOpponentJoined(payload.name);
-      });
+        break;
 
-      // Presence for disconnect detection
-      this.channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        const opponent = leftPresences.find(p => p.role !== this.role);
-        if (opponent) {
-          this.connected = false;
-          if (this.onOpponentDisconnected) this.onOpponentDisconnected();
-        }
-      });
-
-      this.channel.on('presence', { event: 'join' }, ({ newPresences }) => {
-        const opponent = newPresences.find(p => p.role !== this.role);
-        if (opponent) {
+      case 'presence-join':
+        // Existing player already in channel when we connect
+        if (payload.role !== this.role) {
+          this.opponentName = payload.name;
           this.connected = true;
           if (this.onOpponentReconnected) this.onOpponentReconnected();
         }
-      });
+        break;
 
-      this.channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await this.channel.track({ name: playerName, role: this.role });
-          resolve();
+      case 'presence-leave':
+        if (payload.role !== this.role) {
+          this.connected = false;
+          if (this.onOpponentDisconnected) this.onOpponentDisconnected();
         }
-      });
-    });
+        break;
+
+      case 'move':
+        if (this.onOpponentMove) this.onOpponentMove(payload);
+        break;
+
+      case 'resign':
+        if (this.onOpponentResigned) this.onOpponentResigned();
+        break;
+
+      case 'draw-offer':
+        if (this.onDrawOffered) this.onDrawOffered();
+        break;
+
+      case 'draw-response':
+        if (this.onDrawResponse) this.onDrawResponse(payload.accepted);
+        break;
+
+      case 'timer-sync':
+        if (this.onTimerSync) this.onTimerSync(payload.timers);
+        break;
+
+      default:
+        break;
+    }
   }
 
   /**

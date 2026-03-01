@@ -16,7 +16,7 @@ import { Tournament } from './tournament.js';
 import { show, hide, debounce, setPieceBasePath, pieceImagePath } from './utils.js';
 import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
 import { BotMatch } from './bot-match.js';
-import { initSupabase, isSupabaseConfigured, getSupabase } from './supabase-init.js';
+import { isBackendConfigured } from './api-client.js';
 import { AuthManager } from './auth.js';
 import { DataService } from './data-service.js';
 import { AdminPanel } from './admin.js';
@@ -199,6 +199,7 @@ class ChessApp {
     this.setupReviewDialog();
     this.setupHamburgerMenu();
     this.setupOfflineIndicator();
+    this.setupMobileNav();
     this.setupMusic();
     this.setupNews();
     this.setupBrowseDialogs();
@@ -225,6 +226,7 @@ class ChessApp {
     this.setupGifExport();
     this.setupCorrespondence();
     this.setupBoardScanner();
+    this.setupWakeLock();
 
     // Load database in background, then restore saved imports
     this.database.loadCollections().then(async (categories) => {
@@ -5957,8 +5959,28 @@ class ChessApp {
       }
     };
 
-    // Always activate free layout
-    this._freeLayout.activate();
+    // Only activate free layout on desktop (mobile uses tab system)
+    const mq = window.matchMedia('(max-width: 768px)');
+    if (!mq.matches) {
+      this._freeLayout.activate();
+    }
+
+    // Toggle free layout when crossing the breakpoint
+    mq.addEventListener('change', (e) => {
+      if (e.matches) {
+        // Switched to mobile — deactivate free layout, restore drag-groups to side-panel
+        if (this._freeLayout.active) {
+          this._freeLayout.deactivate();
+          if (this.board) this.board.update();
+        }
+      } else {
+        // Switched to desktop — activate free layout
+        if (!this._freeLayout.active) {
+          this._freeLayout.activate();
+          if (this.board) this.board.update();
+        }
+      }
+    });
   }
 
   // === Settings Dialogs (Sound / Display / Board) ===
@@ -7491,6 +7513,77 @@ class ChessApp {
     update();
   }
 
+  // === Wake Lock (prevent screen sleep) ===
+
+  setupWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    let lock = null;
+    const request = async () => {
+      try {
+        lock = await navigator.wakeLock.request('screen');
+        lock.addEventListener('release', () => { lock = null; });
+      } catch { /* user denied or not supported */ }
+    };
+    // Request on load
+    request();
+    // Re-acquire when returning to the tab (wake lock auto-releases on tab switch)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && !lock) request();
+    });
+  }
+
+  // === Mobile Bottom Nav ===
+
+  setupMobileNav() {
+    const nav = document.getElementById('mobile-nav');
+    if (!nav) return;
+
+    const mq = window.matchMedia('(max-width: 768px)');
+    const tabs = nav.querySelectorAll('.mobile-nav-tab');
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+
+    const activate = (tabName) => {
+      if (tabName === 'more') {
+        // Trigger the existing hamburger menu
+        if (hamburgerBtn) hamburgerBtn.click();
+        return;
+      }
+
+      const current = document.body.getAttribute('data-mobile-tab');
+
+      // Tapping the active tab toggles to "board" mode (maximize board)
+      if (current === tabName && tabName !== 'board') {
+        tabName = 'board';
+      } else if (current === 'board' && tabName === 'board') {
+        tabName = 'moves'; // toggle back from board to moves
+      }
+
+      document.body.setAttribute('data-mobile-tab', tabName);
+
+      tabs.forEach(t => {
+        t.classList.toggle('active', t.getAttribute('data-mobile-tab') === tabName);
+      });
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        activate(tab.getAttribute('data-mobile-tab'));
+      });
+    });
+
+    const applyMobile = (matches) => {
+      if (matches) {
+        document.body.setAttribute('data-mobile-tab', 'moves');
+        tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-mobile-tab') === 'moves'));
+      } else {
+        document.body.removeAttribute('data-mobile-tab');
+      }
+    };
+
+    mq.addEventListener('change', (e) => applyMobile(e.matches));
+    applyMobile(mq.matches);
+  }
+
   // === Multiplayer ===
 
   setupMultiplayer() {
@@ -7548,13 +7641,10 @@ class ChessApp {
 
     // Create Game
     document.getElementById('mp-create').addEventListener('click', async () => {
-      const sb = getSupabase();
-      if (!sb) { this.showToast('Supabase not configured'); return; }
-
       let color = mpSettings.color;
       if (color === 'random') color = Math.random() < 0.5 ? 'w' : 'b';
 
-      this.multiplayer = new MultiplayerManager(sb);
+      this.multiplayer = new MultiplayerManager();
       this._wireMultiplayerCallbacks(mpSettings.time, mpSettings.increment);
 
       const result = await this.multiplayer.createGame(
@@ -7615,16 +7705,13 @@ class ChessApp {
 
     // Join Game
     document.getElementById('mp-join').addEventListener('click', async () => {
-      const sb = getSupabase();
-      if (!sb) { this.showToast('Supabase not configured'); return; }
-
       const code = document.getElementById('mp-join-code').value.trim().toUpperCase();
       if (code.length !== 6) {
         this.showToast('Enter a 6-character game code');
         return;
       }
 
-      this.multiplayer = new MultiplayerManager(sb);
+      this.multiplayer = new MultiplayerManager();
       // Wire callbacks before joining (joinGame broadcasts player-joined)
       this._wireMultiplayerCallbacks(0, 0);
 
@@ -8539,9 +8626,9 @@ class ChessApp {
   // === Auth ===
 
   setupAuth() {
-    // Init Supabase if configured
-    if (isSupabaseConfigured()) {
-      this.firebaseReady = initSupabase();
+    // Init backend auth
+    if (isBackendConfigured()) {
+      this.firebaseReady = true;
     }
 
     if (this.firebaseReady) {
@@ -8558,15 +8645,6 @@ class ChessApp {
             this.stats.data = cloudStats;
           }
         }
-      };
-      this.auth.onPasswordRecovery = () => {
-        // Show the set-new-password form inside the auth dialog
-        const authDialog = document.getElementById('auth-dialog');
-        hide(document.getElementById('login-form'));
-        hide(document.getElementById('register-form'));
-        hide(document.getElementById('forgot-password-form'));
-        show(document.getElementById('set-new-password-form'));
-        show(authDialog);
       };
       this.auth.init();
     }
@@ -8599,117 +8677,13 @@ class ChessApp {
       show(document.getElementById('login-form'));
     });
 
-    // Forgot password
-    document.getElementById('show-forgot-password').addEventListener('click', (e) => {
-      e.preventDefault();
-      hide(document.getElementById('login-form'));
-      show(document.getElementById('forgot-password-form'));
-    });
-
-    document.getElementById('back-to-login-from-forgot').addEventListener('click', () => {
-      hide(document.getElementById('forgot-password-form'));
-      show(document.getElementById('login-form'));
-    });
-
-    document.getElementById('btn-send-reset').addEventListener('click', async () => {
-      if (!this.auth) {
-        this._showAuthError('forgot', 'Supabase not configured.');
-        return;
-      }
-      const email = document.getElementById('forgot-email').value.trim();
-      if (!email) return;
-
-      const btn = document.getElementById('btn-send-reset');
-      btn.disabled = true;
-      btn.textContent = 'Sending...';
-      try {
-        await this.auth.resetPassword(email);
-        hide(document.getElementById('forgot-error'));
-        const successEl = document.getElementById('forgot-success');
-        successEl.textContent = 'Password reset email sent! Check your inbox.';
-        show(successEl);
-      } catch (err) {
-        this._showAuthError('forgot', err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Send Reset Link';
-      }
-    });
-
-    // Magic Link
-    document.getElementById('btn-magic-link').addEventListener('click', async () => {
-      if (!this.auth) {
-        this._showAuthError('login', 'Supabase not configured.');
-        return;
-      }
-      const email = document.getElementById('login-email').value.trim();
-      if (!email) {
-        this._showAuthError('login', 'Enter your email address first.');
-        return;
-      }
-
-      const btn = document.getElementById('btn-magic-link');
-      const statusEl = document.getElementById('magic-link-status');
-      btn.disabled = true;
-      btn.textContent = 'Sending...';
-      try {
-        await this.auth.sendMagicLink(email);
-        statusEl.textContent = 'Magic link sent! Check your inbox and click the link to log in.';
-        statusEl.className = 'auth-magic-status success';
-        show(statusEl);
-      } catch (err) {
-        this._showAuthError('login', err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Send Magic Link (no password)';
-      }
-    });
-
-    // Set New Password (after PASSWORD_RECOVERY redirect)
-    document.getElementById('btn-set-new-password').addEventListener('click', async () => {
-      const pw = document.getElementById('new-password-input').value;
-      const confirm = document.getElementById('confirm-password-input').value;
-      const errEl = document.getElementById('new-password-error');
-      const successEl = document.getElementById('new-password-success');
-      hide(errEl);
-      hide(successEl);
-
-      if (!pw || pw.length < 6) {
-        errEl.textContent = 'Password must be at least 6 characters.';
-        show(errEl);
-        return;
-      }
-      if (pw !== confirm) {
-        errEl.textContent = 'Passwords do not match.';
-        show(errEl);
-        return;
-      }
-
-      const btn = document.getElementById('btn-set-new-password');
-      btn.disabled = true;
-      btn.textContent = 'Updating...';
-      try {
-        await this.auth.setPassword(pw);
-        successEl.textContent = 'Password updated successfully! You are now logged in.';
-        show(successEl);
-        setTimeout(() => {
-          hide(authDialog);
-          hide(document.getElementById('set-new-password-form'));
-          show(document.getElementById('login-form'));
-        }, 2000);
-      } catch (err) {
-        errEl.textContent = 'Failed: ' + err.message;
-        show(errEl);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Update Password';
-      }
-    });
+    // Google Sign-In
+    this._initGoogleSignIn(authDialog);
 
     // Login
     document.getElementById('btn-login').addEventListener('click', async () => {
       if (!this.auth) {
-        this._showAuthError('login', 'Supabase not configured. Update supabase-config.js with your project URL and anon key.');
+        this._showAuthError('login', 'Backend not configured.');
         return;
       }
       const email = document.getElementById('login-email').value.trim();
@@ -8723,13 +8697,7 @@ class ChessApp {
         await this.auth.login(email, password);
         hide(authDialog);
       } catch (err) {
-        let msg = err.message;
-        if (msg.includes('Email not confirmed')) {
-          msg = 'Please confirm your email first. Check your inbox for a confirmation link.';
-        } else if (msg.includes('Invalid login credentials')) {
-          msg = 'Invalid email or password. Please try again.';
-        }
-        this._showAuthError('login', msg);
+        this._showAuthError('login', err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = 'Login';
@@ -8739,7 +8707,7 @@ class ChessApp {
     // Register
     document.getElementById('btn-register').addEventListener('click', async () => {
       if (!this.auth) {
-        this._showAuthError('register', 'Supabase not configured. Update supabase-config.js with your project URL and anon key.');
+        this._showAuthError('register', 'Backend not configured.');
         return;
       }
       const name = document.getElementById('register-name').value.trim();
@@ -8751,16 +8719,9 @@ class ChessApp {
       btn.disabled = true;
       btn.textContent = 'Registering...';
       try {
-        const user = await this.auth.register(email, password, name);
-        if (user && !user.confirmed_at && user.identities?.length === 0) {
-          this._showAuthError('register', 'An account with this email already exists. Try logging in.');
-        } else if (user && !user.confirmed_at) {
-          hide(authDialog);
-          this.showToast('Check your email to confirm your account, then log in.');
-        } else {
-          hide(authDialog);
-          this.showToast(`Welcome, ${name}!`);
-        }
+        await this.auth.register(email, password, name);
+        hide(authDialog);
+        this.showToast(`Welcome, ${name}!`);
       } catch (err) {
         this._showAuthError('register', err.message);
       } finally {
@@ -8768,6 +8729,43 @@ class ChessApp {
         btn.textContent = 'Register';
       }
     });
+  }
+
+  _initGoogleSignIn(authDialog) {
+    const GOOGLE_CLIENT_ID = ''; // Set after creating Google OAuth credentials
+    if (!GOOGLE_CLIENT_ID || typeof google === 'undefined') return;
+
+    const handleCredential = async (response) => {
+      if (!this.auth || !response.credential) return;
+      try {
+        await this.auth.loginWithGoogle(response.credential);
+        hide(authDialog);
+        const name = this.auth.getCurrentUser()?.displayName;
+        if (name) this.showToast(`Welcome, ${name}!`);
+      } catch (err) {
+        this._showAuthError('login', err.message);
+      }
+    };
+
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredential,
+    });
+
+    // Render button in login form
+    const loginBtn = document.getElementById('google-signin-btn');
+    if (loginBtn) {
+      google.accounts.id.renderButton(loginBtn, {
+        theme: 'filled_black', type: 'standard', size: 'large', width: 280, text: 'signin_with',
+      });
+    }
+    // Render button in register form
+    const signupBtn = document.getElementById('google-signup-btn');
+    if (signupBtn) {
+      google.accounts.id.renderButton(signupBtn, {
+        theme: 'filled_black', type: 'standard', size: 'large', width: 280, text: 'signup_with',
+      });
+    }
   }
 
   _updateAuthUI(user) {
@@ -8779,7 +8777,7 @@ class ChessApp {
 
     if (user) {
       const currentUser = this.auth.getCurrentUser();
-      const displayName = currentUser?.displayName || user.user_metadata?.display_name || user.email;
+      const displayName = currentUser?.displayName || user.email;
       authBtn.textContent = 'Logout';
       authStatus.textContent = displayName;
       show(authStatus);

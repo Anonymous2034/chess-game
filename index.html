@@ -21,14 +21,8 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=160">
-  <script type="importmap">
-  {
-    "imports": {
-      "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
-    }
-  }
-  </script>
+  <link rel="stylesheet" href="css/style.css?v=174">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <!-- Password gate — blocks casual access -->
@@ -80,11 +74,16 @@
 
   <div class="offline-indicator" id="offline-indicator">You are offline — some features are unavailable</div>
 
-  <!-- PWA Install Banner -->
-  <div class="pwa-install-banner hidden" id="pwa-install-banner">
-    <span class="pwa-install-text">Install Grandmasters Chess for the best experience</span>
-    <button class="btn btn-sm btn-primary" id="pwa-install-btn">Install</button>
-    <button class="btn btn-sm pwa-install-dismiss" id="pwa-install-dismiss">&times;</button>
+  <!-- Download App Dialog (mobile) -->
+  <div class="download-dialog hidden" id="download-dialog">
+    <div class="download-dialog-content">
+      <img src="icons/icon-192.png" alt="Grandmasters" class="download-icon">
+      <h2 class="download-title">Download Grandmasters</h2>
+      <p class="download-desc">Install the app for the best experience — play offline, faster loading, fullscreen</p>
+      <button class="btn btn-primary download-btn" id="download-install-btn">Download App</button>
+      <p class="download-ios-hint hidden" id="download-ios-hint">Tap <strong>Share</strong> <span class="download-share-icon">&#xFEFF;↗</span> then <strong>Add to Home Screen</strong></p>
+      <button class="download-skip" id="download-skip">Continue in browser</button>
+    </div>
   </div>
 
   <div id="app">
@@ -413,6 +412,8 @@
         <!-- Login Form -->
         <div id="login-form">
           <h2>Login</h2>
+          <div id="google-signin-btn" class="google-signin-wrap"></div>
+          <div class="auth-divider"><span>or</span></div>
           <div class="dialog-section">
             <label>Email</label>
             <input type="email" id="login-email" placeholder="your@email.com">
@@ -426,55 +427,16 @@
             <button class="btn btn-secondary" id="close-auth">Close</button>
             <button class="btn btn-primary" id="btn-login">Login</button>
           </div>
-          <div class="auth-divider"><span>or</span></div>
-          <button class="btn btn-magic-link" id="btn-magic-link">Send Magic Link (no password)</button>
-          <div class="auth-magic-status hidden" id="magic-link-status"></div>
-          <div class="auth-switch">
-            <a href="#" id="show-forgot-password">Forgot password?</a>
-          </div>
           <div class="auth-switch">
             Don't have an account? <a href="#" id="show-register">Register</a>
-          </div>
-        </div>
-
-        <!-- Forgot Password Form -->
-        <div id="forgot-password-form" class="hidden">
-          <h2>Reset Password</h2>
-          <p class="auth-desc">Enter your email and we'll send you a link to reset your password.</p>
-          <div class="dialog-section">
-            <label>Email</label>
-            <input type="email" id="forgot-email" placeholder="your@email.com">
-          </div>
-          <div class="auth-error hidden" id="forgot-error"></div>
-          <div class="auth-success hidden" id="forgot-success"></div>
-          <div class="dialog-actions">
-            <button class="btn btn-secondary" id="back-to-login-from-forgot">Back</button>
-            <button class="btn btn-primary" id="btn-send-reset">Send Reset Link</button>
-          </div>
-        </div>
-
-        <!-- Set New Password Form (shown after PASSWORD_RECOVERY redirect) -->
-        <div id="set-new-password-form" class="hidden">
-          <h2>Set New Password</h2>
-          <p class="auth-desc">Enter your new password below.</p>
-          <div class="dialog-section">
-            <label>New Password</label>
-            <input type="password" id="new-password-input" placeholder="New password (6+ chars)">
-          </div>
-          <div class="dialog-section">
-            <label>Confirm Password</label>
-            <input type="password" id="confirm-password-input" placeholder="Confirm new password">
-          </div>
-          <div class="auth-error hidden" id="new-password-error"></div>
-          <div class="auth-success hidden" id="new-password-success"></div>
-          <div class="dialog-actions">
-            <button class="btn btn-primary" id="btn-set-new-password">Update Password</button>
           </div>
         </div>
 
         <!-- Register Form -->
         <div id="register-form" class="hidden">
           <h2>Register</h2>
+          <div id="google-signup-btn" class="google-signin-wrap"></div>
+          <div class="auth-divider"><span>or</span></div>
           <div class="dialog-section">
             <label>Display Name</label>
             <input type="text" id="register-name" placeholder="Your name">
@@ -1798,6 +1760,30 @@
       </div>
     </main>
 
+    <!-- Mobile bottom tab navigation -->
+    <nav id="mobile-nav" class="mobile-nav">
+      <button class="mobile-nav-tab active" data-mobile-tab="moves">
+        <span class="tab-icon">☰</span>
+        <span>Moves</span>
+      </button>
+      <button class="mobile-nav-tab" data-mobile-tab="analyze">
+        <span class="tab-icon">⚡</span>
+        <span>Analyze</span>
+      </button>
+      <button class="mobile-nav-tab" data-mobile-tab="coach">
+        <span class="tab-icon">🎓</span>
+        <span>Coach</span>
+      </button>
+      <button class="mobile-nav-tab" data-mobile-tab="board">
+        <span class="tab-icon">♟</span>
+        <span>Board</span>
+      </button>
+      <button class="mobile-nav-tab" data-mobile-tab="more">
+        <span class="tab-icon">⋯</span>
+        <span>More</span>
+      </button>
+    </nav>
+
     <!-- History Dialog (Feature 13) -->
     <div id="history-dialog" class="dialog-overlay hidden">
       <div class="dialog dialog-wide">
@@ -1981,75 +1967,100 @@
   </div>
 
   <!-- Scripts -->
-  <script src="lib/chess.min.js"></script>
-  <script type="module" src="js/main.js?v=158"></script>
+  <script src="lib/chess.min.js?v=174"></script>
+  <script type="module" src="js/main.js?v=174"></script>
   <script>
-    // PWA install prompt
+    // Download App prompt — fullscreen dialog on mobile
     var deferredInstallPrompt = null;
+    var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function isInstalledPWA() {
+      if (window.matchMedia('(display-mode: standalone)').matches) return true;
+      if (window.navigator.standalone === true) return true;
+      if (document.referrer.includes('android-app://')) return true;
+      if (localStorage.getItem('gm_app_installed')) return true;
+      return false;
+    }
+
+    function hideDownloadDialog() {
+      var dlg = document.getElementById('download-dialog');
+      if (dlg) dlg.classList.add('hidden');
+    }
+
     window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
       deferredInstallPrompt = e;
-      // Show install banner after 30s if user hasn't installed
-      setTimeout(function() {
-        if (!deferredInstallPrompt) return;
-        var banner = document.getElementById('pwa-install-banner');
-        if (banner) banner.classList.remove('hidden');
-      }, 30000);
     });
     window.addEventListener('appinstalled', function() {
       deferredInstallPrompt = null;
-      var banner = document.getElementById('pwa-install-banner');
-      if (banner) banner.classList.add('hidden');
+      hideDownloadDialog();
+      localStorage.setItem('gm_app_installed', '1');
     });
 
-    if ('serviceWorker' in navigator && !window.Capacitor) {
-      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
-        .then(function(reg) {
-          // Check for updates immediately and every 60s
-          reg.update().catch(function() {});
-          setInterval(function() { reg.update().catch(function() {}); }, 60000);
+    // Hide banner if user installs while app is open
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', function(e) {
+      if (e.matches) {
+        hideDownloadDialog();
+        localStorage.setItem('gm_app_installed', '1');
+      }
+    });
 
-          reg.addEventListener('updatefound', function() {
-            var newSW = reg.installing;
-            if (newSW) {
-              newSW.addEventListener('statechange', function() {
-                if (newSW.state === 'activated') {
-                  window.location.reload();
-                }
-              });
-            }
-          });
-        })
-        .catch(function() {});
+    function showDownloadDialog() {
+      // Don't show if already installed or not mobile
+      if (isInstalledPWA() || !isMobile) return;
 
-      // PWA install button handlers
-      var installBtn = document.getElementById('pwa-install-btn');
-      var dismissBtn = document.getElementById('pwa-install-dismiss');
-      if (installBtn) {
+      // Don't show if dismissed within the last 30 days
+      var dismissed = localStorage.getItem('gm_download_dismissed');
+      if (dismissed && Date.now() - parseInt(dismissed) < 30 * 86400000) return;
+
+      var dlg = document.getElementById('download-dialog');
+      var installBtn = document.getElementById('download-install-btn');
+      var iosHint = document.getElementById('download-ios-hint');
+      var skipBtn = document.getElementById('download-skip');
+      if (!dlg) return;
+
+      if (isIOS) {
+        // iOS: no native install — show share instructions
+        installBtn.style.display = 'none';
+        iosHint.classList.remove('hidden');
+      } else if (deferredInstallPrompt) {
+        // Android/Chrome: native install button
+        installBtn.style.display = '';
         installBtn.addEventListener('click', function() {
-          if (!deferredInstallPrompt) return;
           deferredInstallPrompt.prompt();
           deferredInstallPrompt.userChoice.then(function() {
             deferredInstallPrompt = null;
-            var banner = document.getElementById('pwa-install-banner');
-            if (banner) banner.classList.add('hidden');
+            dlg.classList.add('hidden');
           });
         });
-      }
-      if (dismissBtn) {
-        dismissBtn.addEventListener('click', function() {
-          var banner = document.getElementById('pwa-install-banner');
-          if (banner) banner.classList.add('hidden');
-          deferredInstallPrompt = null;
-        });
+      } else {
+        // No install prompt available and not iOS — don't show
+        return;
       }
 
-      // Listen for SW_UPDATED message — reload to get fresh assets
-      navigator.serviceWorker.addEventListener('message', function(event) {
-        if (event.data && event.data.type === 'SW_UPDATED') {
-          window.location.reload();
-        }
+      skipBtn.addEventListener('click', function() {
+        dlg.classList.add('hidden');
+        localStorage.setItem('gm_download_dismissed', String(Date.now()));
       });
+
+      dlg.classList.remove('hidden');
+    }
+
+    // Wait for password gate to clear, then show download dialog
+    function waitForGateThenShowDownload() {
+      var gate = document.getElementById('password-gate');
+      if (gate && gate.style.display !== 'none') {
+        setTimeout(waitForGateThenShowDownload, 1000);
+        return;
+      }
+      // Small delay after gate clears so app renders first
+      setTimeout(showDownloadDialog, 1500);
+    }
+    setTimeout(waitForGateThenShowDownload, 2000);
+
+    if ('serviceWorker' in navigator && !window.Capacitor) {
+      navigator.serviceWorker.register('sw.js').catch(function() {});
     }
   </script>
 </body>
