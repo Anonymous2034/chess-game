@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v174';
+const CACHE_NAME = 'grandmasters-v175';
 
 // Full precache list removed — was ~260 URLs causing memory crashes on mobile.
 // Assets are now lazy-cached on first use via the fetch handler.
@@ -209,6 +209,7 @@ const CORE_URLS = [
   './js/utils.js',
   './js/themes.js',
   './js/api-client.js',
+  './js/sync-queue.js',
   './js/auth.js',
   './js/sound.js',
   './js/bots.js',

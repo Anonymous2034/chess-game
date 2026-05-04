@@ -1,9 +1,11 @@
 // Data service — self-hosted backend + localStorage fallback
 import { apiFetch } from './api-client.js';
+import { SyncQueue } from './sync-queue.js';
 
 export class DataService {
   constructor(auth) {
     this.auth = auth; // AuthManager instance
+    this.syncQueue = new SyncQueue();
   }
 
   _isOnline() {
@@ -63,25 +65,77 @@ export class DataService {
   // === Games ===
 
   async saveGame(gameData) {
-    if (this._isOnline()) {
+    if (!this._isOnline()) {
+      // Offline — queue for later sync
+      this.syncQueue.enqueue('game', gameData);
+      return;
+    }
+
+    try {
+      const res = await apiFetch('/data/games', {
+        method: 'POST',
+        body: JSON.stringify({
+          opponent: gameData.opponent,
+          opponentElo: gameData.opponentElo,
+          result: gameData.result,
+          pgn: gameData.pgn,
+          opening: gameData.opening,
+          playerColor: gameData.playerColor,
+          moveCount: gameData.moveCount,
+          timeControl: gameData.timeControl,
+          rated: gameData.rated,
+          integrity: gameData.integrity,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      console.warn('Failed to save game to cloud, queuing for sync:', err);
+      this.syncQueue.enqueue('game', gameData);
+    }
+  }
+
+  /**
+   * Flush offline queue — call when coming back online or after login.
+   * @param {Function} onAuthNeeded — called if session has expired
+   * @returns {number} count of successfully synced entries
+   */
+  async flushQueue(onAuthNeeded) {
+    const synced = await this.syncQueue.flush(async (entry) => {
       try {
-        await apiFetch('/data/games', {
+        const res = await apiFetch('/data/games', {
           method: 'POST',
           body: JSON.stringify({
-            opponent: gameData.opponent,
-            opponentElo: gameData.opponentElo,
-            result: gameData.result,
-            pgn: gameData.pgn,
-            opening: gameData.opening,
-            playerColor: gameData.playerColor,
-            moveCount: gameData.moveCount,
-            timeControl: gameData.timeControl,
+            opponent: entry.payload.opponent,
+            opponentElo: entry.payload.opponentElo,
+            result: entry.payload.result,
+            pgn: entry.payload.pgn,
+            opening: entry.payload.opening,
+            playerColor: entry.payload.playerColor,
+            moveCount: entry.payload.moveCount,
+            timeControl: entry.payload.timeControl,
+            rated: entry.payload.rated,
+            integrity: entry.payload.integrity,
           }),
         });
-      } catch (err) {
-        console.warn('Failed to save game to cloud:', err);
+        if (res.ok) return true;
+        if (res.status === 401) return 'auth_expired';
+        return false; // server error — retry later
+      } catch {
+        return false; // network error — retry later
       }
+    }, onAuthNeeded);
+
+    // Re-sync stats blob after successful game syncs
+    if (synced > 0) {
+      try {
+        const stored = localStorage.getItem('chess_game_stats');
+        if (stored) {
+          await this.saveStats(JSON.parse(stored));
+        }
+      } catch {}
     }
+
+    return synced;
   }
 
   async getGames(limitCount = 50) {

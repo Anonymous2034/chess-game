@@ -13,14 +13,62 @@ export class Notation {
   }
 
   addMove(move) {
-    // If we're not at the end, truncate future moves
+    // If we're not at the end, truncate future moves — DOM diverges from
+    // model state, so fall back to a full render in this rare case.
     if (this.currentIndex < this.moves.length - 1) {
       this.moves = this.moves.slice(0, this.currentIndex + 1);
+      this.moves.push(move);
+      this.currentIndex = this.moves.length - 1;
+      this.render();
+      this.scrollToActive();
+      return;
     }
     this.moves.push(move);
     this.currentIndex = this.moves.length - 1;
-    this.render();
+    this._appendMoveCell(this.currentIndex);
     this.scrollToActive();
+  }
+
+  _appendMoveCell(index) {
+    // Clear any prior active highlight; _createMoveCell will re-mark this index.
+    const prevActive = this.container.querySelector('.move-cell.active');
+    if (prevActive) prevActive.classList.remove('active');
+
+    if (index % 2 === 0) {
+      // White move — start a new row
+      const moveNum = Math.floor(index / 2) + 1;
+      const row = document.createElement('div');
+      row.className = 'move-row';
+
+      const numSpan = document.createElement('span');
+      numSpan.className = 'move-number';
+      numSpan.textContent = moveNum + '.';
+      row.appendChild(numSpan);
+
+      row.appendChild(this._createMoveCell(index));
+      this.container.appendChild(row);
+    } else {
+      // Black move — append to the most recent row
+      const rows = this.container.querySelectorAll('.move-row');
+      const lastRow = rows[rows.length - 1];
+      if (!lastRow) {
+        // Defensive: model/DOM out of sync — fall back to full render
+        this.render();
+        return;
+      }
+      lastRow.appendChild(this._createMoveCell(index));
+    }
+
+    // Annotation comment row (mirrors render() ordering)
+    const ann = this.annotations[index];
+    if (ann && ann.comment) {
+      const commentRow = document.createElement('div');
+      commentRow.className = 'move-comment-row';
+      commentRow.textContent = ann.comment;
+      this.container.appendChild(commentRow);
+    }
+
+    if (this.onRender) this.onRender();
   }
 
   setMoves(moves) {
@@ -212,15 +260,30 @@ export class Notation {
 
   scrollToActive() {
     const active = this.container.querySelector('.move-cell.active');
-    if (active) {
-      active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    } else {
+    if (!active) {
       this.scrollToBottom();
+      return;
     }
+    // Save/restore window scroll: setting container.scrollTop after a DOM
+    // mutation can still cause the page to shift on mobile.
+    const savedY = window.scrollY;
+    const ct = this.container;
+    const activeTop = active.offsetTop;
+    const activeBottom = activeTop + active.offsetHeight;
+    const viewTop = ct.scrollTop;
+    const viewBottom = viewTop + ct.clientHeight;
+    if (activeBottom > viewBottom) {
+      ct.scrollTop = activeBottom - ct.clientHeight;
+    } else if (activeTop < viewTop) {
+      ct.scrollTop = activeTop;
+    }
+    if (window.scrollY !== savedY) window.scrollTo(0, savedY);
   }
 
   scrollToBottom() {
+    const savedY = window.scrollY;
     this.container.scrollTop = this.container.scrollHeight;
+    if (window.scrollY !== savedY) window.scrollTo(0, savedY);
   }
 
   toPGN(headers = {}) {

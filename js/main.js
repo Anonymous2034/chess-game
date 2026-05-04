@@ -350,6 +350,13 @@ class ChessApp {
   // === Move Handling ===
 
   handleMoveMade(move) {
+    // [DEBUG] Scroll-spy: log every viewport scroll within 2s of a move
+    const scrollSpy = () => {
+      console.trace('VIEWPORT SCROLLED');
+    };
+    window.addEventListener('scroll', scrollSpy);
+    setTimeout(() => window.removeEventListener('scroll', scrollSpy), 2000);
+
     // Puzzle mode interception — validate move before applying side effects
     if (this.puzzleActive) {
       this._handlePuzzleMove(move);
@@ -380,6 +387,7 @@ class ChessApp {
 
     this.sound.playMoveSound(move);
     this.sound.speakMove(move.san);
+    const _savedY = window.scrollY;
     this.notation.addMove(move);
     this.board.setLastMove(move);
     this.board.update();
@@ -388,6 +396,10 @@ class ChessApp {
 
     // Update captured pieces
     this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
+    if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+    requestAnimationFrame(() => {
+      if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+    });
 
     if (this.game.gameOver) {
       this._stopMoveClock();
@@ -507,6 +519,7 @@ class ChessApp {
               this._moveTimes.push({ color: move.color, seconds: delay / 1000, moveIndex: this.game.currentMoveIndex });
               this.sound.playMoveSound(move);
               this.sound.speakMove(move.san);
+              const _savedY = window.scrollY;
               this.notation.addMove(move);
               this.board.setLastMove(move);
               this.board.update();
@@ -514,6 +527,10 @@ class ChessApp {
               this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
               this.fetchOpeningExplorer();
               this._renderTimeGraph();
+              if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+              requestAnimationFrame(() => {
+                if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+              });
 
               // DGT: show book move on board LEDs
               if (this.dgtBoard?.isConnected()) {
@@ -586,12 +603,17 @@ class ChessApp {
       this._moveTimes.push({ color: move.color, seconds: engineTimeSec, moveIndex: this.game.currentMoveIndex });
       this.sound.playMoveSound(move);
       this.sound.speakMove(move.san);
+      const _savedY = window.scrollY;
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
       this.updateTimers(this.game.timers);
       this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
       this.fetchOpeningExplorer();
+      if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+      requestAnimationFrame(() => {
+        if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+      });
 
       // DGT: show engine move guidance and update expected board
       if (this.dgtBoard?.isConnected()) {
@@ -728,7 +750,15 @@ class ChessApp {
         playerColor: this.game.playerColor,
         moveCount: this.game.moveHistory.length,
         timeControl: this.game.timeControl,
-        pgn: this.notation.toPGN({ Result: gameResult?.result || '*' })
+        pgn: this.notation.toPGN({ Result: gameResult?.result || '*' }),
+        rated: true,
+        integrity: {
+          startedAt: this._gameStartedAt || null,
+          endedAt: new Date().toISOString(),
+          moveTimes: this._moveTimes.map(m => m.seconds),
+          finalFen: this.chess.fen(),
+          appVersion: (navigator.serviceWorker?.controller?.scriptURL || '').match(/v(\d+)/)?.[1] || null,
+        },
       };
       this.stats.recordGame(gameRecord);
 
@@ -1541,11 +1571,16 @@ class ChessApp {
     const move = this.game.makeEngineMove(randomMove.from, randomMove.to, randomMove.promotion);
     if (move) {
       this.sound.playMoveSound(move);
+      const _savedY = window.scrollY;
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
       this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
       this.fetchOpeningExplorer();
+      if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+      requestAnimationFrame(() => {
+        if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
+      });
     }
     if (!this.game.gameOver) {
       this.board.setInteractive(true);
@@ -3523,6 +3558,7 @@ class ChessApp {
 
     // Reset move times (Feature 8)
     this._moveTimes = [];
+    this._gameStartedAt = new Date().toISOString();
     hide(document.getElementById('time-graph-container'));
 
     // Reset eval tracking (Feature 10)
@@ -7508,9 +7544,50 @@ class ChessApp {
     const el = document.getElementById('offline-indicator');
     if (!el) return;
     const update = () => el.classList.toggle('visible', !navigator.onLine);
-    window.addEventListener('online', update);
+    window.addEventListener('online', () => {
+      update();
+      this._flushSyncQueue();
+    });
     window.addEventListener('offline', update);
     update();
+
+    // Wire sync queue badge updates
+    if (this.dataService?.syncQueue) {
+      this.dataService.syncQueue._onQueueChange = (count) => this._updateSyncBadge(count);
+      this._updateSyncBadge(this.dataService.syncQueue.pendingCount);
+    }
+
+    // Periodic flush — every 60s when online with pending items
+    setInterval(() => {
+      if (navigator.onLine && this.dataService?.syncQueue?.pendingCount > 0) {
+        this._flushSyncQueue();
+      }
+    }, 60000);
+  }
+
+  async _flushSyncQueue() {
+    if (!this.dataService?.syncQueue || this.dataService.syncQueue.pendingCount === 0) return;
+    try {
+      const synced = await this.dataService.flushQueue(() => {
+        this.showToast('Session expired — please log in to sync games');
+      });
+      if (synced > 0) {
+        this.showToast(`Synced ${synced} game${synced > 1 ? 's' : ''} to cloud`);
+      }
+    } catch (err) {
+      console.warn('Sync queue flush failed:', err);
+    }
+  }
+
+  _updateSyncBadge(count) {
+    const badge = document.getElementById('sync-pending-badge');
+    if (!badge) return;
+    if (count > 0) {
+      badge.textContent = `${count} pending`;
+      badge.classList.add('visible');
+    } else {
+      badge.classList.remove('visible');
+    }
   }
 
   // === Wake Lock (prevent screen sleep) ===
@@ -8644,6 +8721,8 @@ class ChessApp {
           if (cloudStats && cloudStats.games) {
             this.stats.data = cloudStats;
           }
+          // Flush any games queued while offline
+          this._flushSyncQueue();
         }
       };
       this.auth.init();

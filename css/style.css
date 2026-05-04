@@ -18,6 +18,30 @@
   transform: translateY(0);
 }
 
+/* === Sync Pending Badge === */
+.sync-pending-badge {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #e67e22;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 999;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.sync-pending-badge.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
 /* === PWA Install Banner === */
 /* === Download App Dialog === */
 .download-dialog {
@@ -730,11 +754,13 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overflow-anchor: none;
 }
 
 .move-history {
   flex: 1;
   overflow-y: auto;
+  overflow-anchor: none;
   padding: 4px 6px;
   font-size: 0.82rem;
   font-family: 'Courier New', monospace;
@@ -6892,13 +6918,21 @@ body.resizing-h {
     min-height: 0;
     max-height: none;
     overflow-y: auto;
+    overflow-anchor: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .move-history-container {
+    overflow: hidden;
+    overflow-anchor: none;
   }
 
   .move-history {
     max-height: none;
     flex: 1;
     min-height: 0;
+    overflow-y: auto;
+    overflow-anchor: none;
   }
 
   .status-bar {
