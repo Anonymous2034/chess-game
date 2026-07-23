@@ -348,6 +348,7 @@ main {
   padding: 16px;
   min-height: calc(100vh - 50px);
   min-height: calc(100dvh - 50px);
+  overflow-anchor: none;
 }
 
 /* === Board Area === */
@@ -759,6 +760,7 @@ main {
 
 .move-history {
   flex: 1;
+  position: relative;
   overflow-y: auto;
   overflow-anchor: none;
   padding: 4px 6px;
@@ -6772,6 +6774,7 @@ body.resizing-h {
     min-height: auto;
     overflow-y: auto;
     overflow-x: hidden;
+    overflow-anchor: none;
     -webkit-overflow-scrolling: touch;
   }
 

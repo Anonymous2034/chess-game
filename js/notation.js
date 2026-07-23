@@ -264,9 +264,6 @@ export class Notation {
       this.scrollToBottom();
       return;
     }
-    // Save/restore window scroll: setting container.scrollTop after a DOM
-    // mutation can still cause the page to shift on mobile.
-    const savedY = window.scrollY;
     const ct = this.container;
     const activeTop = active.offsetTop;
     const activeBottom = activeTop + active.offsetHeight;
@@ -277,13 +274,10 @@ export class Notation {
     } else if (activeTop < viewTop) {
       ct.scrollTop = activeTop;
     }
-    if (window.scrollY !== savedY) window.scrollTo(0, savedY);
   }
 
   scrollToBottom() {
-    const savedY = window.scrollY;
     this.container.scrollTop = this.container.scrollHeight;
-    if (window.scrollY !== savedY) window.scrollTo(0, savedY);
   }
 
   toPGN(headers = {}) {

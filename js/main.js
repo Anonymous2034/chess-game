@@ -13,7 +13,7 @@ import { EvalGraph } from './eval-graph.js';
 import { CoachManager } from './coach.js';
 import { PlayerStats } from './stats.js';
 import { Tournament } from './tournament.js';
-import { show, hide, debounce, setPieceBasePath, pieceImagePath } from './utils.js';
+import { show, hide, debounce, setPieceBasePath, pieceImagePath, escapeHtml } from './utils.js';
 import { ThemeManager, BOARD_THEMES, PIECE_THEMES } from './themes.js';
 import { BotMatch } from './bot-match.js';
 import { isBackendConfigured } from './api-client.js';
@@ -350,13 +350,6 @@ class ChessApp {
   // === Move Handling ===
 
   handleMoveMade(move) {
-    // [DEBUG] Scroll-spy: log every viewport scroll within 2s of a move
-    const scrollSpy = () => {
-      console.trace('VIEWPORT SCROLLED');
-    };
-    window.addEventListener('scroll', scrollSpy);
-    setTimeout(() => window.removeEventListener('scroll', scrollSpy), 2000);
-
     // Puzzle mode interception — validate move before applying side effects
     if (this.puzzleActive) {
       this._handlePuzzleMove(move);
@@ -387,7 +380,6 @@ class ChessApp {
 
     this.sound.playMoveSound(move);
     this.sound.speakMove(move.san);
-    const _savedY = window.scrollY;
     this.notation.addMove(move);
     this.board.setLastMove(move);
     this.board.update();
@@ -396,10 +388,6 @@ class ChessApp {
 
     // Update captured pieces
     this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
-    if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-    requestAnimationFrame(() => {
-      if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-    });
 
     if (this.game.gameOver) {
       this._stopMoveClock();
@@ -519,7 +507,6 @@ class ChessApp {
               this._moveTimes.push({ color: move.color, seconds: delay / 1000, moveIndex: this.game.currentMoveIndex });
               this.sound.playMoveSound(move);
               this.sound.speakMove(move.san);
-              const _savedY = window.scrollY;
               this.notation.addMove(move);
               this.board.setLastMove(move);
               this.board.update();
@@ -527,10 +514,6 @@ class ChessApp {
               this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
               this.fetchOpeningExplorer();
               this._renderTimeGraph();
-              if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-              requestAnimationFrame(() => {
-                if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-              });
 
               // DGT: show book move on board LEDs
               if (this.dgtBoard?.isConnected()) {
@@ -603,17 +586,12 @@ class ChessApp {
       this._moveTimes.push({ color: move.color, seconds: engineTimeSec, moveIndex: this.game.currentMoveIndex });
       this.sound.playMoveSound(move);
       this.sound.speakMove(move.san);
-      const _savedY = window.scrollY;
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
       this.updateTimers(this.game.timers);
       this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
       this.fetchOpeningExplorer();
-      if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-      requestAnimationFrame(() => {
-        if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-      });
 
       // DGT: show engine move guidance and update expected board
       if (this.dgtBoard?.isConnected()) {
@@ -1571,16 +1549,11 @@ class ChessApp {
     const move = this.game.makeEngineMove(randomMove.from, randomMove.to, randomMove.promotion);
     if (move) {
       this.sound.playMoveSound(move);
-      const _savedY = window.scrollY;
       this.notation.addMove(move);
       this.board.setLastMove(move);
       this.board.update();
       this.captured.update(this.game.moveHistory, this.game.currentMoveIndex, this.board.flipped);
       this.fetchOpeningExplorer();
-      if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-      requestAnimationFrame(() => {
-        if (window.scrollY !== _savedY) window.scrollTo(0, _savedY);
-      });
     }
     if (!this.game.gameOver) {
       this.board.setInteractive(true);
@@ -2801,7 +2774,7 @@ class ChessApp {
 
         const coachDiv = document.createElement('div');
         coachDiv.className = 'gm-coach-chat-msg coach';
-        coachDiv.innerHTML = `<div class="gm-coach-chat-author">${profile.icon} ${bot.name}</div>${response}`;
+        coachDiv.innerHTML = `<div class="gm-coach-chat-author">${profile.icon} ${escapeHtml(bot.name)}</div>${response}`;
         chatEl.appendChild(coachDiv);
         chatEl.scrollTop = chatEl.scrollHeight;
       } catch { /* ignore individual errors */ }
@@ -4508,11 +4481,11 @@ class ChessApp {
       if (game.result === '1-0') resultClass = 'win';
       else if (game.result === '0-1') resultClass = 'loss';
 
-      const ecoTag = game.eco ? `<span class="db-eco">${game.eco}</span>` : '';
+      const ecoTag = game.eco ? `<span class="db-eco">${escapeHtml(game.eco)}</span>` : '';
 
       item.innerHTML = `
-        <div class="db-game-players">${game.white} vs ${game.black} <span class="db-game-result ${resultClass}">${game.result}</span></div>
-        <div class="db-game-info">${ecoTag}${game.event} | ${game.date}</div>
+        <div class="db-game-players">${escapeHtml(game.white)} vs ${escapeHtml(game.black)} <span class="db-game-result ${resultClass}">${escapeHtml(game.result)}</span></div>
+        <div class="db-game-info">${ecoTag}${escapeHtml(game.event)} | ${escapeHtml(game.date)}</div>
       `;
       item.addEventListener('click', () => {
         this.loadDatabaseGame(game);
@@ -4527,7 +4500,7 @@ class ChessApp {
     const card = document.createElement('div');
     card.className = 'db-collection-card';
     card.dataset.category = col.category;
-    card.innerHTML = `<span class="db-card-icon">${icon}</span><div class="db-card-text"><div class="db-collection-name">${col.name}</div><div class="db-collection-count">${col.count.toLocaleString()} game${col.count !== 1 ? 's' : ''}</div></div>`;
+    card.innerHTML = `<span class="db-card-icon">${icon}</span><div class="db-card-text"><div class="db-collection-name">${escapeHtml(col.name)}</div><div class="db-collection-count">${col.count.toLocaleString()} game${col.count !== 1 ? 's' : ''}</div></div>`;
     card.addEventListener('click', () => {
       // For openings from the index, stay on openings tab
       if (col.category === 'openings' && this.activeCategory !== 'openings') {
@@ -4999,10 +4972,10 @@ class ChessApp {
       let resultClass = 'draw';
       if (game.result === '1-0') resultClass = 'win';
       else if (game.result === '0-1') resultClass = 'loss';
-      const ecoTag = game.eco ? `<span class="db-eco">${game.eco}</span>` : '';
+      const ecoTag = game.eco ? `<span class="db-eco">${escapeHtml(game.eco)}</span>` : '';
       item.innerHTML = `
-        <div class="db-game-players">${game.white} vs ${game.black} <span class="db-game-result ${resultClass}">${game.result}</span></div>
-        <div class="db-game-info">${ecoTag}${game.event} | ${game.date}</div>
+        <div class="db-game-players">${escapeHtml(game.white)} vs ${escapeHtml(game.black)} <span class="db-game-result ${resultClass}">${escapeHtml(game.result)}</span></div>
+        <div class="db-game-info">${ecoTag}${escapeHtml(game.event)} | ${escapeHtml(game.date)}</div>
       `;
       item.addEventListener('click', () => {
         this.loadDatabaseGame(game);
@@ -10181,7 +10154,7 @@ class ChessApp {
       const createdAt = this.auth.user?.created_at;
       const memberSince = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '';
       accountEl.innerHTML = `
-        <div class="profile-detail"><span class="profile-detail-label">Email</span><span>${user.email}</span></div>
+        <div class="profile-detail"><span class="profile-detail-label">Email</span><span>${escapeHtml(user.email)}</span></div>
         ${memberSince ? `<div class="profile-detail"><span class="profile-detail-label">Member since</span><span>${memberSince}</span></div>` : ''}
         <div class="profile-detail"><span class="profile-detail-label">Status</span><span><span class="profile-online-dot"></span> Online</span></div>
       `;
@@ -10226,8 +10199,8 @@ class ChessApp {
       html += '<div class="stats-opponents"><h4>Opponents</h4>';
       if (nemesis || easiest) {
         html += '<div class="opponent-badges">';
-        if (nemesis) html += `<div class="opponent-badge nemesis"><span class="opponent-badge-label">Nemesis</span><span class="opponent-badge-name">${nemesis.name}</span><span class="opponent-badge-rate">${nemesis.winRate}% win</span></div>`;
-        if (easiest) html += `<div class="opponent-badge easiest"><span class="opponent-badge-label">Easiest</span><span class="opponent-badge-name">${easiest.name}</span><span class="opponent-badge-rate">${easiest.winRate}% win</span></div>`;
+        if (nemesis) html += `<div class="opponent-badge nemesis"><span class="opponent-badge-label">Nemesis</span><span class="opponent-badge-name">${escapeHtml(nemesis.name)}</span><span class="opponent-badge-rate">${nemesis.winRate}% win</span></div>`;
+        if (easiest) html += `<div class="opponent-badge easiest"><span class="opponent-badge-label">Easiest</span><span class="opponent-badge-name">${escapeHtml(easiest.name)}</span><span class="opponent-badge-rate">${easiest.winRate}% win</span></div>`;
         html += '</div>';
       }
       const topOpponents = this.stats.getAllOpponentStats().slice(0, 10);
@@ -10236,7 +10209,7 @@ class ChessApp {
         const dPct = o.total > 0 ? (o.draws / o.total) * 100 : 0;
         const lPct = o.total > 0 ? (o.losses / o.total) * 100 : 0;
         html += `<div class="opponent-record-item">
-          <span class="opponent-record-name">${o.name}</span>
+          <span class="opponent-record-name">${escapeHtml(o.name)}</span>
           <div class="opponent-bar">
             <div class="opponent-bar-w" style="width:${wPct}%"></div>
             <div class="opponent-bar-d" style="width:${dPct}%"></div>
@@ -10280,11 +10253,11 @@ class ChessApp {
         html += `
           <div class="stats-game-item">
             <div>
-              <span>vs ${g.opponent} (${g.opponentElo})</span>
+              <span>vs ${escapeHtml(g.opponent)} (${escapeHtml(g.opponentElo)})</span>
               <span class="stats-game-date">${date}</span>
             </div>
             <div>
-              <span class="stats-game-opening">${g.opening || ''}</span>
+              <span class="stats-game-opening">${escapeHtml(g.opening || '')}</span>
               <span class="stats-game-result-badge ${g.result}">${g.result}</span>
             </div>
           </div>`;
@@ -10637,8 +10610,8 @@ class ChessApp {
       const d = g.date ? new Date(g.date).toLocaleDateString() : '—';
       row.innerHTML = `
         <span class="history-row-date">${d}</span>
-        <span class="history-row-opponent">${g.opponent || 'Unknown'}</span>
-        <span class="history-row-opening">${g.opening || ''}</span>
+        <span class="history-row-opponent">${escapeHtml(g.opponent || 'Unknown')}</span>
+        <span class="history-row-opening">${escapeHtml(g.opening || '')}</span>
         <span class="history-row-result ${g.result}">${g.result}</span>
       `;
       row.addEventListener('click', () => this._loadGameFromHistory(g));
@@ -11985,9 +11958,9 @@ class ChessApp {
 
       return `<div class="lichess-game-row">
         <input type="checkbox" data-game-index="${i}" checked>
-        <span class="lichess-game-players">vs ${opponent}</span>
+        <span class="lichess-game-players">vs ${escapeHtml(opponent)}</span>
         <span class="lichess-result-badge ${resultBadge}">${resultText}</span>
-        <span class="lichess-game-opening">${opening}</span>
+        <span class="lichess-game-opening">${escapeHtml(opening)}</span>
         <span class="lichess-game-date">${date}</span>
       </div>`;
     }).join('');
@@ -12375,7 +12348,7 @@ class ChessApp {
       const badge = g.autoSave ? '<span style="font-size:0.65rem;color:#e8a735">AUTO</span> ' : '';
       return `<div class="saved-game-card">
         <div class="saved-game-info">
-          <div class="saved-game-opponent">${badge}vs ${g.opponent}</div>
+          <div class="saved-game-opponent">${badge}vs ${escapeHtml(g.opponent)}</div>
           <div class="saved-game-meta">${date} &bull; ${g.mode}</div>
         </div>
         <span class="saved-game-moves-badge">${g.moveCount} moves</span>

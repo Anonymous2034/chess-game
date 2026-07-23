@@ -75,3 +75,18 @@ export function debounce(fn, ms) {
     timer = setTimeout(() => fn(...args), ms);
   };
 }
+
+/**
+ * Escape a string for safe interpolation into innerHTML.
+ * Use for any user-controlled data: player names, chat text, PGN headers/comments
+ * from imported files, profile data, multiplayer opponent info, etc.
+ */
+export function escapeHtml(value) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
