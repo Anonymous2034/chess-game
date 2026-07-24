@@ -121,14 +121,19 @@ export class EndgameTrainer {
       ? (analysisAfter.mate > 0 ? 10000 : -10000)
       : (analysisAfter.score || 0);
 
-    // evalAfter is from opponent's perspective, so negate it
+    // evalAfter is from the opponent's perspective (opponent is to move in
+    // fenAfter), so negate it back to the player's perspective.
     const evalAfter = -evalAfterRaw;
 
-    // Normalize evaluations relative to the player's perspective
-    const playerEvalBefore = playerColor === 'w' ? evalBefore : -evalBefore;
-    const playerEvalAfter = playerColor === 'w' ? evalAfter : -evalAfter;
+    // Both evalBefore and evalAfter are ALREADY from the player's perspective:
+    // UCI scores are relative to the side to move, and the player is the side to
+    // move in fenBefore. Do NOT flip again by color — doing so inverted the
+    // mistake check for every black-to-move position (blunders were accepted and
+    // best moves rejected).
+    const playerEvalBefore = evalBefore;
+    const playerEvalAfter = evalAfter;
 
-    // Calculate drop
+    // Calculate drop (how far the player's advantage fell after their move)
     const drop = playerEvalBefore - playerEvalAfter;
 
     // Check for mate-related evaluation

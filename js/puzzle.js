@@ -140,7 +140,16 @@ export class PuzzleManager {
                         ((!promotion && !expectedParsed.promotion) ||
                          promotion === expectedParsed.promotion);
 
+    const isLastMove = this.moveIndex === this.currentPuzzle.moves.length - 1;
+
     if (!moveMatches) {
+      // On the FINAL move of the line, accept any alternate move that also
+      // delivers checkmate (mate puzzles often have more than one mating move).
+      // Non-final moves must still match the solution exactly.
+      if (isLastMove && this._deliversCheckmate(from, to, promotion)) {
+        this.moveIndex++; // now === moves.length → puzzle complete
+        return 'complete';
+      }
       this.failed = true;
       return 'wrong';
     }
@@ -153,6 +162,28 @@ export class PuzzleManager {
     }
 
     return 'correct';
+  }
+
+  /**
+   * Does playing {from,to,promotion} deliver checkmate in the current puzzle
+   * position? Reconstructs the position from the puzzle's starting FEN plus the
+   * solution moves already played (moves[0..moveIndex-1]), applies the candidate
+   * move, and checks for mate. Used to accept alternate final-move checkmates.
+   */
+  _deliversCheckmate(from, to, promotion) {
+    if (!this.currentPuzzle || typeof Chess === 'undefined') return false;
+    try {
+      const chess = new Chess(this.currentPuzzle.fen);
+      for (let i = 0; i < this.moveIndex; i++) {
+        const m = this._parseUCI(this.currentPuzzle.moves[i]);
+        if (!chess.move({ from: m.from, to: m.to, promotion: m.promotion })) return false;
+      }
+      const played = chess.move({ from, to, promotion: promotion || undefined });
+      if (!played) return false; // illegal candidate move
+      return chess.in_checkmate();
+    } catch {
+      return false;
+    }
   }
 
   /**

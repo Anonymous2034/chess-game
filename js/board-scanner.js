@@ -267,15 +267,22 @@ export class BoardScanner {
     // Pause render loop
     if (this._animFrame) { cancelAnimationFrame(this._animFrame); this._animFrame = null; }
 
-    // Draw frame to offscreen capture canvas at video resolution
+    // Guard: the camera must be running at a real resolution. Without this,
+    // getImageData() below throws (video not ready → 0×0 canvas). Return null so
+    // the caller can recover gracefully instead of an uncaught exception.
+    if (!this._videoEl || this._videoEl.readyState < 2) return null;
     const vw = this._videoEl.videoWidth;
     const vh = this._videoEl.videoHeight;
+    if (!vw || !vh) return null;
+
+    // Draw frame to offscreen capture canvas at video resolution
     this._captureCanvas.width = vw;
     this._captureCanvas.height = vh;
     const cctx = this._captureCanvas.getContext('2d');
     cctx.drawImage(this._videoEl, 0, 0, vw, vh);
 
     const board = this._analyzeBoard(cctx, vw, vh);
+    if (!board) return null;
     const fen = this.boardToFEN(board, 'w');
 
     return { board, fen, confidence: this._lastConfidence || 0.5 };
@@ -301,6 +308,9 @@ export class BoardScanner {
     const safeY = Math.max(0, Math.round(gy));
     const safeW = Math.min(Math.round(gw), canvasW - safeX);
     const safeH = Math.min(Math.round(gh), canvasH - safeY);
+    // The grid can be dragged partly or fully off-screen (drag is unclamped).
+    // getImageData throws on non-positive dimensions, so bail gracefully.
+    if (safeW <= 0 || safeH <= 0) return null;
     const imageData = cctx.getImageData(safeX, safeY, safeW, safeH);
 
     // Collect stats for each square

@@ -15,5 +15,15 @@ export const config = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || '',
   },
+  cors: {
+    // Comma-separated allowlist. Defaults to the production site (+ GitHub
+    // Pages mirror). Requests with no Origin header (same-origin, curl, native
+    // apps) are always allowed — see index.ts.
+    origins: (process.env.CORS_ORIGINS ||
+      'https://grandmasters.pmgsinternational.com,https://anonymous2034.github.io')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  },
   port: parseInt(process.env.PORT || '3000'),
 };

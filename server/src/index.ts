@@ -14,12 +14,28 @@ import { setupWebSocket } from './ws/channels';
 const app = express();
 const server = http.createServer(app);
 
+// We sit behind a single reverse proxy (Caddy). Trust exactly one hop so
+// req.ip / X-Forwarded-For reflect the real client — required for per-client
+// rate limiting (and safe: a permissive `true` would let clients spoof IPs).
+app.set('trust proxy', 1);
+
 // WebSocket server — upgrade on /ws path
 const wss = new WebSocketServer({ server, path: '/ws' });
 setupWebSocket(wss);
 
 // Middleware
-app.use(cors());
+const allowedOrigins = new Set(config.cors.origins);
+app.use(cors({
+  origin(origin, callback) {
+    // Allow same-origin / non-browser requests (no Origin header) and any
+    // explicitly allow-listed origin; reject everything else.
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+}));
 app.use(express.json({ limit: '5mb' }));
 
 // API routes (before static files so /api/* always hits the backend)

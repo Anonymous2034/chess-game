@@ -21,9 +21,11 @@ sed -i '' "s/grandmasters-v[0-9]*/grandmasters-v${NEW}/" sw.js
 
 # index.html CSS and JS version params
 sed -i '' "s/style\.css?v=[0-9]*/style.css?v=${NEW}/" index.html
+sed -i '' "s/chess\.min\.js?v=[0-9]*/chess.min.js?v=${NEW}/" index.html
 sed -i '' "s/main\.js?v=[0-9]*/main.js?v=${NEW}/" index.html
 
 echo "Done. Updated:"
 grep 'CACHE_NAME' sw.js
 grep 'style.css' index.html | head -1 | xargs
+grep 'chess.min.js' index.html | head -1 | xargs
 grep 'main.js' index.html | head -1 | xargs

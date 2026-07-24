@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { OAuth2Client } from 'google-auth-library';
 import { pool } from '../db';
 import { config } from '../config';
@@ -17,8 +18,30 @@ const googleClient = new OAuth2Client(config.google.clientId);
 
 const router = Router();
 
+// Brute-force / credential-stuffing protection on the credential endpoints.
+// req.ip is the real client because index.ts sets `trust proxy` (behind Caddy).
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 20,                // attempts per IP per window (login / register / google)
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait a few minutes and try again.' },
+});
+
+// Token refresh runs automatically for active sessions, so keep it lenient
+// enough not to log out legitimate users behind shared IPs, while still
+// capping abuse. Refresh tokens are 40-byte random values, so this is
+// abuse-limiting rather than guess-prevention.
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many token refreshes. Please wait a moment and try again.' },
+});
+
 // POST /api/auth/register
-router.post('/register', async (req: AuthRequest, res: Response) => {
+router.post('/register', authLimiter, async (req: AuthRequest, res: Response) => {
   try {
     const { email, password, displayName } = req.body;
 
@@ -69,7 +92,7 @@ router.post('/register', async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req: AuthRequest, res: Response) => {
+router.post('/login', authLimiter, async (req: AuthRequest, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -135,7 +158,7 @@ router.post('/logout', async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/auth/refresh
-router.post('/refresh', async (req: AuthRequest, res: Response) => {
+router.post('/refresh', refreshLimiter, async (req: AuthRequest, res: Response) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
@@ -221,7 +244,7 @@ router.put('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/auth/google — sign in with Google ID token
-router.post('/google', async (req: AuthRequest, res: Response) => {
+router.post('/google', authLimiter, async (req: AuthRequest, res: Response) => {
   try {
     const { credential } = req.body;
     if (!credential) {

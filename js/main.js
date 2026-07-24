@@ -8103,6 +8103,12 @@ class ChessApp {
     };
 
     this.multiplayer.onOpponentMove = ({ from, to, promotion }) => {
+      // The server only relays moves — it does not validate them. Accept a move
+      // only when it is genuinely the opponent's turn, so a duplicate,
+      // out-of-turn, or malicious event cannot move OUR pieces. (chess.js still
+      // rejects outright-illegal moves inside makeMove.)
+      if (this.game.gameOver) return;
+      if (this.chess.turn() === this.multiplayer.myColor) return;
       const move = this.game.makeMove(from, to, promotion);
       if (move) {
         this.sound.playMoveSound(move);
@@ -12870,7 +12876,17 @@ class ChessApp {
 
     // Scan
     document.getElementById('scanner-scan').addEventListener('click', () => {
-      const result = this.scanner.captureAndAnalyze();
+      let result = null;
+      try {
+        result = this.scanner.captureAndAnalyze();
+      } catch (err) {
+        console.error('[Scanner] capture failed:', err);
+      }
+      if (!result) {
+        this.showToast('Could not scan — make sure the camera is ready and the grid is over the board.');
+        this.scanner.resumeRender();
+        return;
+      }
       this._scannerBoard = result.board;
       this._scannerTurn = 'w';
 

@@ -231,10 +231,17 @@ export class Tournament {
               match.player1.id !== '_bye' && match.player2.id !== '_bye') {
             if (match.player1.id === '_player' || match.player2.id === '_player') {
               const isPlayer1 = match.player1.id === '_player';
+              // Assign the player's color ONCE and persist it on the match, so
+              // re-rendering (which re-calls getNextMatch) can't flip it before
+              // the match is played.
+              if (match.playerColor !== 'w' && match.playerColor !== 'b') {
+                match.playerColor = Math.random() < 0.5 ? 'w' : 'b';
+                this._save();
+              }
               return {
                 opponentId: isPlayer1 ? match.player2.id : match.player1.id,
                 opponentName: isPlayer1 ? match.player2.name : match.player1.name,
-                playerColor: Math.random() < 0.5 ? 'w' : 'b',
+                playerColor: match.playerColor,
                 match,
                 round: r
               };
