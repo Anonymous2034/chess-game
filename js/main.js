@@ -3763,6 +3763,29 @@ class ChessApp {
 
   renderBotPicker(settings) {
     const listEl = document.getElementById('bot-picker-list');
+    // Keep the latest settings object for the delegated handler below.
+    this._botPickerSettings = settings;
+
+    // One delegated click listener on the stable list container (attached once)
+    // handles create / edit / select, so repeated renders don't pile up per-card
+    // listeners.
+    if (!listEl.dataset.delegated) {
+      listEl.dataset.delegated = '1';
+      listEl.addEventListener('click', (e) => {
+        const s = this._botPickerSettings;
+        if (e.target.closest('.bot-create-card')) { this._openBotBuilder(); return; }
+        const editIcon = e.target.closest('.bot-edit-icon');
+        if (editIcon) { this._openBotBuilder(editIcon.dataset.editBot); return; }
+        const card = e.target.closest('.bot-list-card');
+        if (!card || !listEl.contains(card) || !card.dataset.botId) return;
+        listEl.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        if (s) s.botId = card.dataset.botId;
+        const bot = BOT_PERSONALITIES.find(b => b.id === card.dataset.botId);
+        if (bot) this.renderBotDetail(bot);
+      });
+    }
+
     listEl.innerHTML = '';
 
     for (const tier of BOT_TIERS) {
@@ -3780,7 +3803,6 @@ class ChessApp {
         const createBtn = document.createElement('div');
         createBtn.className = 'bot-list-card bot-create-card';
         createBtn.innerHTML = `<span class="bot-create-plus">+</span><span class="bot-create-text">Create Bot</span>`;
-        createBtn.addEventListener('click', () => this._openBotBuilder());
         listEl.appendChild(createBtn);
       }
 
@@ -3802,17 +3824,6 @@ class ChessApp {
           ${h2hBadge}
           ${editIcon}
         `;
-
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.bot-edit-icon')) {
-            this._openBotBuilder(bot.id);
-            return;
-          }
-          listEl.querySelectorAll('.bot-list-card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-          settings.botId = bot.id;
-          this.renderBotDetail(bot);
-        });
 
         listEl.appendChild(card);
       }
@@ -4412,12 +4423,60 @@ class ChessApp {
     }
   }
 
+  // One delegated click listener for the db-games-list container, shared by
+  // renderDatabaseGames() and _openDBByMoveSequence() (both populate the same
+  // list). Reads per-row context from data attributes / an index map, so
+  // repeated renders never accumulate listeners.
+  _ensureDBListDelegation() {
+    const listEl = document.getElementById('db-games-list');
+    if (!listEl || listEl.dataset.delegated) return;
+    listEl.dataset.delegated = '1';
+    listEl.addEventListener('click', (e) => {
+      // Back-to-collections link
+      if (e.target.closest('.db-back-btn')) {
+        const colSel = document.getElementById('db-collection');
+        if (colSel) colSel.value = 'all';
+        this.renderDatabaseGames();
+        return;
+      }
+      // Collection card
+      const colCard = e.target.closest('.db-collection-card');
+      if (colCard && listEl.contains(colCard)) {
+        const category = colCard.dataset.category;
+        if (category === 'openings' && this.activeCategory !== 'openings') {
+          this.activeCategory = 'openings';
+          document.querySelectorAll('.db-tab').forEach(t =>
+            t.classList.toggle('active', t.dataset.category === 'openings'));
+          this.populateCollectionFilter();
+        }
+        const colSel = document.getElementById('db-collection');
+        if (colSel) colSel.value = colCard.dataset.colName;
+        this.renderDatabaseGames();
+        return;
+      }
+      // Game row
+      const item = e.target.closest('.db-game-item');
+      if (item && listEl.contains(item)) {
+        const idx = parseInt(item.dataset.gameIdx, 10);
+        const game = this._dbRenderedGames?.[idx];
+        if (!game) return;
+        this.loadDatabaseGame(game);
+        if (listEl.dataset.hideOnLoad === '1') {
+          hide(document.getElementById('database-dialog'));
+        }
+      }
+    });
+  }
+
   renderDatabaseGames() {
     const listEl = document.getElementById('db-games-list');
     const query = document.getElementById('db-search').value;
     const collection = document.getElementById('db-collection').value;
     const summaryEl = document.getElementById('db-results-summary');
 
+    this._ensureDBListDelegation();
+    listEl.dataset.hideOnLoad = '1'; // this view hides the dialog after loading
+    this._dbRenderedGames = [];
     listEl.innerHTML = '';
 
     // Show collection cards when no search and no specific collection selected
@@ -4469,10 +4528,6 @@ class ChessApp {
       const back = document.createElement('div');
       back.className = 'db-back-btn';
       back.innerHTML = '\u2190 Back to collections';
-      back.addEventListener('click', () => {
-        document.getElementById('db-collection').value = 'all';
-        this.renderDatabaseGames();
-      });
       listEl.appendChild(back);
     }
 
@@ -4492,9 +4547,12 @@ class ChessApp {
       return;
     }
 
-    games.slice(0, 100).forEach(game => {
+    const rendered = games.slice(0, 100);
+    this._dbRenderedGames = rendered;
+    rendered.forEach((game, idx) => {
       const item = document.createElement('div');
       item.className = 'db-game-item';
+      item.dataset.gameIdx = idx;
 
       // Result badge class
       let resultClass = 'draw';
@@ -4507,10 +4565,6 @@ class ChessApp {
         <div class="db-game-players">${escapeHtml(game.white)} vs ${escapeHtml(game.black)} <span class="db-game-result ${resultClass}">${escapeHtml(game.result)}</span></div>
         <div class="db-game-info">${ecoTag}${escapeHtml(game.event)} | ${escapeHtml(game.date)}</div>
       `;
-      item.addEventListener('click', () => {
-        this.loadDatabaseGame(game);
-        hide(document.getElementById('database-dialog'));
-      });
       listEl.appendChild(item);
     });
   }
@@ -4520,17 +4574,8 @@ class ChessApp {
     const card = document.createElement('div');
     card.className = 'db-collection-card';
     card.dataset.category = col.category;
+    card.dataset.colName = col.name; // read by the delegated list handler
     card.innerHTML = `<span class="db-card-icon">${icon}</span><div class="db-card-text"><div class="db-collection-name">${escapeHtml(col.name)}</div><div class="db-collection-count">${col.count.toLocaleString()} game${col.count !== 1 ? 's' : ''}</div></div>`;
-    card.addEventListener('click', () => {
-      // For openings from the index, stay on openings tab
-      if (col.category === 'openings' && this.activeCategory !== 'openings') {
-        this.activeCategory = 'openings';
-        document.querySelectorAll('.db-tab').forEach(t => t.classList.toggle('active', t.dataset.category === 'openings'));
-        this.populateCollectionFilter();
-      }
-      document.getElementById('db-collection').value = col.name;
-      this.renderDatabaseGames();
-    });
     return card;
   }
 
@@ -4760,6 +4805,18 @@ class ChessApp {
 
     // GM avatars
     if (gmRowEl) {
+      // Delegated click listener attached once on the stable row container.
+      if (!gmRowEl.dataset.delegated) {
+        gmRowEl.dataset.delegated = '1';
+        gmRowEl.addEventListener('click', (e) => {
+          const img = e.target.closest('.oe-gm-avatar');
+          if (!img || !gmRowEl.contains(img)) return;
+          e.stopPropagation();
+          const gmCard = document.querySelector(`.gm-card[data-bot-id="${img.dataset.gmId}"]`);
+          if (gmCard) gmCard.click();
+        });
+      }
+
       gmRowEl.innerHTML = '';
       const gmMatches = this._findGMsForOpening(name);
       gmMatches.slice(0, 4).forEach(({ gm, asColor }) => {
@@ -4768,17 +4825,54 @@ class ChessApp {
         img.src = `img/gm/${gm.id}.svg`;
         img.alt = gm.name;
         img.title = `${gm.name} plays this as ${asColor === 'w' ? 'White' : 'Black'}`;
-        img.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const gmCard = document.querySelector(`.gm-card[data-bot-id="${gm.id}"]`);
-          if (gmCard) gmCard.click();
-        });
+        img.dataset.gmId = gm.id;
         gmRowEl.appendChild(img);
       });
     }
 
     // Build move table from local DB
     if (!tableEl) return;
+
+    // One delegated click listener on the stable table, attached once. Handles
+    // the repertoire star, the game-count link, and playing the move — reading
+    // per-row context from data attributes instead of per-row closures.
+    if (!tableEl.dataset.delegated) {
+      tableEl.dataset.delegated = '1';
+      tableEl.addEventListener('click', (e) => {
+        const row = e.target.closest('.oe-move-row');
+        if (!row || row.classList.contains('oe-header-row') || !tableEl.contains(row)) return;
+        const san = row.dataset.san;
+        if (!san) return;
+        const myMoves = this.game.moveHistory.map(m => m.san);
+        const lineKey = [...myMoves, san].join(',');
+
+        const star = e.target.closest('.oe-star');
+        if (star) {
+          e.stopPropagation();
+          this._toggleRepertoire(lineKey, san, myMoves);
+          const nowStarred = !star.classList.contains('starred');
+          star.classList.toggle('starred', nowStarred);
+          row.classList.toggle('oe-repertoire', nowStarred);
+          star.textContent = nowStarred ? '★' : '☆';
+          star.title = nowStarred ? 'Remove from repertoire' : 'Add to repertoire';
+          return;
+        }
+
+        if (e.target.closest('.oe-move-db-link')) {
+          e.stopPropagation();
+          this._openDBByMoveSequence([...myMoves, san]);
+          return;
+        }
+
+        // Otherwise: play the move on the board.
+        if (!this.game.gameOver && !this.game.replayMode) {
+          const legalMoves = this.chess.moves({ verbose: true });
+          const match = legalMoves.find(lm => lm.san === san);
+          if (match) this.board.tryMove(match.from, match.to);
+        }
+      });
+    }
+
     tableEl.innerHTML = '';
 
     const sortedMoves = [...nextMoveCounts.entries()]
@@ -4806,20 +4900,13 @@ class ChessApp {
 
       const row = document.createElement('div');
       row.className = 'oe-move-row' + (inRepertoire ? ' oe-repertoire' : '');
+      row.dataset.san = san;
 
-      // Repertoire star button
+      // Repertoire star button (click handled by delegation on the table)
       const starEl = document.createElement('span');
       starEl.className = 'oe-star' + (inRepertoire ? ' starred' : '');
       starEl.textContent = inRepertoire ? '\u2605' : '\u2606';
       starEl.title = inRepertoire ? 'Remove from repertoire' : 'Add to repertoire';
-      starEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this._toggleRepertoire(lineKey, san, myMoves);
-        starEl.classList.toggle('starred');
-        row.classList.toggle('oe-repertoire');
-        starEl.textContent = starEl.classList.contains('starred') ? '\u2605' : '\u2606';
-        starEl.title = starEl.classList.contains('starred') ? 'Remove from repertoire' : 'Add to repertoire';
-      });
 
       const sanEl = document.createElement('span');
       sanEl.className = 'oe-move-san';
@@ -4851,25 +4938,11 @@ class ChessApp {
       countEl.className = 'oe-move-db oe-move-db-link';
       countEl.textContent = this._formatCount(m.count);
       countEl.title = `Browse ${m.count.toLocaleString()} games with ${san}`;
-      countEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this._openDBByMoveSequence([...myMoves, san]);
-      });
 
       row.appendChild(starEl);
       row.appendChild(sanEl);
       row.appendChild(bar);
       row.appendChild(countEl);
-
-      row.addEventListener('click', () => {
-        if (!this.game.gameOver && !this.game.replayMode) {
-          const legalMoves = this.chess.moves({ verbose: true });
-          const match = legalMoves.find(lm => lm.san === san);
-          if (match) {
-            this.board.tryMove(match.from, match.to);
-          }
-        }
-      });
 
       tableEl.appendChild(row);
     }
@@ -4975,6 +5048,8 @@ class ChessApp {
 
     const listEl = document.getElementById('db-games-list');
     const summaryEl = document.getElementById('db-results-summary');
+    this._ensureDBListDelegation();
+    listEl.dataset.hideOnLoad = '0'; // keep dialog open so the user can browse
     listEl.innerHTML = '';
 
     const moveStr = moves.map((m, i) => i % 2 === 0 ? `${Math.floor(i/2)+1}.${m}` : m).join(' ');
@@ -4986,9 +5061,12 @@ class ChessApp {
     header.innerHTML = `\u265A ${title}`;
     listEl.appendChild(header);
 
-    games.slice(0, 100).forEach(game => {
+    const rendered = games.slice(0, 100);
+    this._dbRenderedGames = rendered;
+    rendered.forEach((game, idx) => {
       const item = document.createElement('div');
       item.className = 'db-game-item';
+      item.dataset.gameIdx = idx;
       let resultClass = 'draw';
       if (game.result === '1-0') resultClass = 'win';
       else if (game.result === '0-1') resultClass = 'loss';
@@ -4997,9 +5075,6 @@ class ChessApp {
         <div class="db-game-players">${escapeHtml(game.white)} vs ${escapeHtml(game.black)} <span class="db-game-result ${resultClass}">${escapeHtml(game.result)}</span></div>
         <div class="db-game-info">${ecoTag}${escapeHtml(game.event)} | ${escapeHtml(game.date)}</div>
       `;
-      item.addEventListener('click', () => {
-        this.loadDatabaseGame(game);
-      });
       listEl.appendChild(item);
     });
   }
@@ -6306,6 +6381,10 @@ class ChessApp {
       if (miniToggle) miniToggle.innerHTML = state.playing ? '&#9646;&#9646;' : '&#9654;';
       const miniShuffleBtn = document.getElementById('mini-music-shuffle');
       if (miniShuffleBtn) miniShuffleBtn.classList.toggle('active', !!state.shuffle);
+
+      // Run the mini progress ticker only while playing; stop it otherwise.
+      if (state.playing) this._startMiniMusicProgress();
+      else this._stopMiniMusicProgress();
 
       // Expanded mini-music content
       this._updateMiniMusicExpanded(state);
@@ -9393,17 +9472,10 @@ class ChessApp {
       });
     }
 
-    // Mini music progress timer
-    this._miniMusicProgressInterval = setInterval(() => {
-      const seekEl = document.getElementById('mini-music-seek');
-      const curEl = document.getElementById('mini-music-time-cur');
-      const durEl = document.getElementById('mini-music-time-dur');
-      if (!seekEl) return;
-      const progress = this.music.getProgress();
-      seekEl.value = Math.round(progress * 1000);
-      if (curEl) curEl.textContent = this.music.formatTime(this.music.audio.currentTime);
-      if (durEl) durEl.textContent = this.music.formatTime(this.music.audio.duration);
-    }, 500);
+    // Mini music progress timer — only runs while a track is playing (started /
+    // stopped from the music onStateChange handler), so it doesn't poll forever
+    // in the background when music is stopped.
+    if (this.music.playing) this._startMiniMusicProgress();
 
     // Initial expanded content
     this._updateMiniMusicExpanded({ track: this.music.currentTrack, playing: this.music.playing });
@@ -9511,8 +9583,34 @@ class ChessApp {
   _openMusicDialog() {
     this._renderMusicDialog();
     show(document.getElementById('music-dialog'));
-    // Start progress bar updates
+    // Start progress bar updates (clear any prior one so re-opening can't leak).
+    if (this._musicProgressInterval) clearInterval(this._musicProgressInterval);
     this._musicProgressInterval = setInterval(() => this._updateMusicProgress(), 500);
+  }
+
+  // Mini music progress ticker — gated on playback so it isn't a forever-running
+  // background poll. Started/stopped from the music onStateChange handler.
+  _startMiniMusicProgress() {
+    if (this._miniMusicProgressInterval) return; // already running
+    this._miniMusicProgressInterval = setInterval(() => this._updateMiniMusicProgress(), 500);
+  }
+
+  _stopMiniMusicProgress() {
+    if (this._miniMusicProgressInterval) {
+      clearInterval(this._miniMusicProgressInterval);
+      this._miniMusicProgressInterval = null;
+    }
+  }
+
+  _updateMiniMusicProgress() {
+    const seekEl = document.getElementById('mini-music-seek');
+    const curEl = document.getElementById('mini-music-time-cur');
+    const durEl = document.getElementById('mini-music-time-dur');
+    if (!seekEl) return;
+    const progress = this.music.getProgress();
+    seekEl.value = Math.round(progress * 1000);
+    if (curEl) curEl.textContent = this.music.formatTime(this.music.audio.currentTime);
+    if (durEl) durEl.textContent = this.music.formatTime(this.music.audio.duration);
   }
 
   _closeMusicDialog() {
@@ -9573,17 +9671,34 @@ class ChessApp {
   _renderComposerChips() {
     const listEl = document.getElementById('composer-picker-list');
     if (!listEl) return;
+
+    // One delegated click listener on the stable container — attached once so
+    // repeated renders don't accumulate per-card listeners.
+    if (!listEl.dataset.delegated) {
+      listEl.dataset.delegated = '1';
+      listEl.addEventListener('click', (e) => {
+        const item = e.target.closest('.mp-cl-item');
+        if (!item || !listEl.contains(item)) return;
+        const id = item.dataset.composerId;
+        if (id === '__all__') {
+          this._selectedComposerId = null;
+          this.music.setComposerFilter(null);
+        } else {
+          const composer = COMPOSER_PROFILES.find(c => String(c.id) === id);
+          this._selectedComposerId = composer ? composer.id : null;
+          this.music.setComposerFilter(composer ? composer.composerKey : null);
+        }
+        this._renderMusicDialog();
+      });
+    }
+
     listEl.innerHTML = '';
 
     // "All Composers" option
     const allCard = document.createElement('div');
     allCard.className = 'mp-cl-item' + (!this._selectedComposerId ? ' selected' : '');
+    allCard.dataset.composerId = '__all__';
     allCard.innerHTML = `<div class="mp-cl-icon">&#9835;</div><span class="mp-cl-name">All Composers</span>`;
-    allCard.addEventListener('click', () => {
-      this._selectedComposerId = null;
-      this.music.setComposerFilter(null);
-      this._renderMusicDialog();
-    });
     listEl.appendChild(allCard);
 
     // Group by era with era labels
@@ -9600,16 +9715,12 @@ class ChessApp {
         const trackCount = PLAYLIST.filter(t => t.composer === composer.composerKey).length;
         const card = document.createElement('div');
         card.className = 'mp-cl-item' + (composer.id === this._selectedComposerId ? ' selected' : '');
+        card.dataset.composerId = composer.id;
         card.innerHTML = `
           <img class="mp-cl-portrait" src="${composer.portrait}" alt="${composer.name}">
           <span class="mp-cl-name">${composer.name}</span>
           <span class="mp-cl-count">${trackCount}</span>
         `;
-        card.addEventListener('click', () => {
-          this._selectedComposerId = composer.id;
-          this.music.setComposerFilter(composer.composerKey);
-          this._renderMusicDialog();
-        });
         listEl.appendChild(card);
       }
     }
@@ -9626,6 +9737,19 @@ class ChessApp {
       ? PLAYLIST.filter(t => t.composer === selectedProfile.composerKey)
       : PLAYLIST;
 
+    // One delegated click listener on the stable queue container.
+    if (!detailEl.dataset.delegated) {
+      detailEl.dataset.delegated = '1';
+      detailEl.addEventListener('click', (e) => {
+        const item = e.target.closest('.mp-queue-item');
+        if (!item || !detailEl.contains(item)) return;
+        const i = parseInt(item.dataset.trackIdx, 10);
+        if (Number.isNaN(i)) return;
+        this.music.setTrack(i);
+        if (!this.music.playing) this.music.play();
+      });
+    }
+
     detailEl.innerHTML = '';
 
     tracks.forEach((track) => {
@@ -9633,6 +9757,7 @@ class ChessApp {
       const isActive = i === this.music.currentIndex;
       const el = document.createElement('div');
       el.className = 'mp-queue-item' + (isActive ? ' active' : '');
+      el.dataset.trackIdx = i;
       el.innerHTML = `
         <span class="mp-queue-play">${isActive && this.music.playing ? '&#9679;' : '&#9654;'}</span>
         <div class="mp-queue-info">
@@ -9641,10 +9766,6 @@ class ChessApp {
         </div>
         <span class="mp-queue-dur">${track.duration}</span>
       `;
-      el.addEventListener('click', () => {
-        this.music.setTrack(i);
-        if (!this.music.playing) this.music.play();
-      });
       detailEl.appendChild(el);
     });
 

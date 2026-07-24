@@ -12,8 +12,26 @@ export class Game {
     this.increment = 0;         // Fischer increment in seconds
     this.timers = { w: 0, b: 0 };
     this.timerInterval = null;
+    // Wall-clock anchors for the player currently on the move. Remaining time is
+    // derived from these on every tick, so background-tab interval throttling
+    // never accumulates drift.
+    this._turnStartTs = null;        // Date.now() when the current turn began
+    this._turnStartRemaining = 0;    // this.timers[turn] at that moment
     this.gameOver = false;
     this.replayMode = false;
+
+    // Recompute the running clock the instant the tab becomes visible again, so
+    // the display corrects immediately rather than waiting for the next tick.
+    this._onVisibilityChange = () => {
+      if (typeof document !== 'undefined' &&
+          document.visibilityState === 'visible' &&
+          this.timerInterval && !this.gameOver) {
+        this._tickTimer();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this._onVisibilityChange);
+    }
 
     // History for undo/redo
     this.history = [];       // Array of FEN strings
@@ -57,6 +75,8 @@ export class Game {
 
     // Timers
     this.stopTimer();
+    this._turnStartTs = null;
+    this._turnStartRemaining = 0;
     if (this.timePeriods) {
       // Use first period's time
       this.timers = { w: this.timePeriods[0].time, b: this.timePeriods[0].time };
@@ -215,6 +235,16 @@ export class Game {
     this.stopTimer();
     if (this.gameOver) return;
 
+    // Finalize the moving player's remaining time from the wall clock before
+    // applying any increment. The last 200ms display tick can be slightly stale,
+    // so recompute precisely from the anchors set for their turn. (stopTimer()
+    // above only clears the interval; it leaves the anchors intact.)
+    if (this._turnStartTs != null && this.moveHistory.length > 0) {
+      const mover = this.moveHistory[this.moveHistory.length - 1].color;
+      const elapsed = Math.floor((Date.now() - this._turnStartTs) / 1000);
+      this.timers[mover] = Math.max(0, this._turnStartRemaining - elapsed);
+    }
+
     // Check for period transition (multi-period time controls)
     if (this.timePeriods && this.moveHistory.length > 0) {
       const lastMoveColor = this.moveHistory[this.moveHistory.length - 1].color;
@@ -250,27 +280,41 @@ export class Game {
     // Record move start time for next move (Bronstein delay)
     this._moveStartTime = Date.now();
 
-    this.timerInterval = setInterval(() => {
-      const turn = this.chess.turn();
-      this.timers[turn]--;
+    // Anchor the wall clock for the player now on the move. Every tick derives
+    // remaining time from these instead of decrementing, so throttled intervals
+    // in a backgrounded tab can never drift.
+    const turn = this.chess.turn();
+    this._turnStartTs = Date.now();
+    this._turnStartRemaining = this.timers[turn];
 
-      if (this.timers[turn] <= 0) {
-        this.timers[turn] = 0;
-        this.gameOver = true;
-        this.stopTimer();
-        const winner = turn === 'w' ? 'Black' : 'White';
-        if (this.onStatusChange) {
-          this.onStatusChange(`Time's up! ${winner} wins on time.`);
-        }
-        if (this.onGameOver) {
-          this.onGameOver({ result: turn === 'w' ? '0-1' : '1-0', message: `${winner} wins on time` });
-        }
-      }
+    // ~200ms for a smooth display; the actual time comes from the wall clock.
+    this.timerInterval = setInterval(() => this._tickTimer(), 200);
+  }
 
-      if (this.onTimerUpdate) {
-        this.onTimerUpdate(this.timers);
+  // Recompute the running player's clock from the wall clock and fire the same
+  // callbacks the old 1Hz decrementing loop did.
+  _tickTimer() {
+    if (this._turnStartTs == null) return;
+    const turn = this.chess.turn();
+    const elapsed = Math.floor((Date.now() - this._turnStartTs) / 1000);
+    this.timers[turn] = this._turnStartRemaining - elapsed;
+
+    if (this.timers[turn] <= 0) {
+      this.timers[turn] = 0;
+      this.gameOver = true;
+      this.stopTimer();
+      const winner = turn === 'w' ? 'Black' : 'White';
+      if (this.onStatusChange) {
+        this.onStatusChange(`Time's up! ${winner} wins on time.`);
       }
-    }, 1000);
+      if (this.onGameOver) {
+        this.onGameOver({ result: turn === 'w' ? '0-1' : '1-0', message: `${winner} wins on time` });
+      }
+    }
+
+    if (this.onTimerUpdate) {
+      this.onTimerUpdate(this.timers);
+    }
   }
 
   stopTimer() {

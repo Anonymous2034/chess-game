@@ -5,3 +5,4 @@ www/
 .capacitor/
 server/.env
 .DS_Store
+*.tar.gz
