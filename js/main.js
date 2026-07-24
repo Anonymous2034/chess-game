@@ -740,7 +740,7 @@ class ChessApp {
 
       const gameRecord = {
         opponent: this.activeBot.name,
-        opponentElo: this.activeBot.stockfishElo || this.activeBot.peakElo,
+        opponentElo: this.activeBot.peakElo || this.activeBot.stockfishElo,
         result,
         opening: this.lastOpeningName || 'Unknown',
         playerColor: this.game.playerColor,
@@ -1513,8 +1513,13 @@ class ChessApp {
         return;
       }
 
-      // Case 2: engine stuck thinking for too long (>12s from watchdog perspective)
-      if (this.engine.thinking && this._engineWatchdogTick >= 4) {
+      // Case 2: engine stuck thinking for too long. Budget = the bot's movetime
+      // plus a generous buffer, so strong bots (movetime up to ~4.5s) are never
+      // truncated mid-search. Weak/depth-limited bots (no movetime) keep the ~12s
+      // floor.
+      const budgetMs = (this.engine.moveTime || 0) + 8000;
+      const maxTicks = Math.max(4, Math.ceil(budgetMs / 3000));
+      if (this.engine.thinking && this._engineWatchdogTick >= maxTicks) {
         console.warn('Watchdog: engine thinking too long — forcing move.');
         this._forceEngineMove();
         this._engineWatchdogTick = 0;
@@ -9350,10 +9355,12 @@ class ChessApp {
 
       this.engine.thinking = true;
       this.engine.send('position fen ' + fen);
-      if (bot.moveTime) {
-        this.engine.send(`go movetime ${Math.min(bot.moveTime, 3000)}`);
+      // Use the calibrated settings from applyPersonality (UCI_Elo governs
+      // strength). Cap movetime so bot-match simulations stay responsive.
+      if (this.engine.moveTime) {
+        this.engine.send(`go movetime ${Math.min(this.engine.moveTime, 1500)}`);
       } else {
-        this.engine.send(`go depth ${Math.min(bot.searchDepth || this.engine.depth, 14)}`);
+        this.engine.send(`go depth ${this.engine.depth}`);
       }
     });
   }
@@ -10715,7 +10722,7 @@ class ChessApp {
         const row = document.createElement('label');
         row.className = 'tournament-opponent';
         row.innerHTML = `
-          <input type="checkbox" value="${bot.id}" data-name="${bot.name}" data-elo="${bot.stockfishElo || bot.peakElo}">
+          <input type="checkbox" value="${bot.id}" data-name="${bot.name}" data-elo="${bot.peakElo || bot.stockfishElo}">
           <span class="tournament-opponent-name">${bot.name}</span>
           <span class="tournament-opponent-elo">${bot.peakElo}</span>
         `;

@@ -105,10 +105,13 @@ export class BotMatch {
       this.engine.thinking = true;
       this.engine.send('position fen ' + fen);
 
-      if (bot.moveTime) {
-        this.engine.send(`go movetime ${bot.moveTime}`);
+      // Use the calibrated settings from applyPersonality (UCI_Elo governs
+      // strength). Cap movetime for simulation throughput — a shorter search
+      // still yields correct relative strength under the Elo limiter.
+      if (this.engine.moveTime) {
+        this.engine.send(`go movetime ${Math.min(this.engine.moveTime, 1500)}`);
       } else {
-        this.engine.send(`go depth ${bot.searchDepth || this.engine.depth}`);
+        this.engine.send(`go depth ${this.engine.depth}`);
       }
     });
   }

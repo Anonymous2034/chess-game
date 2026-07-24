@@ -12,6 +12,21 @@ export class Engine {
     this.onStatus = null;
     this.moveTime = null; // ms, alternative to depth
 
+    // Strength-calibration support. Populated from the 'uci' handshake so we can
+    // feature-detect UCI_Elo / UCI_LimitStrength and read the engine's Elo range.
+    this.supportedOptions = new Set(); // lowercased option names the build exposes
+    this.uciEloMin = 1320;
+    this.uciEloMax = 3190;
+    this._lastCalibration = null;      // last computed { mode, uciElo, ... }
+
+    // Threading: the bundled build is single-threaded WASM. Detect whether the
+    // environment could support real threads; the actual Threads option is only
+    // sent if the build advertises it (see applyPersonality).
+    const cores = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 1;
+    const canThread = typeof SharedArrayBuffer !== 'undefined' &&
+      (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated);
+    this._threadCount = (canThread && cores > 1) ? Math.min(cores, 4) : 1;
+
     // Search-request tracking. Every 'go' we send is tagged with a monotonic
     // id and a kind ('game' | 'analysis' | 'multipv'). Because Stockfish emits
     // exactly one 'bestmove' per 'go' (in order), a FIFO of pending searches
@@ -112,6 +127,22 @@ export class Engine {
   }
 
   handleMessage(msg) {
+    if (msg.startsWith('option name ')) {
+      // Capture the option list emitted during the 'uci' handshake so we can
+      // feature-detect UCI_Elo support and read the engine's Elo range.
+      const m = msg.match(/^option name (.+?) type /);
+      if (m) {
+        const name = m[1].trim();
+        this.supportedOptions.add(name.toLowerCase());
+        if (name === 'UCI_Elo') {
+          const mn = msg.match(/\bmin (\d+)/);
+          const mx = msg.match(/\bmax (\d+)/);
+          if (mn) this.uciEloMin = parseInt(mn[1], 10);
+          if (mx) this.uciEloMax = parseInt(mx[1], 10);
+        }
+      }
+      return;
+    }
     if (msg === 'uciok') {
       this.send('isready');
     } else if (msg === 'readyok') {
@@ -258,24 +289,102 @@ export class Engine {
     this.moveTime = null;
   }
 
+  /** Effective thread count, gated on the build actually exposing Threads. */
+  _effectiveThreadCount() {
+    return (this.supportedOptions.has('threads') && this._threadCount > 1)
+      ? this._threadCount : 1;
+  }
+
+  /**
+   * Map a bot's displayed rating to concrete engine settings. Strength is driven
+   * by Stockfish's UCI_Elo limiter (calibrated ~1320-3190) when available, so a
+   * bot's playing strength matches its label. Below the Elo floor we fall back
+   * to a shallow Skill-Level + depth cap to stay genuinely weak; if the build
+   * lacks UCI_Elo entirely we use a calibrated Skill-Level + depth + movetime
+   * table.
+   *
+   * Returns { limitStrength, uciElo, skillLevel, depth, moveTime, mode }.
+   */
+  calibrate(bot) {
+    const rating = Math.round((bot && (bot.peakElo ?? bot.rating)) || 1500);
+    const eloSupported = this.supportedOptions.has('uci_elo') &&
+      this.supportedOptions.has('uci_limitstrength');
+    const singleThreaded = this._effectiveThreadCount() <= 1;
+
+    // Movetime by strength tier (ms). Deep search matters most for strong bots;
+    // weak bots are depth-limited instead (moveTime null) so they stay weak.
+    const tierMoveTime = (r) => {
+      if (r < 1320) return null;
+      if (r < 2000) return 1000;
+      if (r < 2400) return 1500;
+      if (r < 2800) return 2500;
+      return 3000;
+    };
+
+    // Preferred path: real Elo limiter.
+    if (eloSupported && rating >= this.uciEloMin) {
+      const uciElo = Math.min(rating, this.uciEloMax);
+      let moveTime = tierMoveTime(rating) || 1000;
+      // Single-threaded WASM reaches less depth per ms — give the strongest bots
+      // extra time so they actually play at their rating.
+      if (singleThreaded && rating >= 2400) moveTime = Math.round(moveTime * 1.5);
+      return { mode: 'elo', limitStrength: true, uciElo, skillLevel: 20, depth: 30, moveTime };
+    }
+
+    // Sub-floor bots: keep genuinely weak with a low Skill Level and a shallow
+    // depth cap (NO long movetime, or they'd play far above their label).
+    if (rating < 1320) {
+      const skillLevel = Math.max(0, Math.min(8, Math.round((rating - 700) / 80)));
+      const depth = Math.max(2, Math.min(8, Math.round((rating - 500) / 150)));
+      return { mode: 'weak', limitStrength: false, uciElo: rating, skillLevel, depth, moveTime: null };
+    }
+
+    // Fallback (engine lacks UCI_Elo): calibrated Skill Level + depth + movetime.
+    const skillLevel = Math.max(0, Math.min(20, Math.round((rating - 800) / (2600 - 800) * 20)));
+    let depth;
+    if (rating < 1600) depth = 10;
+    else if (rating < 2000) depth = 14;
+    else if (rating < 2400) depth = 18;
+    else depth = 22;
+    let moveTime = tierMoveTime(rating) || 1000;
+    if (singleThreaded && rating >= 2400) moveTime = Math.round(moveTime * 1.5);
+    return { mode: 'skill', limitStrength: false, uciElo: rating, skillLevel, depth, moveTime };
+  }
+
   applyPersonality(bot) {
     if (!this.ready) return;
 
     this.resetOptions();
 
-    if (bot.stockfishElo) {
-      this.send('setoption name UCI_LimitStrength value true');
-      this.send(`setoption name UCI_Elo value ${bot.stockfishElo}`);
+    const cfg = this.calibrate(bot);
+    this._lastCalibration = cfg;
+
+    // Real threads only if the build advertises the option (bundled build is
+    // single-threaded, so this is normally a no-op).
+    if (this.supportedOptions.has('threads') && this._threadCount > 1) {
+      this.send(`setoption name Threads value ${this._threadCount}`);
     }
 
+    if (cfg.limitStrength) {
+      this.send('setoption name UCI_LimitStrength value true');
+      this.send(`setoption name UCI_Elo value ${cfg.uciElo}`);
+    } else {
+      this.send('setoption name UCI_LimitStrength value false');
+      this.send(`setoption name Skill Level value ${cfg.skillLevel}`);
+    }
+
+    // Apply style-only options (e.g. Contempt). Calibration owns strength, so
+    // ignore any strength-capping options baked into the bot definition.
     if (bot.uci) {
       for (const [option, value] of Object.entries(bot.uci)) {
+        const key = option.toLowerCase();
+        if (key === 'skill level' || key === 'uci_elo' || key === 'uci_limitstrength') continue;
         this.send(`setoption name ${option} value ${value}`);
       }
     }
 
-    this.depth = bot.searchDepth || 20;
-    this.moveTime = bot.moveTime || null;
+    this.depth = cfg.depth;
+    this.moveTime = cfg.moveTime;
   }
 
   /**
