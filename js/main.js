@@ -567,13 +567,31 @@ class ChessApp {
   }
 
   async handleEngineMove(uciMove) {
+    const parsed = Engine.parseUCIMove(uciMove);
+
+    // Turn/legality guard — defense-in-depth against a stale or misrouted
+    // bestmove reaching the game-move handler (the double-move / flash-and-
+    // revert bug). The engine's request-id dispatch (engine.js) should already
+    // discard superseded bestmoves, but never play one here unless the board is
+    // genuinely waiting for the engine to move THIS position: engine mode, game
+    // not over, and it is actually the engine's turn (not the player's). The
+    // move must also be legal in the current position.
+    const engineShouldMove =
+      this.game.mode === 'engine' &&
+      !this.game.gameOver &&
+      this.chess.turn() !== this.game.playerColor;
+    const isLegal = parsed && this.chess.moves({ verbose: true })
+      .some(m => m.from === parsed.from && m.to === parsed.to);
+    if (!engineShouldMove || !isLegal) {
+      console.warn('Discarding out-of-turn/illegal engine bestmove:', uciMove);
+      return;
+    }
+
     this._clearEngineMoveTimer();
     this._setEngineThinking(false);
 
     // Track engine think time (Feature 8)
     const engineTimeSec = (Date.now() - this._moveClockStart) / 1000;
-
-    const parsed = Engine.parseUCIMove(uciMove);
 
     // Animate the engine piece before making the move
     const targetPiece = this.game.chess.get(parsed.to);
@@ -1515,8 +1533,10 @@ class ChessApp {
     if (!this.engine) return;
 
     if (this.engine.thinking) {
-      // Send 'stop' — Stockfish will immediately return bestmove
-      this.engine.stop();
+      // Send 'stop' — Stockfish will immediately return bestmove. Pass
+      // discard=false so that bestmove is DELIVERED to handleEngineMove and
+      // actually played, rather than discarded as stale (the default).
+      this.engine.stop(false);
 
       // Safety fallback: if no bestmove arrives within 3 seconds, play random legal move
       setTimeout(() => {

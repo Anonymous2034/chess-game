@@ -12,13 +12,24 @@ export class Engine {
     this.onStatus = null;
     this.moveTime = null; // ms, alternative to depth
 
+    // Search-request tracking. Every 'go' we send is tagged with a monotonic
+    // id and a kind ('game' | 'analysis' | 'multipv'). Because Stockfish emits
+    // exactly one 'bestmove' per 'go' (in order), a FIFO of pending searches
+    // maps each incoming bestmove to the search that produced it. Only the most
+    // recent search (_currentSearchId) is "live"; any bestmove whose id has been
+    // superseded is stale and must be discarded. This prevents a pending
+    // analysis 'go' from delivering its bestmove to the game-move handler after
+    // a game move has been requested (the double-move / flash-and-revert bug).
+    this._searchSeq = 0;         // increments on every 'go'
+    this._currentSearchId = 0;   // id of the most recent 'go'
+    this._pendingSearches = [];  // FIFO of { id, kind } awaiting a bestmove
+
     // Analysis state — never swap worker.onmessage
     this._analyzing = false;
     this._analysisResult = null;
     this._analysisResolve = null;
     this._analysisCancelId = 0;
     this._analysisQueue = Promise.resolve();
-    this._ignoreNextBestmove = false;
 
     // Multi-PV state
     this.multiPV = 1;
@@ -79,6 +90,27 @@ export class Engine {
     }
   }
 
+  /**
+   * Issue a search. Tags it with a fresh id + kind, records it in the pending
+   * FIFO, marks it the live search, and sends the 'go' command.
+   */
+  _startSearch(kind, goCmd) {
+    const id = ++this._searchSeq;
+    this._currentSearchId = id;
+    this._pendingSearches.push({ id, kind });
+    this.send(goCmd);
+    return id;
+  }
+
+  /**
+   * Mark the current search as no longer live so its (possibly in-flight)
+   * bestmove is treated as stale and discarded. The pending FIFO entry stays so
+   * the eventual bestmove is still accounted for (shifted + discarded).
+   */
+  _discardCurrentSearch() {
+    this._currentSearchId = ++this._searchSeq;
+  }
+
   handleMessage(msg) {
     if (msg === 'uciok') {
       this.send('isready');
@@ -87,17 +119,24 @@ export class Engine {
       if (this.onStatus) this.onStatus('Ready');
     } else if (msg.startsWith('bestmove')) {
 
-      // Ignore bestmove from a cancelled analysis (after 'stop' was sent)
-      if (this._ignoreNextBestmove) {
-        this._ignoreNextBestmove = false;
-        return;
-      }
-
       const parts = msg.split(' ');
       const bestMove = parts[1];
 
+      // Match this bestmove to the search that produced it (FIFO order).
+      const desc = this._pendingSearches.shift();
+
+      // No record of a search for this bestmove — a stray 'stop' echo or a
+      // response from before a newGame() reset. Discard.
+      if (!desc) return;
+
+      // Superseded by a newer search (e.g. an analysis 'go' whose result came
+      // back after a game move was requested, or a search that was stopped and
+      // discarded). Route it nowhere — the caller's promise, if any, was already
+      // resolved by _cancelAnalysis()/stop(). This is the core fix.
+      if (desc.id !== this._currentSearchId) return;
+
       // Multi-PV analysis result
-      if (this._multiPVAnalyzing) {
+      if (desc.kind === 'multipv') {
         this._multiPVAnalyzing = false;
         if (this._multiPVResolve) {
           const resolve = this._multiPVResolve;
@@ -108,8 +147,8 @@ export class Engine {
         return;
       }
 
-      // Analysis result — route to analysis resolver, NOT to onBestMove
-      if (this._analyzing) {
+      // Standard analysis result — route to analysis resolver, NOT to onBestMove
+      if (desc.kind === 'analysis') {
         this._analyzing = false;
         if (this._analysisResult) {
           this._analysisResult.bestMove = bestMove || null;
@@ -255,11 +294,8 @@ export class Engine {
 
     this.send('position fen ' + fen);
 
-    if (this.moveTime) {
-      this.send(`go movetime ${this.moveTime}`);
-    } else {
-      this.send(`go depth ${this.depth}`);
-    }
+    const goCmd = this.moveTime ? `go movetime ${this.moveTime}` : `go depth ${this.depth}`;
+    this._startSearch('game', goCmd);
   }
 
   /**
@@ -270,29 +306,53 @@ export class Engine {
     // Increment cancel ID so queued analyses know to skip
     this._analysisCancelId++;
 
-    if (this._analyzing) {
-      this.send('stop');
-      this._analyzing = false;
+    const wasSearching = this._analyzing || this._multiPVAnalyzing;
 
-      // Resolve pending promise with empty result
+    // Resolve any pending single-PV analysis promise so its caller doesn't hang.
+    if (this._analyzing) {
+      this._analyzing = false;
       if (this._analysisResolve) {
-        this._analysisResolve({ bestMove: null, score: 0, mate: null, pv: '' });
+        const resolve = this._analysisResolve;
         this._analysisResolve = null;
+        resolve({ bestMove: null, score: 0, mate: null, pv: '' });
       }
       this._analysisResult = null;
+    }
 
-      // The 'stop' will cause a bestmove response — ignore it
-      this._ignoreNextBestmove = true;
+    // Resolve any pending multi-PV analysis promise too (this path was
+    // previously unhandled — a running multi-PV search would swallow the next
+    // game bestmove).
+    if (this._multiPVAnalyzing) {
+      this._multiPVAnalyzing = false;
+      if (this._multiPVResolve) {
+        const resolve = this._multiPVResolve;
+        this._multiPVResolve = null;
+        resolve([]);
+      }
+      this._multiPVResults = [];
+    }
+
+    if (wasSearching) {
+      // End the running analysis search early. Its bestmove will be discarded
+      // as stale once the next 'go' advances _currentSearchId.
+      this.send('stop');
     }
 
     // Clear the queue so no more queued analyses run
     this._analysisQueue = Promise.resolve();
   }
 
-  stop() {
+  /**
+   * Stop the current search. By default (discard=true) the resulting bestmove
+   * is dropped — used when aborting (undo, new game, mode switch). Pass
+   * discard=false to let the bestmove be delivered to onBestMove, as the
+   * "force move" flow relies on (stop → immediate bestmove → play it).
+   */
+  stop(discard = true) {
     if (this.thinking) {
       this.send('stop');
       this.thinking = false;
+      if (discard) this._discardCurrentSearch();
     }
   }
 
@@ -300,6 +360,9 @@ export class Engine {
     if (this.ready) {
       this.stop();
       this._cancelAnalysis();
+      // Drop any bestmoves still in flight from before the reset.
+      this._pendingSearches = [];
+      this._discardCurrentSearch();
       this.send('ucinewgame');
       this.send('isready');
     }
@@ -326,7 +389,7 @@ export class Engine {
       this._analysisResolve = resolve;
 
       this.send('position fen ' + fen);
-      this.send(`go depth ${depth}`);
+      this._startSearch('analysis', `go depth ${depth}`);
 
       // Safety timeout — if analysis doesn't complete in 30s, resolve empty
       setTimeout(() => {
@@ -361,7 +424,7 @@ export class Engine {
 
       this.send(`setoption name MultiPV value ${numPV}`);
       this.send('position fen ' + fen);
-      this.send(`go depth ${depth}`);
+      this._startSearch('multipv', `go depth ${depth}`);
 
       setTimeout(() => {
         if (this._multiPVResolve === resolve) {
