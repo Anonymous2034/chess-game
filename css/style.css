@@ -6786,17 +6786,29 @@ body.resizing-h {
     --board-size: min(calc(100vw - 22px), calc(100dvh - 210px), 480px);
   }
 
+  /* main is the SINGLE scroll container on mobile. It must have a FIXED height
+     (viewport minus the 50px header and the 50px fixed bottom tab bar), NOT a
+     min-height — otherwise it grows unbounded and the DOCUMENT scrolls, which
+     also makes overflow-anchor:none useless (anchoring runs on the doc scroller)
+     and hides the board off the top after each move. With a fixed height,
+     overflow-y:auto engages here and overflow-anchor:none takes effect. */
   main {
     flex-direction: column;
     align-items: center;
     padding: 4px;
-    padding-bottom: 54px; /* space for fixed mobile nav */
     gap: 4px;
-    min-height: auto;
+    height: calc(100vh - 100px);   /* fallback: 50px header + 50px tab bar */
+    height: calc(100dvh - 100px);
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     overflow-anchor: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Belt & braces: kill scroll anchoring on the document scroller too. */
+  html, body {
+    overflow-anchor: none;
   }
 
   /* Fit-guarantee safety net: free-layout (desktop dragged windows) can never
@@ -6965,6 +6977,13 @@ body.resizing-h {
   }
 
   .move-history-container {
+    /* Drop desktop's fixed 200px. Fill the leftover column space when the moves
+       group is a flex child, but never exceed 40dvh — so the list scrolls
+       INTERNALLY instead of growing the page. */
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 40dvh;
     overflow: hidden;
     overflow-anchor: none;
   }
@@ -7369,9 +7388,26 @@ body.resizing-h {
   }
 
   /* --- Tab: MOVES — status + moves only --- */
-  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="status"],
-  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="moves"] {
+  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="status"] {
     display: block !important;
+    flex: 0 0 auto; /* status keeps its natural height */
+  }
+  /* The moves group is a flex column that fills the leftover height of the
+     (height-constrained) side panel, so the move list inside scrolls in place
+     rather than growing the page. min-height:0 lets it actually shrink. */
+  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="moves"] {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  /* Override the desktop `.panel-content { flex: 0 1 auto; overflow-y: visible }`
+     rule so the moves content fills the column and its inner list is what
+     scrolls (min-height:0 lets it shrink). */
+  body[data-mobile-tab="moves"] .side-panel > [data-drag-id="moves"] .panel-content {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: hidden;
   }
 
   /* --- Tab: ANALYZE — engine lines + book + hints + analysis summary --- */

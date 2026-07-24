@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REMOTE_HOST="195.201.28.115"
+REMOTE_HOST="65.109.133.224"
 REMOTE_DIR="/opt/grandmasters"
 SSH_KEY="$HOME/.ssh/hetzner_omnex"
 

@@ -7,8 +7,9 @@ set -e
 cd "$(dirname "$0")"
 
 if [ -z "$1" ]; then
-  # Auto-detect current version from sw.js and increment
-  CURRENT=$(grep -oP 'grandmasters-v\K\d+' sw.js)
+  # Auto-detect current version from sw.js and increment (macOS/BSD-compatible:
+  # grep -oE has no \K, so match the whole token then strip the prefix)
+  CURRENT=$(grep -oE 'grandmasters-v[0-9]+' sw.js | head -1 | grep -oE '[0-9]+')
   NEW=$((CURRENT + 1))
 else
   NEW="$1"
