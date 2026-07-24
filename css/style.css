@@ -6786,19 +6786,22 @@ body.resizing-h {
     --board-size: min(calc(100vw - 22px), calc(100dvh - 210px), 480px);
   }
 
-  /* main is the SINGLE scroll container on mobile. It must have a FIXED height
-     (viewport minus the 50px header and the 50px fixed bottom tab bar), NOT a
-     min-height — otherwise it grows unbounded and the DOCUMENT scrolls, which
-     also makes overflow-anchor:none useless (anchoring runs on the doc scroller)
-     and hides the board off the top after each move. With a fixed height,
-     overflow-y:auto engages here and overflow-anchor:none takes effect. */
+  /* main is the SINGLE scroll container on mobile. FIXED height (viewport minus
+     the 50px header only), NOT min-height — otherwise it grows unbounded and the
+     DOCUMENT scrolls, which also makes overflow-anchor:none useless (anchoring
+     runs on the doc scroller) and hides the board off the top after each move.
+     The bottom nav is position:fixed and OVERLAYS main's bottom — it is NOT
+     subtracted from this height. So main always fills to the visual viewport
+     bottom even when dvh briefly disagrees with it (no gap under the nav), and
+     content scrolls UNDER the nav. The `.mobile-nav` clearance comes from main's
+     padding-bottom, set in the "Safe area insets" rule below. */
   main {
     flex-direction: column;
     align-items: center;
     padding: 4px;
     gap: 4px;
-    height: calc(100vh - 100px);   /* fallback: 50px header + 50px tab bar */
-    height: calc(100dvh - 100px);
+    height: calc(100vh - 50px);    /* fallback: header only */
+    height: calc(100dvh - 50px);
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
@@ -9924,11 +9927,14 @@ body.free-layout-on .book-panel {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: var(--z-toast);
+    z-index: var(--z-toast); /* sticky-or-higher tier — stays above scrolling content */
     background: #1a1a1a;
     border-top: 1px solid #333;
+    /* 50px tappable row PLUS the safe-area cushion below (Android gesture bar /
+       iOS home indicator). box-sizing:border-box, so the height must include the
+       padding or the row would be squished on notched phones. */
+    height: calc(50px + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
-    height: 50px;
     align-items: stretch;
     gap: 0;
   }

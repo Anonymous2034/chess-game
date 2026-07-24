@@ -1,5 +1,5 @@
 // Service Worker — Offline support for Grandmasters Chess
-const CACHE_NAME = 'grandmasters-v178';
+const CACHE_NAME = 'grandmasters-v179';
 
 // Install — precache core assets only (lazy-cache the rest on fetch)
 const CORE_URLS = [
