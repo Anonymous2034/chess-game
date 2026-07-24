@@ -5667,15 +5667,52 @@ class ChessApp {
 
   // === Layout Editor ===
 
+  // The full set of toggleable panel keys (must match data-layout-key toggles
+  // in index.html).
+  static get _LAYOUT_KEYS() {
+    return ['evalBar', 'playerInfoTop', 'playerInfoBottom', 'capturedPieces',
+      'timers', 'openingLabel', 'evalGraph', 'navControls', 'statusBar',
+      'moveList', 'advisorsTab', 'coachTab', 'openingExplorer', 'coachArea',
+      'music', 'clockWindow', 'moveNotes', 'matchNotes', 'showLegalMoves'];
+  }
+
+  // Recommended default layout per device class. Applied on first visit (when no
+  // saved layout exists for that class) and by "Reset to recommended". Layouts
+  // are intentionally lean on small screens so every enabled panel fits.
+  static _layoutDefaultsFor(deviceClass) {
+    const off = {};
+    for (const k of ChessApp._LAYOUT_KEYS) off[k] = false;
+
+    // Mobile: minimal set that stacks cleanly in a single vertical column.
+    const mobile = { ...off,
+      timers: true, moveList: true, statusBar: true, navControls: true,
+      showLegalMoves: true, playerInfoTop: true, playerInfoBottom: true };
+    if (deviceClass === 'mobile') return mobile;
+
+    // Tablet: mobile + a little more board chrome.
+    const tablet = { ...mobile, evalBar: true, capturedPieces: true, openingLabel: true };
+    if (deviceClass === 'tablet') return tablet;
+
+    // Desktop: tablet + eval graph, opening book, commentary.
+    return { ...tablet, evalGraph: true, openingExplorer: true, coachArea: true };
+  }
+
+  // Back-compat shim — a few call sites referenced the old flat defaults.
   static get _LAYOUT_DEFAULTS() {
-    return {
-      evalBar: true, playerInfoTop: true, playerInfoBottom: true,
-      capturedPieces: true, timers: true, openingLabel: true,
-      evalGraph: true, navControls: true, statusBar: true,
-      moveList: true, advisorsTab: true, coachTab: true, openingExplorer: true,
-      coachArea: true, music: true, clockWindow: true, moveNotes: true, matchNotes: true,
-      showLegalMoves: false
-    };
+    return ChessApp._layoutDefaultsFor('desktop');
+  }
+
+  // Device class from viewport width: mobile (<768), tablet (768–1200),
+  // desktop (>1200). Matches the CSS breakpoints.
+  _deviceClass() {
+    const w = window.innerWidth || document.documentElement.clientWidth || 1280;
+    if (w < 768) return 'mobile';
+    if (w <= 1200) return 'tablet';
+    return 'desktop';
+  }
+
+  _layoutStorageKey(cls) {
+    return `layout_${cls}`;
   }
 
   setupLayoutEditor() {
@@ -5718,15 +5755,20 @@ class ChessApp {
     });
 
     document.getElementById('layout-reset').addEventListener('click', () => {
-      this._layout = { ...ChessApp._LAYOUT_DEFAULTS };
+      // Restore the recommended defaults for the CURRENT device class.
+      const cls = this._deviceClass();
+      this._layout = { ...ChessApp._layoutDefaultsFor(cls) };
       this._saveLayoutSettings();
       this._applyAllLayoutSettings();
       this._syncLayoutCheckboxes();
-      // Reset free layout to defaults
+      // Reset free layout to defaults — desktop/tablet only; free-layout is
+      // never used on mobile (dragged positions can't fit a phone screen).
       if (this._freeLayout) {
         FreeLayout.clearSaved();
-        this._freeLayout.deactivate();
-        this._freeLayout.activate();
+        if (cls !== 'mobile' && this._freeLayout.active) {
+          this._freeLayout.deactivate();
+          this._freeLayout.activate();
+        }
       }
     });
 
@@ -5753,6 +5795,16 @@ class ChessApp {
       this._layout[key] = cb.checked;
       this._saveLayoutSettings();
       this._applyLayoutSetting(key, cb.checked);
+      this._auditLayoutFit();
+    });
+
+    // Re-apply the matching per-device layout when the viewport crosses a
+    // device-class boundary (phone-width, tablet, desktop).
+    ['(max-width: 767.98px)', '(min-width: 1201px)'].forEach(q => {
+      const mq = window.matchMedia(q);
+      const handler = () => this._onDeviceClassMaybeChanged();
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler); // older Safari
     });
   }
 
@@ -5793,24 +5845,94 @@ class ChessApp {
   }
 
   _loadLayoutSettings() {
-    const defaults = ChessApp._LAYOUT_DEFAULTS;
-    try {
-      const saved = localStorage.getItem('chess_layout');
-      if (saved) {
-        const parsed = JSON.parse(saved);
+    const cls = this._deviceClass();
+    this._deviceClassCurrent = cls;
+    const defaults = ChessApp._layoutDefaultsFor(cls);
+    const key = this._layoutStorageKey(cls);
+
+    let raw = null;
+    try { raw = localStorage.getItem(key); } catch {}
+
+    // Migration for existing users: a single legacy layout was stored under
+    // 'chess_layout'. Move it into the key for their CURRENT device class; the
+    // other classes fall through to recommended defaults on demand.
+    if (!raw) {
+      let legacy = null;
+      try { legacy = localStorage.getItem('chess_layout'); } catch {}
+      if (legacy) {
+        raw = legacy;
+        try { localStorage.setItem(key, legacy); } catch {}
+        try { localStorage.removeItem('chess_layout'); } catch {}
+      }
+    }
+
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
         this._layout = Object.fromEntries(
           Object.keys(defaults).map(k => [k, k in parsed ? !!parsed[k] : defaults[k]])
         );
-      } else {
+      } catch {
         this._layout = { ...defaults };
       }
-    } catch {
+    } else {
+      // First visit for this device class — apply recommended defaults and
+      // persist them locally (no cloud push until the user changes something).
       this._layout = { ...defaults };
+      try { localStorage.setItem(key, JSON.stringify(this._layout)); } catch {}
     }
   }
 
   _saveLayoutSettings() {
-    localStorage.setItem('chess_layout', JSON.stringify(this._layout));
+    const cls = this._deviceClassCurrent || this._deviceClass();
+    try {
+      localStorage.setItem(this._layoutStorageKey(cls), JSON.stringify(this._layout));
+    } catch {}
+    this._syncLayoutsToCloud();
+  }
+
+  // Collect all three per-device layouts from localStorage for cloud sync.
+  _gatherAllLayouts() {
+    const out = {};
+    for (const cls of ['mobile', 'tablet', 'desktop']) {
+      try {
+        const stored = localStorage.getItem(this._layoutStorageKey(cls));
+        if (stored) out[cls] = JSON.parse(stored);
+      } catch {}
+    }
+    return out;
+  }
+
+  // Push all per-device layouts to the logged-in user's profile so they persist
+  // across devices/logins. Stored in the shared settings blob under `layouts`.
+  _syncLayoutsToCloud() {
+    if (!this.dataService || !this.auth?.isLoggedIn()) return;
+    try {
+      this.dataService.saveSettings({ layouts: this._gatherAllLayouts() });
+    } catch {}
+  }
+
+  // On login, pull per-device layouts from the profile, store them locally, and
+  // re-apply the one matching the current device class.
+  async _loadLayoutsFromCloud() {
+    if (!this.dataService || !this.auth?.isLoggedIn()) return;
+    let settings = null;
+    try { settings = await this.dataService.loadSettings(); } catch {}
+    const layouts = settings && settings.layouts;
+    if (!layouts) return;
+    let changed = false;
+    for (const cls of ['mobile', 'tablet', 'desktop']) {
+      if (layouts[cls]) {
+        try {
+          localStorage.setItem(this._layoutStorageKey(cls), JSON.stringify(layouts[cls]));
+          changed = true;
+        } catch {}
+      }
+    }
+    if (!changed) return;
+    this._loadLayoutSettings();
+    this._applyAllLayoutSettings();
+    this._syncLayoutCheckboxes();
   }
 
   _applyLayoutSetting(key, visible) {
@@ -5949,6 +6071,43 @@ class ChessApp {
     for (const [key, visible] of Object.entries(this._layout)) {
       this._applyLayoutSetting(key, visible);
     }
+    this._auditLayoutFit();
+  }
+
+  // Fit guarantee: after applying a layout, make sure nothing overflows the
+  // viewport. On mobile, free-layout (absolutely-positioned windows dragged on
+  // desktop) can never fit, so it is force-disabled and panels flow in a single
+  // vertical column inside <main>.
+  _auditLayoutFit() {
+    const cls = this._deviceClass();
+    if (cls === 'mobile') {
+      if (this._freeLayout?.active) {
+        this._freeLayout.deactivate();
+        if (this.board) this.board.update();
+      }
+      document.body.classList.remove('free-layout-on');
+    }
+    // Verify no horizontal overflow (a panel wider than the viewport).
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => {
+        const de = document.documentElement;
+        if (de && de.scrollWidth > de.clientWidth + 2) {
+          console.warn('[layout] content overflows viewport horizontally',
+            { scrollWidth: de.scrollWidth, clientWidth: de.clientWidth, deviceClass: cls });
+        }
+      });
+    }
+  }
+
+  // Re-apply the matching layout when the viewport crosses a device-class
+  // boundary (e.g. a desktop window shrunk to tablet width, or a tablet rotated
+  // to phone width).
+  _onDeviceClassMaybeChanged() {
+    const cls = this._deviceClass();
+    if (cls === this._deviceClassCurrent) return;
+    this._loadLayoutSettings();
+    this._applyAllLayoutSettings();
+    this._syncLayoutCheckboxes();
   }
 
   _activateFirstVisibleTab() {
@@ -8714,6 +8873,8 @@ class ChessApp {
           if (cloudStats && cloudStats.games) {
             this.stats.data = cloudStats;
           }
+          // Pull per-device panel layouts from the profile.
+          await this._loadLayoutsFromCloud();
           // Flush any games queued while offline
           this._flushSyncQueue();
         }

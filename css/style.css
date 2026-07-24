@@ -6778,6 +6778,24 @@ body.resizing-h {
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Fit-guarantee safety net: free-layout (desktop dragged windows) can never
+     fit a phone screen. The JS force-disables it on mobile, but if the class
+     ever lingers, force normal single-column flow so panels stack instead of
+     overlapping. */
+  body.free-layout-on main {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  body.free-layout-on .board-area,
+  body.free-layout-on .side-panel {
+    display: flex !important;
+  }
+
   /* Thin eval bar on mobile, center the board */
   .eval-bar {
     width: 6px;
