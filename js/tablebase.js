@@ -5,6 +5,9 @@ export class TablebaseLookup {
     this._cache = new Map();
     this.enabled = localStorage.getItem('chess_tablebase') !== 'false';
     this.onResult = null;
+    // True when the most recent query() failed because we're offline / couldn't
+    // reach the server. Lets the caller show a throttled offline notice.
+    this.lastResultOffline = false;
   }
 
   setEnabled(v) {
@@ -28,11 +31,20 @@ export class TablebaseLookup {
   async query(fen) {
     if (this._cache.has(fen)) return this._cache.get(fen);
 
+    // Offline pre-check — skip the network round-trip entirely.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      this.lastResultOffline = true;
+      return null;
+    }
+
     try {
       const resp = await fetch(`https://tablebase.lichess.ovh/standard?fen=${encodeURIComponent(fen)}`);
-      if (!resp.ok) return null;
+      // A non-ok response (e.g. position not found) is a normal "no data" case,
+      // not an offline failure.
+      if (!resp.ok) { this.lastResultOffline = false; return null; }
       const data = await resp.json();
       const result = this._parseResponse(data, fen);
+      this.lastResultOffline = false;
       this._cache.set(fen, result);
       // Limit cache size
       if (this._cache.size > 500) {
@@ -40,7 +52,9 @@ export class TablebaseLookup {
         this._cache.delete(first);
       }
       return result;
-    } catch {
+    } catch (err) {
+      // Network/DNS errors surface as TypeError; treat those as offline.
+      this.lastResultOffline = (err instanceof TypeError);
       return null;
     }
   }

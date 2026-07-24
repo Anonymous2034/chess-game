@@ -6,9 +6,9 @@ export class FreeLayout {
 
   // Window definitions: which drag-groups go into each window
   static WINDOW_DEFS = {
-    board:        { label: 'Board',      icon: '♚', groups: ['board'],                                      minW: 200, minH: 200 },
-    white:        { label: 'White',      icon: '♙', groups: ['player-bottom'],                              minW: 180, minH: 32  },
-    black:        { label: 'Black',      icon: '♟', groups: ['player-top'],                                 minW: 180, minH: 32  },
+    board:        { label: 'Board',      icon: '♚', groups: ['drag-board'],                                 minW: 200, minH: 200 },
+    white:        { label: 'White',      icon: '♙', groups: ['drag-player-bottom'],                         minW: 180, minH: 32  },
+    black:        { label: 'Black',      icon: '♟', groups: ['drag-player-top'],                            minW: 180, minH: 32  },
     navigation:   { label: 'Navigation', icon: '↔', groups: ['nav', 'opening'],                            minW: 200, minH: 50  },
     'eval-graph': { label: 'Eval Graph', icon: '↑', groups: ['eval-graph'],                                 minW: 150, minH: 60  },
     music:        { label: 'Music',      icon: '♫', groups: ['music'],                                      minW: 200, minH: 40  },
@@ -193,7 +193,7 @@ export class FreeLayout {
     if (!boardArea || !sidePanel) return;
 
     // Restore groups to their original containers
-    const boardOrder = ['player-top', 'board', 'player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
+    const boardOrder = ['drag-player-top', 'drag-board', 'drag-player-bottom', 'opening', 'eval-graph', 'music', 'nav'];
     const sideOrder = ['status', 'tab-bar', 'moves', 'book', 'hints', 'gm-coach-tab', 'coach-area', 'move-note', 'match-note'];
 
     for (const gId of boardOrder) {

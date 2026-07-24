@@ -9,7 +9,7 @@
   text-align: center;
   padding: 4px 8px;
   font-size: 0.8rem;
-  z-index: 1000;
+  z-index: var(--z-overlay);
   transform: translateY(-100%);
   transition: transform 0.3s;
 }
@@ -29,7 +29,7 @@
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
-  z-index: 999;
+  z-index: calc(var(--z-overlay) - 1);
   opacity: 0;
   transform: scale(0.8);
   pointer-events: none;
@@ -47,7 +47,7 @@
 .download-dialog {
   position: fixed;
   inset: 0;
-  z-index: 99998;
+  z-index: var(--z-critical);
   background: rgba(0,0,0,0.85);
   display: flex;
   align-items: center;
@@ -154,6 +154,20 @@ a, button, .square, .piece, .move-cell, .bot-list-card,
   --btn-hover: #4d4a47;
   --board-size: min(80vw, 80vh, 560px);
   --square-size: calc(var(--board-size) / 8);
+
+  /* === Layering scale ===
+     Single source of truth for stacking order. Use the nearest tier; small
+     calc() offsets nudge an element just above/below its tier without leaving
+     the scale. Order low → high:
+       base < panel < dropdown < sticky < overlay < modal < toast < critical */
+  --z-base: 1;
+  --z-panel: 100;
+  --z-dropdown: 500;
+  --z-sticky: 800;
+  --z-overlay: 1000;
+  --z-modal: 5000;
+  --z-toast: 9000;
+  --z-critical: 10000;
 }
 
 /* === Light Theme === */
@@ -313,7 +327,7 @@ nav {
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  z-index: 100;
+  z-index: var(--z-panel);
   min-width: 140px;
 }
 
@@ -409,7 +423,7 @@ main {
   color: #888;
   text-shadow: 0 0 3px rgba(0,0,0,0.8);
   white-space: nowrap;
-  z-index: 1;
+  z-index: var(--z-base);
   writing-mode: vertical-rl;
   text-orientation: mixed;
   display: none;
@@ -512,7 +526,7 @@ main {
 .piece {
   width: 85%;
   height: 85%;
-  z-index: 2;
+  z-index: calc(var(--z-base) + 1);
   cursor: grab;
   pointer-events: auto;
   transition: none;
@@ -526,7 +540,7 @@ main {
   position: fixed;
   width: calc(var(--square-size) * 1.1);
   height: calc(var(--square-size) * 1.1);
-  z-index: 1000;
+  z-index: var(--z-overlay);
   pointer-events: none;
   filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.4));
 }
@@ -1106,7 +1120,7 @@ main {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 4;
+  z-index: calc(var(--z-base) + 3);
 }
 .board-arrows line {
   stroke-linecap: round;
@@ -1134,7 +1148,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 500;
+  z-index: var(--z-dropdown);
   overscroll-behavior: contain;
 }
 
@@ -1390,7 +1404,7 @@ main {
   background: var(--panel-bg, #1e1e1e);
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 /* Compact card in left list */
@@ -1985,7 +1999,7 @@ main {
   background: var(--panel-bg, #1e1e1e);
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 /* Rich detail panel */
 .cmpb-hero {
@@ -3366,6 +3380,13 @@ main {
   font-size: 0.82rem;
 }
 
+.coach-api-key-warning {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #e0a33e;
+}
+
 /* === Live Advisors Panel === */
 .live-advisors-panel { padding: 12px; }
 .live-advisors-header {
@@ -3694,7 +3715,7 @@ main {
   padding: 8px 12px;
   font-size: 0.75rem;
   color: var(--text-color);
-  z-index: 600;
+  z-index: calc(var(--z-dropdown) + 100);
   max-width: 250px;
   pointer-events: none;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
@@ -4667,7 +4688,7 @@ body.floating-clock-active .timer-group .move-clock {
 
 .floating-clock {
   position: absolute;
-  z-index: 50;
+  z-index: calc(var(--z-panel) - 50);
   cursor: grab;
   left: 50%;
   transform: translateX(-50%);
@@ -5096,7 +5117,7 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 8px;
-  z-index: 10001;
+  z-index: calc(var(--z-critical) + 1);
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -6456,7 +6477,7 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
   background: var(--panel-bg); border: 1px solid var(--border-color);
   color: var(--text-color); font-size: 0.68rem; padding: 2px 6px;
-  border-radius: 3px; white-space: nowrap; z-index: 10;
+  border-radius: 3px; white-space: nowrap; z-index: calc(var(--z-base) + 9);
 }
 .review-breakdown-legend {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -6638,7 +6659,7 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   flex-shrink: 0;
   align-self: stretch;
   min-height: var(--panel-height, 300px);
-  z-index: 5;
+  z-index: calc(var(--z-base) + 4);
   transition: background 0.15s;
 }
 
@@ -6672,7 +6693,7 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   background: rgba(255,255,255,0.02);
   position: relative;
   flex-shrink: 0;
-  z-index: 5;
+  z-index: calc(var(--z-base) + 4);
   transition: background 0.15s;
 }
 
@@ -6711,7 +6732,7 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   letter-spacing: 4px;
   color: #555;
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 .resize-handle-h:hover::before {
@@ -6727,7 +6748,7 @@ body.clock-modern .fc-divider { background: #4a4a52; }
   font-size: 14px;
   color: #555;
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 .resize-handle-v:hover::before {
@@ -6847,7 +6868,7 @@ body.resizing-h {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
-    z-index: 10000;
+    z-index: var(--z-critical);
   }
   .nav-menu-backdrop.open {
     display: block;
@@ -6863,7 +6884,7 @@ body.resizing-h {
     border-radius: 0;
     border-left: none;
     border-right: none;
-    z-index: 10001;
+    z-index: calc(var(--z-critical) + 1);
   }
 
   .nav-menu-section {
@@ -8267,7 +8288,7 @@ body.resizing-h {
   background: var(--panel-bg, #1e1e1e);
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 .mp-cl-item {
   display: flex;
@@ -8722,7 +8743,7 @@ body.free-layout-on [data-drag-id="tab-bar"] {
 /* === 8 Resize Handles === */
 .free-resize-handle {
   position: absolute;
-  z-index: 2;
+  z-index: calc(var(--z-base) + 1);
 }
 
 /* Edges — 8px wide invisible touch targets */
@@ -8783,7 +8804,7 @@ body.free-layout-on [data-drag-id="tab-bar"] {
 /* Alignment guide lines */
 .free-guide-line {
   position: absolute;
-  z-index: 99999;
+  z-index: calc(var(--z-critical) + 1);
   pointer-events: none;
 }
 .free-guide-double {
@@ -8793,7 +8814,7 @@ body.free-layout-on [data-drag-id="tab-bar"] {
 /* === Board-specific: fill window, stay square === */
 /* Grid: [eval-bar] [ranks 1-8] [board]
                                  [files a-h] */
-body.free-layout-on [data-drag-id="board"] #board-container {
+body.free-layout-on [data-drag-id="drag-board"] #board-container {
   flex: 1;
   min-height: 0;
   display: grid;
@@ -8804,7 +8825,7 @@ body.free-layout-on [data-drag-id="board"] #board-container {
   margin-left: 0;
 }
 
-body.free-layout-on [data-drag-id="board"] .eval-bar {
+body.free-layout-on [data-drag-id="drag-board"] .eval-bar {
   grid-row: 1;
   grid-column: 1;
   height: var(--board-size);
@@ -8812,7 +8833,7 @@ body.free-layout-on [data-drag-id="board"] .eval-bar {
   visibility: visible !important;
 }
 
-body.free-layout-on [data-drag-id="board"] #board {
+body.free-layout-on [data-drag-id="drag-board"] #board {
   grid-row: 1;
   grid-column: 3;
   width: var(--board-size);
@@ -8871,7 +8892,7 @@ body.free-layout-on .coords-files {
   position: absolute;
   top: 100%;
   right: 40px;
-  z-index: 10000;
+  z-index: var(--z-critical);
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -9069,7 +9090,7 @@ body.free-layout-on .book-panel {
 
 /* === Feature 12: Game Result Banner === */
 .game-result-banner {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 900;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: calc(var(--z-overlay) - 100);
   display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
 }
@@ -9102,7 +9123,7 @@ body.free-layout-on .book-panel {
 
 /* === Feature 11: Blunder Alert === */
 .blunder-alert {
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 800;
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: var(--z-sticky);
   display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px;
   font-size: 0.85rem; animation: blunderSlideUp 0.3s ease;
 }
@@ -9140,7 +9161,7 @@ body.free-layout-on .book-panel {
 /* === Feature 9: Board Arrows & Square Highlights === */
 .board-highlight-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 1;
+  pointer-events: none; z-index: var(--z-base);
 }
 .square-highlight {
   position: absolute; opacity: 0.5; border-radius: 2px; pointer-events: none;
@@ -9148,7 +9169,7 @@ body.free-layout-on .book-panel {
 
 /* === Feature 6: Pre-Game Countdown === */
 .countdown-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 950;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: calc(var(--z-overlay) - 50);
   display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
 }
@@ -9225,7 +9246,7 @@ body.free-layout-on .book-panel {
   border-radius: 10px;
   padding: 10px 18px;
   font-size: 0.85rem;
-  z-index: 1100;
+  z-index: calc(var(--z-overlay) + 100);
   box-shadow: 0 4px 20px rgba(184, 134, 11, 0.3);
   transition: opacity 0.4s;
 }
@@ -9552,7 +9573,7 @@ body.free-layout-on .book-panel {
    FEATURE 4: Manual Game Annotations (v149)
    ============================================================ */
 .annotation-popup {
-  position: absolute; z-index: 1000; background: var(--panel-bg); border: 1px solid var(--border-color);
+  position: absolute; z-index: var(--z-overlay); background: var(--panel-bg); border: 1px solid var(--border-color);
   border-radius: 8px; padding: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
   width: 220px;
 }
@@ -9661,7 +9682,7 @@ body.free-layout-on .book-panel {
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
 #scanner-overlay {
-  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: var(--z-base);
 }
 .scanner-controls { padding: 10px 0 0; }
 .scanner-orient-row {
@@ -9867,7 +9888,7 @@ body.free-layout-on .book-panel {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 9000;
+    z-index: var(--z-toast);
     background: #1a1a1a;
     border-top: 1px solid #333;
     padding-bottom: env(safe-area-inset-bottom);

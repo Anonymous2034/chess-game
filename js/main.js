@@ -6940,11 +6940,28 @@ class ChessApp {
     const EDGE_ZONE = 10; // px from bottom edge to trigger resize
     const STORAGE_PREFIX = 'chess_block_h_';
 
+    // Migrate saved block heights keyed by the old drag-ids (renamed to avoid
+    // colliding with element ids of the same name). One-time, idempotent.
+    const DRAG_ID_MIGRATION = {
+      'player-top': 'drag-player-top',
+      'player-bottom': 'drag-player-bottom',
+      'board': 'drag-board',
+    };
+    for (const [oldId, newId] of Object.entries(DRAG_ID_MIGRATION)) {
+      const oldKey = STORAGE_PREFIX + oldId;
+      const newKey = STORAGE_PREFIX + newId;
+      const val = localStorage.getItem(oldKey);
+      if (val !== null && localStorage.getItem(newKey) === null) {
+        localStorage.setItem(newKey, val);
+      }
+      if (val !== null) localStorage.removeItem(oldKey);
+    }
+
     document.querySelectorAll('.drag-group').forEach(group => {
       const dragId = group.dataset.dragId;
       if (!dragId) return;
       // Skip board (resized via main handle) and very small utility blocks
-      if (['board'].includes(dragId)) return;
+      if (['drag-board'].includes(dragId)) return;
 
       // The actual resizable target is the first visible child element
       const target = group.querySelector('.player-info, .opening-label, .eval-graph-container, .status-bar, .panel-tabs, .panel-content, .mini-music, .nav-controls, .panel-coach-area, .move-notes');
@@ -12087,6 +12104,16 @@ class ChessApp {
       this._renderTablebaseResult(result);
     } else {
       this._clearTablebaseDisplay();
+      // Since this runs automatically after moves, only surface the offline
+      // notice once per offline episode — don't spam a toast every move.
+      if (this.tablebase.lastResultOffline) {
+        if (!this._tablebaseOfflineNotified) {
+          this._tablebaseOfflineNotified = true;
+          this.showToast("Offline — couldn't reach tablebase.");
+        }
+      } else {
+        this._tablebaseOfflineNotified = false;
+      }
     }
   }
 
@@ -12212,6 +12239,15 @@ class ChessApp {
 
   async _fetchLichessGames(username) {
     const status = document.getElementById('lichess-import-status');
+
+    // Offline pre-check — fail fast with a friendly message, no hanging spinner.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      const msg = "Offline — couldn't reach Lichess. Reconnect and try again.";
+      if (status) status.textContent = msg;
+      this.showToast(msg);
+      return;
+    }
+
     if (status) status.textContent = `Fetching games for ${username}...`;
 
     try {
@@ -12230,7 +12266,13 @@ class ChessApp {
       this._renderLichessGameList(games, username);
       if (status) status.textContent = `Found ${games.length} games`;
     } catch (err) {
-      if (status) status.textContent = `Error: ${err.message}`;
+      // Network/DNS errors surface as TypeError; HTTP errors carry a status.
+      const offline = err instanceof TypeError;
+      const msg = offline
+        ? "Offline — couldn't reach Lichess. Check your connection and try again."
+        : `Couldn't fetch games (${err.message}). Try again.`;
+      if (status) status.textContent = msg;
+      this.showToast(msg);
     }
   }
 

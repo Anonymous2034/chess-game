@@ -1025,6 +1025,7 @@
             <div class="form-row">
               <label>API Key</label>
               <input type="password" id="coach-api-key" placeholder="Enter your API key">
+              <p class="coach-api-key-warning">Key is stored locally in your browser. Don't use this on shared devices — create a restricted/low-limit API key.</p>
             </div>
             <div class="form-row">
               <label>Model (optional)</label>
@@ -1417,7 +1418,7 @@
     <main>
       <!-- Left: Board Area -->
       <div class="board-area">
-        <div class="drag-group" data-drag-id="player-top" data-drag-label="Player Top">
+        <div class="drag-group" data-drag-id="drag-player-top" data-drag-label="Player Top">
         <!-- Top Player Info -->
         <div class="player-info top" id="player-top">
           <div class="player-info-left">
@@ -1432,7 +1433,7 @@
         </div>
         </div>
 
-        <div class="drag-group" data-drag-id="board" data-drag-label="Board">
+        <div class="drag-group" data-drag-id="drag-board" data-drag-label="Board">
         <!-- Chess Board -->
         <div id="board-container">
           <div class="eval-bar" id="eval-bar">
@@ -1500,7 +1501,7 @@
         </div>
         </div>
 
-        <div class="drag-group" data-drag-id="player-bottom" data-drag-label="Player Bottom">
+        <div class="drag-group" data-drag-id="drag-player-bottom" data-drag-label="Player Bottom">
         <!-- Bottom Player Info -->
         <div class="player-info bottom" id="player-bottom">
           <div class="player-info-left">
